@@ -4,6 +4,7 @@
 import Parser from "rss-parser";
 import { FEED_SOURCES, TOOL_KEYWORDS, TOPIC_KEYWORDS } from "./sources";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
+import { isGoogleNewsUrl, resolveGoogleNewsUrl } from "./googleNews";
 
 // 収集対象の期間（日）。引数で上書き可: npx tsx scripts/collect.ts 60
 const MAX_AGE_DAYS = Number(process.argv[2] ?? 7);
@@ -116,6 +117,9 @@ async function main() {
         }
       }
       if (knownTitles.has(titleKey(title))) continue; // 転載の重複（同一タイトル）
+      // Google News の暗号化URLは元記事URLに戻す（generate の web_fetch と、人がリストを見るときのため）
+      const resolved = isGoogleNewsUrl(url) ? normalizeUrl(await resolveGoogleNewsUrl(url)) : url;
+      if (resolved !== url && known.has(resolved)) continue;
       list.push({
         status: "候補",
         score: 0,
@@ -123,13 +127,14 @@ async function main() {
         source,
         kind: src.kind,
         title,
-        url,
+        url: resolved,
         summary,
         cluster: 1,
         articleId: "",
         note: src.topic === "tools" ? "ツール検知" : "",
       });
       known.add(url);
+      known.add(resolved);
       knownTitles.add(titleKey(title));
       added++;
     }

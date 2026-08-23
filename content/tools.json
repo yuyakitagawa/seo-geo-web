@@ -1,82 +1,938 @@
 {
-  "_doc": "AI検索（GEO）向けツールの一覧。/tools ページのデータ。verified は運営者が公式ページを確認した日。確認できていないツールは載せない。type: visibility=AI回答での言及・引用を計測 / audit=自社ページのAI対応度を診断 / both",
+  "_doc": "SEO/GEOツールの一覧。/tools ページのデータ。verified は運営者が公式ページを確認した日。確認できていないツールは載せない。category: seo=従来SEO / geo=AI検索向け。type: visibility=AI回答での言及・引用を計測 / audit=自社ページのAI対応度を診断 / both / rank=順位計測 / keyword=キーワード調査 / crawl=クロール・技術監査 / suite=総合",
   "tools": [
     {
       "name": "Semrush AI Visibility Toolkit",
       "vendor": "Semrush",
       "country": "海外",
       "type": "visibility",
-      "engines": ["ChatGPT", "Google AI (AI Overview / AI Mode)", "Gemini", "Perplexity"],
+      "engines": [
+        "ChatGPT",
+        "Google AI (AI Overview / AI Mode)",
+        "Gemini",
+        "Perplexity"
+      ],
       "price": "$99/月〜（1ドメイン・年払い）",
       "free": false,
       "url": "https://www.semrush.com/pricing/ai/",
       "jaUrl": "https://www.semrush.com/lp/ai-toolkit/ja/",
       "note": "カスタムプロンプト25件を日次追跡。競合比較、AIレディネス診断（サイト監査）を含む",
-      "verified": "2026-08-23"
+      "verified": "2026-08-23",
+      "category": "geo"
     },
     {
       "name": "Ahrefs Brand Radar",
       "vendor": "Ahrefs",
       "country": "海外",
       "type": "visibility",
-      "engines": ["ChatGPT", "Gemini", "Perplexity", "Google AI Overview", "AI Mode"],
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Perplexity",
+        "Google AI Overview",
+        "AI Mode"
+      ],
       "price": "Ahrefsプランに含まれる",
       "free": false,
       "url": "https://ahrefs.com/brand-radar/",
       "jaUrl": "https://ahrefs.com/ja/brand-radar",
       "note": "検索由来のプロンプトDB（月間1.9億件）。2026年1月にカスタムプロンプト追跡を追加",
-      "verified": "2026-08-23"
+      "verified": "2026-08-23",
+      "category": "geo"
     },
     {
       "name": "Similarweb AI検索分析",
       "vendor": "Similarweb",
       "country": "海外",
       "type": "visibility",
-      "engines": ["ChatGPT", "Google AI Mode"],
+      "engines": [
+        "ChatGPT",
+        "Google AI Mode"
+      ],
       "price": "競合分析&SEO&AEOプランに同梱（要問い合わせ）",
       "free": false,
       "url": "https://lp.similarweb.com/jp-all/",
       "jaUrl": "https://lp.similarweb.com/jp-all/",
       "note": "ブランド可視性・引用分析・AIトラフィック・センチメント。追跡プロンプト上限150",
-      "verified": "2026-08-24"
+      "verified": "2026-08-24",
+      "category": "geo"
     },
     {
       "name": "AI検索最適化診断",
       "vendor": "ユーザーローカル",
       "country": "日本",
       "type": "audit",
-      "engines": ["ChatGPT", "Gemini"],
+      "engines": [
+        "ChatGPT",
+        "Gemini"
+      ],
       "price": "無料（登録不要）",
       "free": true,
       "url": "https://ai-tool.userlocal.jp/llmo_checker",
       "jaUrl": "https://www.userlocal.jp/press/20260818lo/",
       "note": "URL入力で生成AIに認識・参照されやすいかを採点し、補強箇所を提示。2026-08-18公開。有料のUser Insightで他社比較・AI流入分析",
-      "verified": "2026-08-24"
+      "verified": "2026-08-24",
+      "category": "geo"
     },
     {
       "name": "LLMO診断ツール",
       "vendor": "TRILIA",
       "country": "日本",
       "type": "audit",
-      "engines": ["ChatGPT", "Perplexity", "Gemini"],
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Gemini"
+      ],
       "price": "無料",
       "free": true,
       "url": "https://trilia.co.jp/llmo-tools/",
       "jaUrl": "https://trilia.co.jp/llmo-tools/",
       "note": "65項目でAI検索最適化を診断",
-      "verified": "2026-08-24"
+      "verified": "2026-08-24",
+      "category": "geo"
     },
     {
       "name": "AIO最適化チェックツール",
       "vendor": "リタ",
       "country": "日本",
       "type": "audit",
-      "engines": ["ChatGPT", "Google AI Overview", "Perplexity", "Gemini"],
+      "engines": [
+        "ChatGPT",
+        "Google AI Overview",
+        "Perplexity",
+        "Gemini"
+      ],
       "price": "無料",
       "free": true,
       "url": "https://www.webpita.com/ai-checker/",
       "jaUrl": "https://www.webpita.com/ai-checker/",
       "note": "技術SEO・コンテンツ品質・AI検索対応度の3軸8カテゴリを100点満点で採点",
+      "verified": "2026-08-24",
+      "category": "geo"
+    },
+    {
+      "name": "Profound",
+      "vendor": "Profound",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Claude",
+        "Gemini",
+        "Grok",
+        "Microsoft Copilot",
+        "DeepSeek",
+        "Google AI Overviews"
+      ],
+      "price": "$99/月〜（Starter、年払い）、Growth $399/月",
+      "free": true,
+      "url": "https://www.tryprofound.com/",
+      "note": "AI回答での可視性・引用元・ブランド感情を分析。無料AEOレポートあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "OtterlyAI",
+      "vendor": "OtterlyAI",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Google AI Overviews",
+        "Google AI Mode",
+        "Gemini",
+        "Perplexity",
+        "Microsoft Copilot",
+        "Claude"
+      ],
+      "price": "$29/月〜（Lite）、Standard $189/月",
+      "free": true,
+      "url": "https://otterly.ai/",
+      "note": "AI検索での言及・引用と競合可視性を監視。7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Peec AI",
+      "vendor": "Peec AI",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Gemini"
+      ],
+      "price": "金額非公開（Starter/Pro/Advanced）",
+      "free": true,
+      "url": "https://peec.ai/",
+      "note": "可視性追跡と競合ベンチマーク。無料トライアルあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "SE Ranking AI Visibility Tracker",
+      "vendor": "SE Ranking",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "Google AI Overviews",
+        "Google AI Mode",
+        "ChatGPT",
+        "Gemini",
+        "Perplexity"
+      ],
+      "price": "本体¥17,455/月〜＋AI Searchアドオン¥13,098/月",
+      "free": true,
+      "url": "https://seranking.com/ai-visibility-tracker.html",
+      "jaUrl": "https://seranking.com/jp/ai-visibility-tracker.html",
+      "note": "プロンプト単位でAI回答内のブランド言及・リンクを追跡。14日無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Nightwatch（LLM Tracking）",
+      "vendor": "Nightwatch",
+      "country": "海外",
+      "category": "seo",
+      "type": "rank",
+      "engines": [
+        "Google",
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Perplexity",
+        "Microsoft Copilot",
+        "Google AI Overviews"
+      ],
+      "price": "€79/月〜",
+      "free": true,
+      "url": "https://nightwatch.io/llm-tracking/",
+      "note": "順位計測ツールに全プラン標準でAI言及・引用追跡を内蔵。14日無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Rankscale",
+      "vendor": "Rankscale GmbH",
+      "country": "海外",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Claude",
+        "Gemini",
+        "Google AI Overviews",
+        "Google AI Mode",
+        "DeepSeek",
+        "Grok",
+        "Copilot",
+        "Mistral"
+      ],
+      "price": "$20/月〜（Essentials）、Pro $99/月",
+      "free": true,
+      "url": "https://rankscale.ai/",
+      "note": "17以上のAIエンジンで引用・感情・競合を分析。Pro 7日無料",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Scrunch",
+      "vendor": "Scrunch AI",
+      "country": "海外",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Claude",
+        "Gemini",
+        "Copilot"
+      ],
+      "price": "$250/月〜（Starter、年払い）",
+      "free": true,
+      "url": "https://scrunch.com/",
+      "note": "AI可視性監視と最適化ガイダンス、AI向けコンテンツ配信。7日無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AmICited",
+      "vendor": "FlowHunt",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Perplexity",
+        "Gemini",
+        "Claude",
+        "Copilot",
+        "Google AI Overviews",
+        "Google AI Mode",
+        "Grok"
+      ],
+      "price": "€50/月〜（Starter）",
+      "free": true,
+      "url": "https://amicited.com/",
+      "jaUrl": "https://amicited.com/ja/",
+      "note": "AI回答での言及・引用を追跡し改善提案。無料可視性チェックと7日トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Promptwatch",
+      "vendor": "Promptwatch B.V.",
+      "country": "海外",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Perplexity",
+        "DeepSeek",
+        "Grok",
+        "Copilot",
+        "Google AI Overviews",
+        "Mistral",
+        "Meta"
+      ],
+      "price": "無料プランあり、有料$95/月〜",
+      "free": true,
+      "url": "https://promptwatch.com/",
+      "note": "AI可視性・引用・AIクローラーログ・訪問者分析。無料Exploreプランあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Moz Pro",
+      "vendor": "Moz",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "$49/月〜（Starter）",
+      "free": true,
+      "url": "https://moz.com/products/pro",
+      "note": "SEOスイートに「AI生成回答でのブランド存在感」計測を追加。対象AI名は公式未記載。無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Conductor Intelligence",
+      "vendor": "Conductor",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Copilot",
+        "Claude",
+        "Perplexity",
+        "Google AI Overviews"
+      ],
+      "price": "金額非公開（利用量ベース）",
+      "free": true,
+      "url": "https://www.conductor.com/platform/intelligence/",
+      "note": "AI可視性をトラフィック・CV・売上に接続。無料AI可視性レポートあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "BrightEdge AI Catalyst",
+      "vendor": "BrightEdge",
+      "country": "海外",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "Google AI Overviews",
+        "ChatGPT",
+        "Perplexity"
+      ],
+      "price": "要問い合わせ",
+      "free": false,
+      "url": "https://www.brightedge.com/ai-catalyst",
+      "note": "従来SEO計測とAI検索可視性監視を統合したエンタープライズ向け機能",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "DolphinX AIO",
+      "vendor": "株式会社メディアリーチ",
+      "country": "日本",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Perplexity",
+        "Google AI Overview",
+        "Google AIモード",
+        "Microsoft Copilot"
+      ],
+      "price": "月額30,000円〜（税抜）",
+      "free": true,
+      "url": "https://dolphinx.jp/",
+      "note": "7AIを毎日計測しSOV・引用元・AI流入を可視化。GA4/GSC連携。14日無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "GEO Watcher",
+      "vendor": "株式会社Ascent Networks",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Google AI Overviews",
+        "Google AI Mode",
+        "Perplexity",
+        "Microsoft Copilot"
+      ],
+      "price": "月額29,800円〜",
+      "free": false,
+      "url": "https://geo.ascentnet.co.jp/watcher",
+      "note": "ブランド名とURLだけでプロンプト自動生成、競合20社とSOV比較、毎日計測",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AIRA Score",
+      "vendor": "株式会社Shinker",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini"
+      ],
+      "price": "月額制（計測キーワード数に応じた変動制）",
+      "free": false,
+      "url": "https://aira-score.com/",
+      "note": "AIおすすめ掲載率・順位・紹介文・引用ページを計測し推移グラフ化",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "LLMOチェキ",
+      "vendor": "株式会社Itera",
+      "country": "日本",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Perplexity",
+        "Grok",
+        "Google AI Mode",
+        "Google AI Overview",
+        "Copilot"
+      ],
+      "price": "Lite 29,800円/月〜",
+      "free": true,
+      "url": "https://llmocheki.com/",
+      "note": "8AIの推奨率・引用ページ計測と改善提案・記事生成まで一体。7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "クチコレ",
+      "vendor": "Sooon株式会社",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Google AIモード"
+      ],
+      "price": "要問い合わせ",
+      "free": true,
+      "url": "https://sooon-web.com/service/web_marketing/kutikore/",
+      "note": "店舗向けMEO×AIO。AI検索での自店順位をスコア表示、口コミ管理。無料診断あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AI Hack",
+      "vendor": "株式会社AI Hack",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Google AI Overview"
+      ],
+      "price": "個別提案制（要問い合わせ）",
+      "free": true,
+      "url": "https://service.ai-hack.ai/",
+      "note": "プロンプト単位で優先度・引用頻度・感情をスコア化、改善提案を自動生成。無料スコア診断あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "LLMOinsight",
+      "vendor": "株式会社Letier",
+      "country": "日本",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Perplexity",
+        "Google AI Overview"
+      ],
+      "price": "Free 無料、Standard 9,800円/月〜",
+      "free": true,
+      "url": "https://llmo-insight.jp/",
+      "note": "AIスコア・競合比較・引用元分析・改善提案・ChatGPT広告管理まで一元化",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "ディギディギ",
+      "vendor": "株式会社トドオナダ",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "price": "月額10,000円（税別）",
+      "free": false,
+      "url": "https://digidigi.qlipper.jp/",
+      "note": "LLMのブランド認知・想起シェア・ハルシネーションを計測する効果測定ツール",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AI検索 一括推奨・引用チェックツール",
+      "vendor": "株式会社はちのす制作",
+      "country": "日本",
+      "category": "geo",
+      "type": "visibility",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Google AI Overviews",
+        "Google AI Mode"
+      ],
+      "price": "無料（1日1回）",
+      "free": true,
+      "url": "https://hachinosu-seisaku.co.jp/llmo-tools/ai-mention-citation-check",
+      "note": "4AIに同一プロンプトを送り自社の推奨率・引用率と競合を1画面で可視化",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AIO・SEO無料チェッカー",
+      "vendor": "株式会社ファーストイノベーション",
+      "country": "日本",
+      "category": "geo",
+      "type": "audit",
+      "engines": [],
+      "price": "無料",
+      "free": true,
+      "url": "https://check.ai-recommended.net/",
+      "note": "URL入力だけで約30秒、AIO・SEO・信頼性10項目を100点満点で診断。登録不要",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "User Insight LLMOダッシュボード",
+      "vendor": "株式会社ユーザーローカル",
+      "country": "日本",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Grok",
+        "Perplexity",
+        "Google AI Overviews"
+      ],
+      "price": "要問い合わせ（PV数に応じたプラン）",
+      "free": false,
+      "url": "https://ui.userlocal.jp/lp/aio/",
+      "note": "AI引用率・AI流入・AI Overviews出現状況を可視化し改善策を提案。SEO/ヒートマップも同梱",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "GMO AI最適化ブースト",
+      "vendor": "GMO NIKKO株式会社",
+      "country": "日本",
+      "category": "geo",
+      "type": "both",
+      "engines": [
+        "ChatGPT",
+        "Gemini",
+        "Claude",
+        "Google AI Overviews",
+        "Google AI Mode"
+      ],
+      "price": "月額100,000円（税抜、12ヶ月〜）",
+      "free": true,
+      "url": "https://koukoku.jp/service/aio",
+      "note": "言及率・引用率ダッシュボード、競合分析、URL診断（32項目）と実装レコメンド。2週間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "ミエルカSEO",
+      "vendor": "株式会社Faber Company",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "Google AI Overviews",
+        "ChatGPT",
+        "Gemini",
+        "Perplexity"
+      ],
+      "price": "要問い合わせ",
+      "free": false,
+      "url": "https://mieru-ca.com/",
+      "note": "キーワード戦略・競合分析・AI記事生成に加え、生成AI経由流入の可視化。無料トライアルあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Keywordmap",
+      "vendor": "株式会社CINC",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "ChatGPT",
+        "Google AI Overviews"
+      ],
+      "price": "要問い合わせ",
+      "free": false,
+      "url": "https://keywordmap.jp/",
+      "note": "競合・市場分析、キーワード調査、広告調査、生成AI回答調査。7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "検索順位チェックツール GRC",
+      "vendor": "SEOプロ",
+      "country": "日本",
+      "category": "seo",
+      "type": "rank",
+      "engines": [
+        "Google",
+        "Yahoo"
+      ],
+      "price": "無料〜、ライセンス495円/月〜",
+      "free": true,
+      "url": "https://seopro.jp/grc/",
+      "note": "インストール型の順位チェック。無料版は項目数制限あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "パスカル",
+      "vendor": "オロパス",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "要問い合わせ（3プラン）",
+      "free": true,
+      "url": "https://www.pascaljp.com/",
+      "note": "競合分析・コンテンツ診断・順位チェック・AI記事構成案。4日間の無料体験版あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "ラッコキーワード",
+      "vendor": "ラッコ株式会社",
+      "country": "日本",
+      "category": "seo",
+      "type": "keyword",
+      "engines": [
+        "Google",
+        "Bing",
+        "YouTube",
+        "Amazon",
+        "楽天"
+      ],
+      "price": "無料、ライトプラン月額660円〜",
+      "free": true,
+      "url": "https://rakkokeyword.com/",
+      "note": "サジェスト・関連語・共起語・見出し抽出。AI記事生成や順位チェック機能も",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Ubersuggest",
+      "vendor": "Neil Patel",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "$29/月〜",
+      "free": true,
+      "url": "https://neilpatel.com/ubersuggest/",
+      "jaUrl": "https://app.neilpatel.com/ja/pricing",
+      "note": "キーワード調査・競合分析・被リンク・サイト監査。7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "SEARCH WRITE",
+      "vendor": "株式会社PLAN-B",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "ChatGPT",
+        "Gemini"
+      ],
+      "price": "要問い合わせ",
+      "free": true,
+      "url": "https://searchwrite.jp/",
+      "note": "SEO戦略設計〜分析・施策管理。AI検索での引用可視化も。無料トライアルあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "EmmaTools",
+      "vendor": "株式会社EXIDEA",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "Google AI Overviews"
+      ],
+      "price": "要問い合わせ",
+      "free": true,
+      "url": "https://emma.tools/",
+      "note": "SEO記事の執筆・リライト・品質スコア、順位計測。7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "TACT SEO",
+      "vendor": "株式会社ウィルゲート",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "Gemini",
+        "Google AI Overviews"
+      ],
+      "price": "要問い合わせ（無料プランあり）",
+      "free": true,
+      "url": "https://tact-seo.com/",
+      "note": "キーワード選定・内部SEO・順位計測・AI記事作成。無料プランでほぼ全機能を試用可",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Gyro-n SEO",
+      "vendor": "株式会社ユニヴァ・ジャイロン",
+      "country": "日本",
+      "category": "seo",
+      "type": "rank",
+      "engines": [
+        "Google",
+        "Yahoo! JAPAN",
+        "Google AI Overviews"
+      ],
+      "price": "月額500円〜",
+      "free": false,
+      "url": "https://www.gyro-n.com/seo/",
+      "note": "毎日自動の順位計測、AI Overview計測、競合・地域別検索",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AIアナリスト",
+      "vendor": "株式会社WACUL",
+      "country": "日本",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "月額20万円",
+      "free": true,
+      "url": "https://wacul-ai.com/",
+      "note": "GA連携でサイト分析・SEO順位分析・広告分析を自動化し改善提案。無料分析あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Ahrefs",
+      "vendor": "Ahrefs",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "Lite ¥19,900/月〜（Starter ¥4,460/月）",
+      "free": true,
+      "url": "https://ahrefs.com/pricing",
+      "jaUrl": "https://ahrefs.com/ja/pricing",
+      "note": "Site Explorer・Site Audit・キーワード調査・順位計測の総合ツール。自社サイト向け無料枠あり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Semrush",
+      "vendor": "Semrush",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "ChatGPT",
+        "Perplexity",
+        "Gemini"
+      ],
+      "price": "SEO $139/月〜",
+      "free": true,
+      "url": "https://www.semrush.com/prices/",
+      "jaUrl": "https://ja.semrush.com/prices/",
+      "note": "キーワード調査・順位計測・競合分析の総合SEO。無料プランと7日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "SE Ranking",
+      "vendor": "SE Ranking",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "Core ¥17,455/月〜",
+      "free": true,
+      "url": "https://seranking.com/pricing.html",
+      "jaUrl": "https://seranking.com/jp/subscription.html",
+      "note": "順位計測・キーワード調査・サイト監査・被リンク・競合分析。14日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Screaming Frog SEO Spider",
+      "vendor": "Screaming Frog",
+      "country": "海外",
+      "category": "seo",
+      "type": "crawl",
+      "engines": [
+        "Google"
+      ],
+      "price": "£199/年（無料版は500URLまで）",
+      "free": true,
+      "url": "https://www.screamingfrog.co.uk/seo-spider/pricing/",
+      "note": "デスクトップ型クローラー。リンク切れ・メタ情報・JSレンダリング・構造化データ検証",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Sitebulb",
+      "vendor": "Sitebulb",
+      "country": "海外",
+      "category": "seo",
+      "type": "crawl",
+      "engines": [
+        "Google"
+      ],
+      "price": "Cloud £95/月〜（Desktopは要確認）",
+      "free": true,
+      "url": "https://sitebulb.com/pricing/",
+      "note": "技術監査クローラー。優先度付きHints、JSクロール、監査比較。14日間無料トライアル",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Google Search Console",
+      "vendor": "Google",
+      "country": "海外",
+      "category": "seo",
+      "type": "audit",
+      "engines": [
+        "Google"
+      ],
+      "price": "無料",
+      "free": true,
+      "url": "https://search.google.com/search-console/about",
+      "jaUrl": "https://search.google.com/search-console/about?hl=ja",
+      "note": "Google検索のトラフィック・掲載順位計測、インデックス登録申請、クロール・表示問題のアラート。公式無料",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Bing Webmaster Tools",
+      "vendor": "Microsoft",
+      "country": "海外",
+      "category": "seo",
+      "type": "audit",
+      "engines": [
+        "Bing"
+      ],
+      "price": "無料",
+      "free": true,
+      "url": "https://www.bing.com/webmasters/about",
+      "note": "Bing検索のパフォーマンス、被リンク、キーワード調査、SEO/GEOレポート、IndexNow。公式無料",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Similarweb",
+      "vendor": "Similarweb",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "Web Intelligence $125/月〜",
+      "free": true,
+      "url": "https://www.similarweb.com/pricing/",
+      "jaUrl": "https://www.similarweb.com/packages/ja/web/",
+      "note": "競合サイトのトラフィック・SEO分析などデジタルインテリジェンス。無料トライアルあり",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Lumar",
+      "vendor": "Lumar（旧Deepcrawl）",
+      "country": "海外",
+      "category": "seo",
+      "type": "crawl",
+      "engines": [
+        "Google"
+      ],
+      "price": "要問い合わせ",
+      "free": false,
+      "url": "https://www.lumar.io/pricing/",
+      "note": "エンタープライズ向けクラウド型クロール・監視・自動QA。AI検索可視性の指標も",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Surfer",
+      "vendor": "Surfer",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google",
+        "ChatGPT",
+        "Perplexity",
+        "Google AI Mode",
+        "Google AI Overview",
+        "Gemini"
+      ],
+      "price": "$49/月〜（年払い）",
+      "free": true,
+      "url": "https://surferseo.com/pricing/",
+      "note": "コンテンツ最適化主体。AI Search AnalyticsでAI回答の言及・シェアも追跡",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "Clearscope",
+      "vendor": "Clearscope",
+      "country": "海外",
+      "category": "seo",
+      "type": "suite",
+      "engines": [
+        "Google"
+      ],
+      "price": "$129/月〜",
+      "free": true,
+      "url": "https://www.clearscope.io/pricing",
+      "note": "検索意図ベースのコンテンツ最適化。プロンプト追跡・ブランド可視性監視も含む。14日間無料トライアル",
       "verified": "2026-08-24"
     }
   ]

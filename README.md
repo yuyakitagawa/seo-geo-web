@@ -18,18 +18,23 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
 | `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
+| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
 
 ## 記事パイプライン
 ```
-scripts/sources.ts  収集元RSS（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable / 海外SEO情報ブログ）
-      ↓ npm run collect      7日以内・未処理・トピック語を含むものを content/queue.json へ
-      ↓ npm run generate N   Claudeが元記事をweb_fetchで読み、frontmatter付きMDXを content/articles/ に draft:true で出力
-      ↓ GitHub Actions       毎朝7時JST、上記を実行して PR を作成（.github/workflows/daily-articles.yml）
-      ↓ 人間レビュー          draft:false に変更してマージ → Vercel が自動デプロイ
+scripts/sources.ts  収集元（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable / 海外SEO情報ブログ、
+                    ツール検知: Google News 日本語検索RSS「LLMO」「GEO対策」「AIO対策」「AI検索ツール」「AI visibility」）
+      ↓ npm run collect [日数]   content/candidates.csv に「候補」として追記。話題スコア付き。Google NewsのURLは元記事に復号（scripts/googleNews.ts）
+      ↓ 人がCSVの status を 採用/却下 に
+      ↓ npm run generate N       「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を draft:true で出力 → status を「公開」に
+      ↓ GitHub Actions           毎朝7時JST、collect→generate→PR（.github/workflows/daily-articles.yml）
+      ↓ 人間レビュー              draft:false に変更してマージ → Vercel が自動デプロイ
 ```
-処理済みURLは `content/processed.json` に記録し、重複生成を防ぐ。APIエラー時は候補をキューに戻し、内容起因の失敗のみ処理済みにする。
+**話題スコア**: 検索専門の公式ソース+3（その他公式+1）、同じ話題を報じた他ソース数×2（上限+6。タイトルの語の重なりでクラスタ化）、3日以内+1、テーマ語の一致数（上限3）、ツール発表+2。
+**重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。
+APIエラー時は「採用」のまま次回に回し、内容起因の失敗のみ「却下」にしてメモを残す。
 
 ## 記事の型（他媒体との差別化）
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示

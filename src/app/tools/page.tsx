@@ -1,42 +1,25 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
-import { getTools, latestVerified, TOOL_TYPE_LABEL } from "@/lib/tools";
+import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "AI検索（GEO）ツール比較一覧",
-  description: "ChatGPT・Perplexity・Google AI Overviewでの自社の表示を測る「可視性計測ツール」と、ページのAI対応度を採点する「サイト診断ツール」を、国内外・料金・対象AIで比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
+  title: "SEO・GEOツール比較一覧（国内・海外）",
+  description: "従来SEOツール（順位計測・キーワード調査・クロール監査）と、AI検索向けGEOツール（ChatGPT・Perplexity・AI Overviewでの可視性計測、AI対応診断）を国内外・料金・対象で比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
   alternates: { canonical: "/tools" },
 };
 
-export default function ToolsPage() {
-  const tools = getTools();
-  const updated = latestVerified(tools);
-  const jp = tools.filter((t) => t.country === "日本");
-  const global = tools.filter((t) => t.country === "海外");
-
-  const itemListJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "AI検索（GEO）ツール一覧",
-    url: `${SITE_URL}/tools`,
-    numberOfItems: tools.length,
-    itemListElement: tools.map((t, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: { "@type": "SoftwareApplication", name: t.name, applicationCategory: "BusinessApplication", url: t.url, offers: { "@type": "Offer", price: t.free ? "0" : undefined, description: t.price }, publisher: { "@type": "Organization", name: t.vendor } },
-    })),
-  };
-
-  const Table = ({ rows }: { rows: typeof tools }) => (
+function ToolTable({ rows }: { rows: Tool[] }) {
+  if (rows.length === 0) return <p className="text-sm text-mute">確認済みのツールはまだありません。</p>;
+  return (
     <div className="overflow-x-auto rounded-3xl border border-ink/10 dark:border-paper/10">
-      <table className="w-full min-w-[880px] text-sm">
+      <table className="w-full min-w-[900px] text-sm">
         <thead className="bg-ink/5 text-left text-xs uppercase tracking-wider text-mute dark:bg-paper/5">
           <tr>
             <th className="px-4 py-3">ツール</th>
             <th className="px-4 py-3">種別</th>
-            <th className="px-4 py-3">対象AI</th>
+            <th className="px-4 py-3">対象</th>
             <th className="px-4 py-3">料金</th>
             <th className="px-4 py-3">特徴</th>
             <th className="px-4 py-3">確認日</th>
@@ -46,14 +29,14 @@ export default function ToolsPage() {
           {rows.map((t) => (
             <tr key={t.name} className="border-t border-ink/10 align-top dark:border-paper/10">
               <td className="px-4 py-4">
-                <a href={t.url} target="_blank" rel="noopener" className="font-semibold underline decoration-accent decoration-2 underline-offset-4">{t.name}</a>
-                <div className="mt-1 text-xs text-mute">{t.vendor}</div>
+                <a href={t.jaUrl ?? t.url} target="_blank" rel="noopener" className="font-semibold underline decoration-accent decoration-2 underline-offset-4">{t.name}</a>
+                <div className="mt-1 text-xs text-mute">{t.vendor}{t.jaUrl && t.country === "海外" ? " · 日本語ページあり" : ""}</div>
               </td>
               <td className="px-4 py-4 whitespace-nowrap">
-                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${t.type === "audit" ? "bg-seo text-white" : t.type === "visibility" ? "bg-geo text-white" : "bg-accent text-accent-ink"}`}>{TOOL_TYPE_LABEL[t.type]}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${TOOL_TYPE_COLOR[t.type]}`}>{TOOL_TYPE_LABEL[t.type]}</span>
               </td>
               <td className="px-4 py-4 text-xs">{t.engines.join("、")}</td>
-              <td className="px-4 py-4 whitespace-nowrap">{t.free && <span className="mr-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-ink">無料</span>}{t.price}</td>
+              <td className="px-4 py-4 whitespace-nowrap">{t.free && <span className="mr-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-ink">無料あり</span>}{t.price}</td>
               <td className="px-4 py-4 text-xs text-mute">{t.note}</td>
               <td className="px-4 py-4 whitespace-nowrap text-xs text-mute">{t.verified}</td>
             </tr>
@@ -62,35 +45,75 @@ export default function ToolsPage() {
       </table>
     </div>
   );
+}
+
+export default function ToolsPage() {
+  const tools = getTools();
+  const updated = latestVerified(tools);
+  const by = (category: Tool["category"], country: Tool["country"]) => tools.filter((t) => t.category === category && t.country === country);
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "SEO・GEOツール一覧",
+    url: `${SITE_URL}/tools`,
+    numberOfItems: tools.length,
+    itemListElement: tools.map((t, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "SoftwareApplication",
+        name: t.name,
+        applicationCategory: "BusinessApplication",
+        url: t.url,
+        offers: { "@type": "Offer", description: t.price, ...(t.free ? { price: "0", priceCurrency: "JPY" } : {}) },
+        publisher: { "@type": "Organization", name: t.vendor },
+      },
+    })),
+  };
+
+  const sections: { id: string; title: string; lead: string; rows: Tool[] }[] = [
+    { id: "geo-jp", title: "GEO（AI検索）ツール · 国内", lead: "ChatGPT・Gemini・AI Overviewでの言及を測る、またはページのAI対応度を診断する国産ツール。", rows: by("geo", "日本") },
+    { id: "geo-global", title: "GEO（AI検索）ツール · 海外", lead: "海外大手のAI可視性ツール。日本語ページがあるものは表示しています。", rows: by("geo", "海外") },
+    { id: "seo-jp", title: "SEOツール · 国内", lead: "順位計測・キーワード調査・コンテンツ分析の国産ツール。", rows: by("seo", "日本") },
+    { id: "seo-global", title: "SEOツール · 海外", lead: "総合SEOプラットフォームとクローラー、公式の無料ツール。", rows: by("seo", "海外") },
+  ];
 
   return (
     <>
       <JsonLd data={itemListJsonLd} />
       <PageHeader
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
-        title="AI検索（GEO）ツール比較"
-        lead="ChatGPT・Perplexity・Google AI Overviewで自社がどう出ているかを測る「可視性計測」と、ページがAIに読まれやすいかを採点する「サイト診断」は別物です。運営者が公式ページを確認したツールだけを載せています。"
+        title="SEO・GEOツール比較"
+        lead="従来のSEOツールと、AI検索向けのGEOツールを1か所で比較します。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
       />
-      <div className="mx-auto max-w-6xl space-y-12 px-5 pb-16">
+      <div className="mx-auto max-w-6xl space-y-14 px-5 pb-16">
+        <nav aria-label="セクション" className="flex flex-wrap gap-2 text-sm">
+          {sections.map((s) => (
+            <a key={s.id} href={`#${s.id}`} className="rounded-full border border-ink/15 px-3 py-1.5 transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">
+              {s.title} <span className="opacity-50">{s.rows.length}</span>
+            </a>
+          ))}
+        </nav>
+
         <section className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-            <p className="mb-2 inline-block rounded-full bg-geo px-2.5 py-1 text-[11px] font-bold text-white">可視性計測</p>
+            <p className="mb-2 inline-block rounded-full bg-geo px-2.5 py-1 text-[11px] font-bold text-white">AI可視性計測</p>
             <p className="text-sm leading-relaxed">決めた質問をAIに定期的に投げ、回答に自社名・自社URLが出た割合と競合比較を出す。測れるのは「ツールが投げた質問への回答」で、実ユーザーの回答ではない。</p>
           </div>
           <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-            <p className="mb-2 inline-block rounded-full bg-seo px-2.5 py-1 text-[11px] font-bold text-white">サイト診断</p>
+            <p className="mb-2 inline-block rounded-full bg-geo/70 px-2.5 py-1 text-[11px] font-bold text-white">AI対応診断</p>
             <p className="text-sm leading-relaxed">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。AIに「出るか」ではなく「読めるか」のチェック。多くは無料で、SEOの技術監査とほぼ同じ項目。</p>
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold tracking-tight">国内ツール</h2>
-          <Table rows={jp} />
-        </section>
-        <section>
-          <h2 className="mb-4 text-2xl font-bold tracking-tight">海外ツール（日本語対応あり）</h2>
-          <Table rows={global} />
-        </section>
+        {sections.map((s) => (
+          <section key={s.id} id={s.id} className="scroll-mt-24">
+            <h2 className="text-2xl font-bold tracking-tight">{s.title}</h2>
+            <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
+            <ToolTable rows={s.rows} />
+          </section>
+        ))}
 
         <section className="rounded-3xl bg-ink p-6 text-sm text-paper dark:bg-paper dark:text-ink sm:p-8">
           <h2 className="text-lg font-bold">掲載基準</h2>

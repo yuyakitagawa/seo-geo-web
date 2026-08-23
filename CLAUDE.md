@@ -12,10 +12,11 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 
 ## 1. File Map
 - `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/category/tags/impact/audience/actions/sources/draft。`draft: true` は本番ビルドから除外。
-- `content/processed.json`: 記事化済みの元記事URL（コミット対象）。`content/queue.json` は収集キュー（gitignore）。
+- `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
+- `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
 - `src/app/`: ルート。`articles/[slug]`, `category/[category]`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
-- `scripts/sources.ts`: 収集元RSS一覧。`scripts/collect.ts`: RSS巡回→キュー。`scripts/generate.ts`: Claude(`claude-opus-5` + web_fetch)で下書きMDX生成。
+- `scripts/sources.ts`: 収集元RSS一覧。`scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/generate.ts`: Claude(`claude-opus-5` + web_fetch)で下書きMDX生成。
 - `.github/workflows/daily-articles.yml`: 毎朝7時JSTに collect→generate→PR。
 
 ## 2. Operations
