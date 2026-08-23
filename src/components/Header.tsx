@@ -21,6 +21,11 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/tools" className="block rounded-full px-3 py-1.5 font-medium transition hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink">
+                ツール
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>

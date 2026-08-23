@@ -2,7 +2,7 @@
 // 既にリストにあるURL（採用・却下・公開を含む）は二度と積まない。
 // 実行: npx tsx scripts/collect.ts [日数=7]
 import Parser from "rss-parser";
-import { FEED_SOURCES, TOPIC_KEYWORDS } from "./sources";
+import { FEED_SOURCES, TOOL_KEYWORDS, TOPIC_KEYWORDS } from "./sources";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 
 // 収集対象の期間（日）。引数で上書き可: npx tsx scripts/collect.ts 60
@@ -17,6 +17,12 @@ function normalizeUrl(u: string) {
   } catch {
     return u;
   }
+}
+
+// 転載記事の重複排除用。PR TIMES配信はInfoseek/Excite/時事等にほぼ同じタイトルで転載されるため、
+// 記号・空白・「【画像】… n/5」の類を落としたタイトルで同一視する。
+function titleKey(title: string) {
+  return title.replace(/【[^】]*】/g, "").replace(/\s*\d+\/\d+\s*$/, "").replace(/[\s\u3000｜|｜\-–—:：,.。、「」『』（）()!?！？]/g, "").toLowerCase();
 }
 
 function matchesTopic(text: string, keywords: string[] = TOPIC_KEYWORDS) {
@@ -54,15 +60,20 @@ export function rescore(list: Candidate[], today: Date) {
     const c = list[i];
     c.cluster = sources.size;
     const ageDays = (today.getTime() - Date.parse(c.published)) / 86400_000;
-    const keywordHits = TOPIC_KEYWORDS.filter((k) => `${c.title} ${c.summary}`.toLowerCase().includes(k)).length;
+    const text = `${c.title} ${c.summary}`.toLowerCase();
+    const keywordHits = TOPIC_KEYWORDS.filter((k) => text.includes(k)).length;
+    // ツール発表（検知ソース経由、または通常ソースでもツール語＋AI検索語を含む）は /tools の更新材料なので底上げする
+    const isTool = c.note.startsWith("ツール検知") || (TOOL_KEYWORDS.some((k) => text.includes(k.toLowerCase())) && /llmo|geo|aio|ai検索|ai visibility|ai overview|chatgpt/.test(text));
+    if (isTool && !c.note.startsWith("ツール検知")) c.note = c.note ? `ツール検知; ${c.note}` : "ツール検知";
     // 公式ボーナスは検索専門の公式ソース（Search Central / ステータス / Bing）だけ+3。
     // OpenAIやThe Keywordは検索以外の話題も多いので+1に留め、企業PRが上位に来ないようにする。
     const searchOfficial = FEED_SOURCES.find((s) => s.name === c.source)?.alwaysInclude === true;
     c.score =
       (c.kind === "official" ? (searchOfficial ? 3 : 1) : 0) + // 公式発表
-      (c.cluster - 1) * 2 + // 他ソースも報じた話題
+      Math.min(c.cluster - 1, 3) * 2 + // 他ソースも報じた話題（上限3ソース=+6）
       (ageDays <= 3 ? 1 : 0) + // 新しさ
-      Math.min(keywordHits, 3); // 検索テーマとの近さ（上限3）
+      Math.min(keywordHits, 3) + // 検索テーマとの近さ（上限3）
+      (isTool ? 2 : 0); // ツール発表
   }
 }
 
@@ -70,7 +81,9 @@ async function main() {
   const parser = new Parser();
   const list = loadCandidates();
   const known = new Set(list.map((c) => c.url));
-  const since = Date.now() - MAX_AGE_DAYS * 86400_000;
+  const knownTitles = new Set(list.map((c) => titleKey(c.title)));
+  // ツール検知ソース（Google News）は件数が多いので直近14日に固定。通常ソースは引数の日数。
+  const sinceFor = (topic?: string) => Date.now() - (topic === "tools" ? Math.min(MAX_AGE_DAYS, 14) : MAX_AGE_DAYS) * 86400_000;
   let added = 0;
 
   for (const src of FEED_SOURCES) {
@@ -87,25 +100,37 @@ async function main() {
       if (!item.link || !item.title) continue;
       const url = normalizeUrl(item.link);
       const publishedAt = item.isoDate ?? item.pubDate ?? "";
-      if (publishedAt && Date.parse(publishedAt) < since) continue;
+      if (publishedAt && Date.parse(publishedAt) < sinceFor(src.topic)) continue;
       if (known.has(url)) continue;
       const summary = (item.contentSnippet ?? item.summary ?? "").replace(/\s+/g, " ").slice(0, 300);
       if (!src.alwaysInclude && !matchesTopic(`${item.title} ${summary}`, src.keywords)) continue;
 
+      // Google News はタイトル末尾に「 - 媒体名」が付くので、媒体名を source に移す。
+      let title = item.title.replace(/\s*via @\w+(, @\w+)*\s*$/i, "").trim();
+      let source = src.name;
+      if (src.url.startsWith("https://news.google.com/")) {
+        const m = title.match(/^(.*) - ([^-]+)$/);
+        if (m) {
+          title = m[1].trim();
+          source = `${m[2].trim()}（${src.name}）`;
+        }
+      }
+      if (knownTitles.has(titleKey(title))) continue; // 転載の重複（同一タイトル）
       list.push({
         status: "候補",
         score: 0,
         published: publishedAt ? new Date(publishedAt).toISOString().slice(0, 10) : "",
-        source: src.name,
+        source,
         kind: src.kind,
-        title: item.title.replace(/\s*via @\w+(, @\w+)*\s*$/i, "").trim(),
+        title,
         url,
         summary,
         cluster: 1,
         articleId: "",
-        note: "",
+        note: src.topic === "tools" ? "ツール検知" : "",
       });
       known.add(url);
+      knownTitles.add(titleKey(title));
       added++;
     }
   }

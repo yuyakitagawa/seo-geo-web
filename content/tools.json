@@ -1,0 +1,83 @@
+{
+  "_doc": "AI検索（GEO）向けツールの一覧。/tools ページのデータ。verified は運営者が公式ページを確認した日。確認できていないツールは載せない。type: visibility=AI回答での言及・引用を計測 / audit=自社ページのAI対応度を診断 / both",
+  "tools": [
+    {
+      "name": "Semrush AI Visibility Toolkit",
+      "vendor": "Semrush",
+      "country": "海外",
+      "type": "visibility",
+      "engines": ["ChatGPT", "Google AI (AI Overview / AI Mode)", "Gemini", "Perplexity"],
+      "price": "$99/月〜（1ドメイン・年払い）",
+      "free": false,
+      "url": "https://www.semrush.com/pricing/ai/",
+      "jaUrl": "https://www.semrush.com/lp/ai-toolkit/ja/",
+      "note": "カスタムプロンプト25件を日次追跡。競合比較、AIレディネス診断（サイト監査）を含む",
+      "verified": "2026-08-23"
+    },
+    {
+      "name": "Ahrefs Brand Radar",
+      "vendor": "Ahrefs",
+      "country": "海外",
+      "type": "visibility",
+      "engines": ["ChatGPT", "Gemini", "Perplexity", "Google AI Overview", "AI Mode"],
+      "price": "Ahrefsプランに含まれる",
+      "free": false,
+      "url": "https://ahrefs.com/brand-radar/",
+      "jaUrl": "https://ahrefs.com/ja/brand-radar",
+      "note": "検索由来のプロンプトDB（月間1.9億件）。2026年1月にカスタムプロンプト追跡を追加",
+      "verified": "2026-08-23"
+    },
+    {
+      "name": "Similarweb AI検索分析",
+      "vendor": "Similarweb",
+      "country": "海外",
+      "type": "visibility",
+      "engines": ["ChatGPT", "Google AI Mode"],
+      "price": "競合分析&SEO&AEOプランに同梱（要問い合わせ）",
+      "free": false,
+      "url": "https://lp.similarweb.com/jp-all/",
+      "jaUrl": "https://lp.similarweb.com/jp-all/",
+      "note": "ブランド可視性・引用分析・AIトラフィック・センチメント。追跡プロンプト上限150",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AI検索最適化診断",
+      "vendor": "ユーザーローカル",
+      "country": "日本",
+      "type": "audit",
+      "engines": ["ChatGPT", "Gemini"],
+      "price": "無料（登録不要）",
+      "free": true,
+      "url": "https://ai-tool.userlocal.jp/llmo_checker",
+      "jaUrl": "https://www.userlocal.jp/press/20260818lo/",
+      "note": "URL入力で生成AIに認識・参照されやすいかを採点し、補強箇所を提示。2026-08-18公開。有料のUser Insightで他社比較・AI流入分析",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "LLMO診断ツール",
+      "vendor": "TRILIA",
+      "country": "日本",
+      "type": "audit",
+      "engines": ["ChatGPT", "Perplexity", "Gemini"],
+      "price": "無料",
+      "free": true,
+      "url": "https://trilia.co.jp/llmo-tools/",
+      "jaUrl": "https://trilia.co.jp/llmo-tools/",
+      "note": "65項目でAI検索最適化を診断",
+      "verified": "2026-08-24"
+    },
+    {
+      "name": "AIO最適化チェックツール",
+      "vendor": "リタ",
+      "country": "日本",
+      "type": "audit",
+      "engines": ["ChatGPT", "Google AI Overview", "Perplexity", "Gemini"],
+      "price": "無料",
+      "free": true,
+      "url": "https://www.webpita.com/ai-checker/",
+      "jaUrl": "https://www.webpita.com/ai-checker/",
+      "note": "技術SEO・コンテンツ品質・AI検索対応度の3軸8カテゴリを100点満点で採点",
+      "verified": "2026-08-24"
+    }
+  ]
+}
