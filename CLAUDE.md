@@ -11,7 +11,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - **記事の事実は一次情報で裏取り**: frontmatter `sources` に必ず出典URL。元記事に無い数値・固有名詞を書かない。
 
 ## 1. File Map
-- `content/articles/*.mdx`: 記事本体（frontmatter: title/description/date/category/tags/sources/draft）。`draft: true` は本番ビルドから除外。
+- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/category/tags/impact/audience/actions/sources/draft。`draft: true` は本番ビルドから除外。
 - `content/processed.json`: 記事化済みの元記事URL（コミット対象）。`content/queue.json` は収集キュー（gitignore）。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
 - `src/app/`: ルート。`articles/[slug]`, `category/[category]`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。

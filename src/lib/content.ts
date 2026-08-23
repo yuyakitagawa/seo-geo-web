@@ -18,6 +18,9 @@ function parseImpact(v: unknown): Impact | undefined {
 }
 
 export type ArticleMeta = {
+  /** 記事番号。URLは /articles/<id>。frontmatter の id で固定し、ファイル名を変えてもURLは変わらない */
+  id: number;
+  /** URL用。id の文字列 */
   slug: string;
   title: string;
   description: string;
@@ -44,12 +47,14 @@ export type ArticleMeta = {
 export type Article = ArticleMeta & { body: string };
 
 function parseFile(file: string): Article | null {
-  const slug = file.replace(/\.mdx?$/, "");
   const raw = fs.readFileSync(path.join(ARTICLES_DIR, file), "utf8");
   const { data, content } = matter(raw);
 
   if (typeof data.title !== "string" || typeof data.date !== "string") {
     throw new Error(`content/articles/${file}: frontmatter に title と date が必要です`);
+  }
+  if (!Number.isInteger(data.id) || data.id <= 0) {
+    throw new Error(`content/articles/${file}: frontmatter に正の整数の id が必要です（URLになる番号）`);
   }
   const category = String(data.category ?? "news");
   if (!isCategoryKey(category)) {
@@ -59,7 +64,8 @@ function parseFile(file: string): Article | null {
   if (draft && process.env.NODE_ENV === "production") return null;
 
   return {
-    slug,
+    id: data.id,
+    slug: String(data.id),
     title: data.title,
     description: typeof data.description === "string" ? data.description : "",
     date: data.date,
@@ -87,8 +93,10 @@ export function getAllArticles(): Article[] {
     .readdirSync(ARTICLES_DIR)
     .filter((f) => /\.mdx?$/.test(f))
     .map(parseFile)
-    .filter((a): a is Article => a !== null)
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.slug.localeCompare(b.slug)));
+    .filter((a): a is Article => a !== null);
+  const dup = cache.map((a) => a.id).filter((id, i, arr) => arr.indexOf(id) !== i);
+  if (dup.length) throw new Error(`記事 id が重複しています: ${[...new Set(dup)].join(", ")}`);
+  cache = cache.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
   return cache;
 }
 

@@ -58,6 +58,18 @@ draft: true
 
 （本文）`;
 
+// 既存記事（下書き含む）の最大 id。draft も含めて数えるので番号が衝突しない。
+function currentMaxId(): number {
+  if (!fs.existsSync(ARTICLES_DIR)) return 0;
+  return Math.max(
+    0,
+    ...fs
+      .readdirSync(ARTICLES_DIR)
+      .filter((f) => /\.mdx?$/.test(f))
+      .map((f) => Number(matter(fs.readFileSync(path.join(ARTICLES_DIR, f), "utf8")).data.id) || 0)
+  );
+}
+
 function slugify(title: string, date: string) {
   const ascii = title
     .toLowerCase()
@@ -72,7 +84,7 @@ function hash(s: string) {
   return h;
 }
 
-async function generateOne(client: Anthropic, c: Candidate, today: string) {
+async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number) {
   const userPrompt = `以下の元記事をweb_fetchで取得して読み、記事を書いてください。
 取得に失敗した場合は、タイトルと概要のみで書くのではなく、本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
 
@@ -108,9 +120,11 @@ async function generateOne(client: Anthropic, c: Candidate, today: string) {
   parsed.data.sources = [{ title: c.title, url: c.url }];
   parsed.data.draft = true;
   parsed.data.date = today;
+  parsed.data.id = nextId;
 
+  // ファイル名は「番号-英語スラッグ」で人が探しやすく。URLは id のみ（/articles/<id>）。
   const slug = slugify(String(parsed.data.title), today);
-  const file = path.join(ARTICLES_DIR, `${slug}.mdx`);
+  const file = path.join(ARTICLES_DIR, `${String(nextId).padStart(4, "0")}-${slug}.mdx`);
   fs.writeFileSync(file, matter.stringify(parsed.content.trim() + "\n", parsed.data));
   console.log(`wrote ${path.relative(process.cwd(), file)}  (in=${response.usage.input_tokens} cached=${response.usage.cache_read_input_tokens} out=${response.usage.output_tokens})`);
 }
@@ -129,9 +143,11 @@ async function main() {
 
   const batch = queue.slice(0, limit);
   const rest = queue.slice(limit);
+  let nextId = currentMaxId() + 1;
   for (const c of batch) {
     try {
-      await generateOne(client, c, today);
+      await generateOne(client, c, today, nextId);
+      nextId++;
     } catch (e) {
       // API側の問題（レート制限・利用上限・5xx・接続）は候補を戻して次回に回す。
       // 内容起因の失敗（取得不可・出力形式不正）は処理済みにして、同じ候補で毎日失敗し続けるのを防ぐ。

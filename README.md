@@ -15,7 +15,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 |---|---|
 | `/` | 新着記事・カテゴリ・タグ |
 | `/articles` | 全記事一覧 |
-| `/articles/[slug]` | 記事（Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
+| `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
 | `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
@@ -43,6 +43,7 @@ scripts/sources.ts  収集元RSS（公式: Search Central / Search Status / The 
 
 ## 記事 frontmatter
 ```yaml
+id: 12                    # 必須。URLになる連番。生成スクリプトが最大値+1を自動採番
 title: "..."
 description: "..."        # 90〜120字
 date: "2026-08-23"
