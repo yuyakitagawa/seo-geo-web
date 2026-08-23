@@ -1,0 +1,109 @@
+import fs from "node:fs";
+import path from "node:path";
+import matter from "gray-matter";
+import readingTime from "reading-time";
+import { CATEGORY_KEYS, isCategoryKey, type CategoryKey } from "./site";
+
+// 記事は content/articles/<slug>.mdx に置く。AI生成パイプライン(scripts/)の出力先もここ。
+// CMSを使わずリポジトリ内で完結させることで、生成→PRレビュー→マージ→デプロイがGitだけで回る。
+const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
+
+export type Source = { title: string; url: string };
+
+export type ArticleMeta = {
+  slug: string;
+  title: string;
+  description: string;
+  /** 公開日 YYYY-MM-DD */
+  date: string;
+  /** 更新日 YYYY-MM-DD（未指定なら date） */
+  updated: string;
+  category: CategoryKey;
+  tags: string[];
+  /** 一次情報。GEO/AIO対策として記事末尾と JSON-LD の citation に出す */
+  sources: Source[];
+  /** true の記事は本番ビルドに含めない（AI生成の下書き状態） */
+  draft: boolean;
+  /** 読了時間（分） */
+  readingMinutes: number;
+};
+
+export type Article = ArticleMeta & { body: string };
+
+function parseFile(file: string): Article | null {
+  const slug = file.replace(/\.mdx?$/, "");
+  const raw = fs.readFileSync(path.join(ARTICLES_DIR, file), "utf8");
+  const { data, content } = matter(raw);
+
+  if (typeof data.title !== "string" || typeof data.date !== "string") {
+    throw new Error(`content/articles/${file}: frontmatter に title と date が必要です`);
+  }
+  const category = String(data.category ?? "news");
+  if (!isCategoryKey(category)) {
+    throw new Error(`content/articles/${file}: category は ${CATEGORY_KEYS.join("|")} のいずれか`);
+  }
+  const draft = Boolean(data.draft);
+  if (draft && process.env.NODE_ENV === "production") return null;
+
+  return {
+    slug,
+    title: data.title,
+    description: typeof data.description === "string" ? data.description : "",
+    date: data.date,
+    updated: typeof data.updated === "string" ? data.updated : data.date,
+    category,
+    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    sources: Array.isArray(data.sources)
+      ? data.sources.filter((s) => s && typeof s.url === "string").map((s) => ({ title: String(s.title ?? s.url), url: String(s.url) }))
+      : [],
+    draft,
+    readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
+    body: content,
+  };
+}
+
+let cache: Article[] | null = null;
+
+export function getAllArticles(): Article[] {
+  if (cache) return cache;
+  if (!fs.existsSync(ARTICLES_DIR)) return (cache = []);
+  cache = fs
+    .readdirSync(ARTICLES_DIR)
+    .filter((f) => /\.mdx?$/.test(f))
+    .map(parseFile)
+    .filter((a): a is Article => a !== null)
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.slug.localeCompare(b.slug)));
+  return cache;
+}
+
+export function getArticle(slug: string): Article | undefined {
+  return getAllArticles().find((a) => a.slug === slug);
+}
+
+export function getArticlesByCategory(category: CategoryKey): Article[] {
+  return getAllArticles().filter((a) => a.category === category);
+}
+
+export function getArticlesByTag(tag: string): Article[] {
+  return getAllArticles().filter((a) => a.tags.includes(tag));
+}
+
+export function getAllTags(): { tag: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const a of getAllArticles()) for (const t of a.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return [...counts].map(([tag, count]) => ({ tag, count })).sort((x, y) => y.count - x.count || x.tag.localeCompare(y.tag));
+}
+
+// 関連記事: 同カテゴリ＋タグ一致数が多い順。自分自身は除く。
+export function getRelatedArticles(article: Article, limit = 4): Article[] {
+  return getAllArticles()
+    .filter((a) => a.slug !== article.slug)
+    .map((a) => ({
+      a,
+      score: (a.category === article.category ? 2 : 0) + a.tags.filter((t) => article.tags.includes(t)).length,
+    }))
+    .filter((x) => x.score > 0)
+    .sort((x, y) => y.score - x.score || (x.a.date < y.a.date ? 1 : -1))
+    .slice(0, limit)
+    .map((x) => x.a);
+}

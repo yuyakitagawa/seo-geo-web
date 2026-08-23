@@ -1,0 +1,39 @@
+# 毎日 JST 7:00 にRSSを巡回し、Claudeで下書き記事を生成してPRを作る。
+# マージ（=公開）は人間のレビュー後。draft:true の記事は本番ビルドに含まれない。
+name: daily-articles
+
+on:
+  schedule:
+    - cron: "0 22 * * *" # 22:00 UTC = 07:00 JST
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "生成する記事数"
+        default: "3"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/collect.ts
+      - run: npx tsx scripts/generate.ts ${{ github.event.inputs.count || 3 }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/daily-articles
+          title: "記事下書き ${{ github.run_id }}"
+          commit-message: "chore: AI生成の記事下書きを追加"
+          body: |
+            自動生成された下書きです。内容を確認し、frontmatter の `draft: true` を `false` にしてマージすると公開されます。
+          labels: draft-articles

@@ -1,26 +1,20 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@plugin "@tailwindcss/typography";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 和文はWebフォントを読まず端末フォントに任せる（kujira-watchでNoto Sans JP配信が
+   数百KBのブロッキングCSSになった教訓）。 */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+}
+
+/* 見出しのアンカーリンク（rehype-autolink-headings）は見た目を通常の見出しに保つ */
+.prose :is(h2, h3, h4) a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: inherit;
 }

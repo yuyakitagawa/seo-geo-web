@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# seo-geo-web
 
-## Getting Started
+SEO・GEO（生成エンジン最適化）・AIO（AI Overview最適化）の最新動向と実務ノウハウを発信するメディア。
+一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説の下書きを生成、人間がレビューして公開する。
 
-First, run the development server:
+## スタック
+- Next.js 16 (App Router, SSG) + TypeScript + Tailwind CSS v4 (+ @tailwindcss/typography)
+- 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
+- 計測: Vercel Analytics / Speed Insights / GA4（`NEXT_PUBLIC_GA_ID` 設定時）
+- 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
+- 記事生成: `@anthropic-ai/sdk`（`claude-opus-5` + `web_fetch` サーバーツール）
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ページ構成
+| パス | 内容 |
+|---|---|
+| `/` | 新着記事・カテゴリ・タグ |
+| `/articles` | 全記事一覧 |
+| `/articles/[slug]` | 記事（Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
+| `/category/{seo,geo,aio,news}` | カテゴリ別一覧 |
+| `/tag/[tag]` | タグ別一覧 |
+| `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
+| `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
+
+## 記事パイプライン
+```
+scripts/sources.ts  収集元RSS（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable / 海外SEO情報ブログ）
+      ↓ npm run collect      7日以内・未処理・トピック語を含むものを content/queue.json へ
+      ↓ npm run generate N   Claudeが元記事をweb_fetchで読み、frontmatter付きMDXを content/articles/ に draft:true で出力
+      ↓ GitHub Actions       毎朝7時JST、上記を実行して PR を作成（.github/workflows/daily-articles.yml）
+      ↓ 人間レビュー          draft:false に変更してマージ → Vercel が自動デプロイ
+```
+処理済みURLは `content/processed.json` に記録し、重複生成を防ぐ。APIエラー時は候補をキューに戻し、内容起因の失敗のみ処理済みにする。
+
+## 記事 frontmatter
+```yaml
+title: "..."
+description: "..."        # 90〜120字
+date: "2026-08-23"
+updated: "2026-08-23"     # 任意
+category: "seo"           # seo | geo | aio | news
+tags: ["SEO", "AI Overview"]
+sources:
+  - title: "出典タイトル"
+    url: "https://..."
+draft: false
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## セットアップ
+```bash
+npm ci
+cp .env.example .env.local   # 値を設定
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## SEO / AIO 対策
+- Organization / WebSite / Article / BreadcrumbList の JSON-LD
+- 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
+- `llms.txt`（サイト概要＋主要URL）、RSS、sitemap、robots
+- 記事冒頭に「## 結論」を置く執筆ルール（AI検索のパッセージ抽出向け）
+- 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 未着手 / 将来
+- OGP画像の自動生成、記事内検索、英語版
+- 業務委託・問い合わせ導線はPVが伸びてから（現段階では設計に含めない）

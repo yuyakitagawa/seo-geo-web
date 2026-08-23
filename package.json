@@ -6,21 +6,37 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "collect": "tsx scripts/collect.ts",
+    "generate": "tsx scripts/generate.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@next/third-parties": "^16.3.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "gray-matter": "^4.0.3",
     "next": "16.3.2",
+    "next-mdx-remote": "^6.0.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "reading-time": "^1.5.0",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "rss-parser": "^3.13.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

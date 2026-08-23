@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 収集キュー（毎回再生成される。processed.json はコミットして重複生成を防ぐ）
+content/queue.json
