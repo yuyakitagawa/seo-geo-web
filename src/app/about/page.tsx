@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // 業務委託・相談窓口は意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
 export default function AboutPage() {
   return (
-    <div className="prose prose-neutral max-w-none dark:prose-invert">
+    <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-16 dark:prose-invert sm:py-24">
       <h1>運営者情報</h1>
 
       <h2>このサイトについて</h2>

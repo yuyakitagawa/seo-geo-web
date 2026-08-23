@@ -1,20 +1,67 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+@theme {
+  --font-sans: var(--font-display), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* ブランド色: 黒地に効くエレクトリックライム。カテゴリ色はバッジ・カード用 */
+  --color-accent: #d7ff3b;
+  --color-accent-ink: #1a1f00;
+  --color-seo: #4f7cff;
+  --color-geo: #a855f7;
+  --color-aio: #d7ff3b;
+  --color-news: #ff6b35;
+
+  --color-ink: #0a0a0a;
+  --color-paper: #f5f5f2;
+  --color-mute: #6b6b66;
+
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-float: float 9s ease-in-out infinite;
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(4%, -6%, 0) scale(1.08); }
+  }
 }
 
-/* 和文はWebフォントを読まず端末フォントに任せる（kujira-watchでNoto Sans JP配信が
-   数百KBのブロッキングCSSになった教訓）。 */
+/* 和文はWebフォントを読まず端末フォントに任せる（初期表示を軽く保つ）。欧文のみディスプレイ書体。 */
+html { scroll-behavior: smooth; }
 body {
-  @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-feature-settings: "palt";
+  letter-spacing: 0.01em;
+}
+@media (prefers-color-scheme: dark) {
+  body { background: var(--color-ink); color: var(--color-paper); }
 }
 
-/* 見出しのアンカーリンク（rehype-autolink-headings）は見た目を通常の見出しに保つ */
-.prose :is(h2, h3, h4) a {
-  text-decoration: none;
-  color: inherit;
-  font-weight: inherit;
+::selection { background: var(--color-accent); color: var(--color-accent-ink); }
+
+/* 記事本文 */
+.prose :is(h2, h3, h4) a { text-decoration: none; color: inherit; font-weight: inherit; }
+.prose h2 {
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid currentColor;
+}
+.prose h3 { font-size: 1.15rem; margin-top: 2rem; }
+.prose a { text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose table { font-size: 0.9em; }
+.prose th { background: color-mix(in srgb, currentColor 8%, transparent); }
+.prose :where(h2:first-child) { margin-top: 0; border-top: 0; padding-top: 0; }
+
+/* 罫線付きのドット背景 */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, currentColor 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, currentColor 7%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="prose prose-neutral max-w-none dark:prose-invert">
+    <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-16 dark:prose-invert sm:py-24">
       <h1>プライバシーポリシー</h1>
 
       <h2>広告の配信について</h2>

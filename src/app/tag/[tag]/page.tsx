@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleList from "@/components/ArticleList";
+import PageHeader from "@/components/PageHeader";
 import { getAllTags, getArticlesByTag } from "@/lib/content";
 
 export const dynamicParams = false;
@@ -20,8 +21,8 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
   if (articles.length === 0) notFound();
   return (
     <>
-      <h1 className="mb-6 text-2xl font-bold">#{tag}</h1>
-      <ArticleList articles={articles} />
+      <PageHeader eyebrow="Topic" title={`#${tag}`} />
+      <div className="mx-auto max-w-6xl px-5 pb-16"><ArticleList articles={articles} /></div>
     </>
   );
 }

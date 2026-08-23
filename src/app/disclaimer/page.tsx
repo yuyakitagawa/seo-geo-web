@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <div className="prose prose-neutral max-w-none dark:prose-invert">
+    <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-16 dark:prose-invert sm:py-24">
       <h1>免責事項</h1>
       <p>
         当サイトの記事は、公開時点で入手できる一次情報をもとに正確を期して作成していますが、検索エンジンや

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleList from "@/components/ArticleList";
+import PageHeader from "@/components/PageHeader";
 import { getArticlesByCategory } from "@/lib/content";
 import { CATEGORIES, CATEGORY_KEYS, isCategoryKey } from "@/lib/site";
 
@@ -23,9 +24,8 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
   const c = CATEGORIES[category];
   return (
     <>
-      <h1 className="text-2xl font-bold">{c.label}</h1>
-      <p className="mb-6 mt-2 text-neutral-600 dark:text-neutral-400">{c.description}</p>
-      <ArticleList articles={getArticlesByCategory(category)} />
+      <PageHeader eyebrow="Category" title={c.label} lead={c.description} />
+      <div className="mx-auto max-w-6xl px-5 pb-16"><ArticleList articles={getArticlesByCategory(category)} /></div>
     </>
   );
 }

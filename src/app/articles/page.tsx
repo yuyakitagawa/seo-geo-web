@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ArticleList from "@/components/ArticleList";
+import PageHeader from "@/components/PageHeader";
 import { getAllArticles } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -12,8 +13,8 @@ export default function ArticlesPage() {
   const articles = getAllArticles();
   return (
     <>
-      <h1 className="mb-6 text-2xl font-bold">記事一覧 <span className="text-base font-normal text-neutral-500">({articles.length}件)</span></h1>
-      <ArticleList articles={articles} />
+      <PageHeader eyebrow={`All articles · ${articles.length}`} title="記事一覧" />
+      <div className="mx-auto max-w-6xl px-5 pb-16"><ArticleList articles={articles} /></div>
     </>
   );
 }

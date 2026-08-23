@@ -10,6 +10,13 @@ const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
 
 export type Source = { title: string; url: string };
 
+// 影響度。全記事の冒頭パネルに固定表示し、読者が「読むべきか」を3秒で判断できるようにする。
+export type Impact = "high" | "mid" | "low";
+export const IMPACT_LABEL: Record<Impact, string> = { high: "影響大", mid: "影響中", low: "影響小" };
+function parseImpact(v: unknown): Impact | undefined {
+  return v === "high" || v === "mid" || v === "low" ? v : undefined;
+}
+
 export type ArticleMeta = {
   slug: string;
   title: string;
@@ -22,6 +29,12 @@ export type ArticleMeta = {
   tags: string[];
   /** 一次情報。GEO/AIO対策として記事末尾と JSON-LD の citation に出す */
   sources: Source[];
+  /** 影響度（任意） */
+  impact?: Impact;
+  /** 誰に影響するか（任意。例: "ECサイト運営者"） */
+  audience?: string;
+  /** 今すぐやること（任意、1〜4項目） */
+  actions: string[];
   /** true の記事は本番ビルドに含めない（AI生成の下書き状態） */
   draft: boolean;
   /** 読了時間（分） */
@@ -56,6 +69,9 @@ function parseFile(file: string): Article | null {
     sources: Array.isArray(data.sources)
       ? data.sources.filter((s) => s && typeof s.url === "string").map((s) => ({ title: String(s.title ?? s.url), url: String(s.url) }))
       : [],
+    impact: parseImpact(data.impact),
+    audience: typeof data.audience === "string" ? data.audience : undefined,
+    actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],
     draft,
     readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
     body: content,

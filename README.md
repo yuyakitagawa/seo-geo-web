@@ -31,6 +31,16 @@ scripts/sources.ts  収集元RSS（公式: Search Central / Search Status / The 
 ```
 処理済みURLは `content/processed.json` に記録し、重複生成を防ぐ。APIエラー時は候補をキューに戻し、内容起因の失敗のみ処理済みにする。
 
+## 記事の型（他媒体との差別化）
+- 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
+- 本文に「## 検索側の狙い」（プロダクト側の意図をPdM視点で推論）と「## やること／やらなくていいこと」を必須化
+- 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
+
+## デザイン
+- 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / aio=ライム / news=橙（`src/lib/categoryStyle.ts`）
+- 欧文は Space Grotesk（next/font）、和文は端末フォント
+- `globals.css` の `@theme` にトークン集約。ダークモード対応
+
 ## 記事 frontmatter
 ```yaml
 title: "..."
@@ -39,6 +49,10 @@ date: "2026-08-23"
 updated: "2026-08-23"     # 任意
 category: "seo"           # seo | geo | aio | news
 tags: ["SEO", "AI Overview"]
+impact: "mid"             # high | mid | low（任意）
+audience: "店舗集客サイト"  # 任意
+actions:                  # 任意、1〜4項目
+  - "robots.txt を確認する"
 sources:
   - title: "出典タイトル"
     url: "https://..."

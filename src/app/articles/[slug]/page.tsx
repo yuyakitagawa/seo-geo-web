@@ -8,6 +8,8 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import AdUnit from "@/components/AdUnit";
 import ArticleCard from "@/components/ArticleCard";
 import JsonLd from "@/components/JsonLd";
+import KeyPoints from "@/components/KeyPoints";
+import CategoryBadge from "@/components/CategoryBadge";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { CATEGORIES, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -78,61 +80,69 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       <JsonLd data={articleJsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
 
-      <nav aria-label="パンくず" className="mb-4 text-sm text-neutral-500">
-        <ol className="flex flex-wrap gap-1">
-          <li><Link href="/" className="hover:underline">ホーム</Link> /</li>
-          <li><Link href={`/category/${article.category}`} className="hover:underline">{CATEGORIES[article.category].label}</Link></li>
-        </ol>
-      </nav>
-
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{article.title}</h1>
-        <p className="mt-3 text-sm text-neutral-500">
-          公開 <time dateTime={article.date}>{article.date}</time>
-          {article.updated !== article.date && <> ・ 更新 <time dateTime={article.updated}>{article.updated}</time></>}
-          {" "}・ 約{article.readingMinutes}分で読めます
-        </p>
-        {article.description && <p className="mt-4 text-neutral-700 dark:text-neutral-300">{article.description}</p>}
+      <header className="relative overflow-hidden bg-ink text-paper">
+        <div className="bg-grid absolute inset-0 opacity-50" />
+        <div className="relative mx-auto max-w-4xl px-5 pb-14 pt-16 sm:pb-20 sm:pt-24">
+          <nav aria-label="パンくず" className="mb-8 text-xs text-paper/60">
+            <ol className="flex flex-wrap gap-2">
+              <li><Link href="/" className="hover:text-paper">ホーム</Link></li>
+              <li aria-hidden>/</li>
+              <li><Link href={`/category/${article.category}`} className="hover:text-paper">{CATEGORIES[article.category].label}</Link></li>
+            </ol>
+          </nav>
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-paper/70">
+            <CategoryBadge category={article.category} size="md" />
+            <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
+            {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
+            <span>{article.readingMinutes} min read</span>
+          </div>
+          <h1 className="text-[clamp(1.9rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-tight animate-rise">{article.title}</h1>
+          {article.description && <p className="mt-6 max-w-2xl text-paper/75 sm:text-lg animate-rise [animation-delay:100ms]">{article.description}</p>}
+        </div>
       </header>
 
-      <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-20">
-        <MDXRemote
-          source={article.body}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-              rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
-            },
-          }}
-        />
-      </div>
+      <div className="mx-auto max-w-4xl px-5">
+        <KeyPoints article={article} />
 
-      {article.sources.length > 0 && (
-        <section className="mt-10 rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800">
-          <h2 className="mb-2 font-semibold">参考・一次情報</h2>
-          <ul className="list-disc space-y-1 pl-5">
-            {article.sources.map((s) => (
-              <li key={s.url}><a href={s.url} target="_blank" rel="noopener" className="underline">{s.title}</a></li>
+        <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">
+          <MDXRemote
+            source={article.body}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+                rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
+              },
+            }}
+          />
+        </div>
+
+        {article.sources.length > 0 && (
+          <section className="mt-12 rounded-3xl border border-ink/10 p-6 text-sm dark:border-paper/10">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-mute">Sources · 一次情報</h2>
+            <ul className="space-y-2">
+              {article.sources.map((s) => (
+                <li key={s.url}><a href={s.url} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">{s.title}</a></li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {article.tags.length > 0 && (
+          <ul className="mt-8 flex flex-wrap gap-2 text-sm">
+            {article.tags.map((t) => (
+              <li key={t}><Link href={`/tag/${encodeURIComponent(t)}`} className="inline-block rounded-full border border-ink/15 px-3 py-1.5 transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">#{t}</Link></li>
             ))}
           </ul>
-        </section>
-      )}
+        )}
 
-      {article.tags.length > 0 && (
-        <ul className="mt-6 flex flex-wrap gap-2 text-sm">
-          {article.tags.map((t) => (
-            <li key={t}><Link href={`/tag/${encodeURIComponent(t)}`} className="rounded bg-neutral-100 px-2 py-1 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700">#{t}</Link></li>
-          ))}
-        </ul>
-      )}
-
-      <AdUnit placement="bottom" />
+        <AdUnit placement="bottom" />
+      </div>
 
       {related.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-4 text-lg font-semibold">関連記事</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {related.map((a) => <ArticleCard key={a.slug} article={a} />)}
+        <section className="mx-auto mt-20 max-w-6xl px-5">
+          <h2 className="mb-6 text-2xl font-bold tracking-tight">関連記事</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {related.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
           </div>
         </section>
       )}
