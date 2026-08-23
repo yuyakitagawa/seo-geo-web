@@ -18,7 +18,7 @@
 - [x] `npm run build` 成功（23ページ）
 
 ## 次のステップ（ユーザー作業が必要なもの）
-- [ ] GitHubリポジトリ作成 → `git remote add origin` → 初回push
+- [x] GitHubリポジトリ作成 → https://github.com/yuyakitagawa/seo-geo-web（初回push済み）
 - [ ] GitHub Secrets に `ANTHROPIC_API_KEY` を登録（Actions用）
 - [ ] Vercelプロジェクト作成（Root Directory = リポジトリ直下）、`NEXT_PUBLIC_SITE_URL` 設定
 - [ ] ドメイン決定・取得・Vercel接続、`NEXT_PUBLIC_SITE_NAME` 決定（現状の仮名: SEO・GEO・AIO Lab）
