@@ -1,7 +1,12 @@
-// サイト基本情報。ドメイン・ブランド名は未確定のため環境変数で上書きできるようにしてある。
-// Vercelに独自ドメインを接続したら NEXT_PUBLIC_SITE_URL を設定すること（canonical/OGP/sitemapの基準URL）。
+// サイト基本URL。優先順位:
+// 1. NEXT_PUBLIC_SITE_URL（独自ドメイン接続後にVercelの環境変数で設定する）
+// 2. VERCEL_PROJECT_PRODUCTION_URL（Vercelが自動注入する本番URL。プレビューでも本番URLを指す）
+// 3. ローカル開発
+// canonical / OGP / sitemap / JSON-LD のすべてがこの値を基準にするため、URL変更時はここだけ直せばよい。
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://seo-geo-web.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
+  "http://localhost:3000"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO・GEO・AIO Lab";

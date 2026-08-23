@@ -20,7 +20,7 @@
 ## 次のステップ（ユーザー作業が必要なもの）
 - [x] GitHubリポジトリ作成 → https://github.com/yuyakitagawa/seo-geo-web（初回push済み）
 - [ ] GitHub Secrets に `ANTHROPIC_API_KEY` を登録（Actions用）
-- [ ] Vercelプロジェクト作成（Root Directory = リポジトリ直下）、`NEXT_PUBLIC_SITE_URL` 設定
+- [x] Vercelプロジェクト作成 → https://seo-geo-web-red.vercel.app/（URLは変更予定。SITE_URLはVercel環境変数から自動取得）
 - [ ] ドメイン決定・取得・Vercel接続、`NEXT_PUBLIC_SITE_NAME` 決定（現状の仮名: SEO・GEO・AIO Lab）
 - [ ] GA4プロパティ作成 → `NEXT_PUBLIC_GA_ID`
 - [ ] Search Console 登録、sitemap送信
