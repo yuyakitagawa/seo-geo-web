@@ -28,6 +28,10 @@
 - [ ] Search Console 登録、sitemap送信
 - [ ] 記事20〜30本公開後に AdSense 申請 → `NEXT_PUBLIC_ADSENSE_*`
 
+## 運用メモ
+- 候補リストのスプレッドシート: https://docs.google.com/spreadsheets/d/1KsTQgFcZeE9-rdDJh84rmmJsYk41vcL0QoRf0naj5tQ/edit （2026-08-24時点のスナップショット。正は content/candidates.csv。シート側で status を変えたら CSV に反映する）
+- 企画済み・未執筆: 記事候補 id 17〜21 相当（Decision Coverage / キーワード宇宙 / プロンプトインジェクション / カニバリ統合 / E-E-A-Tチェッカー）は candidates.csv の note に「企画案」として保持
+
 ## 次のステップ（Claude作業）
 - [ ] 9/1以降に `npm run generate 1` で生成を実走し、プロンプト調整
 - [x] 記事12本公開（2026-08-23。用語はGEOに統一、AIO/LLMOは包含）
