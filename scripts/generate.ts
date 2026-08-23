@@ -1,16 +1,15 @@
-// content/queue.json の先頭N件を Claude で記事化し、content/articles/<slug>.mdx に draft:true で保存する。
+// content/candidates.csv で「採用」になっている候補をスコア順にN件、Claude で記事化して content/articles/ に draft:true で保存する。
+// 記事化した行は「公開」にして記事idを記録する。
 // 元記事本文は Claude の web_fetch サーバーツールで取得（HTML解析コードを自前で持たない）。
 // 実行: npx tsx scripts/generate.ts [件数=3]
 import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import matter from "gray-matter";
-import type { Candidate } from "./collect";
+import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
-const QUEUE_PATH = path.join(CONTENT_DIR, "queue.json");
-const PROCESSED_PATH = path.join(CONTENT_DIR, "processed.json");
 const MODEL = "claude-opus-5";
 
 const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編集者です。運営者は国内大手の検索サービスと大規模予約サービスで
@@ -132,37 +131,35 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
 async function main() {
   const limit = Number(process.argv[2] ?? 3);
   const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10); // JST
-  const queue: Candidate[] = fs.existsSync(QUEUE_PATH) ? JSON.parse(fs.readFileSync(QUEUE_PATH, "utf8")) : [];
-  const processed: string[] = fs.existsSync(PROCESSED_PATH) ? JSON.parse(fs.readFileSync(PROCESSED_PATH, "utf8")) : [];
-  if (queue.length === 0) {
-    console.log("queue is empty");
+  const list = loadCandidates();
+  const adopted = list.filter((c) => c.status === "採用").sort((a, b) => b.score - a.score).slice(0, limit);
+  if (adopted.length === 0) {
+    console.log("「採用」の候補がありません（content/candidates.csv の status を 採用 にしてください）");
     return;
   }
   fs.mkdirSync(ARTICLES_DIR, { recursive: true });
   const client = new Anthropic();
 
-  const batch = queue.slice(0, limit);
-  const rest = queue.slice(limit);
   let nextId = currentMaxId() + 1;
-  for (const c of batch) {
+  for (const c of adopted) {
     try {
       await generateOne(client, c, today, nextId);
+      c.status = "公開";
+      c.articleId = String(nextId);
       nextId++;
     } catch (e) {
-      // API側の問題（レート制限・利用上限・5xx・接続）は候補を戻して次回に回す。
-      // 内容起因の失敗（取得不可・出力形式不正）は処理済みにして、同じ候補で毎日失敗し続けるのを防ぐ。
+      // API側の問題（レート制限・利用上限・5xx・接続）は「採用」のまま残して次回に回す。
+      // 内容起因の失敗（取得不可・出力形式不正）はメモに残して却下にし、毎日同じ候補で失敗し続けるのを防ぐ。
       if (e instanceof Anthropic.APIError || e instanceof Anthropic.APIConnectionError) {
-        console.error(`api error; re-queue ${c.url}: ${e.message}`);
-        rest.unshift(c);
+        console.error(`api error; keep ${c.url}: ${e.message}`);
         continue;
       }
       console.error(`failed ${c.url}: ${(e as Error).message}`);
+      c.status = "却下";
+      c.note = `生成失敗: ${(e as Error).message}`;
     }
-    processed.push(c.url);
   }
-
-  fs.writeFileSync(QUEUE_PATH, JSON.stringify(rest, null, 2) + "\n");
-  fs.writeFileSync(PROCESSED_PATH, JSON.stringify([...new Set(processed)], null, 2) + "\n");
+  saveCandidates(list);
 }
 
 main().catch((e) => {
