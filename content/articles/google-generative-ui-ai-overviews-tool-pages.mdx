@@ -1,0 +1,90 @@
+---
+title: "GoogleがGenerative UIをAI Overviewに拡大、計算機・シミュレータ型ページの役割が検索結果内へ移る"
+description: "GoogleはAI Modeで提供していたGenerative UIをAI Overviewにも展開。回答内に計算機や比較表を生成するため、ローン計算や年収シミュレータ型のページが競合します。公式発表と研究論文の事実、検索側の狙い、日本のサイトでの対処を整理します。"
+date: "2026-08-23"
+category: "geo"
+tags: ["Google", "AI Overview", "AI Mode", "Generative UI", "Gemini 3", "GEO"]
+impact: "high"
+audience: "ローン計算・見積もり・年収シミュレータなどのツールページを持つ金融・不動産・転職サイト"
+actions:
+  - "自社のツールページを「公式の計算式だけで動くもの」と「独自データで動くもの」に仕分けする"
+  - "ツールの裏にある独自データ（実績値・分布・地域別相場）を本文と表で露出する"
+  - "Search ConsoleでツールページのAI由来クエリを四半期単位で追う"
+sources:
+  - title: "Google Expands Generative UI Beyond AI Mode Into AI Overviews（Search Engine Journal）"
+    url: "https://www.searchenginejournal.com/google-expands-generative-ui-beyond-ai-mode-into-ai-overviews/586452/"
+  - title: "Google's Generated Interfaces Could Compete With Tool Pages（Search Engine Journal）"
+    url: "https://www.searchenginejournal.com/googles-generated-interfaces-could-compete-with-tool-pages/586589/"
+  - title: "How Google Search, Lens, AI Mode can help you study（Google公式ブログ）"
+    url: "https://blog.google/products-and-platforms/products/search/back-to-school-study-tools/"
+  - title: "Generative UI: A rich, custom, visual interactive user experience for any prompt（Google Research）"
+    url: "https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user-experience-for-any-prompt/"
+draft: false
+---
+
+## 結論
+
+Googleは2026年8月19日、AI Modeで提供していたGenerative UIをAI Overviewにも展開し始めました。検索結果の回答内に計算機や可視化ツールがその場で生成されるため、公式の計算式だけで動くツールページは役割を奪われます。GEO（AIO・LLMOとも呼ばれます）の観点では、ツールの裏にある独自データをページに露出することが対処の中心になります。
+
+## 発表の事実
+
+Google公式ブログによると、Generative UIはAI Modeで英語圏に全世界展開済みです。同じ8月19日付でAI Overviewへの展開も始まったと記載されています。現時点では英語のみで、他言語への対応は数週間以内に予定されています。
+
+公式の例は「ph scale」という検索です。AI Overview内にpHスケールの対話型ビジュアルが生成されます。続けてAI Modeで「柑橘類をpHスケール上に並べて」と頼むと、より具体的なツールが作られます。
+
+時系列は次の通りです。2025年11月にGemini 3とともにAI Modeへ登場し、2026年5月のI/Oで夏に無料で全員に開放すると予告されました。Search Engine Journalは、すでに住宅ローン計算機もAI Mode内で生成されていると伝えています。
+
+Google Researchの解説では、Gemini 3 ProがHTML/CSS/JavaScriptを生成してブラウザで描画します。画像生成や検索などのツール、システム指示、後処理の3要素で構成されています。生成に1分以上かかる点と、たまに誤りが出る点は研究課題として明記されています。
+
+Search Engine Journalの2本目の記事は、影響を受けやすいツールを列挙しています。住宅ローン計算機、単位換算、BMI計算、支払い計算、学習シミュレーション、練習問題などです。逆に、非公開データ、ログインが必要な処理、外部連携に依存するツールは置き換えにくいとしています。
+
+同記事はGoogleの論文の数字も引用しています。主要プロンプトでの比較では、生成UIが上位検索結果に90%の割合で勝ちました。情報探索系の質問では73.5%対19%です。AI Overviewの月間利用者は25億人を超えています。
+
+## 検索側の狙い
+
+大手検索サービスでプロダクトを担当した経験から見ると、狙いは「検索結果からの離脱を減らす」ことだと考えられます。計算機や比較表は、ユーザーが検索後に外部サイトへ移動する典型的な理由でした。そこを回答内で完結させれば、滞在時間とAI Mode内でのフォローアップ率が伸びます。
+
+もう一つは、AI OverviewからAI Modeへの送客だと考えられます。公式の例でも、AI Overviewで簡易版を見せ、細かい要望はAI Modeで受ける導線になっています。AI Overviewを入口、AI Modeを深掘りの場にする設計です。
+
+見ているKPIは、AI Modeの月間利用者数とフォローアップ質問数だと推測されます。Googleは「AI Modeが10億人を超えた」と公表しており、この数字を伸ばす施策として一貫しています。論文では「専門家が作ったサイトが最上位、生成UIがそれに僅差で続く」と書かれており、公式式だけのツールは差が出ないと判断したと考えられます。
+
+## 日本のサイトでの例
+
+金融サイトの「住宅ローン返済シミュレータ」は、元利均等の計算式が公開情報です。AI Overviewが金利と期間を入力させる計算機を生成すれば、ページに来る理由が消えます。残るのは「自社の実際の承認金利の分布」「年代別の借入額の実績」などの独自データです。
+
+不動産ポータルの「引越し見積もり」も同様です。距離と荷物量から概算する式は誰でも作れます。一方、「3月第4週の実際の成約単価」「地域別の繁忙期の価格倍率」はそのポータルにしかありません。
+
+転職サイトの「年収シミュレータ」は、業種・年齢・経験から年収を推定します。推定式だけなら生成UIに置き換わります。しかし「職種別の実際のオファー年収の中央値」「転職前後の年収変化の分布」は登録者データから出る独自情報です。
+
+BtoB SaaSの「ROI計算機」も影響を受けます。工数削減の掛け算は生成できますが、「導入企業の平均削減率」の実測値は生成できません。
+
+## やること／やらなくていいこと
+
+**やること**
+
+- ツールページを「公式式のみ」「独自データあり」の2種類に仕分けする。
+- 独自データを本文と表で露出する。入力しないと見えない値は、AIにも読者にも見えません。
+- 表には「実績値」「集計期間」「母数」を書く。出所が明記された数字は引用されやすくなります。
+- Search Consoleの生成AIパフォーマンスレポートで、ツールページのクエリを四半期追う。
+- 公式式のみのツールは、独自データの表示面として作り直す。
+
+**やらなくていいこと**
+
+- 計算機のUIを作り込むこと。操作性では生成UIと競いません。
+- 計算機の種類を増やすこと。公式式のツールを10個並べても防御になりません。
+- ツールページをJavaScriptで隠すこと。独自データまで見えなくなります。
+- 英語圏の動向を理由に今すぐ全ページを改修すること。日本語展開は数週間後とされており、仕分けを先に終えれば間に合います。
+
+## よくある質問
+
+### 日本語の検索でも生成UIは出ますか
+
+公式ブログは「他言語は数週間以内」としています。日本語の具体的な開始日は示されていません。英語で先に挙動を確認し、日本語展開前に仕分けを終えるのが現実的です。
+
+### 生成UIの中に出典リンクは付きますか
+
+Search Engine Journalの記事は、生成UIに出典が付くかどうかは不明だとしています。論文でもUIは「一時的」で保存されないとされています。出典表示を前提にせず、独自データを本文テキストで露出する方が確実です。
+
+### どのクエリで生成UIが出るかは分かりますか
+
+Googleはトリガーとなるクエリの種類を公表していません。Search Consoleの新しいレポートも、通常のAI Overviewと生成UIを区別しません。ツールページ単位で表示回数とクリック数の変化を追うしかありません。

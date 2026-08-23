@@ -9,13 +9,13 @@ export const SITE_URL = (
   "http://localhost:3000"
 ).replace(/\/$/, "");
 
-export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO・GEO・AIO Lab";
+export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO・GEO Lab";
 
 export const SITE_DESCRIPTION =
-  "Google検索・AI検索（ChatGPT / Perplexity / AI Overview）の最新アップデートを毎日追い、SEO・GEO・AIOの実務ノウハウとして解説するメディア。検索プロダクトのPdM経験をもとに、一次情報へのリンク付きでまとめます。";
+  "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。検索プロダクトのPdM経験をもとに、一次情報へのリンク付きでまとめます。";
 
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
-export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO GEO AIO Lab"];
+export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO GEO Lab"];
 
 // 公式Xアカウント。未開設の間は空文字にしておくとフォロー導線・twitter:siteが出ない。
 export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "";
@@ -23,12 +23,19 @@ export const X_PROFILE_URL = X_SCREEN_NAME ? `https://x.com/${X_SCREEN_NAME}` : 
 export const X_HANDLE = X_SCREEN_NAME ? `@${X_SCREEN_NAME}` : undefined;
 
 export const ORGANIZATION_SAME_AS = [X_PROFILE_URL].filter(Boolean);
+// フォローintent。プロフィールへの素のリンクよりワンタップ少なくフォローできる。
+export const X_FOLLOW_URL = X_SCREEN_NAME ? `https://x.com/intent/follow?screen_name=${X_SCREEN_NAME}` : "";
+
+// Organization構造化データの contactPoint。運営者は実名・メールを公開しない方針のため、
+// 連絡先は公式XのみをE-E-A-T（連絡可能性）のシグナルとして宣言する。Xが未設定なら出さない。
+export const ORGANIZATION_CONTACT_POINT = X_PROFILE_URL
+  ? { "@type": "ContactPoint", contactType: "customer support", url: X_PROFILE_URL, availableLanguage: ["ja"] }
+  : undefined;
 
 // 記事カテゴリ。URL(/category/<key>)・記事frontmatterの category と一致させる。
 export const CATEGORIES = {
   seo: { label: "SEO", description: "Google/Bing検索のアルゴリズム更新、テクニカルSEO、コンテンツSEOの実務" },
-  geo: { label: "GEO", description: "生成AI検索（ChatGPT Search / Perplexity / Gemini）で引用されるための最適化" },
-  aio: { label: "AIO", description: "Google AI Overview / AI Mode の挙動と対策" },
+  geo: { label: "GEO", description: "生成AI検索最適化。Google AI Overview / AI Mode、ChatGPT、Perplexity、Geminiで引用されるための実務" },
   news: { label: "ニュース", description: "検索・AI業界の最新アップデート速報" },
 } as const;
 export type CategoryKey = keyof typeof CATEGORIES;

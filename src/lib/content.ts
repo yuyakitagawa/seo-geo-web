@@ -27,7 +27,7 @@ export type ArticleMeta = {
   updated: string;
   category: CategoryKey;
   tags: string[];
-  /** 一次情報。GEO/AIO対策として記事末尾と JSON-LD の citation に出す */
+  /** 一次情報。GEO対策として記事末尾と JSON-LD の citation に出す */
   sources: Source[];
   /** 影響度（任意） */
   impact?: Impact;

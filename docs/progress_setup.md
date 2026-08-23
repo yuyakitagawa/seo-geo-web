@@ -18,6 +18,8 @@
 - [x] `npm run build` 成功（23ページ）
 
 ## 次のステップ（ユーザー作業が必要なもの）
+- [ ] 公式Xアカウント作成 → Vercel環境変数 `NEXT_PUBLIC_X_SCREEN_NAME` に設定（フッター/twitter:site/Organization sameAs・contactPoint/フォローCTAに反映）
+- [ ] サイト名の決定（現状「SEO・GEO Lab」は仮称。`NEXT_PUBLIC_SITE_NAME` で上書き可）
 - [x] GitHubリポジトリ作成 → https://github.com/yuyakitagawa/seo-geo-web（初回push済み）
 - [ ] GitHub Secrets に `ANTHROPIC_API_KEY` を登録（Actions用）
 - [x] Vercelプロジェクト作成 → https://seo-geo-web-red.vercel.app/（URLは変更予定。SITE_URLはVercel環境変数から自動取得）
@@ -28,5 +30,5 @@
 
 ## 次のステップ（Claude作業）
 - [ ] 9/1以降に `npm run generate 1` で生成を実走し、プロンプト調整
-- [ ] 柱記事（基礎解説）を5本程度追加して初期コンテンツを厚くする
+- [x] 記事12本公開（2026-08-23。用語はGEOに統一、AIO/LLMOは包含）
 - [ ] OGP画像生成（`opengraph-image.tsx`）

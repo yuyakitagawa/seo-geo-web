@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "運営者情報",
@@ -17,17 +17,14 @@ export default function AboutPage() {
       <h2>このサイトについて</h2>
       <p>
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の
-        最新アップデートを追い、SEO・GEO（生成エンジン最適化）・AIO（AI Overview最適化）の実務ノウハウとして
-        解説するメディアです。
+        最新アップデートを追い、SEOとGEO（Generative Engine Optimization、生成AI検索最適化）の実務ノウハウとして
+        解説するメディアです。本サイトでは「AIO」「LLMO」と呼ばれる領域もまとめてGEOと表記します。
       </p>
 
       <h2>運営者</h2>
       <p>
-        検索プロダクト（Yahoo!検索）および大規模予約サービス（ホットペッパービューティー）でプロダクトマネージャーを
+        国内大手の検索サービスおよび大規模予約サービスでプロダクトマネージャーを
         務めた経験をもとに、「検索側の設計思想」と「サイト運営側の施策」の両面から解説します。
-        また、EDINET大量保有報告書を集計するメディア
-        <a href="https://kujira-watch.com/" target="_blank" rel="noopener">大口投資家の監視ブログ（kujira-watch.com）</a>
-        を運営しており、SEO/AIO施策を自サイトで検証した結果も記事に反映しています。
       </p>
 
       <h2>記事の作り方</h2>
@@ -38,6 +35,13 @@ export default function AboutPage() {
         <li>公式の仕様変更や誤りが判明した場合は記事を更新し、更新日を表示します。</li>
       </ol>
       <p>AIを下書きに使う旨は透明性のためここに明記しています。公開前に人間が確認していない記事は掲載しません。</p>
+
+      <h2>連絡先</h2>
+      <p>
+        記事の誤りのご指摘・ご意見は、公式Xアカウント
+        {X_PROFILE_URL ? <>（<a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>）</> : "（準備中）"}
+        へのリプライまたはDMでお寄せください。実名・メールアドレスは公開していません。
+      </p>
 
       <h2>広告について</h2>
       <p>当サイトはGoogle AdSenseによる広告を掲載しています。詳細は<a href="/privacy">プライバシーポリシー</a>をご覧ください。</p>

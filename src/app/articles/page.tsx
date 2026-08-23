@@ -5,7 +5,7 @@ import { getAllArticles } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "記事一覧",
-  description: "SEO・GEO・AIOに関する全記事の一覧。",
+  description: "SEO・GEOに関する全記事の一覧。",
   alternates: { canonical: "/articles" },
 };
 

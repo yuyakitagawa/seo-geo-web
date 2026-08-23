@@ -7,7 +7,7 @@ import AdSenseScript from "@/components/AdSenseScript";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
-import { ORGANIZATION_SAME_AS, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
+import { ORGANIZATION_CONTACT_POINT, ORGANIZATION_SAME_AS, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
 import "./globals.css";
 
 // 欧文ディスプレイ書体。和文は端末フォント（CSS側のフォールバック）。
@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME}｜SEO・GEO・AIOの最新動向と実務ノウハウ`,
+    default: `${SITE_NAME}｜SEOとGEOの最新動向と実務ノウハウ`,
     // 固有名（記事タイトル）を先頭に。全記事が同じ接頭辞で始まると検索結果で見分けが付かない。
     template: `%s｜${SITE_NAME}`,
   },
@@ -43,6 +43,7 @@ const organizationJsonLd = {
   alternateName: SITE_ALTERNATE_NAMES,
   url: SITE_URL,
   ...(ORGANIZATION_SAME_AS.length ? { sameAs: ORGANIZATION_SAME_AS } : {}),
+  ...(ORGANIZATION_CONTACT_POINT ? { contactPoint: ORGANIZATION_CONTACT_POINT } : {}),
 };
 
 const websiteJsonLd = {

@@ -72,7 +72,7 @@ export default function Home() {
         <div className="rounded-3xl bg-accent p-8 text-accent-ink sm:p-12">
           <p className="text-xs font-bold uppercase tracking-wider opacity-70">Who writes this</p>
           <p className="mt-3 max-w-3xl text-xl font-bold leading-snug sm:text-2xl">
-            Yahoo!検索とホットペッパービューティーでPdMをしていた運営者が、一次情報をAIで毎日収集し、人間が確認して公開しています。
+            大手検索サービスと大規模予約サービスでプロダクトマネージャーをしていた運営者が、一次情報をAIで毎日収集し、人間が確認して公開しています。
           </p>
           <Link href="/about" className="mt-6 inline-block rounded-full bg-accent-ink px-5 py-2.5 text-sm font-semibold text-accent transition hover:opacity-80">
             {SITE_NAME}について →

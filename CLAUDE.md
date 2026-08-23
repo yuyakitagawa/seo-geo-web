@@ -1,7 +1,7 @@
 @AGENTS.md
 # seo-geo-web
 
-SEO・GEO・AIOの最新情報と実務ノウハウをAIで発信するメディア。収益はAdSense。
+SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務ノウハウをAIで発信するメディア。収益はAdSense。
 **業務委託・問い合わせ導線はPVが十分に伸びるまで設計に入れない**（運営者方針）。
 
 ## 0. AI Handling Rules

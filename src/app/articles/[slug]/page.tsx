@@ -9,6 +9,7 @@ import AdUnit from "@/components/AdUnit";
 import ArticleCard from "@/components/ArticleCard";
 import JsonLd from "@/components/JsonLd";
 import KeyPoints from "@/components/KeyPoints";
+import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { CATEGORIES, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -135,6 +136,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
           </ul>
         )}
 
+        <FollowCta />
         <AdUnit placement="bottom" />
       </div>
 

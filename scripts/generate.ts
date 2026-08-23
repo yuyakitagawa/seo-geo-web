@@ -13,7 +13,7 @@ const QUEUE_PATH = path.join(CONTENT_DIR, "queue.json");
 const PROCESSED_PATH = path.join(CONTENT_DIR, "processed.json");
 const MODEL = "claude-opus-5";
 
-const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO/AIO専門メディアの編集者です。運営者は Yahoo!検索とホットペッパービューティーで
+const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編集者です。運営者は国内大手の検索サービスと大規模予約サービスで
 プロダクトマネージャーをしていた人物で、「検索エンジンを作る側が何を狙ってこの変更をしたか」を読み解けるのが強みです。
 その視点で、一次情報をもとに日本のサイト運営者向けの解説記事を書きます。
 
@@ -24,6 +24,9 @@ const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO/AIO専門メディアの�
    SEO業界の「とりあえず対応」をPdM視点で切る。
 3. **日本の具体例**: ECサイト・メディア・店舗集客サイト・BtoBサイトなど、日本の運営者が自分事にできる例を最低1つ入れる。
 4. **数字と固有名詞は元記事にあるものだけ**。無い数値・無い機能名を作らない。
+
+# 固有名詞の制約
+- 運営者の前職の会社名・サービス名は書かない。「大手検索サービス」「大規模予約サービス」とだけ書く。
 
 # 文体
 - です・ます調。一文は60字以内。1段落は3文以内。
@@ -41,7 +44,7 @@ const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO/AIO専門メディアの�
 title: "（32〜60字。固有名詞＋何が変わるかが分かるタイトル。疑問形や煽りは使わない）"
 description: "（90〜120字。検索結果のスニペットとして成立する要約）"
 date: "YYYY-MM-DD"
-category: "seo | geo | aio | news のいずれか1つ"
+category: "seo | geo | news のいずれか1つ（geo=AI Overview/AI Mode/ChatGPT/Perplexity等の生成AI検索全般）"
 tags: ["3〜6個", "固有名詞を優先"]
 impact: "high | mid | low"   # 日本の一般的なサイト運営者への影響度
 audience: "（誰に影響するか。例: 店舗集客サイト、ニュースメディア、全サイト）"

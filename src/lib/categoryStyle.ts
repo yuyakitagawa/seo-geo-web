@@ -4,6 +4,5 @@ import type { CategoryKey } from "./site";
 export const CATEGORY_STYLE: Record<CategoryKey, { badge: string; dot: string; glow: string }> = {
   seo: { badge: "bg-seo text-white", dot: "bg-seo", glow: "from-seo/40" },
   geo: { badge: "bg-geo text-white", dot: "bg-geo", glow: "from-geo/40" },
-  aio: { badge: "bg-aio text-accent-ink", dot: "bg-aio", glow: "from-aio/50" },
   news: { badge: "bg-news text-white", dot: "bg-news", glow: "from-news/40" },
 };

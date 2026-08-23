@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-5 py-16">
         <p className="text-[clamp(2.5rem,9vw,7rem)] font-bold leading-none tracking-tighter">
           {SITE_NAME.split("・").map((w, i) => (
-            <span key={w} className={i % 2 ? "text-accent" : ""}>{w}{i < 2 ? "・" : ""}</span>
+            <span key={w} className={i % 2 ? "text-accent" : ""}>{w}{i < 1 ? "・" : ""}</span>
           ))}
         </p>
         <p className="mt-6 max-w-xl text-sm opacity-70">{SITE_DESCRIPTION}</p>

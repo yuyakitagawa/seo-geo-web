@@ -1,6 +1,6 @@
 # seo-geo-web
 
-SEO・GEO（生成エンジン最適化）・AIO（AI Overview最適化）の最新動向と実務ノウハウを発信するメディア。
+SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）の最新動向と実務ノウハウを発信するメディア。
 一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説の下書きを生成、人間がレビューして公開する。
 
 ## スタック
@@ -16,7 +16,7 @@ SEO・GEO（生成エンジン最適化）・AIO（AI Overview最適化）の最
 | `/` | 新着記事・カテゴリ・タグ |
 | `/articles` | 全記事一覧 |
 | `/articles/[slug]` | 記事（Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
-| `/category/{seo,geo,aio,news}` | カテゴリ別一覧 |
+| `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -37,7 +37,7 @@ scripts/sources.ts  収集元RSS（公式: Search Central / Search Status / The 
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
 
 ## デザイン
-- 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / aio=ライム / news=橙（`src/lib/categoryStyle.ts`）
+- 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
 - 欧文は Space Grotesk（next/font）、和文は端末フォント
 - `globals.css` の `@theme` にトークン集約。ダークモード対応
 
@@ -47,7 +47,7 @@ title: "..."
 description: "..."        # 90〜120字
 date: "2026-08-23"
 updated: "2026-08-23"     # 任意
-category: "seo"           # seo | geo | aio | news
+category: "seo"           # seo | geo | news
 tags: ["SEO", "AI Overview"]
 impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意
@@ -66,10 +66,11 @@ cp .env.example .env.local   # 値を設定
 npm run dev
 ```
 
-## SEO / AIO 対策
+## SEO / GEO 対策
 - Organization / WebSite / Article / BreadcrumbList の JSON-LD
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
 - `llms.txt`（サイト概要＋主要URL）、RSS、sitemap、robots
+- E-E-A-T: 運営者情報は前職の社名を出さず「大手検索サービス／大規模予約サービスのPdM経験」と記載。連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
 - 記事冒頭に「## 結論」を置く執筆ルール（AI検索のパッセージ抽出向け）
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
