@@ -39,15 +39,36 @@ Google Researchの解説では、Gemini 3 ProがHTML/CSS/JavaScriptを生成し�
 
 Search Engine Journalの2本目の記事は、影響を受けやすいツールを列挙しています。住宅ローン計算機、単位換算、BMI計算、支払い計算、学習シミュレーション、練習問題などです。逆に、非公開データ、ログインが必要な処理、外部連携に依存するツールは置き換えにくいとしています。
 
+<FigureCompare
+  title="生成UIに置き換えられやすいツール・置き換えにくいツール"
+  caption="Search Engine Journalの2本目の記事の列挙を整理したもの"
+  cols={[
+    {
+      label: "置き換えられやすい",
+      tone: "news",
+      sub: "公式の計算式だけで動く",
+      points: ["住宅ローン計算機、単位換算、BMI計算、支払い計算", "学習シミュレーション、練習問題"],
+    },
+    {
+      label: "置き換えにくい",
+      tone: "accent",
+      sub: "そのサイトにしかない処理",
+      points: ["非公開データを使うツール", "ログインが必要な処理", "外部連携に依存するツール"],
+    },
+  ]}
+/>
+
+
 同記事はGoogleの論文の数字も引用しています。主要プロンプトでの比較では、生成UIが上位検索結果に90%の割合で勝ちました。情報探索系の質問では73.5%対19%です。AI Overviewの月間利用者は25億人を超えています。
 
-<FigureStats
-  title="Generative UIの評価と規模を示す数字"
-  caption="Googleの論文とSearch Engine Journalの記事より"
-  stats={[
-    { value: "90%", label: "生成UIが上位検索結果に勝った割合", note: "主要プロンプトでの比較" },
-    { value: "73.5%対19%", label: "情報探索系の質問での勝率", note: "生成UI対上位検索結果" },
-    { value: "25億人超", label: "AI Overviewの月間利用者" },
+<FigureBars
+  title="生成UIと上位検索結果の勝率比較"
+  caption="Googleの論文の数字（Search Engine Journalの記事より引用）。AI Overviewの月間利用者は25億人を超えている"
+  unit="%"
+  bars={[
+    { label: "主要プロンプトで生成UIが上位検索結果に勝った割合", value: 90 },
+    { label: "情報探索系の質問での生成UIの勝率", value: 73.5 },
+    { label: "情報探索系の質問での上位検索結果の勝率", value: 19 },
   ]}
 />
 
@@ -58,6 +79,9 @@ Search Engine Journalの2本目の記事は、影響を受けやすいツール�
 もう一つは、AI OverviewからAI Modeへの送客だと考えられます。公式の例でも、AI Overviewで簡易版を見せ、細かい要望はAI Modeで受ける導線になっています。AI Overviewを入口、AI Modeを深掘りの場にする設計です。
 
 見ているKPIは、AI Modeの月間利用者数とフォローアップ質問数だと推測されます。Googleは「AI Modeが10億人を超えた」と公表しており、この数字を伸ばす施策として一貫しています。論文では「専門家が作ったサイトが最上位、生成UIがそれに僅差で続く」と書かれており、公式式だけのツールは差が出ないと判断したと考えられます。
+
+<FigureQuote text="専門家が作ったサイトが最上位、生成UIがそれに僅差で続く" source="Google Researchの論文" />
+
 
 ## 日本のサイトでの例
 

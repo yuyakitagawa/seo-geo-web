@@ -40,9 +40,10 @@ APIエラー時は「採用」のまま次回に回し、内容起因の失敗�
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
 - 本文に「## 検索側の狙い」（プロダクト側の意図をPdM視点で推論）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
-- **図解を1〜2個必須**（`src/components/figures.tsx`）。MDX内に直接書ける4種:
+- **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける6種:
   `FigureCompare`（比較 2〜3カラム）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
-  `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）。
+  `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）/ `FigureBars`（横棒グラフ。マイナス混在で中央0の左右振り分け）/
+  `FigureQuote`（一次情報の引用パネル）。
   実画像でなくコード描画なので、生成パイプラインが出力でき、テキストが残るためAI・検索エンジンにも読める。
   props はJS式で渡すため記事ページの `MDXRemote` は `blockJS: false`（記事はリポジトリ内の信頼済みコンテンツ）
 
@@ -50,6 +51,16 @@ APIエラー時は「採用」のまま次回に回し、内容起因の失敗�
 - 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
 - 欧文は Space Grotesk（next/font）、和文は端末フォント
 - `globals.css` の `@theme` にトークン集約。ダークモード対応
+
+## 画像（写真素材を持たずにビジュアルを作る）
+- **キービジュアル**: `src/lib/coverArt.ts` が記事idから決定的にSVGを生成（6パターン×カテゴリ色）。
+  同じ記事は常に同じ絵になる。`<CoverArt>` が data URI の `<img>` として表示し、
+  記事カード・記事ページ冒頭・一覧/カテゴリ/タグ/ツールページのヘッダーで使う。
+- **OGP画像**: `src/app/opengraph-image.tsx`（サイト）と `src/app/articles/[slug]/opengraph-image.tsx`（記事ごと）で
+  実PNGを生成（`next/og`）。背景は同じキービジュアル。和文は Google Fonts から
+  **その画像で使う文字だけ**を切り出して読む（`src/lib/og.tsx` の `loadOgFont`。ImageResponseの500KB制限対策）。
+  フォント取得に失敗しても画像自体は出る（和文が欠けるだけ）。ビルド時にネットワークが必要。
+- **記事内の図解**: 上記の `figures.tsx`（6種）。
 
 ## 記事 frontmatter
 ```yaml
@@ -86,5 +97,5 @@ npm run dev
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
 ## 未着手 / 将来
-- OGP画像の自動生成、記事内検索、英語版
+- 記事内検索、英語版
 - 業務委託・問い合わせ導線はPVが伸びてから（現段階では設計に含めない）

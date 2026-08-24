@@ -192,5 +192,75 @@ export function FigureStats({
   );
 }
 
+/**
+ * 横棒グラフ。増減が混在する場合は中央を0にした左右振り分けになる。
+ * <FigureBars title="..." unit="%" bars={[{ label: "...", value: -42, note: "..." }]} />
+ */
+export function FigureBars({
+  title,
+  caption,
+  unit = "",
+  bars,
+}: {
+  title: string;
+  caption?: string;
+  /** 値に付ける単位。例: "%" "倍" */
+  unit?: string;
+  bars: { label: string; value: number; note?: string }[];
+}) {
+  const max = Math.max(...bars.map((b) => Math.abs(b.value)), 1);
+  const diverging = bars.some((b) => b.value < 0);
+  return (
+    <Frame title={title} caption={caption}>
+      <div className="space-y-7">
+        {bars.map((b) => {
+          const ratio = (Math.abs(b.value) / max) * (diverging ? 50 : 100);
+          const negative = b.value < 0;
+          return (
+            <div key={b.label}>
+              <div className="mb-2 flex items-baseline justify-between gap-4">
+                <p className="text-sm font-semibold leading-snug">{b.label}</p>
+                <p className={`shrink-0 text-xl font-bold tabular-nums ${negative ? "text-news" : "text-accent"}`}>
+                  {b.value > 0 && diverging ? "+" : ""}
+                  {b.value}
+                  {unit}
+                </p>
+              </div>
+              {/* 目盛り: divergingのときは中央が0 */}
+              <div className="relative h-3 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={`absolute top-0 h-full rounded-full ${negative ? "bg-news" : "bg-accent"}`}
+                  style={
+                    diverging
+                      ? negative
+                        ? { right: "50%", width: `${ratio}%` }
+                        : { left: "50%", width: `${ratio}%` }
+                      : { left: 0, width: `${ratio}%` }
+                  }
+                />
+                {diverging && <div className="absolute left-1/2 top-0 h-full w-px bg-paper/40" aria-hidden />}
+              </div>
+              {b.note && <p className="mt-1.5 text-xs leading-relaxed text-paper/60">{b.note}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </Frame>
+  );
+}
+
+/**
+ * 引用パネル。一次情報の一文を大きく見せて、本文の流れに視覚的な区切りを作る。
+ * <FigureQuote text="..." source="Google 検索セントラル" />
+ */
+export function FigureQuote({ text, source }: { text: string; source?: string }) {
+  return (
+    <figure className="not-prose my-10 overflow-hidden rounded-3xl border-l-8 border-accent bg-ink p-6 text-paper sm:p-8 dark:border-y dark:border-r dark:border-y-paper/15 dark:border-r-paper/15">
+      <blockquote className="text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">「{text}」</blockquote>
+      {source && <figcaption className="mt-4 text-sm text-paper/60">— {source}</figcaption>}
+    </figure>
+  );
+}
+
 // MDXRemote の components に渡す一覧
-export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats };
+export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote };

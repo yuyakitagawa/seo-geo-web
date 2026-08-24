@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PageHeader from "@/components/PageHeader";
 import { SITE_NAME, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
 // 業務委託・相談窓口は意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
 export default function AboutPage() {
   return (
-    <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-16 dark:prose-invert sm:py-24">
-      <h1>運営者情報</h1>
-
+    <>
+      <PageHeader eyebrow="About" title="運営者情報" art={{ seed: 5, category: "news" }} />
+      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
       <h2>このサイトについて</h2>
       <p>
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の
@@ -45,6 +46,7 @@ export default function AboutPage() {
 
       <h2>広告について</h2>
       <p>当サイトはGoogle AdSenseによる広告を掲載しています。詳細は<a href="/privacy">プライバシーポリシー</a>をご覧ください。</p>
-    </div>
+      </div>
+    </>
   );
 }

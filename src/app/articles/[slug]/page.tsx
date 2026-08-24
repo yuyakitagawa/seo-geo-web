@@ -11,6 +11,7 @@ import JsonLd from "@/components/JsonLd";
 import KeyPoints from "@/components/KeyPoints";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
+import CoverArt from "@/components/CoverArt";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { CATEGORIES, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -104,6 +105,11 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       </header>
 
       <div className="mx-auto max-w-4xl px-5">
+        {/* キービジュアル */}
+        <div className="mt-10 aspect-[21/9] overflow-hidden rounded-3xl">
+          <CoverArt id={article.id} category={article.category} />
+        </div>
+
         <KeyPoints article={article} />
 
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">

@@ -1,0 +1,19 @@
+import { ImageResponse } from "next/og";
+import { SITE_NAME } from "@/lib/site";
+import { OG_CONTENT_TYPE, OG_SIZE, loadOgFont, ogFrame } from "@/lib/og";
+
+export const size = OG_SIZE;
+export const contentType = OG_CONTENT_TYPE;
+export const alt = SITE_NAME;
+
+const TITLE = "検索は、毎日変わる。";
+const LABEL = "SEO / GEO";
+const FOOTER = "Google検索・AI Overview・ChatGPT・Perplexityの最新動向を毎日追う";
+
+export default async function Image() {
+  const fonts = await loadOgFont(TITLE + LABEL + FOOTER + SITE_NAME);
+  return new ImageResponse(
+    ogFrame({ seed: 3, category: "geo", title: TITLE, footer: FOOTER, label: LABEL }),
+    { ...size, fonts }
+  );
+}
