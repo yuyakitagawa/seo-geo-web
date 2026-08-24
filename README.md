@@ -40,6 +40,11 @@ APIエラー時は「採用」のまま次回に回し、内容起因の失敗�
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
 - 本文に「## 検索側の狙い」（プロダクト側の意図をPdM視点で推論）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
+- **図解を1〜2個必須**（`src/components/figures.tsx`）。MDX内に直接書ける4種:
+  `FigureCompare`（比較 2〜3カラム）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
+  `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）。
+  実画像でなくコード描画なので、生成パイプラインが出力でき、テキストが残るためAI・検索エンジンにも読める。
+  props はJS式で渡すため記事ページの `MDXRemote` は `blockJS: false`（記事はリポジトリ内の信頼済みコンテンツ）
 
 ## デザイン
 - 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）

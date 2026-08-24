@@ -11,6 +11,7 @@ import JsonLd from "@/components/JsonLd";
 import KeyPoints from "@/components/KeyPoints";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
+import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { CATEGORIES, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -108,7 +109,11 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">
           <MDXRemote
             source={article.body}
+            components={MDX_FIGURES}
             options={{
+              // 図解コンポーネントは cols={[...]} のようにJS式で受け取る。記事はリポジトリ内の
+              // 信頼済みコンテンツなので式を許可する（危険な呼び出しの除去 blockDangerousJS は既定で有効のまま）。
+              blockJS: false,
               mdxOptions: {
                 remarkPlugins: [remarkGfm],
                 rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
