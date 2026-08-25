@@ -38,7 +38,7 @@ APIエラー時は「採用」のまま次回に回し、内容起因の失敗�
 
 ## 記事の型（他媒体との差別化）
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
-- 本文に「## 検索側の狙い」（プロダクト側の意図をPdM視点で推論）と「## やること／やらなくていいこと」を必須化
+- 本文に「## 検索側の狙い」（プロダクト側の意図を公開情報から推論）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける6種:
   `FigureCompare`（比較 2〜3カラム）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
@@ -92,7 +92,7 @@ npm run dev
 - Organization / WebSite / Article / BreadcrumbList の JSON-LD
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
 - `llms.txt`（サイト概要＋主要URL）、RSS、sitemap、robots
-- E-E-A-T: 運営者情報は前職の社名を出さず「大手検索サービス／大規模予約サービスのPdM経験」と記載。連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
+- E-E-A-T: 運営者個人の経歴は一切載せない方針（about は運営方針と記事制作プロセスのみ）。記事本文でも一人称の経験談は書かない。連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
 - 記事冒頭に「## 結論」を置く執筆ルール（AI検索のパッセージ抽出向け）
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 

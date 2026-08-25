@@ -10,7 +10,7 @@ export function GET() {
     `> ${SITE_DESCRIPTION}`,
     "",
     "## サイト情報",
-    `- [運営者情報](${SITE_URL}/about): 運営者の経歴と記事制作プロセス`,
+    `- [運営者情報](${SITE_URL}/about): 運営方針と記事制作プロセス`,
     `- [AI検索（GEO）ツール比較](${SITE_URL}/tools): 可視性計測ツールとサイト診断ツールの一覧（国内外・料金・対象AI）`,
     `- [免責事項](${SITE_URL}/disclaimer)`,
     "",

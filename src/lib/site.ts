@@ -12,7 +12,7 @@ export const SITE_URL = (
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO GEO Lab";
 
 export const SITE_DESCRIPTION =
-  "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。検索プロダクトのPdM経験をもとに、一次情報へのリンク付きでまとめます。";
+  "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。検索側の設計意図まで踏み込み、一次情報へのリンク付きでまとめます。";
 
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
 export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO・GEO Lab", "SEOGEOラボ"];

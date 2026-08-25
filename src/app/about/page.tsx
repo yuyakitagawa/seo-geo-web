@@ -4,12 +4,12 @@ import { SITE_NAME, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "運営者情報",
-  description: `${SITE_NAME}の運営方針、記事の作り方、運営者の経歴について。`,
+  description: `${SITE_NAME}の運営方針と、記事の作り方について。`,
   alternates: { canonical: "/about" },
 };
 
-// E-E-A-T（経験・専門性・権威性・信頼性）のシグナルとして、運営者の実務経験と記事制作プロセスを明記する。
-// 業務委託・相談窓口は意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
+// E-E-A-T（経験・専門性・権威性・信頼性）のシグナルとして、記事制作プロセスと一次情報の扱いを明記する。
+// 運営者個人の経歴は載せない方針。業務委託・相談窓口も意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
 export default function AboutPage() {
   return (
     <>
@@ -20,12 +20,6 @@ export default function AboutPage() {
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の
         最新アップデートを追い、SEOとGEO（Generative Engine Optimization、生成AI検索最適化）の実務ノウハウとして
         解説するメディアです。本サイトでは「AIO」「LLMO」と呼ばれる領域もまとめてGEOと表記します。
-      </p>
-
-      <h2>運営者</h2>
-      <p>
-        国内大手の検索サービスおよび大規模予約サービスでプロダクトマネージャーを
-        務めた経験をもとに、「検索側の設計思想」と「サイト運営側の施策」の両面から解説します。
       </p>
 
       <h2>記事の作り方</h2>

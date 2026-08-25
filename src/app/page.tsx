@@ -24,7 +24,7 @@ export default function Home() {
             <span className="text-accent">毎日</span>変わる。
           </h1>
           <p className="mt-8 max-w-xl text-base leading-relaxed text-paper/70 sm:text-lg animate-rise [animation-delay:160ms]">
-            Google検索・AI Overview・ChatGPT・Perplexity。検索プロダクトを作っていた側の視点で、
+            Google検索・AI Overview・ChatGPT・Perplexity。検索を作る側の設計意図まで踏み込んで、
             今日のアップデートが「あなたのサイトに何をもたらすか」まで解説します。
           </p>
           <ul className="mt-10 flex flex-wrap gap-2 animate-rise [animation-delay:240ms]">
@@ -70,9 +70,9 @@ export default function Home() {
       {/* About strip */}
       <section className="mx-auto max-w-6xl px-5 pb-8">
         <div className="rounded-3xl bg-accent p-8 text-accent-ink sm:p-12">
-          <p className="text-xs font-bold uppercase tracking-wider opacity-70">Who writes this</p>
+          <p className="text-xs font-bold uppercase tracking-wider opacity-70">How this is made</p>
           <p className="mt-3 max-w-3xl text-xl font-bold leading-snug sm:text-2xl">
-            大手検索サービスと大規模予約サービスでプロダクトマネージャーをしていた運営者が、一次情報をAIで毎日収集し、人間が確認して公開しています。
+            公式発表と一次情報をAIで毎日収集し、人間が内容を確認したうえで、出典リンク付きで公開しています。
           </p>
           <Link href="/about" className="mt-6 inline-block rounded-full bg-accent-ink px-5 py-2.5 text-sm font-semibold text-accent transition hover:opacity-80">
             {SITE_NAME}について →
