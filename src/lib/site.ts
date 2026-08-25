@@ -9,13 +9,13 @@ export const SITE_URL = (
   "http://localhost:3000"
 ).replace(/\/$/, "");
 
-export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO・GEO Lab";
+export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO GEO Lab";
 
 export const SITE_DESCRIPTION =
   "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。検索プロダクトのPdM経験をもとに、一次情報へのリンク付きでまとめます。";
 
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
-export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO GEO Lab"];
+export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO・GEO Lab", "SEOGEOラボ"];
 
 // 公式Xアカウント。未開設の間は空文字にしておくとフォロー導線・twitter:siteが出ない。
 export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "";
