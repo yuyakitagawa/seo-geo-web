@@ -1,26 +1,29 @@
-// content/candidates.csv で「採用」になっている候補をスコア順にN件、Claude で記事化して content/articles/ に draft:true で保存する。
+// content/candidates.csv で「採用」になっている候補をスコア順にN件、Claude で記事化して content/articles/ に保存する。
 // 記事化した行は「公開」にして記事idを記録する。
 // 元記事本文は Claude の web_fetch サーバーツールで取得（HTML解析コードを自前で持たない）。
-// 実行: npx tsx scripts/generate.ts [件数=3]
+// 実行: npx tsx scripts/generate.ts [件数=3] [--publish]
+//   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
 import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import matter from "gray-matter";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
+import { isCategoryKey } from "../src/lib/site";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
 const MODEL = "claude-opus-5";
 
-const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編集者です。この媒体の強みは、「検索エンジンを作る側が何を狙って
-この変更をしたか」を公開情報から読み解ける点です。
-その視点で、一次情報をもとに日本のサイト運営者向けの解説記事を書きます。
+const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編集者です。読者は事業会社・制作会社でSEO/GEOを担当している実務者で、
+「今日の変更で自社サイトのどこが動くのか」「何をすればいいのか」を知るために読みます。
+追いきれない量の公式発表と海外ソースの中から、担当者が読むべき変更だけを日本語で整理します。
 
 # この媒体の記事が他と違う点（必ず守る）
-1. **検索側の狙いを書く**: 「## 検索側の狙い」という見出しを必ず置き、プロダクト側の意図（何を増やし、何を減らしたいのか、
-   どのKPIを見ているか）を推論する。推論であることは「〜と考えられます」で明示する。
+1. **影響を受けるページ・クエリを特定する**: 「## 影響を受けるページ・クエリ」という見出しを必ず置き、
+   どの種類のページとクエリが動くか、逆にどこは影響が小さいかを書く。検索側の社内KPIや意図の推測は書かない。
+   推論を含む場合は「〜と考えられます」で明示する。
 2. **やらなくていいことを書く**: 「## やること／やらなくていいこと」という見出しで、過剰反応を止める。
-   SEO業界の「とりあえず対応」をプロダクト側の視点で切る。
+   SEO業界の「とりあえず対応」を、工数と効果の観点で切る。
 3. **日本の具体例**: ECサイト・メディア・店舗集客サイト・BtoBサイトなど、日本の運営者が自分事にできる例を最低1つ入れる。
 4. **数字と固有名詞は元記事にあるものだけ**。無い数値・無い機能名を作らない。
 
@@ -56,7 +59,7 @@ const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編�
 
 # 書き手についての制約
 - 書き手個人の経歴・前職・実務経験には一切触れない。「〜の経験から言うと」「私が〜で見てきた」のような
-  一人称の経験談を書かない。「検索側の狙い」は公開情報とプロダクト設計の一般論から推論する形で書く。
+  一人称の経験談を書かない。分析の根拠は一次情報と公開情報だけにする。
 
 # 文体
 - です・ます調。一文は60字以内。1段落は3文以内。
@@ -114,7 +117,24 @@ function hash(s: string) {
   return h;
 }
 
-async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number) {
+// 自動公開ではこの検査が唯一の関門になる。記事の型（SYSTEM_PROMPT）を満たさない出力は捨てて、
+// 候補を「却下」に落とす（同じ候補で毎日失敗し続けないように）。
+function validate(data: Record<string, unknown>, content: string) {
+  const errors: string[] = [];
+  if (!isCategoryKey(String(data.category))) errors.push(`category不正:${data.category}`);
+  const description = String(data.description ?? "");
+  if (description.length < 40 || description.length > 200) errors.push(`description長さ${description.length}`);
+  const actions = data.actions;
+  if (!Array.isArray(actions) || actions.length < 1 || actions.length > 4) errors.push("actions不正");
+  if (content.length < 1200) errors.push(`本文${content.length}字`);
+  for (const h of ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと", "## よくある質問"]) {
+    if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
+  }
+  if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
+  if (errors.length) throw new Error(errors.join(", "));
+}
+
+async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number, publish: boolean) {
   const userPrompt = `以下の元記事をweb_fetchで取得して読み、記事を書いてください。
 取得に失敗した場合は、タイトルと概要のみで書くのではなく、本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
 
@@ -145,10 +165,11 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
   const body = text.replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1");
   const parsed = matter(body);
   if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
+  validate(parsed.data, parsed.content);
 
   // 出典・draft はモデルの出力に関わらず固定する
   parsed.data.sources = [{ title: c.title, url: c.url }];
-  parsed.data.draft = true;
+  parsed.data.draft = !publish;
   parsed.data.date = today;
   parsed.data.id = nextId;
 
@@ -160,12 +181,14 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
 }
 
 async function main() {
-  const limit = Number(process.argv[2] ?? 3);
+  const args = process.argv.slice(2);
+  const publish = args.includes("--publish");
+  const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 3);
   const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10); // JST
   const list = loadCandidates();
   const adopted = list.filter((c) => c.status === "採用").sort((a, b) => b.score - a.score).slice(0, limit);
   if (adopted.length === 0) {
-    console.log("「採用」の候補がありません（content/candidates.csv の status を 採用 にしてください）");
+    console.log("「採用」の候補がありません（npm run pick を先に実行するか、content/candidates.csv の status を 採用 にしてください）");
     return;
   }
   fs.mkdirSync(ARTICLES_DIR, { recursive: true });
@@ -174,7 +197,7 @@ async function main() {
   let nextId = currentMaxId() + 1;
   for (const c of adopted) {
     try {
-      await generateOne(client, c, today, nextId);
+      await generateOne(client, c, today, nextId, publish);
       c.status = "公開";
       c.articleId = String(nextId);
       nextId++;

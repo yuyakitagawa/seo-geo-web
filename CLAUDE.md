@@ -16,13 +16,13 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
 - `src/app/`: ルート。`articles/[slug]`, `category/[category]`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
-- `scripts/sources.ts`: 収集元RSS一覧。`scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/generate.ts`: Claude(`claude-opus-5` + web_fetch)で下書きMDX生成。
-- `.github/workflows/daily-articles.yml`: 毎朝7時JSTに collect→generate→PR。
+- `scripts/sources.ts`: 収集元RSS一覧。`scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基準はここだけ直す）。`scripts/topic.ts`: 同一話題の判定（collect/pick 共通）。`scripts/generate.ts`: Claude(`claude-opus-5` + web_fetch)でMDX生成＋`validate()`で記事の型を検査。
+- `.github/workflows/daily-articles.yml`: 毎朝7時JSTに collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。
 
 ## 2. Operations
 - 開発: `npm run dev` / 型: `npm run typecheck` / ビルド: `npm run build`
-- 収集: `npm run collect` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須）
-- 公開: PRの記事の `draft: true` → `false` にしてマージ
+- 収集: `npm run collect` / 採用: `npm run pick -- 2` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須。`--publish` で draft:false）
+- 公開: 毎朝のActionsが自動で main に push する。止めるときは workflow を disable。手で出すときは `draft: true` → `false` にしてpush
 
 ## 3. Env
 `.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）。

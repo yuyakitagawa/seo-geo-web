@@ -1,5 +1,5 @@
-# 毎日 JST 7:00 にRSSを巡回し、Claudeで下書き記事を生成してPRを作る。
-# マージ（=公開）は人間のレビュー後。draft:true の記事は本番ビルドに含まれない。
+# 毎日 JST 7:00 にRSSを巡回し、候補を自動採用してClaudeで記事を書き、本番ビルドが通ったら main に直接pushする（=公開）。
+# 人のレビューは挟まない。品質の関門は scripts/generate.ts の validate() と、この workflow の本番ビルドの2つ。
 name: daily-articles
 
 on:
@@ -9,31 +9,61 @@ on:
     inputs:
       count:
         description: "生成する記事数"
-        default: "3"
+        default: "2"
+      draft:
+        description: "draft:true のまま止める（公開しない）"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
-  pull-requests: write
+
+# 前回の実行と重ならないようにする（記事idの採番とpushが競合するため）
+concurrency:
+  group: daily-articles
+  cancel-in-progress: false
 
 jobs:
-  generate:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 最後の push 前に rebase するため浅いクローンにしない
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx tsx scripts/collect.ts
-      - run: npx tsx scripts/generate.ts ${{ github.event.inputs.count || 3 }}
+
+      - name: 候補を収集
+        run: npx tsx scripts/collect.ts
+
+      - name: 記事にする候補を自動採用
+        run: npx tsx scripts/pick.ts ${{ inputs.count || 2 }}
+
+      - name: 記事を生成
+        run: npx tsx scripts/generate.ts ${{ inputs.count || 2 }} ${{ inputs.draft == true && '--draft' || '--publish' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      - uses: peter-evans/create-pull-request@v7
-        with:
-          branch: auto/daily-articles
-          title: "記事下書き ${{ github.run_id }}"
-          commit-message: "chore: AI生成の記事下書きを追加"
-          body: |
-            自動生成された下書きです。内容を確認し、frontmatter の `draft: true` を `false` にしてマージすると公開されます。
-          labels: draft-articles
+
+      - name: 差分の有無
+        id: diff
+        run: |
+          git add -A content
+          git diff --cached --quiet && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # 壊れたMDX・存在しない図解コンポーネントを本番に出さないための関門。
+      # ここで落ちたら以降のステップを実行しないので、その日は何も公開されず、候補の状態変更も残らない。
+      - name: 本番ビルドで検証
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run typecheck && npm run build
+
+      - name: 公開（main へ反映）
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: 記事を自動生成して公開"
+          git pull --rebase origin main
+          git push origin HEAD:main

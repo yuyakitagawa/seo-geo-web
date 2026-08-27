@@ -1,7 +1,8 @@
 # seo-geo-web
 
 SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）の最新動向と実務ノウハウを発信するメディア。
-一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説の下書きを生成、人間がレビューして公開する。
+読者は事業会社・制作会社のSEO/GEO担当。追いきれない量の公式発表と海外ソースから、読むべき変更だけを日本語で整理する。
+一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説を生成して自動公開する（GitHub Actions）。
 
 ## スタック
 - Next.js 16 (App Router, SSG) + TypeScript + Tailwind CSS v4 (+ @tailwindcss/typography)
@@ -27,18 +28,24 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 scripts/sources.ts  収集元（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable / 海外SEO情報ブログ、
                     ツール検知: Google News 日本語検索RSS「LLMO」「GEO対策」「AIO対策」「AI検索ツール」「AI visibility」）
       ↓ npm run collect [日数]   content/candidates.csv に「候補」として追記。話題スコア付き。Google NewsのURLは元記事に復号（scripts/googleNews.ts）
-      ↓ 人がCSVの status を 採用/却下 に
-      ↓ npm run generate N       「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を draft:true で出力 → status を「公開」に
-      ↓ GitHub Actions           毎朝7時JST、collect→generate→PR（.github/workflows/daily-articles.yml）
-      ↓ 人間レビュー              draft:false に変更してマージ → Vercel が自動デプロイ
+      ↓ npm run pick N           「候補」からN件を自動で「採用」に（scripts/pick.ts）。人が手で status を 採用/却下 にしてもよい
+      ↓ npm run generate N [--publish]
+                                「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
+                                --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
+      ↓ GitHub Actions           毎朝7時JST、collect→pick→generate --publish→本番ビルド検証→main へ push
+                                （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
 ```
 **話題スコア**: 検索専門の公式ソース+3（その他公式+1）、同じ話題を報じた他ソース数×2（上限+6。タイトルの語の重なりでクラスタ化）、3日以内+1、テーマ語の一致数（上限3）、ツール発表+2。
-**重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。
-APIエラー時は「採用」のまま次回に回し、内容起因の失敗のみ「却下」にしてメモを残す。
+**自動採用の基準**（`scripts/pick.ts`）: スコア2以上・公開21日以内・「ツール検知」メモなし（PR配信のツール発表は /tools の材料で記事にしない）。
+すでに「公開」「採用」にした話題と語が重なるものは選ばない（別ソースが報じた同じ発表の二重記事を防ぐ）。
+**重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。話題の重なり判定は `scripts/topic.ts` に共通化。
+**自動公開の関門は2つ**: `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上）と、
+Actions上の `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）。どちらかで落ちたらpushしないので、その日は何も公開されない。
+APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
 
 ## 記事の型（他媒体との差別化）
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
-- 本文に「## 検索側の狙い」（プロダクト側の意図を公開情報から推論）と「## やること／やらなくていいこと」を必須化
+- 本文に「## 影響を受けるページ・クエリ」（自社のどのページ・クエリが動くかを特定。検索側のKPI推測は書かない）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける6種:
   `FigureCompare`（比較 2〜3カラム）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
