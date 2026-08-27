@@ -13,7 +13,7 @@ const FOOTER = "Google検索・AI Overview・ChatGPT・Perplexityの最新動向
 export default async function Image() {
   const fonts = await loadOgFont(TITLE + LABEL + FOOTER + SITE_NAME);
   return new ImageResponse(
-    ogFrame({ seed: 3, category: "geo", title: TITLE, footer: FOOTER, label: LABEL }),
+    ogFrame({ category: "geo", title: TITLE, footer: FOOTER, label: LABEL }),
     { ...size, fonts }
   );
 }

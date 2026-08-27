@@ -24,7 +24,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
   const c = CATEGORIES[category];
   return (
     <>
-      <PageHeader eyebrow="Category" title={c.label} lead={c.description} art={{ seed: CATEGORY_KEYS.indexOf(category) + 2, category }} />
+      <PageHeader eyebrow="Category" title={c.label} lead={c.description} />
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12"><ArticleList articles={getArticlesByCategory(category)} /></div>
     </>
   );

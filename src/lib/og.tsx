@@ -1,14 +1,15 @@
 import type { ReactElement } from "react";
-import { coverArtSvg } from "./coverArt";
 import { CATEGORIES, SITE_NAME, type CategoryKey } from "./site";
 
 // OGP画像（SNSシェア時に出る実PNG）の共通部品。next/og の ImageResponse から使う。
-// 背景は記事カードと同じキービジュアル（coverArt）を data URI の画像として敷く。
+// 背景は黒地＋カテゴリ色のグラデーションだけで作る（画像素材を持たない）。
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
 
-const CATEGORY_COLOR: Record<CategoryKey, string> = { seo: "#4f7cff", geo: "#a855f7", news: "#ff6b35" };
+// satoriは8桁hexを解さないためrgbの数値で持ち、不透明度を変えて背景とバッジの両方に使う。
+const CATEGORY_RGB: Record<CategoryKey, string> = { seo: "79,124,255", geo: "168,85,247", news: "255,107,53" };
+const categoryColor = (c: CategoryKey, alpha = 1) => `rgba(${CATEGORY_RGB[c]},${alpha})`;
 
 export type OgFont = { name: string; data: ArrayBuffer; weight: 700; style: "normal" };
 
@@ -33,24 +34,19 @@ export async function loadOgFont(text: string): Promise<OgFont[]> {
 
 /** OGP画像のJSX。satoriの制約に合わせ、flexboxと絶対配置だけで組む */
 export function ogFrame({
-  seed,
   category,
   title,
   footer,
   label,
 }: {
-  seed: number;
   category: CategoryKey;
   title: string;
   footer: string;
   /** バッジの文言。省略時はカテゴリ名 */
   label?: string;
 }): ReactElement {
-  const art = `data:image/svg+xml;base64,${Buffer.from(coverArtSvg(seed, category)).toString("base64")}`;
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", backgroundColor: "#0a0a0a" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- satoriはnext/imageを解さない */}
-      <img src={art} width={OG_SIZE.width} height={OG_SIZE.height} style={{ position: "absolute", top: 0, left: 0 }} alt="" />
       <div
         style={{
           position: "absolute",
@@ -59,8 +55,7 @@ export function ogFrame({
           width: "100%",
           height: "100%",
           display: "flex",
-          backgroundImage:
-            "linear-gradient(95deg, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.88) 38%, rgba(10,10,10,0.25) 100%)",
+          backgroundImage: `linear-gradient(115deg, rgba(10,10,10,0) 40%, ${categoryColor(category, 0.45)} 100%)`,
         }}
       />
       <div
@@ -82,7 +77,7 @@ export function ogFrame({
           <div style={{ display: "flex" }}>
             <div
               style={{
-                backgroundColor: CATEGORY_COLOR[category],
+                backgroundColor: categoryColor(category),
                 color: "#ffffff",
                 fontSize: 24,
                 padding: "8px 22px",

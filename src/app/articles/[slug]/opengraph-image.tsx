@@ -21,7 +21,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const fonts = await loadOgFont(article.title + CATEGORIES[article.category].label + SITE_NAME + footer);
 
   return new ImageResponse(
-    ogFrame({ seed: article.id, category: article.category, title: article.title, footer }),
+    ogFrame({ category: article.category, title: article.title, footer }),
     { ...size, fonts }
   );
 }

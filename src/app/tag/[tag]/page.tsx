@@ -21,7 +21,7 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
   if (articles.length === 0) notFound();
   return (
     <>
-      <PageHeader eyebrow="Topic" title={`#${tag}`} art={{ seed: tag.length + articles.length, category: articles[0].category }} />
+      <PageHeader eyebrow="Topic" title={`#${tag}`} />
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12"><ArticleList articles={articles} /></div>
     </>
   );

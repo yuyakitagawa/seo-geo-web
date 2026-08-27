@@ -13,13 +13,17 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <PageHeader eyebrow="About" title="運営者情報" art={{ seed: 5, category: "news" }} />
+      <PageHeader eyebrow="About" title="運営者情報" />
       <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
       <h2>このサイトについて</h2>
       <p>
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の
         最新アップデートを追い、SEOとGEO（Generative Engine Optimization、生成AI検索最適化）の実務ノウハウとして
         解説するメディアです。本サイトでは「AIO」「LLMO」と呼ばれる領域もまとめてGEOと表記します。
+      </p>
+      <p>
+        想定読者は、事業会社・制作会社でSEO/GEOを担当している方です。追いきれない量の公式発表と
+        海外ソースを毎日巡回し、担当者が読むべき変更と、自社サイトのどこが動くのかだけを日本語で整理します。
       </p>
 
       <h2>記事の作り方</h2>

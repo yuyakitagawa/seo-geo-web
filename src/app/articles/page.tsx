@@ -13,7 +13,7 @@ export default function ArticlesPage() {
   const articles = getAllArticles();
   return (
     <>
-      <PageHeader eyebrow={`All articles · ${articles.length}`} title="記事一覧" art={{ seed: 1, category: "geo" }} />
+      <PageHeader eyebrow={`All articles · ${articles.length}`} title="記事一覧" />
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12"><ArticleList articles={articles} /></div>
     </>
   );
