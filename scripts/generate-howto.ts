@@ -5,8 +5,8 @@
 // 実行: npx tsx scripts/generate-howto.ts [件数=1] [--publish]
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
-import { MODEL, currentMaxId, extractMdx, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, FIGURE_RULES, MEDIA_INTRO, styleRules } from "./prompt";
+import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -25,6 +25,8 @@ const SYSTEM_PROMPT = `${MEDIA_INTRO}
 6. **「## 結論」の1文目は、指定された検索意図にそのまま答える断定文**にする。
 
 ${FIGURE_RULES}
+
+${DEPTH_RULES}
 
 ${AUTHOR_RULES}
 
@@ -78,17 +80,12 @@ async function generateOne(client: Anthropic, t: Topic, today: string, nextId: n
 ${t.sources.map((u) => `  - ${u}`).join("\n")}
 - 今日の日付: ${today}`;
 
-  const response = await client.messages
-    .stream({
-      model: MODEL,
-      max_tokens: 20000,
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-      tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: t.sources.length + 2 }],
-      messages: [{ role: "user", content: userPrompt }],
-    })
-    .finalMessage();
-
-  const parsed = extractMdx(response);
+  const { parsed, usage } = await generateWithReview(client, {
+    system: SYSTEM_PROMPT,
+    userPrompt,
+    reviewPrompt: REVIEW_PROMPT,
+    tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: t.sources.length + 2 }],
+  });
   validate(parsed.data, parsed.content, HOWTO_SHAPE);
   checkSources(parsed.data, t.sources);
 
@@ -100,7 +97,7 @@ ${t.sources.map((u) => `  - ${u}`).join("\n")}
   parsed.data.id = nextId;
 
   const file = writeArticle(parsed.data, parsed.content, nextId, today);
-  console.log(`wrote ${file}  (in=${response.usage.input_tokens} cached=${response.usage.cache_read_input_tokens} out=${response.usage.output_tokens})`);
+  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output})`);
 }
 
 async function main() {

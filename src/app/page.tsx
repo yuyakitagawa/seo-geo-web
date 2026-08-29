@@ -11,27 +11,26 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero */}
+      {/* Hero。ファーストビューに記事を入れるため高さを抑え、1バンドに収める */}
       <section className="relative overflow-hidden bg-ink text-paper">
-        <div className="bg-grid absolute inset-0 opacity-60" />
-        <div className="pointer-events-none absolute -left-32 top-10 size-[32rem] rounded-full bg-accent/30 blur-[120px] animate-float" />
-        <div className="pointer-events-none absolute -right-40 -bottom-40 size-[36rem] rounded-full bg-geo/30 blur-[140px] animate-float [animation-delay:-4s]" />
-        <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-24 sm:pb-28 sm:pt-32">
-          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-paper/20 px-3 py-1 text-xs font-medium tracking-wider uppercase animate-rise">
-            <span className="size-1.5 rounded-full bg-accent" /> Daily updates on search & AI
-          </p>
-          <h1 className="text-[clamp(2.6rem,8vw,6.5rem)] font-bold leading-[0.95] tracking-tighter animate-rise [animation-delay:80ms]">
-            検索は、<br />
-            <span className="text-accent">毎日</span>変わる。
-          </h1>
-          <p className="mt-8 max-w-xl text-base leading-relaxed text-paper/70 sm:text-lg animate-rise [animation-delay:160ms]">
-            Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎日巡回し、
-            SEO/GEO担当が読むべき変更だけを、日本語で整理します。
-          </p>
-          <ul className="mt-10 flex flex-wrap gap-2 animate-rise [animation-delay:240ms]">
+        <div className="bg-grid absolute inset-0 opacity-50" />
+        <div className="pointer-events-none absolute -right-32 -top-40 size-[28rem] rounded-full bg-accent/25 blur-[120px] animate-float" />
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-5 px-5 py-6 sm:flex-row sm:items-end sm:justify-between sm:py-10">
+          <div className="animate-rise">
+            <p className="mb-3 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-paper/60">
+              <span className="size-1.5 rounded-full bg-accent" /> 毎朝更新 · SEO &amp; GEO
+            </p>
+            <h1 className="text-[clamp(1.5rem,3.6vw,2.25rem)] font-bold leading-tight tracking-tight">
+              検索は<span className="text-accent">毎日</span>変わる。今日の変更点だけ。
+            </h1>
+            <p className="mt-3 line-clamp-2 max-w-2xl text-sm leading-relaxed text-paper/60 sm:line-clamp-none">
+              Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎日巡回し、SEO/GEO担当が読むべき変更だけを日本語で整理します。
+            </p>
+          </div>
+          <ul className="flex flex-wrap gap-2 animate-rise [animation-delay:120ms]">
             {CATEGORY_KEYS.map((k) => (
               <li key={k}>
-                <Link href={`/category/${k}`} className="group inline-flex items-center gap-2 rounded-full border border-paper/20 px-4 py-2 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink">
+                <Link href={`/category/${k}`} className="inline-flex items-center gap-2 rounded-full border border-paper/20 px-3.5 py-1.5 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink">
                   <span className={`size-2 rounded-full ${CATEGORY_STYLE[k].dot}`} />
                   {CATEGORIES[k].label}
                 </Link>
@@ -41,8 +40,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Latest。ヒーロー直下に置き、ファーストビューで記事が見えるようにする */}
+      <section className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:pb-20 sm:pt-10">
+        <div className="mb-5 flex items-end justify-between">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">新着</h2>
+          <Link href="/articles" className="text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
+            すべての記事（{articles.length}）
+          </Link>
+        </div>
+        <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
+      </section>
+
       {/* 用語の解説。定義クエリ（「SEO対策とは」「GEOとは」）の受け皿へトップから直接リンクする */}
-      <section className="mx-auto max-w-6xl px-5 pt-16 sm:pt-20">
+      <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-20">
         <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 用語の解説</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDE_LIST.map((g) => (
@@ -59,17 +69,6 @@ export default function Home() {
             </Link>
           ))}
         </div>
-      </section>
-
-      {/* Latest */}
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-        <div className="mb-8 flex items-end justify-between">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">新着</h2>
-          <Link href="/articles" className="text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
-            すべての記事（{articles.length}）
-          </Link>
-        </div>
-        <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
       </section>
 
       {/* Tags */}

@@ -9,7 +9,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: Vercel Analytics / Speed Insights / GA4（`NEXT_PUBLIC_GA_ID` 設定時）
 - 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
-- 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5` + `web_fetch` サーバーツール。品質不足なら `claude-opus-5` へ）
+- 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5` の2段階生成: 執筆→編集長レビュー改稿。web_fetchで元記事を読む。品質不足なら `claude-opus-5` へ）
 
 ## ページ構成
 | パス | 内容 |

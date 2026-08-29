@@ -5,8 +5,8 @@
 //   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
-import { MODEL, currentMaxId, extractMdx, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, FIGURE_RULES, MEDIA_INTRO, styleRules } from "./prompt";
+import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
 追いきれない量の公式発表と海外ソースの中から、担当者が読むべき変更だけを日本語で整理します。
@@ -23,9 +23,11 @@ const SYSTEM_PROMPT = `${MEDIA_INTRO}
 
 ${FIGURE_RULES}
 
+${DEPTH_RULES}
+
 ${AUTHOR_RULES}
 
-${styleRules({ chars: "1,800〜2,800字", faq: "2〜3問" })}
+${styleRules({ chars: "2,200〜3,200字", faq: "3問" })}
 
 # 出力形式
 次のfrontmatter付きMDXだけを出力する。前後に説明文やコードフェンスを付けない。
@@ -53,8 +55,8 @@ draft: true
 // 候補を「却下」に落とす（同じ候補で毎日失敗し続けないように）。
 const NEWS_SHAPE = {
   headings: ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと", "## よくある質問"],
-  minChars: 1200,
-  minFaq: 2,
+  minChars: 1800,
+  minFaq: 3,
 };
 
 async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number, publish: boolean) {
@@ -67,17 +69,12 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
 - 概要: ${c.summary || "(なし)"}
 - 今日の日付: ${today}`;
 
-  const response = await client.messages
-    .stream({
-      model: MODEL,
-      max_tokens: 16000,
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-      tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }],
-      messages: [{ role: "user", content: userPrompt }],
-    })
-    .finalMessage();
-
-  const parsed = extractMdx(response);
+  const { parsed, usage } = await generateWithReview(client, {
+    system: SYSTEM_PROMPT,
+    userPrompt,
+    reviewPrompt: REVIEW_PROMPT,
+    tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }],
+  });
   validate(parsed.data, parsed.content, NEWS_SHAPE);
 
   // 出典・draft はモデルの出力に関わらず固定する
@@ -92,7 +89,7 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
   parsed.data.id = nextId;
 
   const file = writeArticle(parsed.data, parsed.content, nextId, date);
-  console.log(`wrote ${file}  (in=${response.usage.input_tokens} cached=${response.usage.cache_read_input_tokens} out=${response.usage.output_tokens})`);
+  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output})`);
 }
 
 async function main() {

@@ -10,19 +10,19 @@ export default function Header() {
           {SITE_NAME}
         </Link>
         <nav aria-label="カテゴリ">
-          <ul className="flex items-center gap-1 rounded-full border border-ink/10 p-1 text-sm dark:border-paper/10">
+          <ul className="flex items-center gap-0.5 rounded-full border border-ink/10 p-1 text-xs sm:gap-1 sm:text-sm dark:border-paper/10">
             {CATEGORY_KEYS.map((key) => (
               <li key={key}>
                 <Link
                   href={`/category/${key}`}
-                  className="block rounded-full px-3 py-1.5 font-medium transition hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink"
+                  className="block whitespace-nowrap rounded-full px-2.5 py-1.5 font-medium transition sm:px-3 hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink"
                 >
                   {CATEGORIES[key].label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href="/tools" className="block rounded-full px-3 py-1.5 font-medium transition hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink">
+              <Link href="/tools" className="block whitespace-nowrap rounded-full px-2.5 py-1.5 font-medium transition sm:px-3 hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink">
                 ツール
               </Link>
             </li>

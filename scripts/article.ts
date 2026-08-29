@@ -7,7 +7,9 @@ import matter from "gray-matter";
 import { isCategoryKey } from "../src/lib/site";
 
 export const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
-export const MODEL = "claude-opus-5";
+// コスト優先で sonnet（opus比で約4割減）。品質は下の generateWithReview（執筆→編集長レビューの2段階）で担保する。
+// それでも品質が足りなければ claude-opus-5 に戻す。
+export const MODEL = "claude-sonnet-5";
 
 /** JSTの今日 YYYY-MM-DD */
 export function today(): string {
@@ -42,16 +44,58 @@ export function slugify(title: string, date: string) {
 }
 
 /** 応答から記事MDXを取り出す。最後のtextブロックが本文（途中のtextはツール呼び出し前の前置き） */
-export function extractMdx(response: Anthropic.Message) {
+function extractText(response: Anthropic.Message): string {
   if (response.stop_reason === "refusal") {
     throw new Error(`refusal: ${response.stop_details?.explanation ?? ""}`);
   }
+  // 最後のtextブロックが記事本文（途中のtextはツール呼び出し前の前置きの可能性がある）
   const texts = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
   const text = texts.at(-1)?.text.trim() ?? "";
   if (!text || text.startsWith("FETCH_FAILED")) throw new Error("fetch failed");
-  const parsed = matter(text.replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
+  return text;
+}
+
+export function extractMdx(response: Anthropic.Message) {
+  const parsed = matter(extractText(response).replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
   if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
   return parsed;
+}
+
+/**
+ * 2段階生成: 執筆（web_fetch可）→ 編集長レビューで改稿。
+ * sonnetの粗さ（薄い要約・抽象的な手順）を2回目で潰す。sonnet2回でもopus1回より安い。
+ * 戻り値は最終稿のMDX（frontmatterパース済み）と、合計トークン使用量。
+ */
+export async function generateWithReview(
+  client: Anthropic,
+  { system, userPrompt, reviewPrompt, tools }: { system: string; userPrompt: string; reviewPrompt: string; tools?: Anthropic.Messages.ToolUnion[] }
+) {
+  const systemBlocks: Anthropic.Messages.TextBlockParam[] = [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
+  const draft = await client.messages
+    .stream({ model: MODEL, max_tokens: 20000, system: systemBlocks, tools, messages: [{ role: "user", content: userPrompt }] })
+    .finalMessage();
+  const draftText = extractText(draft);
+
+  const final = await client.messages
+    .stream({
+      model: MODEL,
+      max_tokens: 20000,
+      system: systemBlocks,
+      messages: [
+        { role: "user", content: userPrompt },
+        { role: "assistant", content: draftText },
+        { role: "user", content: reviewPrompt },
+      ],
+    })
+    .finalMessage();
+  const parsed = matter(extractText(final).replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
+  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
+  const usage = {
+    input: (draft.usage.input_tokens ?? 0) + (final.usage.input_tokens ?? 0),
+    cached: (draft.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_read_input_tokens ?? 0),
+    output: (draft.usage.output_tokens ?? 0) + (final.usage.output_tokens ?? 0),
+  };
+  return { parsed, usage };
 }
 
 // 自動公開ではこの検査が唯一の関門になる。記事の型を満たさない出力は捨てる。

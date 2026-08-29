@@ -9,6 +9,7 @@ import AdUnit from "@/components/AdUnit";
 import ArticleCard from "@/components/ArticleCard";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
+import KeyVisual from "@/components/KeyVisual";
 import KeyPoints from "@/components/KeyPoints";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
@@ -79,6 +80,9 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       {faq.length > 0 && <JsonLd data={faqPageJsonLd(url, faq)} />}
 
       <header className="relative overflow-hidden bg-ink text-paper">
+        {/* キービジュアル。本文の可読性を優先し、暗いグラデーションを重ねた上に見出しを置く */}
+        <KeyVisual slug={article.slug} category={article.category} className="opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/55" />
         <div className="bg-grid absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-4xl px-5 pb-14 pt-16 sm:pb-20 sm:pt-24">
           <Breadcrumbs
