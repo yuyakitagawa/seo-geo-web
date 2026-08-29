@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import { getAllArticles, getAllTags } from "@/lib/content";
+import { GUIDE_LIST } from "@/lib/guides";
 import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_NAME } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 
@@ -40,6 +41,26 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 用語の解説。定義クエリ（「SEO対策とは」「GEOとは」）の受け皿へトップから直接リンクする */}
+      <section className="mx-auto max-w-6xl px-5 pt-16 sm:pt-20">
+        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 用語の解説</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {GUIDE_LIST.map((g) => (
+            <Link
+              key={g.path}
+              href={g.path}
+              className="group rounded-3xl border border-ink/10 p-7 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
+            >
+              <span className={`mb-4 inline-block size-2.5 rounded-full ${CATEGORY_STYLE[g.category].dot}`} />
+              <p className="text-2xl font-bold tracking-tight">
+                {g.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
+              </p>
+              <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-mute">{g.definition}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Latest */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <div className="mb-8 flex items-end justify-between">
@@ -72,7 +93,7 @@ export default function Home() {
         <div className="rounded-3xl bg-accent p-8 text-accent-ink sm:p-12">
           <p className="text-xs font-bold uppercase tracking-wider opacity-70">How this is made</p>
           <p className="mt-3 max-w-3xl text-xl font-bold leading-snug sm:text-2xl">
-            公式発表と一次情報をAIで毎日収集し、人間が内容を確認したうえで、出典リンク付きで公開しています。
+            公式発表と一次情報をAIで毎日収集し、出典URLの記載と構成を自動検査したうえで、リンク付きで公開しています。
           </p>
           <Link href="/about" className="mt-6 inline-block rounded-full bg-accent-ink px-5 py-2.5 text-sm font-semibold text-accent transition hover:opacity-80">
             {SITE_NAME}について →

@@ -19,6 +19,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
 | `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
+| `/seo` `/geo` | 用語の解説ページ（「SEO対策とは」「GEOとは」）。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -104,13 +105,17 @@ npm run dev
 - **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
   生成側は `validate()` でFAQ2問以上を必須にしている。
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
+- **用語の解説ページ `/seo` `/geo`**: 「SEO対策とは」「GEOとは」という定義クエリの受け皿。
+  定義文・要点・FAQ・出典・更新日を `src/lib/guides.ts` の1か所に持ち、**可視テキスト・JSON-LD（DefinedTerm / FAQPage）・llms.txt が同じ文字列を使う**。
+  記事（フロー）と違い日付で古くならないストックページなので、sitemap の priority はトップの次に高い 0.9。
+  事実は各社の公式ドキュメント（Google 検索セントラル / OpenAI / Perplexity / Anthropic / arXiv / web.dev）で裏取りし、citation に入れている。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
 - **薄いタグページの足切り**: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは
   `noindex, follow` にし sitemap からも外す。表示側と生成側が `src/lib/content.ts` の同じ関数を見るのでズレない。
   ページ自体は残すので内部リンクの経路としては機能する。
 - sitemap の `lastmod` はそのページに載っている記事の最新更新日（全ページ同じ日付にしない）
-- `llms.txt`（サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
 - アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
 - E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、

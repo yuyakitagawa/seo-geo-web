@@ -1,4 +1,5 @@
 import { getAllArticles } from "@/lib/content";
+import { GUIDE_LIST } from "@/lib/guides";
 import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 
@@ -15,6 +16,10 @@ export function GET() {
     `# ${SITE_NAME}`,
     "",
     `> ${SITE_DESCRIPTION}`,
+    "",
+    "## 用語の定義",
+    // 「SEO対策とは」「GEOとは」への直答をそのまま置く（可視ページと同じ文字列）。
+    ...GUIDE_LIST.map((g) => `- [${g.h1}](${SITE_URL}${g.path}): ${g.definition}（最終更新 ${g.updated}）`),
     "",
     "## サイト情報",
     `- [運営者情報](${SITE_URL}/about): 運営方針・記事制作プロセス・収集元の一覧・よくある質問`,

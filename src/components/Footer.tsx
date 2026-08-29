@@ -15,6 +15,8 @@ export default function Footer() {
           <p className="opacity-60">© {new Date().getFullYear()} {SITE_NAME}</p>
           <nav aria-label="サイト情報">
             <ul className="flex flex-wrap gap-5">
+              <li><Link href="/seo" className="hover:text-accent">SEO対策とは</Link></li>
+              <li><Link href="/geo" className="hover:text-accent">GEOとは</Link></li>
               <li><Link href="/about" className="hover:text-accent">運営者情報</Link></li>
               <li><Link href="/privacy" className="hover:text-accent">プライバシーポリシー</Link></li>
               <li><Link href="/disclaimer" className="hover:text-accent">免責事項</Link></li>
