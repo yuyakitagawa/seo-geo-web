@@ -67,7 +67,11 @@ const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編�
   「いかがでしたか」「まとめると」「〜と言っても過言ではありません」「〜することが求められます」。
 - 「重要」「注目」「最適化」を連発しない。代わりに具体的な動詞で書く（例: 「title を書き換える」「ログを見る」）。
 - 見出しは ## と ### のみ。冒頭は「## 結論」で、何が起きて何をすべきかを2〜3文。
+- **「## 結論」の1文目は、記事タイトルの問いにそのまま答える断定文にする**（主語＋何が変わったか。60字以内、
+  固有名詞を含める）。前置き・背景説明から始めない。AI検索と強調スニペットはこの1文を抜き出す。
 - 文字数は1,800〜2,800字。末尾に「## よくある質問」を2〜3問（### に質問文、直下に回答）。
+- **FAQの回答は、質問文を読まなくても意味が通る1〜3文にする**（AI検索は回答だけを抜き出す）。
+  「はい」「できません」だけで終わらせず、何がどうなのかを回答文の中で言い切る。
 - 本文中に出典URLを再掲しない。
 
 # 出力形式
@@ -131,6 +135,10 @@ function validate(data: Record<string, unknown>, content: string) {
     if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
   }
   if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
+  // FAQは FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）。
+  // 質問が1問しかない記事はFAQとして成立しないので落とす。
+  const faqSection = content.slice(content.indexOf("## よくある質問"));
+  if ((faqSection.match(/^### /gm) ?? []).length < 2) errors.push("FAQが2問未満");
   if (errors.length) throw new Error(errors.join(", "));
 }
 

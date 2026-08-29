@@ -24,8 +24,8 @@ export default function Home() {
             <span className="text-accent">毎日</span>変わる。
           </h1>
           <p className="mt-8 max-w-xl text-base leading-relaxed text-paper/70 sm:text-lg animate-rise [animation-delay:160ms]">
-            Google検索・AI Overview・ChatGPT・Perplexity。検索を作る側の設計意図まで踏み込んで、
-            今日のアップデートが「あなたのサイトに何をもたらすか」まで解説します。
+            Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎日巡回し、
+            SEO/GEO担当が読むべき変更だけを、日本語で整理します。
           </p>
           <ul className="mt-10 flex flex-wrap gap-2 animate-rise [animation-delay:240ms]">
             {CATEGORY_KEYS.map((k) => (
