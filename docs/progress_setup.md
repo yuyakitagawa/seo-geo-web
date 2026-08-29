@@ -22,10 +22,10 @@
 - [x] サイト名の決定（「SEO GEO Lab」に確定。`NEXT_PUBLIC_SITE_NAME` で上書き可）
 - [x] GitHubリポジトリ作成 → https://github.com/yuyakitagawa/seo-geo-web（初回push済み）
 - [ ] GitHub Secrets に `ANTHROPIC_API_KEY` を登録（Actions用）
-- [x] Vercelプロジェクト作成 → https://seo-geo-web-red.vercel.app/（URLは変更予定。SITE_URLはVercel環境変数から自動取得）
-- [ ] ドメイン決定・取得・Vercel接続、`NEXT_PUBLIC_SITE_NAME` 決定（現状の仮名: SEO・GEO・AIO Lab）
+- [x] Vercelプロジェクト作成
+- [x] ドメイン取得・接続 → **https://seo-geo-lab.com** （お名前.com、2026-08-25接続。www/旧vercel.app URLは308で新ドメインへ。NEXT_PUBLIC_SITE_URL設定済み）
 - [ ] GA4プロパティ作成 → `NEXT_PUBLIC_GA_ID`
-- [ ] Search Console 登録、sitemap送信
+- [ ] Search Console 登録（https://seo-geo-lab.com で）、sitemap送信 ← ドメイン確定したので実施可能
 - [ ] 記事20〜30本公開後に AdSense 申請 → `NEXT_PUBLIC_ADSENSE_*`
 
 ## 運用メモ
