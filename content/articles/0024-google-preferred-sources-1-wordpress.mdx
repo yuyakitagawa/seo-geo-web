@@ -1,0 +1,105 @@
+---
+title: GoogleのPreferred Sources埋め込みボタン、1タップ登録とWordPress実装の手順
+description: >-
+  GoogleのPreferred
+  Sourcesボタンを埋め込みスクリプトで設置する方法、ディープリンクとの違い、WordPressウィジェットとGA4計測までを日本のサイト運営者向けに整理します。
+date: '2026-08-29'
+category: seo
+tags:
+  - Preferred Sources
+  - Google
+  - Top Stories
+  - WordPress
+  - GA4
+  - AI Overviews
+impact: mid
+audience: ニュースメディア、Top Storiesに掲載される記事を持つメディア運営者
+actions:
+  - source preferences ツールで自社ドメインが登録対象か確認する
+  - publisher.js を head に一度だけ読み込み、ボタン用の div を設置する
+  - JavaScript を追加できないCMSではディープリンクで代替する
+  - GA4かGTMでボタンクリックのイベントを記録する
+sources:
+  - title: How To Add Google’s Preferred Sources Button To Your Website
+    url: >-
+      https://www.searchenginejournal.com/add-google-preferred-sources-button-website/586908/
+draft: false
+id: 24
+---
+## 結論
+
+Googleは、Preferred Sourcesの登録を読者のワンアクションで完了させる埋め込みボタンを提供しています。従来のディープリンクでは、読者はGoogleの設定画面で自分でチェックを入れる必要がありました。ニュース記事をTop Storiesに出しているメディアは、記事下やサイドバーへの設置を検討する段階です。
+
+## 埋め込みボタンとディープリンクの違い
+
+埋め込みボタンをタップすると、Googleは該当パブリケーション専用の確認ページを開きます。対象サイトはすでに特定済みで、読者は「Add」を押すだけです。押した後は元の記事に戻ります。
+
+ディープリンクは挙動が異なります。Source preferences の一般画面が開き、検索欄は埋まっているものの、読者が自分でチェックボックスを選ぶ必要があります。記事への自動復帰もありません。
+
+<FigureCompare
+  title="埋め込みボタンとディープリンクの動作差"
+  caption="元記事の実機テスト（モバイル）に基づく比較"
+  cols={[
+    { label: "埋め込みボタン", tone: "seo", sub: "JavaScript が必要", points: ["専用の確認ページが開く", "対象サイトは特定済み", "Addを押すだけで完了", "元の記事に戻る", "言語は自動でローカライズ"] },
+    { label: "ディープリンク", tone: "news", sub: "ただのリンク", points: ["Source preferences の一般画面が開く", "読者がチェックボックスを選ぶ", "記事に自動で戻らない", "CMSやメール、SNSでも使える"] },
+  ]}
+/>
+
+Googleは自動ローカライズと記事への復帰を理由に、標準のJavaScript実装を推奨しています。ディープリンクは、スクリプトを入れられないCMSやメール配信で使い分ける形になります。
+
+## 影響を受けるページ・クエリ
+
+動くのは、Top Storiesに掲載される可能性があるニュース記事のページです。Googleのドキュメントによれば、Preferred Sources はGoogle検索が提供されている言語のTop Storiesでグローバルに利用でき、AI OverviewsとAI Modeでも優先ソースが強調される場合があります。
+
+一方で、Preferred Sources はランキング要因ではありません。登録した個々のユーザーが見る結果に影響するだけで、全員に対する順位が上がるわけではなく、Top Storiesへの掲載が保証されるわけでもありません。
+
+そのため、ECサイトの商品ページ、店舗集客サイトのエリアページ、BtoBのサービス紹介ページでは、設置しても効果はほぼ出ないと考えられます。ニュース面に露出しないサイトは、この変更の対象外です。
+
+## 設置の手順
+
+最初に確認するのは適格性です。Googleの source preferences ツールで自社パブリケーションを検索し、出てこなければボタンを設置しても解決しません。対象はドメインとサブドメインで、`example.com` と `news.example.com` は有効、`example.com/blog` のようなサブディレクトリは無効です。
+
+<FigureFlow
+  title="Preferred Sourcesボタン設置の流れ"
+  steps={[
+    { label: "適格性を確認", desc: "source preferences ツールで自社が表示されるか調べる" },
+    { label: "ライブラリを読み込む", desc: "publisher.js を head で一度だけ非同期読み込み" },
+    { label: "ボタンを置く", desc: "google-add-preferred-source-btn 属性を付けた div を配置" },
+    { label: "テーマを選ぶ", desc: "既定はライト。暗い背景では data-theme に dark を指定" },
+    { label: "クリックを計測", desc: "GTMのカスタムイベントかgtag.jsでイベントを記録" },
+  ]}
+/>
+
+ドメイン名をボタン側にハードコードする必要はありません。ライブラリが属性を検出してUIを描画します。言語は読者のブラウザ設定に従うため、特定言語に固定したいときだけ `data-lang` を足します。
+
+WordPressの場合は、小さなカスタムプラグインか子テーマの functions.php にウィジェットを登録する方法が紹介されています。管理画面の「外観 > ウィジェット」からライトかダーク、左寄せ・中央・右寄せを選べる作りです。複数のウィジェットエリアで使っても、ライブラリの読み込みは一度だけになります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="Preferred Sourcesボタンへの対応範囲"
+  dos={["source preferences ツールで自社ドメインの表示を先に確認する", "ニュース記事の下部やサイドバーなど固定枠にボタンを置く", "スクリプトを入れられない配信面ではディープリンクを使う", "GA4かGTMでクリックイベントを1度だけ検証する"]}
+  donts={["ニュース面に出ないECやBtoBサイトの全ページに設置する", "順位改善を期待して設置を急ぐ", "サブディレクトリを登録対象として指定する", "publisher.js をページごとに複数回読み込む"]}
+/>
+
+設置作業自体は数行で終わりますが、効果が出る範囲は限られます。Preferred Sources は読者が能動的に選んだ場合にだけ働くため、読者との接点が薄いサイトでは工数に見合いません。サブディレクトリは対象外なので、メディアがサブディレクトリ運用なら設置前に構成の確認が必要です。
+
+## クリックを計測する
+
+Googleはページ読み込み後にバッジを描画するため、元記事のコードは委譲型のクリックリスナーを1つ使う構成になっています。記録できるのは登録フローの開始であり、読者がGoogle側で選択を完了したかどうかは分かりません。
+
+GTMコンテナがある場合は `preferred_source_button_click` というイベントを dataLayer に送り、GTM側でカスタムイベントトリガーを作ってGA4イベントタグを発火させます。GTMがなく gtag.js だけがある場合は、同名のイベントを gtag で送ります。公開前にGTMプレビューかGA4 DebugViewで1度確認しておくと、無駄な差し戻しを防げます。
+
+## よくある質問
+
+### Preferred Sourcesに登録されると検索順位は上がりますか
+
+Preferred Sources は直接のランキング要因ではありません。登録したユーザー個人が見るTop Storiesなどの表示に影響するだけで、全ユーザーに対する順位改善やTop Stories掲載の保証はありません。
+
+### 自社サイトがPreferred Sourcesの対象かどうかはどこで分かりますか
+
+Googleの source preferences ツールで自社パブリケーション名を検索し、候補として表示されるかで判断します。表示されない場合、サイトにボタンを設置しても登録できる状態にはなりません。
+
+### サブディレクトリで運営しているメディアでも登録できますか
+
+Preferred Sources が対象にするのはドメインとサブドメインで、`example.com/blog` のようなサブディレクトリは指定できません。`news.example.com` のようなサブドメインで運営している場合は、ルートドメインではなくそのホストを指定します。
