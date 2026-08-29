@@ -1,6 +1,9 @@
 import { getAllArticles } from "@/lib/content";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
+// 記事も設定もビルド時に確定するので静的ファイルとして配る（クローラーへのTTFBを詰める）。
+export const dynamic = "force-static";
+
 function escape(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

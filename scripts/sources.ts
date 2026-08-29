@@ -10,6 +10,8 @@ export type FeedSource = {
   keywords?: string[];
   /** tools: AI検索向けツールの発表を検知する専用ソース。候補に「ツール検知」メモが付き、/tools ページ更新の材料になる */
   topic?: "tools";
+  /** 媒体のトップページ。/about で「収集元の一次情報源」として読者に開示する（RSSのURLではなく人が読む方） */
+  home?: string;
 };
 
 // Google News の検索RSS。PR TIMES・Web担当者Forum・アドタイ等を横断して日本語ニュースを拾える。
@@ -23,16 +25,16 @@ export const TOOL_KEYWORDS = ["ツール", "診断", "チェッカー", "チェ�
 
 export const FEED_SOURCES: FeedSource[] = [
   // --- 公式 ---
-  { name: "Google Search Central Blog", alwaysInclude: true, url: "https://feeds.feedburner.com/blogspot/amDG", kind: "official", lang: "en" },
-  { name: "Google Search Status Dashboard", alwaysInclude: true, url: "https://status.search.google.com/en/feed.atom", kind: "official", lang: "en" },
-  { name: "Google The Keyword (Search)", url: "https://blog.google/products/search/rss/", kind: "official", lang: "en" },
-  { name: "Bing Webmaster Blog", alwaysInclude: true, url: "https://blogs.bing.com/webmaster/feed", kind: "official", lang: "en" },
-  { name: "OpenAI News", url: "https://openai.com/news/rss.xml", kind: "official", lang: "en", keywords: ["search", "seo", "crawl", "browse", "citation", "publisher", "atlas", "shopping"] },
+  { name: "Google Search Central Blog", alwaysInclude: true, url: "https://feeds.feedburner.com/blogspot/amDG", home: "https://developers.google.com/search/blog", kind: "official", lang: "en" },
+  { name: "Google Search Status Dashboard", alwaysInclude: true, url: "https://status.search.google.com/en/feed.atom", home: "https://status.search.google.com/", kind: "official", lang: "en" },
+  { name: "Google The Keyword (Search)", url: "https://blog.google/products/search/rss/", home: "https://blog.google/products/search/", kind: "official", lang: "en" },
+  { name: "Bing Webmaster Blog", alwaysInclude: true, url: "https://blogs.bing.com/webmaster/feed", home: "https://blogs.bing.com/webmaster", kind: "official", lang: "en" },
+  { name: "OpenAI News", url: "https://openai.com/news/rss.xml", home: "https://openai.com/news/", kind: "official", lang: "en", keywords: ["search", "seo", "crawl", "browse", "citation", "publisher", "atlas", "shopping"] },
   // --- 業界メディア ---
-  { name: "Search Engine Land", url: "https://searchengineland.com/feed", kind: "media", lang: "en" },
-  { name: "Search Engine Journal", url: "https://www.searchenginejournal.com/feed/", kind: "media", lang: "en" },
-  { name: "Search Engine Roundtable", url: "https://www.seroundtable.com/rss.xml", kind: "media", lang: "en" },
-  { name: "海外SEO情報ブログ", url: "https://www.suzukikenichi.com/blog/feed/", kind: "media", lang: "ja" },
+  { name: "Search Engine Land", url: "https://searchengineland.com/feed", home: "https://searchengineland.com/", kind: "media", lang: "en" },
+  { name: "Search Engine Journal", url: "https://www.searchenginejournal.com/feed/", home: "https://www.searchenginejournal.com/", kind: "media", lang: "en" },
+  { name: "Search Engine Roundtable", url: "https://www.seroundtable.com/rss.xml", home: "https://www.seroundtable.com/", kind: "media", lang: "en" },
+  { name: "海外SEO情報ブログ", url: "https://www.suzukikenichi.com/blog/feed/", home: "https://www.suzukikenichi.com/blog/", kind: "media", lang: "ja" },
   // --- ツール検知（Google News 日本語検索） ---
   { name: "Google News: LLMO", url: googleNewsJa("LLMO"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },
   { name: "Google News: GEO対策", url: googleNewsJa("GEO 対策"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },

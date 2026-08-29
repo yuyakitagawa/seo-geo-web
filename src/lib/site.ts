@@ -12,7 +12,7 @@ export const SITE_URL = (
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO GEO Lab";
 
 export const SITE_DESCRIPTION =
-  "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。検索側の設計意図まで踏み込み、一次情報へのリンク付きでまとめます。";
+  "Google検索・AI検索（AI Overview / ChatGPT / Perplexity）の最新アップデートを毎日追い、SEOとGEO（生成AI検索最適化）の実務ノウハウとして解説するメディア。SEO/GEO担当が読むべき変更だけを、一次情報へのリンク付きで日本語にまとめます。";
 
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
 export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO・GEO Lab", "SEOGEOラボ"];
@@ -45,3 +45,8 @@ export function isCategoryKey(v: string): v is CategoryKey {
 }
 
 export const ARTICLES_PER_PAGE = 12;
+
+// タグページの足切り。記事1本だけのタグページは中身が一覧リンク1個しかなく、
+// 「クロール済み - インデックス未登録」を増やしてクロール枠を食う。
+// この本数未満のタグは noindex にし、sitemap からも外す（表示側と生成側で同じ値を使う）。
+export const TAG_MIN_ARTICLES = 2;

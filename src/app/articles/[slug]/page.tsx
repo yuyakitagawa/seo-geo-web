@@ -7,13 +7,15 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import AdUnit from "@/components/AdUnit";
 import ArticleCard from "@/components/ArticleCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import KeyPoints from "@/components/KeyPoints";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
-import { CATEGORIES, SITE_NAME, SITE_URL } from "@/lib/site";
+import { extractFaq, faqPageJsonLd } from "@/lib/faq";
+import { CATEGORIES, SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
 
@@ -67,31 +69,23 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
     ...(article.sources.length ? { citation: article.sources.map((s) => s.url) } : {}),
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: SITE_NAME, item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: CATEGORIES[article.category].label, item: `${SITE_URL}/category/${article.category}` },
-      { "@type": "ListItem", position: 3, name: article.title, item: url },
-    ],
-  };
+  // 記事末尾の「## よくある質問」をそのまま FAQPage にする（可視テキストと一言一句一致させるため本文から抽出）。
+  const faq = extractFaq(article.body);
 
   return (
     <article>
       <JsonLd data={articleJsonLd} />
-      <JsonLd data={breadcrumbJsonLd} />
+      {faq.length > 0 && <JsonLd data={faqPageJsonLd(url, faq)} />}
 
       <header className="relative overflow-hidden bg-ink text-paper">
         <div className="bg-grid absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-4xl px-5 pb-14 pt-16 sm:pb-20 sm:pt-24">
-          <nav aria-label="パンくず" className="mb-8 text-xs text-paper/60">
-            <ol className="flex flex-wrap gap-2">
-              <li><Link href="/" className="hover:text-paper">ホーム</Link></li>
-              <li aria-hidden>/</li>
-              <li><Link href={`/category/${article.category}`} className="hover:text-paper">{CATEGORIES[article.category].label}</Link></li>
-            </ol>
-          </nav>
+          <Breadcrumbs
+            items={[
+              { name: CATEGORIES[article.category].label, href: `/category/${article.category}` },
+              { name: article.title },
+            ]}
+          />
           <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-paper/70">
             <CategoryBadge category={article.category} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>

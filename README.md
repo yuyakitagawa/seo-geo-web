@@ -16,12 +16,13 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 |---|---|
 | `/` | 新着記事・カテゴリ・タグ |
 | `/articles` | 全記事一覧 |
-| `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList JSON-LD、出典一覧、関連記事、広告） |
+| `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
 | `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
+| `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（`src/lib/icon.tsx` で描画） |
 
 ## 記事パイプライン
 ```
@@ -39,7 +40,7 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 **自動採用の基準**（`scripts/pick.ts`）: スコア2以上・公開21日以内・「ツール検知」メモなし（PR配信のツール発表は /tools の材料で記事にしない）。
 すでに「公開」「採用」にした話題と語が重なるものは選ばない（別ソースが報じた同じ発表の二重記事を防ぐ）。
 **重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。話題の重なり判定は `scripts/topic.ts` に共通化。
-**自動公開の関門は2つ**: `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上）と、
+**自動公開の関門は2つ**: `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上・FAQ2問以上）と、
 Actions上の `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）。どちらかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
 
@@ -95,13 +96,31 @@ npm run dev
 ```
 
 ## SEO / GEO 対策
-- Organization / WebSite / Article / BreadcrumbList の JSON-LD
+- **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
+  ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）
+- **BreadcrumbList は `src/components/Breadcrumbs.tsx` が可視UIとJSON-LDを同じ配列から出す**（表示と構造化データがずれない）。
+  一覧・固定ページは `PageHeader` に `crumbs` を渡すだけで付く。
+- **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
+  生成側は `validate()` でFAQ2問以上を必須にしている。
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
-- `llms.txt`（サイト概要＋主要URL）、RSS、sitemap、robots
-- E-E-A-T: 運営者個人の経歴は一切載せない方針（about は運営方針と記事制作プロセスのみ）。記事本文でも一人称の経験談は書かない。連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
-- 記事冒頭に「## 結論」を置く執筆ルール（AI検索のパッセージ抽出向け）
+- **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
+  「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
+- **薄いタグページの足切り**: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは
+  `noindex, follow` にし sitemap からも外す。表示側と生成側が `src/lib/content.ts` の同じ関数を見るのでズレない。
+  ページ自体は残すので内部リンクの経路としては機能する。
+- sitemap の `lastmod` はそのページに載っている記事の最新更新日（全ページ同じ日付にしない）
+- `llms.txt`（サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
+- アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
+- E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、
+  収集元の媒体一覧（`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文でも一人称の経験談は書かない。
+  連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
+- 記事冒頭に「## 結論」を置き、その1文目をタイトルへの直答の断定文にする執筆ルール（AI検索のパッセージ抽出向け）。
+  FAQの回答は質問文を読まなくても意味が通る形にする。
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
 ## 未着手 / 将来
 - 記事内検索、英語版
+- タグURLのASCII化（現状 `/tag/店舗集客`）。308リダイレクトと衝突管理が必要なので、タグが定着してから判断する
+- 週次/月次のまとめページ。記事本数が増えて一覧が長くなってから
 - 業務委託・問い合わせ導線はPVが伸びてから（現段階では設計に含めない）
