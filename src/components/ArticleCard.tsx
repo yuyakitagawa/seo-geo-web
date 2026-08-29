@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ArticleMeta } from "@/lib/content";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 import CategoryBadge from "./CategoryBadge";
+import TypeBadge from "./TypeBadge";
 
 // featured: トップの先頭1件。2カラム分の幅で大きく見せる。
 export default function ArticleCard({ article, featured = false, index = 0 }: { article: ArticleMeta; featured?: boolean; index?: number }) {
@@ -15,6 +16,7 @@ export default function ArticleCard({ article, featured = false, index = 0 }: { 
       <Link href={`/articles/${article.slug}`} className={`relative flex h-full flex-col ${featured ? "p-8 sm:p-10" : "p-6 sm:p-7"}`}>
         <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-mute">
           <CategoryBadge category={article.category} asLink={false} />
+          <TypeBadge type={article.type} />
           <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
           <span>{article.readingMinutes} min</span>
         </div>
