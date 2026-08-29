@@ -233,7 +233,7 @@ export default function SeoGuidePage() {
             { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: "/category/seo", label: "SEOの最新記事", note: "アルゴリズム更新やテクニカルSEOの実務を、一次情報付きで毎日更新。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "順位計測・クロール監査・AI可視性計測ツールを国内外で比較。" },
-            { href: "/about", label: "運営者情報", note: "記事の作り方、収集元の一次情報源、編集方針。" },
+            { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}
         />
       </div>

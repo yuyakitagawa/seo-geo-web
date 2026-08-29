@@ -247,7 +247,7 @@ export default function GeoGuidePage() {
             { href: "/seo", label: "SEO対策とは", note: "定義、3つの領域、Googleが公式に示す基準、最初の90日でやること。" },
             { href: "/category/geo", label: "GEOの最新記事", note: "AI検索の仕様変更と引用のされ方を、一次情報付きで毎日更新。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
-            { href: "/about", label: "運営者情報", note: "記事の作り方、収集元の一次情報源、編集方針。" },
+            { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}
         />
       </div>
