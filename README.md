@@ -46,7 +46,24 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 Actions上の `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）。どちらかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
 
+## HOW TO記事パイプライン（ストック型）
+上のパイプラインはRSS起点なので、出てくるのはニュース（フロー）だけになる。
+検索とAI検索から継続的に読まれるのは手順・定義を持つストック記事なので、別系統で作る。
+```
+content/howto-topics.csv   テーマ表。人が status を「採用」にする。1行 = 1記事
+                           列: status / category / title(タイトル案) / intent(検索意図) / sources(一次情報URL、| 区切り) / articleId / note
+      ↓ npm run generate:howto N [--publish]
+                           「採用」をN件、Claudeが指定URLをすべてweb_fetchで読んで MDX を出力（scripts/generate-howto.ts）
+                           → テーマ表の status を「公開」に
+```
+- 出典は**テーマ表に書いたURLだけ**を許す（モデルが別URLを足したら記事ごと捨てる）。書ける事実の範囲をテーマ表で固定する。
+- 必須見出しは「## 結論 / ## 手順 / ## やること／やらなくていいこと / ## よくある質問」、本文2,000字以上、FAQ3問以上。
+- 「最近」「現在」のような時点依存の表現を禁止（半年後に読んでも成立させるため）。
+- 生成失敗したテーマは「候補」に戻してメモを残す（ニュース側と違い、テーマ自体は捨てない）。
+- プロンプトの共通部分（媒体の性格・図解・文体）は `scripts/prompt.ts`、採番・検査・書き出しは `scripts/article.ts` に集約。
+
 ## 記事の型（他媒体との差別化）
+- frontmatter の `type` で **news（フロー）/ howto（ストック）** を区別する。カテゴリページは howto を上、news を下に分けて出す
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
 - 本文に「## 影響を受けるページ・クエリ」（自社のどのページ・クエリが動くかを特定。検索側のKPI推測は書かない）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
@@ -79,6 +96,7 @@ description: "..."        # 90〜120字
 date: "2026-08-23"
 updated: "2026-08-23"     # 任意
 category: "seo"           # seo | geo | news
+type: "news"              # news（既定・省略可） | howto
 tags: ["SEO", "AI Overview"]
 impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意

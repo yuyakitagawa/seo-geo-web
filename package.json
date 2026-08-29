@@ -10,6 +10,7 @@
     "collect": "tsx scripts/collect.ts",
     "pick": "tsx scripts/pick.ts",
     "generate": "tsx scripts/generate.ts",
+    "generate:howto": "tsx scripts/generate-howto.ts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
