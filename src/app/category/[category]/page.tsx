@@ -25,6 +25,9 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
   if (!isCategoryKey(category)) notFound();
   const c = CATEGORIES[category];
   const articles = getArticlesByCategory(category);
+  // ストック（解説）を先、フロー（ニュース）を後。AI検索・検索流入の受け皿になるのは解説側なので上に置く。
+  const howto = articles.filter((a) => a.type === "howto");
+  const news = articles.filter((a) => a.type !== "howto");
   const url = `${SITE_URL}/category/${category}`;
 
   return (
@@ -34,7 +37,19 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12">
         {/* 「◯◯の最新動向は？」のような包括クエリに直答する段落。件数と期間を先に出す。 */}
         <p className="mb-10 max-w-3xl leading-relaxed text-mute">{collectionSummary(c.label, articles)}</p>
-        <ArticleList articles={articles} />
+        {howto.length > 0 && (
+          <section className="mb-14">
+            <h2 className="mb-5 text-xl font-bold tracking-tight">{category === "news" ? "解説記事" : `${c.label}対策の解説`}</h2>
+            <ArticleList articles={howto} />
+          </section>
+        )}
+        {news.length > 0 && (
+          <section>
+            {howto.length > 0 && <h2 className="mb-5 text-xl font-bold tracking-tight">{c.label}の最新ニュース</h2>}
+            <ArticleList articles={news} />
+          </section>
+        )}
+        {articles.length === 0 && <ArticleList articles={articles} />}
       </div>
     </>
   );

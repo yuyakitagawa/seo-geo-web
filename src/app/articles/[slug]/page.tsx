@@ -12,6 +12,7 @@ import JsonLd from "@/components/JsonLd";
 import KeyPoints from "@/components/KeyPoints";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
+import TypeBadge from "@/components/TypeBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
@@ -88,6 +89,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
           />
           <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-paper/70">
             <CategoryBadge category={article.category} size="md" />
+            <TypeBadge type={article.type} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
             <span>{article.readingMinutes} min read</span>

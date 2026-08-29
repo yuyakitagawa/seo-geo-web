@@ -3,19 +3,12 @@
 // 元記事本文は Claude の web_fetch サーバーツールで取得（HTML解析コードを自前で持たない）。
 // 実行: npx tsx scripts/generate.ts [件数=3] [--publish]
 //   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
-import fs from "node:fs";
-import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
-import matter from "gray-matter";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
-import { isCategoryKey } from "../src/lib/site";
+import { MODEL, currentMaxId, extractMdx, today as jstToday, validate, writeArticle } from "./article";
+import { AUTHOR_RULES, FIGURE_RULES, MEDIA_INTRO, styleRules } from "./prompt";
 
-const CONTENT_DIR = path.join(process.cwd(), "content");
-const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
-const MODEL = "claude-opus-5";
-
-const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編集者です。読者は事業会社・制作会社でSEO/GEOを担当している実務者で、
-「今日の変更で自社サイトのどこが動くのか」「何をすればいいのか」を知るために読みます。
+const SYSTEM_PROMPT = `${MEDIA_INTRO}
 追いきれない量の公式発表と海外ソースの中から、担当者が読むべき変更だけを日本語で整理します。
 
 # この媒体の記事が他と違う点（必ず守る）
@@ -26,53 +19,13 @@ const SYSTEM_PROMPT = `あなたは日本語のSEO/GEO専門メディアの編�
    SEO業界の「とりあえず対応」を、工数と効果の観点で切る。
 3. **日本の具体例**: ECサイト・メディア・店舗集客サイト・BtoBサイトなど、日本の運営者が自分事にできる例を最低1つ入れる。
 4. **数字と固有名詞は元記事にあるものだけ**。無い数値・無い機能名を作らない。
+5. **「## 結論」の1文目は「何が変わったか」**を書く。
 
-# 図解（必ず3〜4個入れる）
-本文には次のコンポーネントをMDXとしてそのまま書ける（importは書かない）。文章だけの記事にしない。
-- 「## やること／やらなくていいこと」の箇条書きは、リストの代わりに必ず FigureDoDont で書く。
-  項目は短い1文にし、理由の説明は図の直後の段落に書く。
-- 残りは内容に合わせて選ぶ: 比較→FigureCompare、手順・時系列→FigureFlow、
-  増減や複数項目の大小→FigureBars、単独の数値の並び→FigureStats、公式発表の一文→FigureQuote。
-- 同じ種類の図を連続させない。図は該当セクションの直後に置く。
-- 図の中身は本文と同様、元記事にある事実だけ。属性の文字列内ではダブルクォートを使わず「」を使う。
-- JSXブロックの前後には空行を入れる。
+${FIGURE_RULES}
 
-<FigureDoDont
-  title="（内容が分かる具体的なタイトル）"
-  dos={["やること1", "やること2"]}
-  donts={["やらなくていいこと1"]}
-/>
+${AUTHOR_RULES}
 
-<FigureCompare
-  title="..."
-  caption="（任意）"
-  cols={[
-    { label: "A", tone: "seo", sub: "（任意）", points: ["...", "..."] },
-    { label: "B", tone: "geo", points: ["..."] },
-  ]}
-/>
-（tone は seo | geo | news | accent。2〜3カラム）
-
-<FigureFlow title="..." steps={[{ label: "...", desc: "（任意）" }]} />
-
-<FigureStats title="..." stats={[{ value: "40%", label: "何の数字か", note: "（任意）" }]} />
-
-# 書き手についての制約
-- 書き手個人の経歴・前職・実務経験には一切触れない。「〜の経験から言うと」「私が〜で見てきた」のような
-  一人称の経験談を書かない。分析の根拠は一次情報と公開情報だけにする。
-
-# 文体
-- です・ます調。一文は60字以内。1段落は3文以内。
-- 次の表現は使わない: 「〜と言えるでしょう」「〜が重要です」「〜に注目が集まっています」「本記事では」「この記事では」
-  「いかがでしたか」「まとめると」「〜と言っても過言ではありません」「〜することが求められます」。
-- 「重要」「注目」「最適化」を連発しない。代わりに具体的な動詞で書く（例: 「title を書き換える」「ログを見る」）。
-- 見出しは ## と ### のみ。冒頭は「## 結論」で、何が起きて何をすべきかを2〜3文。
-- **「## 結論」の1文目は、記事タイトルの問いにそのまま答える断定文にする**（主語＋何が変わったか。60字以内、
-  固有名詞を含める）。前置き・背景説明から始めない。AI検索と強調スニペットはこの1文を抜き出す。
-- 文字数は1,800〜2,800字。末尾に「## よくある質問」を2〜3問（### に質問文、直下に回答）。
-- **FAQの回答は、質問文を読まなくても意味が通る1〜3文にする**（AI検索は回答だけを抜き出す）。
-  「はい」「できません」だけで終わらせず、何がどうなのかを回答文の中で言い切る。
-- 本文中に出典URLを再掲しない。
+${styleRules({ chars: "1,800〜2,800字", faq: "2〜3問" })}
 
 # 出力形式
 次のfrontmatter付きMDXだけを出力する。前後に説明文やコードフェンスを付けない。
@@ -82,6 +35,7 @@ title: "（32〜60字。固有名詞＋何が変わるかが分かるタイト�
 description: "（90〜120字。検索結果のスニペットとして成立する要約）"
 date: "YYYY-MM-DD"
 category: "seo | geo | news のいずれか1つ（geo=AI Overview/AI Mode/ChatGPT/Perplexity等の生成AI検索全般）"
+type: "news"
 tags: ["3〜6個", "固有名詞を優先"]
 impact: "high | mid | low"   # 日本の一般的なサイト運営者への影響度
 audience: "（誰に影響するか。例: 店舗集客サイト、ニュースメディア、全サイト）"
@@ -95,52 +49,13 @@ draft: true
 
 （本文）`;
 
-// 既存記事（下書き含む）の最大 id。draft も含めて数えるので番号が衝突しない。
-function currentMaxId(): number {
-  if (!fs.existsSync(ARTICLES_DIR)) return 0;
-  return Math.max(
-    0,
-    ...fs
-      .readdirSync(ARTICLES_DIR)
-      .filter((f) => /\.mdx?$/.test(f))
-      .map((f) => Number(matter(fs.readFileSync(path.join(ARTICLES_DIR, f), "utf8")).data.id) || 0)
-  );
-}
-
-function slugify(title: string, date: string) {
-  const ascii = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-  return ascii.length >= 8 ? ascii : `${date}-${Math.abs(hash(title)).toString(36)}`;
-}
-function hash(s: string) {
-  let h = 0;
-  for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0;
-  return h;
-}
-
 // 自動公開ではこの検査が唯一の関門になる。記事の型（SYSTEM_PROMPT）を満たさない出力は捨てて、
 // 候補を「却下」に落とす（同じ候補で毎日失敗し続けないように）。
-function validate(data: Record<string, unknown>, content: string) {
-  const errors: string[] = [];
-  if (!isCategoryKey(String(data.category))) errors.push(`category不正:${data.category}`);
-  const description = String(data.description ?? "");
-  if (description.length < 40 || description.length > 200) errors.push(`description長さ${description.length}`);
-  const actions = data.actions;
-  if (!Array.isArray(actions) || actions.length < 1 || actions.length > 4) errors.push("actions不正");
-  if (content.length < 1200) errors.push(`本文${content.length}字`);
-  for (const h of ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと", "## よくある質問"]) {
-    if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
-  }
-  if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
-  // FAQは FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）。
-  // 質問が1問しかない記事はFAQとして成立しないので落とす。
-  const faqSection = content.slice(content.indexOf("## よくある質問"));
-  if ((faqSection.match(/^### /gm) ?? []).length < 2) errors.push("FAQが2問未満");
-  if (errors.length) throw new Error(errors.join(", "));
-}
+const NEWS_SHAPE = {
+  headings: ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと", "## よくある質問"],
+  minChars: 1200,
+  minFaq: 2,
+};
 
 async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number, publish: boolean) {
   const userPrompt = `以下の元記事をweb_fetchで取得して読み、記事を書いてください。
@@ -162,44 +77,35 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
     })
     .finalMessage();
 
-  if (response.stop_reason === "refusal") {
-    throw new Error(`refusal: ${response.stop_details?.explanation ?? ""}`);
-  }
-  // 最後のtextブロックが記事本文（途中のtextはツール呼び出し前の前置きの可能性がある）
-  const texts = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
-  const text = texts.at(-1)?.text.trim() ?? "";
-  if (!text || text.startsWith("FETCH_FAILED")) throw new Error("fetch failed");
-
-  const body = text.replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1");
-  const parsed = matter(body);
-  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
-  validate(parsed.data, parsed.content);
+  const parsed = extractMdx(response);
+  validate(parsed.data, parsed.content, NEWS_SHAPE);
 
   // 出典・draft はモデルの出力に関わらず固定する
   parsed.data.sources = [{ title: c.title, url: c.url }];
   parsed.data.draft = !publish;
-  parsed.data.date = today;
+  parsed.data.type = "news";
+  // 記事の日付は出典が公開された日に合わせる（生成日ではない）。ニュースの鮮度を実態どおりに示すため。
+  // 出典日が取れない候補と、未来日（フィードの日付が進んでいる場合）だけ生成日にフォールバックする。
+  const published = String(c.published ?? "").slice(0, 10);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(published) && published <= today ? published : today;
+  parsed.data.date = date;
   parsed.data.id = nextId;
 
-  // ファイル名は「番号-英語スラッグ」で人が探しやすく。URLは id のみ（/articles/<id>）。
-  const slug = slugify(String(parsed.data.title), today);
-  const file = path.join(ARTICLES_DIR, `${String(nextId).padStart(4, "0")}-${slug}.mdx`);
-  fs.writeFileSync(file, matter.stringify(parsed.content.trim() + "\n", parsed.data));
-  console.log(`wrote ${path.relative(process.cwd(), file)}  (in=${response.usage.input_tokens} cached=${response.usage.cache_read_input_tokens} out=${response.usage.output_tokens})`);
+  const file = writeArticle(parsed.data, parsed.content, nextId, date);
+  console.log(`wrote ${file}  (in=${response.usage.input_tokens} cached=${response.usage.cache_read_input_tokens} out=${response.usage.output_tokens})`);
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const publish = args.includes("--publish");
   const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 3);
-  const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10); // JST
+  const today = jstToday();
   const list = loadCandidates();
   const adopted = list.filter((c) => c.status === "採用").sort((a, b) => b.score - a.score).slice(0, limit);
   if (adopted.length === 0) {
     console.log("「採用」の候補がありません（npm run pick を先に実行するか、content/candidates.csv の status を 採用 にしてください）");
     return;
   }
-  fs.mkdirSync(ARTICLES_DIR, { recursive: true });
   const client = new Anthropic();
 
   let nextId = currentMaxId() + 1;

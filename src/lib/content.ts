@@ -17,6 +17,14 @@ function parseImpact(v: unknown): Impact | undefined {
   return v === "high" || v === "mid" || v === "low" ? v : undefined;
 }
 
+// 記事の型。news=その日の変更を伝えるフロー記事、howto=検索意図に答え続けるストック記事。
+// AI検索に引用されるのは手順・定義を持つ howto 側なので、一覧では howto を先に見せる。
+export type ArticleType = "news" | "howto";
+export const TYPE_LABEL: Record<ArticleType, string> = { news: "ニュース", howto: "解説" };
+function parseType(v: unknown): ArticleType {
+  return v === "howto" ? "howto" : "news";
+}
+
 export type ArticleMeta = {
   /** 記事番号。URLは /articles/<id>。frontmatter の id で固定し、ファイル名を変えてもURLは変わらない */
   id: number;
@@ -29,6 +37,8 @@ export type ArticleMeta = {
   /** 更新日 YYYY-MM-DD（未指定なら date） */
   updated: string;
   category: CategoryKey;
+  /** 記事の型。news=フロー / howto=ストック */
+  type: ArticleType;
   tags: string[];
   /** 一次情報。GEO対策として記事末尾と JSON-LD の citation に出す */
   sources: Source[];
@@ -71,6 +81,7 @@ function parseFile(file: string): Article | null {
     date: data.date,
     updated: typeof data.updated === "string" ? data.updated : data.date,
     category,
+    type: parseType(data.type),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
     sources: Array.isArray(data.sources)
       ? data.sources.filter((s) => s && typeof s.url === "string").map((s) => ({ title: String(s.title ?? s.url), url: String(s.url) }))
@@ -108,6 +119,10 @@ export function getArticlesByCategory(category: CategoryKey): Article[] {
   return getAllArticles().filter((a) => a.category === category);
 }
 
+export function getArticlesByType(type: ArticleType, category?: CategoryKey): Article[] {
+  return getAllArticles().filter((a) => a.type === type && (!category || a.category === category));
+}
+
 export function getArticlesByTag(tag: string): Article[] {
   return getAllArticles().filter((a) => a.tags.includes(tag));
 }
@@ -140,7 +155,10 @@ export function getRelatedArticles(article: Article, limit = 4): Article[] {
     .filter((a) => a.slug !== article.slug)
     .map((a) => ({
       a,
-      score: (a.category === article.category ? 2 : 0) + a.tags.filter((t) => article.tags.includes(t)).length,
+      score:
+        (a.category === article.category ? 2 : 0) +
+        (a.type === article.type ? 1 : 0) +
+        a.tags.filter((t) => article.tags.includes(t)).length,
     }))
     .filter((x) => x.score > 0)
     .sort((x, y) => y.score - x.score || (x.a.date < y.a.date ? 1 : -1))
