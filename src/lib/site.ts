@@ -26,11 +26,24 @@ export const ORGANIZATION_SAME_AS = [X_PROFILE_URL].filter(Boolean);
 // フォローintent。プロフィールへの素のリンクよりワンタップ少なくフォローできる。
 export const X_FOLLOW_URL = X_SCREEN_NAME ? `https://x.com/intent/follow?screen_name=${X_SCREEN_NAME}` : "";
 
-// Organization構造化データの contactPoint。運営者は実名・メールを公開しない方針のため、
-// 連絡先は公式XのみをE-E-A-T（連絡可能性）のシグナルとして宣言する。Xが未設定なら出さない。
-export const ORGANIZATION_CONTACT_POINT = X_PROFILE_URL
-  ? { "@type": "ContactPoint", contactType: "customer support", url: X_PROFILE_URL, availableLanguage: ["ja"] }
-  : undefined;
+// 問い合わせ窓口。運営者は実名・個人用メールを公開しない方針だが、連絡手段がまったく無いサイトは
+// AdSense審査（サイトの信頼性）でも検索評価（E-E-A-T）でも不利になる。
+// サイト専用のメールアドレスか、フォーム（Googleフォーム等）のURLのどちらかをenvで入れる。
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "";
+export const CONTACT_FORM_URL = process.env.NEXT_PUBLIC_CONTACT_FORM_URL || "";
+// どれか1つでもあれば /contact を公開する（すべて未設定なら noindex かつ導線も出さない）。
+export const HAS_CONTACT = Boolean(CONTACT_EMAIL || CONTACT_FORM_URL || X_PROFILE_URL);
+
+// Organization構造化データの contactPoint。メール > フォーム > X の順で1つだけ宣言する。
+export const ORGANIZATION_CONTACT_POINT = CONTACT_EMAIL
+  ? { "@type": "ContactPoint", contactType: "customer support", email: CONTACT_EMAIL, availableLanguage: ["ja"] }
+  : CONTACT_FORM_URL || X_PROFILE_URL
+    ? { "@type": "ContactPoint", contactType: "customer support", url: CONTACT_FORM_URL || X_PROFILE_URL, availableLanguage: ["ja"] }
+    : undefined;
+
+// ポリシー類の最終改定日。プライバシーポリシー・免責事項の表示とsitemapのlastmodに使う。
+export const POLICY_UPDATED = "2026-08-29";
+export const POLICY_UPDATED_LABEL = POLICY_UPDATED.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
 
 // 記事カテゴリ。URL(/category/<key>)・記事frontmatterの category と一致させる。
 export const CATEGORIES = {

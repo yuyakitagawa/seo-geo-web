@@ -20,7 +20,8 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/category/{seo,geo,news}` | カテゴリ別一覧 |
 | `/tag/[tag]` | タグ別一覧 |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
-| `/about` `/privacy` `/disclaimer` | 運営者情報（E-E-A-T）/ プライバシー / 免責（AdSense審査に必要） |
+| `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
+| `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / `NEXT_PUBLIC_X_SCREEN_NAME` が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
 | `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（`src/lib/icon.tsx` で描画） |
 
@@ -114,7 +115,16 @@ npm run dev
 - アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
 - E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、
   収集元の媒体一覧（`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文でも一人称の経験談は書かない。
-  連絡窓口は公式Xのみ（`NEXT_PUBLIC_X_SCREEN_NAME` 設定時に Organization contactPoint / sameAs、記事末尾のフォローCTA、aboutの連絡先が有効化）
+  連絡窓口は匿名のまま用意する（メール or フォーム or 公式X。Organization contactPoint はメール > フォーム > X の順で1つ宣言）
+
+## AdSense審査で見られる点（実装済み）
+- 固定ページ: `/about`（運営者・記事の作り方・編集方針・FAQ）/ `/privacy` / `/disclaimer` / `/contact`。全ページのフッターから到達できる
+- プライバシーポリシーに **AdSenseが要求する開示**（第三者配信事業者によるCookie使用、パーソナライズ広告の無効化リンク、
+  GAオプトアウトアドオン、EU/英国の同意、13歳未満）を記載。文言を削るとポリシー違反になる
+- 免責事項に著作権・引用の方針と権利者からの連絡窓口
+- 広告には必ず「広告」ラベル（`src/components/AdUnit.tsx`）。記事と誤認させる置き方をしない
+- `ADSENSE_CLIENT` 設定時のみ、`<meta name="google-adsense-account">`（所有権確認）と `/ads.txt` を出力
+- **審査前にユーザー側で必要な作業**: 連絡先env（`NEXT_PUBLIC_CONTACT_EMAIL` など）の設定、AdSense管理画面でのEU同意メッセージ（Privacy & messaging）の有効化
 - 記事冒頭に「## 結論」を置き、その1文目をタイトルへの直答の断定文にする執筆ルール（AI検索のパッセージ抽出向け）。
   FAQの回答は質問文を読まなくても意味が通る形にする。
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
@@ -123,4 +133,4 @@ npm run dev
 - 記事内検索、英語版
 - タグURLのASCII化（現状 `/tag/店舗集客`）。308リダイレクトと衝突管理が必要なので、タグが定着してから判断する
 - 週次/月次のまとめページ。記事本数が増えて一覧が長くなってから
-- 業務委託・問い合わせ導線はPVが伸びてから（現段階では設計に含めない）
+- 業務委託の導線はPVが伸びてから（現段階では設計に含めない。`/contact` は問い合わせ受付のみで受注導線は置かない）

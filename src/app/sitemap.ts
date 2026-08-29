@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllArticles, getArticlesByCategory, getArticlesByTag, getIndexableTags, latestUpdated } from "@/lib/content";
-import { CATEGORY_KEYS, SITE_URL } from "@/lib/site";
+import { CATEGORY_KEYS, HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const articles = getAllArticles();
@@ -18,7 +18,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     })),
     { url: `${SITE_URL}/tools`, lastModified: latest, changeFrequency: "weekly", priority: 0.8 },
-    ...["about", "privacy", "disclaimer"].map((p) => ({ url: `${SITE_URL}/${p}`, changeFrequency: "monthly" as const, priority: 0.3 })),
+    // 固定ページ。/contact は窓口（env）が未設定のときビルドで404になるので載せない。
+    ...["about", "privacy", "disclaimer", ...(HAS_CONTACT ? ["contact"] : [])].map((p) => ({
+      url: `${SITE_URL}/${p}`,
+      lastModified: POLICY_UPDATED,
+      changeFrequency: "monthly" as const,
+      priority: 0.3,
+    })),
     ...articles.map((a) => ({ url: `${SITE_URL}/articles/${a.slug}`, lastModified: a.updated, changeFrequency: "weekly" as const, priority: 0.6 })),
     // 記事1本だけの薄いタグページは載せない（noindexと同じしきい値。src/lib/content.ts）。
     ...getIndexableTags().map(({ tag }) => ({

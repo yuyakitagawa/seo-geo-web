@@ -21,6 +21,7 @@ export function GET() {
     `- [記事一覧](${SITE_URL}/articles): 全${articles.length}本を新しい順に`,
     `- [AI検索（GEO）ツール比較](${SITE_URL}/tools): 可視性計測ツールとサイト診断ツールの一覧（国内外・料金・対象AI）`,
     `- [免責事項](${SITE_URL}/disclaimer)`,
+    `- [プライバシーポリシー](${SITE_URL}/privacy)`,
     "",
     "## カテゴリ",
     ...Object.entries(CATEGORIES).map(([k, c]) => `- [${c.label}](${SITE_URL}/category/${k}): ${c.description}`),
