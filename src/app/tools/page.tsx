@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
+import { APP_TOOLS } from "@/lib/apps";
 import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -95,6 +97,32 @@ export default function ToolsPage() {
             </a>
           ))}
         </nav>
+
+        {/* 自作ツール。外部ツールの比較表より先に置く */}
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight">{SITE_NAME}の無料ツール</h2>
+          <p className="mb-4 mt-1 text-sm text-mute">登録不要で使えます。判定の根拠は各ページに公式ドキュメントのリンクを添えています。</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {APP_TOOLS.map((t) => (
+              <Link
+                key={t.path}
+                href={t.path}
+                className="group rounded-3xl border border-ink/10 p-7 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
+              >
+                <span className="mb-4 inline-block rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-ink">無料ツール</span>
+                <p className="text-xl font-bold leading-snug tracking-tight">
+                  {t.name} <span className="inline-block transition group-hover:translate-x-1">→</span>
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-mute">{t.lead}</p>
+                <ul className="mt-4 space-y-1 text-xs text-mute">
+                  {t.points.map((p) => (
+                    <li key={p}>・{p}</li>
+                  ))}
+                </ul>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">

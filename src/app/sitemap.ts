@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllArticles, getArticlesByCategory, getArticlesByTag, getIndexableTags, latestUpdated } from "@/lib/content";
+import { APP_TOOLS } from "@/lib/apps";
 import { GUIDE_LIST } from "@/lib/guides";
 import { CATEGORY_KEYS, HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
@@ -19,6 +20,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     })),
     { url: `${SITE_URL}/tools`, lastModified: latest, changeFrequency: "weekly", priority: 0.8 },
+    // 自作ツール。継続的に使われる固定ページなので更新頻度は低く、優先度は高くする。
+    ...APP_TOOLS.map((t) => ({
+      url: `${SITE_URL}${t.path}`,
+      lastModified: t.updated,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
     // 解説ページ（/seo, /geo）。定義クエリの受け皿でトップページの次に重要なので priority を高くする。
     ...GUIDE_LIST.map((g) => ({
       url: `${SITE_URL}${g.path}`,
