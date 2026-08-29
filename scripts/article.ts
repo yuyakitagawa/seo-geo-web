@@ -61,41 +61,81 @@ export function extractMdx(response: Anthropic.Message) {
   return parsed;
 }
 
+function parseMdx(text: string) {
+  const parsed = matter(text.replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
+  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
+  return parsed;
+}
+
 /**
- * 2段階生成: 執筆（web_fetch可）→ 編集長レビューで改稿。
- * sonnetの粗さ（薄い要約・抽象的な手順）を2回目で潰す。sonnet2回でもopus1回より安い。
- * 戻り値は最終稿のMDX（frontmatterパース済み）と、合計トークン使用量。
+ * 2段階生成: 執筆（web_fetch可）→ 検査に落ちたときだけ編集長レビューで改稿。
+ * 草稿が check を通ればそのまま採用して2回目を呼ばない（コスト削減。体感6〜7割は1回で済む）。
+ * effort は medium（思考トークンを抑える。出力課金の主要因）。
+ * 戻り値の parsed は check を通過済み。usage は合計トークン使用量。
  */
 export async function generateWithReview(
   client: Anthropic,
-  { system, userPrompt, reviewPrompt, tools }: { system: string; userPrompt: string; reviewPrompt: string; tools?: Anthropic.Messages.ToolUnion[] }
+  {
+    system,
+    userPrompt,
+    reviewPrompt,
+    tools,
+    check,
+  }: {
+    system: string;
+    userPrompt: string;
+    reviewPrompt: string;
+    tools?: Anthropic.Messages.ToolUnion[];
+    /** 記事の型検査。落ちたら throw（その内容をレビュー指示に添えて改稿させる） */
+    check: (parsed: ReturnType<typeof parseMdx>) => void;
+  }
 ) {
   const systemBlocks: Anthropic.Messages.TextBlockParam[] = [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
   const draft = await client.messages
-    .stream({ model: MODEL, max_tokens: 20000, system: systemBlocks, tools, messages: [{ role: "user", content: userPrompt }] })
-    .finalMessage();
-  const draftText = extractText(draft);
-
-  const final = await client.messages
     .stream({
       model: MODEL,
       max_tokens: 20000,
+      output_config: { effort: "medium" },
       system: systemBlocks,
-      messages: [
-        { role: "user", content: userPrompt },
-        { role: "assistant", content: draftText },
-        { role: "user", content: reviewPrompt },
-      ],
+      tools,
+      messages: [{ role: "user", content: userPrompt }],
     })
     .finalMessage();
-  const parsed = matter(extractText(final).replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
-  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
+  const draftText = extractText(draft);
   const usage = {
-    input: (draft.usage.input_tokens ?? 0) + (final.usage.input_tokens ?? 0),
-    cached: (draft.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_read_input_tokens ?? 0),
-    output: (draft.usage.output_tokens ?? 0) + (final.usage.output_tokens ?? 0),
+    input: draft.usage.input_tokens ?? 0,
+    cached: draft.usage.cache_read_input_tokens ?? 0,
+    output: draft.usage.output_tokens ?? 0,
+    reviewed: false,
   };
-  return { parsed, usage };
+
+  try {
+    const parsed = parseMdx(draftText);
+    check(parsed);
+    return { parsed, usage };
+  } catch (e) {
+    // 草稿が型を満たさない場合だけレビューを回す。検査エラーを指示に添えて確実に直させる。
+    const final = await client.messages
+      .stream({
+        model: MODEL,
+        max_tokens: 20000,
+        output_config: { effort: "medium" },
+        system: systemBlocks,
+        messages: [
+          { role: "user", content: userPrompt },
+          { role: "assistant", content: draftText },
+          { role: "user", content: `${reviewPrompt}\n\n# 機械検査で検出された問題（必ず直す）\n${(e as Error).message}` },
+        ],
+      })
+      .finalMessage();
+    const parsed = parseMdx(extractText(final));
+    check(parsed);
+    usage.input += final.usage.input_tokens ?? 0;
+    usage.cached += final.usage.cache_read_input_tokens ?? 0;
+    usage.output += final.usage.output_tokens ?? 0;
+    usage.reviewed = true;
+    return { parsed, usage };
+  }
 }
 
 // 自動公開ではこの検査が唯一の関門になる。記事の型を満たさない出力は捨てる。

@@ -53,15 +53,15 @@ const orbit: Draw = (rand, color) => {
           r={r1(step * (i + 1))}
           fill="none"
           stroke={i === hot ? ACCENT : color}
-          strokeWidth={i === hot ? 3 : 1.5}
-          opacity={i === hot ? 0.9 : r1(0.5 - i * 0.04)}
+          strokeWidth={i === hot ? 7 : 3}
+          opacity={i === hot ? 1 : r1(0.7 - i * 0.05)}
         />
       ))}
-      <circle cx={cx} cy={cy} r={12} fill={ACCENT} />
+      <circle cx={cx} cy={cy} r={22} fill={ACCENT} />
       {Array.from({ length: 3 }, (_, i) => {
         const a = rand() * Math.PI * 2;
         const d = step * (1 + Math.floor(rand() * rings));
-        return <circle key={i} cx={r1(cx + Math.cos(a) * d)} cy={r1(cy + Math.sin(a) * d)} r={7} fill={color} />;
+        return <circle key={i} cx={r1(cx + Math.cos(a) * d)} cy={r1(cy + Math.sin(a) * d)} r={16} fill={color} />;
       })}
     </>
   );
@@ -85,7 +85,7 @@ const bars: Draw = (rand, color) => {
             height={h}
             rx={r1(gap * 0.3)}
             fill={i === hot ? ACCENT : color}
-            opacity={i === hot ? 0.95 : r1(0.25 + rand() * 0.4)}
+            opacity={i === hot ? 1 : r1(0.4 + rand() * 0.5)}
           />
         );
       })}
@@ -109,10 +109,10 @@ const nodes: Draw = (rand, color) => {
   return (
     <>
       {edges.map(([a, b], i) => (
-        <line key={i} x1={pts[a].x} y1={pts[a].y} x2={pts[b].x} y2={pts[b].y} stroke={color} strokeWidth={1.5} opacity={0.45} />
+        <line key={i} x1={pts[a].x} y1={pts[a].y} x2={pts[b].x} y2={pts[b].y} stroke={color} strokeWidth={3} opacity={0.6} />
       ))}
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={i === hot ? 18 : r1(6 + rand() * 8)} fill={i === hot ? ACCENT : color} opacity={i === hot ? 1 : 0.8} />
+        <circle key={i} cx={p.x} cy={p.y} r={i === hot ? 30 : r1(10 + rand() * 14)} fill={i === hot ? ACCENT : color} opacity={i === hot ? 1 : 0.8} />
       ))}
     </>
   );
@@ -133,7 +133,7 @@ const waves: Draw = (rand, color) => {
           const x = (W / 24) * k;
           return `${k === 0 ? "M" : "L"}${r1(x)} ${r1(y + Math.sin(phase + k * 0.5) * amp)}`;
         }).join(" ");
-        return <path key={i} d={d} fill="none" stroke={i === hot ? ACCENT : color} strokeWidth={i === hot ? 4 : 2} opacity={i === hot ? 0.9 : r1(0.55 - i * 0.06)} strokeLinecap="round" />;
+        return <path key={i} d={d} fill="none" stroke={i === hot ? ACCENT : color} strokeWidth={i === hot ? 10 : 5} opacity={i === hot ? 1 : r1(0.75 - i * 0.08)} strokeLinecap="round" />;
       })}
     </>
   );
@@ -162,7 +162,7 @@ const mosaic: Draw = (rand, color) => {
             height={r1(ch * 0.76)}
             rx={14}
             fill={accent ? ACCENT : color}
-            opacity={accent ? 0.95 : r1(0.15 + (v - 0.45) * 0.9)}
+            opacity={accent ? 1 : r1(0.25 + (v - 0.45) * 1.2)}
           />
         );
       })}
@@ -181,18 +181,30 @@ export default function KeyVisual({ slug, category, className = "" }: { slug: st
   const rand = makeRandom(seed);
   const draw = VARIANTS[seed % VARIANTS.length];
   const color = CATEGORY_HEX[category];
-  const angle = Math.floor(rand() * 4) * 45 + 100;
+  // グラデーションの向き。gradientTransform の回転は基準点が図形の左上でズレるため座標で指定する。
+  const dir = [
+    { x1: "0%", y1: "0%", x2: "100%", y2: "100%" },
+    { x1: "100%", y1: "0%", x2: "0%", y2: "100%" },
+    { x1: "0%", y1: "100%", x2: "100%", y2: "0%" },
+    { x1: "0%", y1: "0%", x2: "100%", y2: "0%" },
+  ][Math.floor(rand() * 4)];
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden className={`absolute inset-0 size-full ${className}`}>
       <defs>
-        <linearGradient id={`kv-bg-${seed}`} gradientTransform={`rotate(${angle})`}>
+        <linearGradient id={`kv-bg-${seed}`} {...dir}>
           <stop offset="0%" stopColor="#0a0a0a" />
-          <stop offset="100%" stopColor={color} stopOpacity={0.55} />
+          <stop offset="45%" stopColor="#0a0a0a" />
+          <stop offset="100%" stopColor={color} stopOpacity={0.85} />
         </linearGradient>
+        <radialGradient id={`kv-glow-${seed}`}>
+          <stop offset="0%" stopColor={color} stopOpacity={0.5} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </radialGradient>
       </defs>
       <rect width={W} height={H} fill={`url(#kv-bg-${seed})`} />
-      <g opacity={0.9}>{draw(rand, color)}</g>
+      <ellipse cx={r1(W * (0.2 + rand() * 0.6))} cy={r1(H * rand())} rx={W * 0.45} ry={H * 0.6} fill={`url(#kv-glow-${seed})`} />
+      {draw(rand, color)}
     </svg>
   );
 }

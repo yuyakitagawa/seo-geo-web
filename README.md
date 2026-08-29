@@ -9,7 +9,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: Vercel Analytics / Speed Insights / GA4（`NEXT_PUBLIC_GA_ID` 設定時）
 - 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
-- 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5` の2段階生成: 執筆→編集長レビュー改稿。web_fetchで元記事を読む。品質不足なら `claude-opus-5` へ）
+- 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5`・effort medium。草稿が検査に落ちたときだけ編集長レビューで改稿。品質不足なら `claude-opus-5` へ）
 
 ## ページ構成
 | パス | 内容 |
@@ -81,8 +81,11 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - `globals.css` の `@theme` にトークン集約。ダークモード対応
 
 ## 画像（写真素材を持たずにビジュアルを作る）
-- **キービジュアルは持たない**。記事カード・記事ページ・一覧ヘッダーはタイポグラフィと
-  カテゴリ色だけで組む。装飾画像は使わない。
+- **キービジュアルはコードで生成する**（`src/components/KeyVisual.tsx`）。写真素材は持たない。
+  記事ID（slug）をシードにした擬似乱数で図柄を決めるので、同じ記事は常に同じ絵になり、
+  毎朝の自動生成パイプラインでも人手が要らない。図柄は5種（同心円 / 縦棒 / ノード /
+  波 / タイル）、配色はカテゴリ色＋アクセント。インラインSVGなので追加リクエストは発生しない。
+  使い所は記事ページのヘッダー背景（`articles/[slug]/page.tsx`）と一覧カードの上部帯（`ArticleCard.tsx`）。
 - **OGP画像**: `src/app/opengraph-image.tsx`（サイト）と `src/app/articles/[slug]/opengraph-image.tsx`（記事ごと）で
   実PNGを生成（`next/og`）。背景は黒地＋カテゴリ色のグラデーション。和文は Google Fonts から
   **その画像で使う文字だけ**を切り出して読む（`src/lib/og.tsx` の `loadOgFont`。ImageResponseの500KB制限対策）。

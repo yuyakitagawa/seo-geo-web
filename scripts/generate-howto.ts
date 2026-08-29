@@ -85,9 +85,11 @@ ${t.sources.map((u) => `  - ${u}`).join("\n")}
     userPrompt,
     reviewPrompt: REVIEW_PROMPT,
     tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: t.sources.length + 2 }],
+    check: (p) => {
+      validate(p.data, p.content, HOWTO_SHAPE);
+      checkSources(p.data, t.sources);
+    },
   });
-  validate(parsed.data, parsed.content, HOWTO_SHAPE);
-  checkSources(parsed.data, t.sources);
 
   // 型・カテゴリ・日付・draft はモデルの出力に関わらず固定する
   parsed.data.type = "howto";
@@ -97,7 +99,7 @@ ${t.sources.map((u) => `  - ${u}`).join("\n")}
   parsed.data.id = nextId;
 
   const file = writeArticle(parsed.data, parsed.content, nextId, today);
-  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output})`);
+  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output} reviewed=${usage.reviewed})`);
 }
 
 async function main() {

@@ -74,8 +74,8 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
     userPrompt,
     reviewPrompt: REVIEW_PROMPT,
     tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }],
+    check: (p) => validate(p.data, p.content, NEWS_SHAPE),
   });
-  validate(parsed.data, parsed.content, NEWS_SHAPE);
 
   // 出典・draft はモデルの出力に関わらず固定する
   parsed.data.sources = [{ title: c.title, url: c.url }];
@@ -89,7 +89,7 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
   parsed.data.id = nextId;
 
   const file = writeArticle(parsed.data, parsed.content, nextId, date);
-  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output})`);
+  console.log(`wrote ${file}  (in=${usage.input} cached=${usage.cached} out=${usage.output} reviewed=${usage.reviewed})`);
 }
 
 async function main() {
