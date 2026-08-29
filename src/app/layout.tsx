@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import AdSenseScript from "@/components/AdSenseScript";
+import { ADSENSE_CLIENT } from "@/lib/adsense";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
@@ -33,6 +34,8 @@ export const metadata: Metadata = {
   },
   openGraph: { type: "website", locale: "ja_JP", url: SITE_URL, siteName: SITE_NAME, title: SITE_NAME, description: SITE_DESCRIPTION },
   twitter: { card: "summary_large_image", site: X_HANDLE, creator: X_HANDLE, title: SITE_NAME, description: SITE_DESCRIPTION },
+  // AdSenseのサイト所有権確認用メタタグ。パブリッシャーID未設定なら出さない。
+  ...(ADSENSE_CLIENT ? { other: { "google-adsense-account": ADSENSE_CLIENT } } : {}),
 };
 
 const organizationJsonLd = {

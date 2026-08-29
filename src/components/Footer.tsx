@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_DESCRIPTION, SITE_NAME, X_PROFILE_URL } from "@/lib/site";
+import { HAS_CONTACT, SITE_DESCRIPTION, SITE_NAME, X_PROFILE_URL } from "@/lib/site";
 
 export default function Footer() {
   return (
@@ -18,6 +18,7 @@ export default function Footer() {
               <li><Link href="/seo" className="hover:text-accent">SEO対策とは</Link></li>
               <li><Link href="/geo" className="hover:text-accent">GEOとは</Link></li>
               <li><Link href="/about" className="hover:text-accent">運営者情報</Link></li>
+              {HAS_CONTACT && <li><Link href="/contact" className="hover:text-accent">お問い合わせ</Link></li>}
               <li><Link href="/privacy" className="hover:text-accent">プライバシーポリシー</Link></li>
               <li><Link href="/disclaimer" className="hover:text-accent">免責事項</Link></li>
               <li><a href="/feed.xml" className="hover:text-accent">RSS</a></li>
