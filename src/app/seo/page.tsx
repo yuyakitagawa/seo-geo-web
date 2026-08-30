@@ -118,10 +118,6 @@ export default function SeoGuidePage() {
               </>
             }
           />
-          <p>
-            なお、SEOで扱う「検索エンジン」はGoogleだけではありません。ただし日本国内の実務では、Yahoo! JAPANの検索結果もGoogleの技術を利用しているため、
-            まずGoogleの公開している基準に合わせるのが基本になります。
-          </p>
           <ScreenSerp />
         </GuideSection>
 
