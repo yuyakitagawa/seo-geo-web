@@ -32,7 +32,13 @@ export const FIGURE_RULES = `# 図解（必ず3〜4個入れる）
 
 <FigureFlow title="..." steps={[{ label: "...", desc: "（任意）" }]} />
 
-<FigureStats title="..." stats={[{ value: "40%", label: "何の数字か", note: "（任意）" }]} />`;
+<FigureStats title="..." stats={[{ value: "40%", label: "何の数字か", note: "（任意）" }]} />
+
+<FigureBars title="..." unit="%" caption="（任意）" bars={[{ label: "何の値か", value: 40, note: "（任意）" }]} />
+
+<FigureQuote text="（公式発表の一文。原文が英語ならそのまま）" source="（発表元・日付・発言者）" />
+
+属性名は上のとおりに書く（別名にすると何も表示されない）。`;
 
 // 「薄い要約」を防ぐ内容の厚みの要件。AdSense審査・E-E-A-Tの観点で、要約に独自価値を足す。
 export const DEPTH_RULES = `# 内容の厚み（すべて満たす）
@@ -77,5 +83,9 @@ export function styleRules({ chars, faq }: { chars: string; faq: string }) {
 - 文字数は${chars}。末尾に「## よくある質問」を${faq}（### に質問文、直下に回答）。
 - **FAQの回答は、質問文を読まなくても意味が通る1〜3文にする**（AI検索は回答だけを抜き出す）。
   「はい」「できません」だけで終わらせず、何がどうなのかを回答文の中で言い切る。
-- 本文中に出典URLを再掲しない。`;
+- 本文中に出典URLを再掲しない。
+- **英語のまま書かない**。出典が英語でも、用語・機能名・レポート名は日本語にする
+  （例: classic Search→通常の検索結果、site owner→サイト運営者、Performance report→検索パフォーマンスレポート）。
+  日本語の定訳が無い固有名詞（AI Overviews、Search Console など）はそのままでよい。
+  原文の引用は FigureQuote の中だけに置き、図の直後の段落で日本語の意味を書く。`;
 }

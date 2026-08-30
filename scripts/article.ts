@@ -138,6 +138,32 @@ export async function generateWithReview(
   }
 }
 
+// 図解コンポーネントの必須プロパティ。属性名が違うと型エラーにならないまま中身が空で描画されるため、
+// 生成物の段階で落とす（src/components/figures.tsx のシグネチャと対応）。
+const FIGURE_PROPS: Record<string, string[]> = {
+  FigureCompare: ["title", "cols"],
+  FigureDoDont: ["title", "dos"],
+  FigureFlow: ["title", "steps"],
+  FigureStats: ["title", "stats"],
+  FigureBars: ["title", "bars"],
+  FigureQuote: ["text"],
+};
+
+function figureErrors(content: string): string[] {
+  const errors: string[] = [];
+  for (const m of content.matchAll(/<Figure([A-Za-z]+)([\s\S]*?)\/>/g)) {
+    const name = `Figure${m[1]}`;
+    const required = FIGURE_PROPS[name];
+    if (!required) {
+      errors.push(`未定義の図解:${name}`);
+      continue;
+    }
+    const missing = required.filter((p) => !new RegExp(`(^|\\s)${p}=`).test(m[2]));
+    if (missing.length) errors.push(`${name}の属性欠落:${missing.join("/")}`);
+  }
+  return errors;
+}
+
 // 自動公開ではこの検査が唯一の関門になる。記事の型を満たさない出力は捨てる。
 // headings / minChars / minFaq は記事の型ごとに変える。
 export function validate(
@@ -154,6 +180,7 @@ export function validate(
   if (content.length < minChars) errors.push(`本文${content.length}字`);
   for (const h of headings) if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
   if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
+  errors.push(...figureErrors(content));
   // FAQは FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）。
   const faqSection = content.slice(content.indexOf("## よくある質問"));
   if ((faqSection.match(/^### /gm) ?? []).length < minFaq) errors.push(`FAQが${minFaq}問未満`);

@@ -1,6 +1,4 @@
 status,category,title,intent,sources,articleId,note
-採用,geo,GEOとは何か。SEOとの違いとAI検索に引用されるページの条件,GEO（生成AI検索最適化）が何を指すのか、SEOと何が違うのかを知りたい,https://developers.google.com/search/docs/appearance/ai-features|https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search,,GEOカテゴリの入口記事
-採用,seo,SEOの始め方。Googleが公式に求めている最初の5項目,SEOを何から始めればいいか分からない担当者が、公式ドキュメントに沿った着手順を知りたい,https://developers.google.com/search/docs/fundamentals/seo-starter-guide|https://developers.google.com/search/docs/fundamentals/get-started,,SEOカテゴリの入口記事
 候補,geo,AI検索クローラーの許可・拒否の設定（GPTBot / PerplexityBot / Google-Extended）,AIに学習・引用させるかどうかを、robots.txt でどう指定するか知りたい,https://platform.openai.com/docs/bots|https://docs.perplexity.ai/guides/bots|https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,,
 候補,geo,AI Overview に引用される記事構成。直答・FAQ・出典の書き方,AI検索の回答内に自社ページを引用させるための、記事の書き方を知りたい,https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search|https://developers.google.com/search/docs/appearance/ai-features,,
 候補,geo,llms.txt は必要か。仕様と現時点で分かっている効果,llms.txt を置くべきか、置くと何が変わるのかを知りたい,https://llmstxt.org/|https://developers.google.com/search/docs/appearance/ai-features,,効果の裏取りが取れなければ却下でよい
@@ -9,3 +7,5 @@ status,category,title,intent,sources,articleId,note
 候補,seo,構造化データ（Article / FAQPage）の入れ方とリッチリザルトの条件,構造化データを何のためにどう入れるか、どこまでやれば表示されるかを知りたい,https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data|https://developers.google.com/search/docs/appearance/structured-data/article|https://developers.google.com/search/docs/appearance/structured-data/faqpage,,
 候補,seo,検索結果のタイトルとスニペットを意図どおりに出す設定,title を書いたのに検索結果で別の文言に変えられる理由と対処を知りたい,https://developers.google.com/search/docs/appearance/snippet|https://developers.google.com/search/docs/appearance/site-names,,
 候補,seo,Core Web Vitals は実務でどこまで直すべきか,表示速度の指標をどこまで改善すれば十分か、費用対効果の線引きを知りたい,https://web.dev/articles/vitals,,
+公開,geo,GEOとは何か。SEOとの違いとAI検索に引用されるページの条件,GEO（生成AI検索最適化）が何を指すのか、SEOと何が違うのかを知りたい,https://developers.google.com/search/docs/appearance/ai-features|https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search,26,GEOカテゴリの入口記事
+公開,seo,SEOの始め方。Googleが公式に求めている最初の5項目,SEOを何から始めればいいか分からない担当者が、公式ドキュメントに沿った着手順を知りたい,https://developers.google.com/search/docs/fundamentals/seo-starter-guide|https://developers.google.com/search/docs/fundamentals/get-started,27,SEOカテゴリの入口記事
