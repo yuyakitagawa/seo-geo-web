@@ -76,6 +76,10 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 ## 記事の型（他媒体との差別化）
 - frontmatter の `type` で **news（フロー）/ howto（ストック）** を区別する。カテゴリページは howto を上、news を下に分けて出す
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
+- その下に **目次**（`src/components/Toc.tsx`）。本文の `##` だけを並べる（`###` は「よくある質問」配下の
+  質問文が中心で、1記事に3〜10個あり目次が本文と同じ長さになるため）。見出しが3個未満の記事には出さない。
+  idは `src/lib/toc.ts` が MDX から作り、本文に rehype-slug が振るidと同じものを再現する
+  （目次に出さない見出しもsluggerに通して採番をそろえる。ずらすとリンクが外れる）
 - 本文に「## 影響を受けるページ・クエリ」（自社のどのページ・クエリが動くかを特定。検索側のKPI推測は書かない）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける10種:
@@ -125,11 +129,27 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   毎朝の自動生成パイプラインでも人手が要らない。図柄は5種（同心円 / 縦棒 / ノード /
   波 / タイル）、配色はカテゴリ色＋アクセント。インラインSVGなので追加リクエストは発生しない。
   使い所は記事ページのヘッダー背景（`articles/[slug]/page.tsx`）と一覧カードの上部帯（`ArticleCard.tsx`）。
-- **OGP画像**: `src/app/opengraph-image.tsx`（サイト）と `src/app/articles/[slug]/opengraph-image.tsx`（記事ごと）で
-  実PNGを生成（`next/og`）。背景は黒地＋カテゴリ色のグラデーション。和文は Google Fonts から
-  **その画像で使う文字だけ**を切り出して読む（`src/lib/og.tsx` の `loadOgFont`。ImageResponseの500KB制限対策）。
+- **OGP画像**: 実PNGを `next/og` で生成する。枠は全ページ共通で `src/lib/og.tsx` の `ogFrame`、
+  背景は黒地＋カテゴリ色のグラデーション。和文は Google Fonts から
+  **その画像で使う文字だけ**を切り出して読む（`loadOgFont`。ImageResponseの500KB制限対策）。
   フォント取得に失敗しても画像自体は出る（和文が欠けるだけ）。ビルド時にネットワークが必要。
-- **記事内の図解**: 上記の `figures.tsx`（6種）。本文中のビジュアルはこれだけ。
+  置き場所は `opengraph-image.tsx` をセグメントごとに置く方式で、**下位のページには自動で引き継がれる**
+  （`/tools` の画像が `/tools/page-audit` にも出る）。記事以外は `pageOgImage()` に文言を渡すだけ:
+
+  | ファイル | 対象 | 見出し |
+  |---|---|---|
+  | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
+  | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
+  | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEOとは」 |
+  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**10レッスン全部** | 「SEO・GEO教科書」 |
+  | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
+  | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
+  | `src/app/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
+
+  **注意**: ページ側の `metadata` に `openGraph` を自分で書くと、上位セグメントの画像は引き継がれず
+  og:image が消える。レッスン10ページがこれに当たるので、`lessonMetadata()`（`src/lib/curriculum.ts`）で
+  `openGraph.images` を明示している。`openGraph` を書き足すときは画像も一緒に指定する。
+- **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
 
 ## 記事 frontmatter
 ```yaml
@@ -137,7 +157,7 @@ id: 12                    # 必須。URLになる連番。生成スクリプト�
 title: "..."
 description: "..."        # 90〜120字
 date: "2026-08-23"
-updated: "2026-08-23"     # 任意
+updated: "2026-08-23"     # 任意。date と違うときだけ「更新 …」を表示し、JSON-LD の dateModified と og:article:modified_time に入る
 category: "seo"           # seo | geo | news
 type: "news"              # news（既定・省略可） | howto
 tags: ["SEO", "AI Overview"]

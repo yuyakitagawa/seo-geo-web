@@ -4,8 +4,7 @@ import { FigureDoDont, FigureStack, FigureStats } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { CASES, casesByArea } from "@/lib/cases";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("case-studies");
 
@@ -15,19 +14,7 @@ const REF = {
   essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "rule", label: "この一覧に載せる条件" },

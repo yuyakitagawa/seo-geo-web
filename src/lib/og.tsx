@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { ImageResponse } from "next/og";
 import { CATEGORIES, SITE_NAME, type CategoryKey } from "./site";
 
 // OGP画像（SNSシェア時に出る実PNG）の共通部品。next/og の ImageResponse から使う。
@@ -95,4 +96,22 @@ export function ogFrame({
       </div>
     </div>
   );
+}
+
+/**
+ * 記事以外のページ（解説・教科書・一覧・固定ページ）のOGP画像ハンドラを作る。
+ * 記事と同じ `ogFrame` を通すので、どのURLを共有しても見え方がそろう。
+ * 各ページの opengraph-image.tsx は、この戻り値を default export するだけでよい。
+ */
+export function pageOgImage(props: { category: CategoryKey; title: string; footer: string; label?: string }) {
+  return async function Image() {
+    const { category, title, footer, label } = props;
+    const fonts = await loadOgFont(title + footer + (label ?? CATEGORIES[category].label) + SITE_NAME);
+    return new ImageResponse(ogFrame({ category, title, footer, label }), { ...OG_SIZE, fonts });
+  };
+}
+
+/** metaTitle（"GEOとは｜生成AI検索最適化の定義・…"）の「｜」以降をOGPの脚注に使う。 */
+export function subtitleOf(metaTitle: string): string {
+  return metaTitle.split("｜")[1] ?? "";
 }

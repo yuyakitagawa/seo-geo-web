@@ -11,12 +11,14 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import KeyVisual from "@/components/KeyVisual";
 import KeyPoints from "@/components/KeyPoints";
+import Toc from "@/components/Toc";
 import FollowCta from "@/components/FollowCta";
 import CategoryBadge from "@/components/CategoryBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
+import { extractToc } from "@/lib/toc";
 import { CATEGORIES, SITE_URL, categoryHref } from "@/lib/site";
 
 export const dynamicParams = false;
@@ -105,6 +107,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
 
       <div className="mx-auto max-w-4xl px-5">
         <KeyPoints article={article} />
+        <Toc items={extractToc(article.body)} />
 
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">
           <MDXRemote

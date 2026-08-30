@@ -12,11 +12,12 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - **記事の事実は一次情報で裏取り**: frontmatter `sources` に必ず出典URL。元記事に無い数値・固有名詞を書かない。
 
 ## 1. File Map
-- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/category/type/tags/impact/audience/actions/sources/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`draft: true` は本番ビルドから除外。
+- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/updated（任意。あるときだけ「更新」表示とdateModified）/category/type/tags/impact/audience/actions/sources/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`draft: true` は本番ビルドから除外。
 - `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
 - `content/howto-topics.csv`: HOW TO記事のテーマ表（status/category/title/intent/sources/articleId/note）。人が「採用」を付け、generate-howto が記事化する。出典URLはここに書いたものだけ使える。
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。カテゴリのリンク先は `categoryHref()` だけを通す（`/category/*` は廃止し `/seo` `/geo` `/news` に統合。旧URLは `next.config.ts` で308）。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
+- `src/lib/toc.ts`: 記事の目次（MDXから見出しを拾い、rehype-slug と同じidを再現する）。`src/lib/og.tsx`: OGP画像の共通枠（`ogFrame` / `pageOgImage`）。`opengraph-image.tsx` はセグメントごとに置き、下位ページへ引き継がれる。ただし `openGraph` を自前で書くページには引き継がれないので `images` を明示する。
 - `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
 - `src/app/api/audit/route.ts`: ページ診断のAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査）を外さない。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/ai-crawlers`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。

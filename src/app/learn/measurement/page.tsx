@@ -4,8 +4,7 @@ import { FigureDoDont, FigureFlow, FigurePipeline, FigureTimeline } from "@/comp
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { ScreenIndexReport, ScreenSearchPerformance, ScreenUrlInspection } from "@/components/screens";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata } from "@/lib/curriculum";
 
 const lesson = requireLesson("measurement");
 
@@ -18,19 +17,7 @@ const REF = {
   essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "order", label: "見る順番：表示回数が先" },

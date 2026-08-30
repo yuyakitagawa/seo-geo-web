@@ -4,8 +4,7 @@ import { FigureBars, FigureCompare, FigurePipeline, FigureQuote } from "@/compon
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { ScreenSerp } from "@/components/screens";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("starter-guide");
 
@@ -17,19 +16,7 @@ const REF = {
   geoPaper: { href: "https://arxiv.org/abs/2311.09735", label: "GEO: Generative Engine Optimization" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "pipeline", label: "回答に載るまでの5段階" },

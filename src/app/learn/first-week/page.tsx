@@ -5,8 +5,7 @@ import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { ScreenIndexReport, ScreenUrlInspection } from "@/components/screens";
 import { getCases } from "@/lib/cases";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("first-week");
 
@@ -20,19 +19,7 @@ const REF = {
   essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "week", label: "7日間の作業" },

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
 import { SITE_NAME, SITE_URL } from "./site";
 
@@ -692,5 +693,34 @@ export function lessonJsonLd(lesson: Lesson) {
     author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization`, name: SITE_NAME },
     citation: lesson.sources.map((s) => s.url),
+  };
+}
+
+// OGP画像のピクセルサイズ。`src/lib/og.tsx` の OG_SIZE と同じ値だが、
+// あちらは next/og（ImageResponse）を持ち込むのでページ側からは参照しない。
+const OG_PIXELS = { width: 1200, height: 630 };
+
+/**
+ * レッスンページの metadata。10ページで完全に同じ形なので1か所に置く。
+ *
+ * `openGraph` を自前で持つページには、上位セグメントの `opengraph-image.tsx` が
+ * **自動では引き継がれない**（`/tools/page-audit` のように openGraph を書いていない
+ * ページは引き継がれる）。明示しないとレッスン10ページだけ og:image が消えるので、
+ * `/learn` の画像を images に入れる。
+ */
+export function lessonMetadata(lesson: Lesson): Metadata {
+  return {
+    title: lesson.metaTitle,
+    description: lesson.description,
+    alternates: { canonical: lessonPath(lesson.slug) },
+    openGraph: {
+      type: "article",
+      title: lesson.metaTitle,
+      description: lesson.description,
+      url: `${SITE_URL}${lessonPath(lesson.slug)}`,
+      publishedTime: lesson.published,
+      modifiedTime: lesson.updated,
+      images: [{ url: `${SITE_URL}${COURSE.path}/opengraph-image`, ...OG_PIXELS, alt: COURSE.h1 }],
+    },
   };
 }

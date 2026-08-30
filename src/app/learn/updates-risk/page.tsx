@@ -3,8 +3,7 @@ import Link from "next/link";
 import { FigureDoDont, FigureFlow, FigureQuote } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("updates-risk");
 
@@ -20,19 +19,7 @@ const REF = {
   aiContent: { href: "https://developers.google.com/search/blog/2023/02/google-search-and-ai-content?hl=ja", label: "AI 生成コンテンツに対する方針" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "core", label: "コアアップデートとは何か" },

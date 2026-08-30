@@ -4,8 +4,7 @@ import { FigureCompare, FigureDoDont, FigurePipeline } from "@/components/figure
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { CRAWLERS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("geo-implementation");
 
@@ -18,19 +17,7 @@ const REF = {
   geoPaper: { href: "https://arxiv.org/abs/2311.09735", label: "GEO: Generative Engine Optimization" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "routes", label: "2つの経路と必要な設定" },

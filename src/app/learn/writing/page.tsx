@@ -4,8 +4,7 @@ import { FigureBars, FigureCompare, FigureDoDont, FigureFlow, FigureQuote } from
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
-import { requireLesson, lessonPath } from "@/lib/curriculum";
-import { SITE_URL } from "@/lib/site";
+import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("writing");
 
@@ -18,19 +17,7 @@ const REF = {
   snippet: { href: "https://developers.google.com/search/docs/appearance/snippet?hl=ja", label: "スニペットを管理する" },
 } as const;
 
-export const metadata: Metadata = {
-  title: lesson.metaTitle,
-  description: lesson.description,
-  alternates: { canonical: lessonPath(lesson.slug) },
-  openGraph: {
-    type: "article",
-    title: lesson.metaTitle,
-    description: lesson.description,
-    url: `${SITE_URL}${lessonPath(lesson.slug)}`,
-    publishedTime: lesson.published,
-    modifiedTime: lesson.updated,
-  },
-};
+export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "shape", label: "段落の型：見出し→直答→根拠→詳細" },
