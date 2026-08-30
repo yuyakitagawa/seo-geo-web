@@ -150,6 +150,11 @@ const GEO: Guide = {
         "指している実務の中身はほぼ同じで、呼び名の違いです。AIO（AI Optimization）とLLMO（Large Language Model Optimization）は主に日本で使われる語、AEO（Answer Engine Optimization）は回答エンジン向けの最適化を指す語で、いずれも生成AIの回答で引用されることを目標にします。当サイトでは用語をGEOに統一して表記します。",
     },
     {
+      question: "パッセージとチャンクは違うものですか",
+      answer:
+        "どちらも「ページ全体ではなく本文中の一部分」を指しますが、語が出てきた立場が違います。パッセージは検索エンジン側の語です。Googleはランキング システムに関するガイドで、ページ内の個々のセクション（パッセージ）を識別して、そのページが検索とどれだけ関連するかを判断するAIシステムとして「パッセージ ランキング」を挙げています。チャンクは生成AI側の実装の語で、文書を参照しやすいように機械的に切り分けた断片を指します。書き手が操作できるのはどちらも同じで、1つの見出しに1つの問い、単体で意味が通る長さ、という本文の作り方です。当サイトでは本文の説明を「パッセージ」に統一し、AI側の処理を指すときだけ「チャンク」と書きます。",
+    },
+    {
       question: "AI検索に載るために特別な最適化やマークアップは必要ですか",
       answer:
         "Googleは公式ドキュメントで、AIによる概要やAIモードにコンテンツが表示されるための追加要件はなく、別途特別な最適化を行う必要もないと明記しています。同じドキュメントでは、新たにコンピュータが解読可能なファイルやAIテキストファイル、特別なschema.orgの構造化データを作る必要もないと説明されています。必要なのは、ページがインデックスに登録され、検索でスニペットが表示され、検索の技術的要件を満たしていることです。",
@@ -189,6 +194,7 @@ const GEO: Guide = {
     { title: "PerplexityBot", publisher: "Perplexity", url: "https://docs.perplexity.ai/guides/bots" },
     { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
     { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか", url: "https://arxiv.org/abs/2311.09735" },
+    { title: "Google 検索のランキング システムに関するガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/ranking-systems-guide?hl=ja" },
     { title: "The /llms.txt file", publisher: "llmstxt.org", url: "https://llmstxt.org/" },
     { title: "Google 検索の基本事項", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/essentials?hl=ja" },
   ],

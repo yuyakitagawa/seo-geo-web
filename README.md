@@ -199,6 +199,10 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   定義文・要点・FAQ・出典・更新日を `src/lib/guides.ts` の1か所に持ち、**可視テキスト・JSON-LD（DefinedTerm / FAQPage）・llms.txt が同じ文字列を使う**。
   記事（フロー）と違い日付で古くならないストックページなので、sitemap の priority はトップの次に高い 0.9。
   事実は各社の公式ドキュメント（Google 検索セントラル / OpenAI / Perplexity / Anthropic / arXiv / web.dev）で裏取りし、citation に入れている。
+- **用語の表記ルール（パッセージ / チャンク）**: 本文中の一部分を指す読者向けの語は「パッセージ」に統一する。
+  説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
+  「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
+  語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
 - **教科書 `/learn`**: 「SEO対策とは」「GEOとは」の次に読む、順番の決まった10レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。
