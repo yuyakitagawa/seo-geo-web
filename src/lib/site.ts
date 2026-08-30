@@ -45,7 +45,7 @@ export const ORGANIZATION_CONTACT_POINT = CONTACT_EMAIL
 export const POLICY_UPDATED = "2026-08-29";
 export const POLICY_UPDATED_LABEL = POLICY_UPDATED.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
 
-// 記事カテゴリ。URL(/category/<key>)・記事frontmatterの category と一致させる。
+// 記事カテゴリ。記事frontmatterの category と一致させる。
 export const CATEGORIES = {
   seo: { label: "SEO", description: "Google/Bing検索のアルゴリズム更新、テクニカルSEO、コンテンツSEOの実務" },
   geo: { label: "GEO", description: "生成AI検索最適化。Google AI Overview / AI Mode、ChatGPT、Perplexity、Geminiで引用されるための実務" },
@@ -55,6 +55,13 @@ export type CategoryKey = keyof typeof CATEGORIES;
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
 export function isCategoryKey(v: string): v is CategoryKey {
   return v in CATEGORIES;
+}
+
+// カテゴリのURL。/category/<key> は廃止し、SEO・GEOは解説ページ、ニュースは記事アーカイブに統合した。
+// 旧URLからのリダイレクトは next.config.ts に置く。リンクを書く場所は必ずこの関数を通す。
+export const CATEGORY_PATH: Record<CategoryKey, string> = { seo: "/seo", geo: "/geo", news: "/news" };
+export function categoryHref(key: CategoryKey): string {
+  return CATEGORY_PATH[key];
 }
 
 export const ARTICLES_PER_PAGE = 12;

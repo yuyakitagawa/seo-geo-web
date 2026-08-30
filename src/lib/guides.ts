@@ -10,7 +10,7 @@ export type GuideKey = "seo" | "geo";
 
 export type Guide = {
   key: GuideKey;
-  /** ページのパス。カテゴリ一覧（/category/seo）とは別ページ */
+  /** ページのパス。解説とそのカテゴリの記事一覧を兼ねる（旧 /category/seo はここへ308） */
   path: string;
   h1: string;
   metaTitle: string;

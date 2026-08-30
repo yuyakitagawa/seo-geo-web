@@ -14,12 +14,11 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 ## ページ構成
 | パス | 内容 |
 |---|---|
-| `/` | 新着記事・カテゴリ・タグ |
-| `/articles` | 全記事一覧 |
+| `/` | 新着記事・解説ページ・タグ |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
-| `/category/{seo,geo,news}` | カテゴリ別一覧 |
+| `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
-| `/seo` `/geo` | 用語の解説ページ（「SEO対策とは」「GEOとは」）。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
+| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEOとは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/ai-crawlers` | 自作ツール: robots.txt を貼ってAI検索/AI学習クローラー14種の許可状況を判定（`src/lib/robots.ts` + `src/lib/crawlers.ts`） |
@@ -76,6 +75,14 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   `FigureQuote`（一次情報の引用パネル）。
   実画像でなくコード描画なので、生成パイプラインが出力でき、テキストが残るためAI・検索エンジンにも読める。
   props はJS式で渡すため記事ページの `MDXRemote` は `blockJS: false`（記事はリポジトリ内の信頼済みコンテンツ）
+
+## サイト構成
+ナビは **SEO / GEO / ニュース / ツール** の4本。入口をこの4つに絞り、同じ記事群を持つ一覧を2種類作らない。
+- `/seo` `/geo` = 解説（ストック）＋そのカテゴリの記事一覧。一覧は「◯◯対策の解説」（`type: howto`）を上、「◯◯の最新記事」（`type: news`）を下に置く（`src/components/CategoryArticles.tsx`）。
+- `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとの全記事リスト。
+- **旧URLは308でリダイレクト**（`next.config.ts`）: `/category/seo`→`/seo`、`/category/geo`→`/geo`、`/category/news`→`/news`、`/articles`→`/news`。
+  記事詳細 `/articles/<id>` は変えない（完全一致のみリダイレクト）。
+- カテゴリのリンク先は `categoryHref()`（`src/lib/site.ts`）だけを通す。URLを変えるときはここ1か所を直す。
 
 ## 自作ツール（/tools 配下）
 外部ツールの比較表とは別に、サイト自身が提供する無料ツールを置く。一覧の定義は `src/lib/apps.ts`（/tools のカードと sitemap が同じ定義を見る）。

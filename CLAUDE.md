@@ -16,10 +16,10 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
 - `content/howto-topics.csv`: HOW TO記事のテーマ表（status/category/title/intent/sources/articleId/note）。人が「採用」を付け、generate-howto が記事化する。出典URLはここに書いたものだけ使える。
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
-- `src/lib/site.ts`: サイト名・URL・カテゴリ定義。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
+- `src/lib/site.ts`: サイト名・URL・カテゴリ定義。カテゴリのリンク先は `categoryHref()` だけを通す（`/category/*` は廃止し `/seo` `/geo` `/news` に統合。旧URLは `next.config.ts` で308）。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
 - `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
 - `src/app/api/audit/route.ts`: ページ診断のAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査）を外さない。
-- `src/app/`: ルート。`articles/[slug]`, `category/[category]`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/ai-crawlers`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
+- `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/ai-crawlers`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
 - `scripts/sources.ts`: 収集元RSS一覧。`scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/topic.ts`: 同一話題の判定（collect/pick 共通）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
 - `.github/workflows/daily-articles.yml`: 毎朝7時JSTに collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。
 
