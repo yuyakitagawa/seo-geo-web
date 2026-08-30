@@ -1,6 +1,7 @@
 // URLを1本取得して、SEO/GEOの観点で直すべき箇所を洗い出す検査。
 // 取得（fetch）は src/app/api/audit/route.ts が担当し、ここは受け取ったHTMLを判定するだけの純関数にする。
-// 指摘は「該当コード（実物）＋修正方針＋修正後のコード」の3点セットで返す。根拠がある項目には公式ドキュメントを添える。
+// 指摘は「該当コード（実物）＋修正方針＋入れる場所＋修正後のコード」で返す。根拠がある項目には公式ドキュメントを添える。
+// 「無い」ものの指摘は該当コードが取れないので、実物のheadや見出しを並べて追加位置に印を入れる（headSpot）。
 import { parse, type HTMLElement } from "node-html-parser";
 import { CRAWLERS } from "./crawlers";
 import { check, parseRobots } from "./robots";
@@ -25,6 +26,8 @@ export type Finding = {
   fix?: string;
   /** 修正後のコード例 */
   fixCode?: string;
+  /** どこに入れるか。実物の周辺コードに印をつけて返す */
+  where?: { note: string; code?: string };
   source?: { title: string; url: string };
 };
 
@@ -73,6 +76,25 @@ const SRC = {
 function snippet(s: string, max = 300): string {
   const one = s.replace(/\s+/g, " ").trim();
   return one.length > max ? one.slice(0, max) + " …" : one;
+}
+
+/** head の実物を並べ、追加する位置に印を入れる */
+function headSpot(head: HTMLElement | null | undefined, marker: string): string | undefined {
+  if (!head) return undefined;
+  const tags = head.childNodes
+    .filter((n): n is HTMLElement => typeof (n as HTMLElement).tagName === "string")
+    .map((el) => snippet(`<${el.tagName.toLowerCase()}${el.rawAttrs ? " " + el.rawAttrs : ""}>`, 90));
+  const shown = tags.slice(0, 5);
+  const rest = tags.length - shown.length;
+  return [
+    "<head>",
+    ...shown.map((t) => "  " + t),
+    rest > 0 ? `  …（他 ${rest} 行）` : null,
+    `  ${marker}`,
+    "</head>",
+  ]
+    .filter((l): l is string => l !== null)
+    .join("\n");
 }
 
 function textOf(root: HTMLElement): string {
@@ -156,6 +178,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "スマートフォンで拡大縮小前提の表示になり、モバイルでの評価と回遊に影響します。",
       fix: "head に viewport を1行足します。",
       fixCode: '<meta name="viewport" content="width=device-width, initial-scale=1">',
+      where: { note: "head の中。<meta charset> の直後が定番です。", code: headSpot(head, "<!-- ここに viewport を追加 -->") },
     });
   }
 
@@ -170,6 +193,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "パラメータ付きURLや末尾スラッシュ違いが別ページとして扱われ、評価が分散します。",
       fix: "自分自身の正規URLを絶対URLで指定します。",
       fixCode: `<link rel="canonical" href="${input.finalUrl}">`,
+      where: { note: "head の中。title の近くにまとめると管理しやすくなります。", code: headSpot(head, "<!-- ここに canonical を追加 -->") },
       source: SRC.starter,
     });
   } else if (!/^https?:\/\//i.test(canonicalHref)) {
@@ -209,6 +233,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "検索結果の見出しになる最重要要素です。無い場合はGoogleが本文から生成します。",
       fix: "ページ固有の語を前半に入れた title を書きます。",
       fixCode: "<title>（ページ固有の語） | （サイト名）</title>",
+      where: { note: "head の中。<meta charset> の直後に置きます。", code: headSpot(head, "<!-- ここに title を追加 -->") },
       source: SRC.title,
     });
   } else if (title.length > 60 || title.length < 10) {
@@ -235,6 +260,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "スニペットが本文から自動生成され、意図した要約が出せません。",
       fix: "90〜120字で、そのページだけの内容を書きます。",
       fixCode: '<meta name="description" content="（90〜120字の要約）">',
+      where: { note: "head の中、title の直後。", code: headSpot(head, "<!-- ここに description を追加 -->") },
       source: SRC.title,
     });
   } else if (desc.length > 160) {
@@ -249,6 +275,8 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  const firstHeadingEl = body.querySelector("h2, h3, h4, h5, h6");
+  const firstHeadingSpot = firstHeadingEl ? `<!-- ここに h1 を追加 -->\n${snippet(firstHeadingEl.outerHTML, 140)}` : undefined;
   const h1s = body.querySelectorAll("h1");
   if (h1s.length === 0) {
     add({
@@ -259,6 +287,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "ページの主題を示す見出しが無いと、検索エンジンもAIも何のページか判断しにくくなります。",
       fix: "ページの主題を1つだけ h1 に置きます。",
       fixCode: "<h1>（このページの主題）</h1>",
+      where: { note: "本文の一番上。既存の見出しより前に置きます。", code: firstHeadingSpot },
       source: SRC.starter,
     });
   } else if (h1s.length > 1) {
@@ -320,6 +349,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "SNSやチャットに貼られたときのカードが作られず、クリック率が落ちます。",
       code: [ogTitle ? null : "og:title なし", ogImage ? null : "og:image なし"].filter(Boolean).join(" / "),
       fix: "og:title / og:description / og:image を head に足します。",
+      where: { note: "head の中、既存の meta と並べて置きます。", code: headSpot(head, "<!-- ここに OGP を追加 -->") },
       fixCode: `<meta property="og:title" content="（ページタイトル）">\n<meta property="og:image" content="https://.../ogp.png">`,
     });
   }
@@ -349,6 +379,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "ページの種類・著者・日付が機械可読になりません。リッチリザルトの対象にもなりません。",
       fix: "記事ページなら Article、一覧なら ItemList、全ページに BreadcrumbList を入れます。",
       fixCode: `<script type="application/ld+json">\n{"@context":"https://schema.org","@type":"Article","headline":"...","datePublished":"2026-08-30"}\n</script>`,
+      where: { note: "head の中（body の末尾でも読まれます）。", code: headSpot(head, "<!-- ここに JSON-LD を追加 -->") },
       source: SRC.structured,
     });
   } else if (ldError) {
@@ -411,6 +442,7 @@ export function audit(input: AuditInput): AuditResult {
       title: "冒頭に段落がありません",
       detail: "AI検索と強調スニペットは、質問にそのまま答える短い一段落を抜き出します。抜き出す対象がない状態です。",
       fix: "見出しの直後に、ページの問いへの答えを1〜3文で置きます。",
+      where: { note: "h1 の直後、最初の h2 より前。" },
       source: SRC.ai,
     });
   } else if (firstSentence.length > 120) {
@@ -437,6 +469,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "AI検索は質問文に対応する短い回答を探します。見出しを質問文にした節があると、そのまま引用の単位になります。",
       fix: "「よくある質問」の見出しを作り、質問文の見出しの直下に、単体で意味が通る2〜3文の回答を書きます。",
       fixCode: "## よくある質問\n### （質問文）\n（質問を読まなくても意味が通る回答）",
+      where: { note: "本文の末尾。まとめの前後に節として置きます。" },
       source: SRC.faq,
     });
   } else if (hasFaqHeading && !hasFaqJsonLd) {
@@ -481,6 +514,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "AI検索は情報の新しさを判断材料にします。日付が読めないページは古い情報として扱われる可能性があります。",
       fix: "本文に日付を表示し、time要素か構造化データで宣言します。",
       fixCode: '<time datetime="2026-08-30">2026年8月30日</time>',
+      where: { note: "h1 の直下（本文の日付表示）。JSON-LD の datePublished でも構いません。" },
       source: SRC.article,
     });
   }
@@ -495,6 +529,7 @@ export function audit(input: AuditInput): AuditResult {
       detail: "無くてもクロールはされますが、サイトマップの場所を伝える置き場が無くなります。",
       fix: "ルートに robots.txt を置き、Sitemap 行を書きます。",
       fixCode: "User-agent: *\nDisallow:\n\nSitemap: https://" + host + "/sitemap.xml",
+      where: { note: `ドメイン直下に置きます: https://${host}/robots.txt` },
       source: SRC.robots,
     });
   } else {
@@ -534,6 +569,7 @@ export function audit(input: AuditInput): AuditResult {
         detail: "サイトマップの場所を検索エンジンに伝える標準の方法です。",
         fix: "robots.txt の末尾に Sitemap 行を足します。",
         fixCode: `Sitemap: https://${host}/sitemap.xml`,
+        where: { note: `https://${host}/robots.txt の末尾（User-agent ブロックの後）。` },
         source: SRC.robots,
       });
     }
@@ -547,6 +583,7 @@ export function audit(input: AuditInput): AuditResult {
       title: "/llms.txt がありません",
       detail: "LLM向けにサイトの構成を案内する提案仕様です。検索順位への効果は確認されていないため、優先度は低い項目です。",
       fix: "サイトの主要ページと方針をMarkdownで書いた /llms.txt を置きます。効果を検証しながら進めます。",
+      where: { note: `ドメイン直下に置きます: https://${host}/llms.txt` },
       source: SRC.llms,
     });
   }
