@@ -172,6 +172,7 @@ export default function LearnPage() {
             { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: lessonPath("starter-guide"), label: "レッスン01を始める", note: "検索と生成AIがページを回答に載せるまでの経路から。" },
             { href: "/tools", label: "SEO・GEOツール", note: "ページ診断・AIクローラー確認など、教科書と一緒に使うツール。" },
+            { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
           ]}
         />
       </div>

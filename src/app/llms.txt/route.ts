@@ -1,5 +1,6 @@
 import { getAllArticles } from "@/lib/content";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
+import { GLOSSARY, GLOSSARY_PATH } from "@/lib/glossary";
 import { GUIDE_LIST } from "@/lib/guides";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
@@ -21,6 +22,11 @@ export function GET() {
     "## 用語の定義",
     // 「SEO対策とは」「GEOとは」への直答をそのまま置く（可視ページと同じ文字列）。
     ...GUIDE_LIST.map((g) => `- [${g.h1}](${SITE_URL}${g.path}): ${g.definition}（最終更新 ${g.updated}）`),
+    "",
+    "## 用語集",
+    // 1語1文の定義をそのまま平文で置く。AIが用語の意味を引くときに、ページを取りに行かずに済む。
+    `- [SEO・GEO用語集](${SITE_URL}${GLOSSARY_PATH}): 実務で出てくる${GLOSSARY.length}語を、1語につき1文の定義と一次情報のリンク付きで収録。`,
+    ...GLOSSARY.map((t) => `  - ${t.term}（${t.aliases.join(" / ")}）: ${t.definition} 出典: ${t.source.url}`),
     "",
     "## 教科書（順番のある学習コンテンツ）",
     // 目次と各レッスンの到達目標。順序があることが伝わるよう番号つきで並べる。

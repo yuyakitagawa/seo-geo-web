@@ -19,6 +19,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEOとは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
+| `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
 | `/learn` | SEO・GEO教科書の目次。3レベル10レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
@@ -209,6 +210,12 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。
   出典は Google 検索セントラルの成功事例・web.dev のケーススタディ・arXiv の GEO 論文のみ。
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
+- **用語集 `/glossary`**: 「◯◯とは」は検索でもAI検索でも最も多い形の質問で、AI検索は**質問に直答する短い定義文**を抜き出す。
+  `/seo` `/geo` が主要語2つを深く説明するページ、`/glossary` はその周辺語を1語ずつ短く定義するページ。
+  定義は**その1文だけ読んで意味が通る**こと（前の項目や見出しに依存しない）。出典は用語ごとに1つだけ持つ
+  （複数並べると、どの記述がどの文書由来か分からなくなる）。**新しい用語を足すときは、このサイトが既に
+  一次情報として確認済みのURL**（`guides.ts` / `curriculum.ts` / `crawlers.ts` と同じもの）から選ぶ。
+  可視テキストと DefinedTerm の `description`、llms.txt が同じ文字列を使う。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
 - **インデックス判定は `src/lib/indexability.ts` に集約する**。ページ側（robots メタ）・sitemap 側・内部リンク側で

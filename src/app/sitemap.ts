@@ -3,6 +3,7 @@ import { getArticlesByCategory, getArticlesByTag, latestUpdated } from "@/lib/co
 import { indexableArticles, indexableTags } from "@/lib/indexability";
 import { APP_TOOLS } from "@/lib/apps";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
+import { GLOSSARY_PATH, GLOSSARY_UPDATED } from "@/lib/glossary";
 import { GUIDE_LIST } from "@/lib/guides";
 import { HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
@@ -24,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE_URL}${g.path}`,
       lastModified: [g.updated, latestUpdated(getArticlesByCategory(g.category)) ?? g.updated].sort().at(-1)!,
     })),
+    { url: `${SITE_URL}${GLOSSARY_PATH}`, lastModified: GLOSSARY_UPDATED },
     // 教科書（/learn）。
     { url: `${SITE_URL}${COURSE.path}`, lastModified: COURSE.updated },
     ...LESSONS.map((l) => ({ url: `${SITE_URL}${lessonPath(l.slug)}`, lastModified: l.updated })),

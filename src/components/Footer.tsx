@@ -17,6 +17,7 @@ export default function Footer() {
             <ul className="flex flex-wrap gap-5">
               <li><Link href="/seo" className="hover:text-accent">SEO対策とは</Link></li>
               <li><Link href="/geo" className="hover:text-accent">GEOとは</Link></li>
+              <li><Link href="/glossary" className="hover:text-accent">用語集</Link></li>
               <li><Link href="/learn" className="hover:text-accent">SEO・GEO教科書</Link></li>
               <li><Link href="/about" className="hover:text-accent">運営者情報</Link></li>
               {HAS_CONTACT && <li><Link href="/contact" className="hover:text-accent">お問い合わせ</Link></li>}

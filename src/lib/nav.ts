@@ -8,6 +8,7 @@ const HUB_PAGES: NavLink[] = [
   { href: "/news", label: "ニュース", note: "検索とAI検索のアップデートを新しい順に。全記事に一次情報のURL付き。" },
   { href: "/seo", label: "SEO対策とは", note: "定義・3つの領域・最初の90日でやることを一次情報のリンク付きで。" },
   { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義と、AIに引用されるための実務。" },
+  { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで。" },
   { href: "/learn", label: "SEO・GEO教科書", note: "仕組み→実装→運用の3レベル10レッスン。到達チェックリスト付き。" },
   { href: "/tools", label: "ツール比較", note: "国内・海外のSEO/GEOツールを料金と対象で比較。公式ページ確認済みのみ。" },
   { href: "/tools/page-audit", label: "ページ診断", note: "URLを入れると、検索エンジンとAI検索がそのページをどう読むかを検査。" },
