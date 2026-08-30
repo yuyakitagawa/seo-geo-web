@@ -1,4 +1,5 @@
 import { getAllArticles } from "@/lib/content";
+import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
 import { GUIDE_LIST } from "@/lib/guides";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
@@ -20,6 +21,11 @@ export function GET() {
     "## 用語の定義",
     // 「SEO対策とは」「GEOとは」への直答をそのまま置く（可視ページと同じ文字列）。
     ...GUIDE_LIST.map((g) => `- [${g.h1}](${SITE_URL}${g.path}): ${g.definition}（最終更新 ${g.updated}）`),
+    "",
+    "## 教科書（順番のある学習コンテンツ）",
+    // 目次と各レッスンの到達目標。順序があることが伝わるよう番号つきで並べる。
+    `- [${COURSE.h1}](${SITE_URL}${COURSE.path}): ${COURSE.description}`,
+    ...LESSONS.map((l) => `  ${l.order}. [${l.title}](${SITE_URL}${lessonPath(l.slug)}): ${l.goal}`),
     "",
     "## サイト情報",
     `- [運営者情報](${SITE_URL}/about): 運営方針・記事制作プロセス・収集元の一覧・よくある質問`,

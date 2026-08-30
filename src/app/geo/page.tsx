@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CategoryArticles from "@/components/CategoryArticles";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
-import { FigureCompare, FigureDoDont, FigureFlow, FigureQuote } from "@/components/figures";
+import { FigureCompare, FigureDoDont, FigureFlow, FigurePipeline, FigureQuote } from "@/components/figures";
 import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
@@ -30,6 +30,7 @@ const TOC = [
   { id: "names", label: "GEO・AIO・LLMO・AEOの違い" },
   { id: "vs-seo", label: "SEOとGEOの違い" },
   { id: "how", label: "AIの回答に引用されるまでの経路" },
+  { id: "bots", label: "Botの種類・動き・役割" },
   { id: "crawlers", label: "主要なAIクローラーとrobots.txt" },
   { id: "writing", label: "引用されやすいページの書き方" },
   { id: "measure", label: "GEOの成果の測り方" },
@@ -142,9 +143,147 @@ export default function GeoGuidePage() {
         </GuideSection>
 
         <GuideSection
+          id="bots"
+          title="Botの種類・動き・役割"
+          lead="サイトに来るBotは、役割で4種類に分かれます。検索インデックス用・AI検索インデックス用・ユーザー起点フェッチャー・モデル学習用です。サイト全体を自動で巡回するのか、ユーザーが質問した瞬間に1ページだけ取りに来るのかという動きが種類ごとに違い、robots.txtの効き方も変わります。robots.txtを書く前に、どの種類を通すかを決めます。"
+        >
+          <FigureCompare
+            title="Botの4種類と、それぞれの動き"
+            cols={[
+              {
+                label: "検索インデックス用",
+                tone: "seo",
+                sub: "自動で巡回する",
+                points: [
+                  "代表: Googlebot・Bingbot",
+                  "役割: 検索結果に載せるための索引を作る",
+                  "動き: サイト全体を繰り返し巡回。robots.txtに従う",
+                  "GoogleのAIによる概要・AIモードもこの索引を使う（専用トークンは無い）",
+                ],
+              },
+              {
+                label: "AI検索インデックス用",
+                tone: "geo",
+                sub: "自動で巡回する",
+                points: [
+                  "代表: OAI-SearchBot・PerplexityBot・Claude-SearchBot",
+                  "役割: AIの回答にサイトを表示・リンクするための索引を作る",
+                  "動き: 自動巡回。robots.txtに従い、反映に最大24時間かかる",
+                  "OpenAI・Perplexityは、これらを基盤モデルの学習には使わないと明記している",
+                ],
+              },
+              {
+                label: "ユーザー起点フェッチャー",
+                tone: "accent",
+                sub: "質問された時だけ来る",
+                points: [
+                  "代表: ChatGPT-User・Perplexity-User・Claude-User・Google-NotebookLM",
+                  "役割: ユーザーがいま読みたいページをその場で取得する",
+                  "動き: 巡回はしない。1回の操作につき必要なURLだけを取りに来る",
+                  "robots.txtが適用されない場合がある（Google・Perplexityは通常無視すると明記）",
+                ],
+              },
+              {
+                label: "モデル学習用",
+                tone: "news",
+                sub: "自動で巡回する",
+                points: [
+                  "代表: GPTBot・ClaudeBot・Google-Extended・Applebot-Extended・CCBot",
+                  "役割: 生成AIモデルの学習に使う可能性のあるデータを集める",
+                  "動き: 自動巡回。robots.txtに従う",
+                  "拒否しても、検索結果やAI検索の回答での表示には影響しない",
+                ],
+              },
+            ]}
+            caption="同じ事業者でも用途ごとにBotが分かれている。robots.txtで「AIを一括で拒否」と書くと、引用されたい経路（AI検索インデックス用）まで同時に閉じることになる。"
+          />
+          <p>
+            この分け方はGoogleの公式ドキュメントの整理に沿ったものです。Googleは自社のクローラーを「一般的なクローラー」「特殊なケース用のクローラー」
+            「ユーザー トリガー フェッチャー」の3つに分類し、一般的なクローラーは自動クロールで常にrobots.txtのルールに従うと説明しています。
+            一方でユーザー トリガー フェッチャーについては、フェッチがユーザーによってリクエストされたものであるため通常はrobots.txtのルールを無視する、と明記しています。
+            OpenAIもChatGPT-Userについてrobots.txtのルールが適用されない場合があるとし、PerplexityもPerplexity-Userは通常robots.txtを無視すると説明しています。
+            なお、Anthropicは自社のBotについて、robots.txtの業界標準のディレクティブを尊重すると説明しています。
+          </p>
+          <GuideTable
+            head={["種類", "動き（いつ・どう来るか）", "robots.txtの効き方", "拒否したときに失うもの"]}
+            rows={[
+              [
+                "検索インデックス用",
+                "サイト全体を自動で巡回し、索引を更新し続ける",
+                "従う",
+                "Google・Bingの検索結果と、GoogleのAI機能への表示",
+              ],
+              [
+                "AI検索インデックス用",
+                "自動で巡回して索引を作り、回答を作るときにそこから引用元を選ぶ",
+                "従う（反映に最大24時間）",
+                "ChatGPT・Perplexity・Claudeの回答内での表示とリンク",
+              ],
+              [
+                "ユーザー起点フェッチャー",
+                "ユーザーが質問したり、URLを渡したりした時だけ、その場で1ページを取得する。巡回はしない",
+                "適用されない場合がある",
+                "ユーザーが自分でURLを渡したときにも中身を読めない（要約・引用ができない）",
+              ],
+              [
+                "モデル学習用",
+                "サイト全体を自動で巡回し、学習用のデータを集める",
+                "従う",
+                "将来のモデルが自社の情報を持たない状態になる。検索・AI検索での表示には影響しない",
+              ],
+            ]}
+            caption="出典: Google 検索セントラル「Google クローラーとフェッチャーの概要」「ユーザー トリガー フェッチャー」、OpenAI「OpenAI Bots」、Perplexity「PerplexityBot」、Anthropic ヘルプセンター。"
+          />
+          <FigurePipeline
+            title="1つの回答が返るまでに、どのBotが動くか"
+            stages={[
+              {
+                label: "普段の巡回",
+                desc: "AI検索インデックス用のBotが自動で巡回し、索引に登録しておく。",
+                fail: "引用元の候補に入らない。",
+              },
+              {
+                label: "候補の抽出",
+                desc: "質問と周辺のサブトピックに答えている本文（パッセージ）が索引から取り出される。",
+                fail: "直答の段落が無く、他サイトの文が使われる。",
+              },
+              {
+                label: "その場の取得",
+                desc: "リンクを開いたときなどに、ユーザー起点フェッチャーが該当ページを取りに来る。",
+                fail: "WAFに弾かれ、古い索引の情報で回答される。",
+              },
+              {
+                label: "回答と引用",
+                desc: "回答文に要約が使われ、参照元としてリンクが添えられる。",
+                fail: "出典の無い回答になり、流入も認知も残らない。",
+              },
+            ]}
+            caption="学習用のBot（GPTBot・ClaudeBotなど）はこの流れには出てこない。学習用を拒否しても、この4段階は成立する。"
+          />
+          <h3>Botの名乗りは自己申告。IPレンジで確かめる</h3>
+          <p>
+            User-Agentの文字列は誰でも名乗れるため、アクセスログに「GPTBot」と出ていても本物とは限りません。主要な事業者は自社Botの
+            送信元IPレンジをJSONで公開しているので、ログのIPアドレスと突き合わせて確認します。ブロックやレート制限を設定するときも、
+            User-Agent名だけでなくIPレンジで判定するほうが確実です。
+          </p>
+          <ul>
+            <li>Google: <a href="https://developers.google.com/search/apis/ipranges/googlebot.json" target="_blank" rel="noopener">googlebot.json</a>（クローラーごとに別ファイルで公開）</li>
+            <li>OpenAI: <a href="https://openai.com/searchbot.json" target="_blank" rel="noopener">searchbot.json</a> / <a href="https://openai.com/gptbot.json" target="_blank" rel="noopener">gptbot.json</a> / <a href="https://openai.com/chatgpt-user.json" target="_blank" rel="noopener">chatgpt-user.json</a></li>
+            <li>Perplexity: <a href="https://www.perplexity.com/perplexitybot.json" target="_blank" rel="noopener">perplexitybot.json</a></li>
+            <li>Anthropic: <a href="https://claude.com/crawling/bots.json" target="_blank" rel="noopener">bots.json</a></li>
+          </ul>
+          <h3>広告・エージェント用の特殊なBot</h3>
+          <p>
+            上の4種類のほかに、特定の用途だけに動くBotがあります。OpenAIのOAI-AdsBotは、ChatGPTに広告として提出されたページの安全性を
+            確認するためのもので、提出されたページだけを訪問します。GoogleのGoogle-CloudVertexBotは、サイト所有者自身がVertex AIエージェントを
+            構築するために依頼したクロールに対応します。どちらも検索やAI検索での表示とは関係がないため、GEOの観点では優先度は下がります。
+          </p>
+        </GuideSection>
+
+        <GuideSection
           id="crawlers"
           title="主要なAIクローラーとrobots.txt"
-          lead="AI各社は、用途ごとに別々のボットを用意しています。検索表示用のボットを拒否すると回答に出なくなり、学習用のボットを拒否してもモデルの学習から外れるだけで検索表示には影響しません。robots.txtで一律にAIを拒否すると、引用されたい経路まで同時に閉じることになります。"
+          lead="前節の4種類を、robots.txtに実際に書くトークン単位で並べると次のようになります。検索表示用のボットを拒否すると回答に出なくなり、学習用のボットを拒否してもモデルの学習から外れるだけで検索表示には影響しません。robots.txtで一律にAIを拒否すると、引用されたい経路まで同時に閉じることになります。"
         >
           <GuideTable
             head={["ボット", "事業者", "用途", "robots.txtで拒否すると"]}
@@ -241,6 +380,7 @@ export default function GeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
+            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/seo", label: "SEO対策とは", note: "定義、3つの領域、Googleが公式に示す基準、最初の90日でやること。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },

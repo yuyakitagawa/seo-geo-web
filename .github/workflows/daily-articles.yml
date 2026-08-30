@@ -36,6 +36,14 @@ jobs:
           cache: npm
       - run: npm ci
 
+      # 生成（Anthropic課金）の前に置く関門。mainが壊れていたら、1円も使わずここで終える。
+      # 2026-08-28〜30の3便は、mainに src/lib/apps.ts が無いまま sitemap.ts がimportしていた
+      # （PR #7 の一部が先に入った状態）ために generate の後の検証で落ち、生成済みの記事ごと捨てて
+      # API代だけが残った。この不整合は tsc が TS2307 で検出できる種類のものなので、先に一度回す。
+      # Actions分数は public リポジトリでは無料。有限なのはAPI代だけ、という前提で順番を決めている。
+      - name: 生成前にmainの健全性を検査
+        run: npm run typecheck
+
       - name: 候補を収集
         run: npx tsx scripts/collect.ts
 
@@ -67,3 +75,28 @@ jobs:
           git commit -m "chore: 記事を自動生成して公開"
           git pull --rebase origin main
           git push origin HEAD:main
+
+      # ワークフローの赤は誰も見ていない、という前提で運用する。落ちたらスマホに届ける。
+      # 認証情報が無ければ黙ってスキップするので、未設定のうちは何も起きない。
+      # 設定するもの（Actions Secrets）: LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID
+      - name: 失敗をLINE通知
+        if: failure()
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$LINE_CHANNEL_ACCESS_TOKEN" ] || [ -z "$LINE_USER_ID" ]; then
+            echo "LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が未設定のため通知をスキップします"
+            exit 0
+          fi
+          TEXT=$(printf '%s\n' \
+            "🚨 seo-geo-web の記事自動生成が失敗しました" \
+            "その日の記事は公開されていません。" \
+            "$RUN_URL")
+          jq -n --arg to "$LINE_USER_ID" --arg text "$TEXT" \
+            '{to: $to, messages: [{type: "text", text: $text}]}' \
+            | curl -sS -X POST https://api.line.me/v2/bot/message/push \
+                -H "Authorization: Bearer $LINE_CHANNEL_ACCESS_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d @- || echo "LINE通知に失敗しました（本処理には影響しません）"

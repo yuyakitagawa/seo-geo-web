@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllArticles, getArticlesByCategory, getArticlesByTag, getIndexableTags, latestUpdated } from "@/lib/content";
 import { APP_TOOLS } from "@/lib/apps";
+import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
 import { GUIDE_LIST } from "@/lib/guides";
 import { HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
@@ -26,6 +27,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: [g.updated, latestUpdated(getArticlesByCategory(g.category)) ?? g.updated].sort().at(-1)!,
       changeFrequency: "weekly" as const,
       priority: 0.9,
+    })),
+    // 教科書（/learn）。目次は入口、各レッスンは順番のあるストックページなので優先度を高くする。
+    { url: `${SITE_URL}${COURSE.path}`, lastModified: COURSE.updated, changeFrequency: "weekly" as const, priority: 0.9 },
+    ...LESSONS.map((l) => ({
+      url: `${SITE_URL}${lessonPath(l.slug)}`,
+      lastModified: l.updated,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
     })),
     // 固定ページ。/contact は窓口（env）が未設定のときビルドで404になるので載せない。
     ...["about", "privacy", "disclaimer", ...(HAS_CONTACT ? ["contact"] : [])].map((p) => ({

@@ -25,7 +25,7 @@ const TONE_TEXT: Record<Tone, string> = {
 };
 
 // 共通の外枠。「画像」らしく本文から浮き上がる黒地カードにする。
-function Frame({ title, caption, children }: { title: string; caption?: string; children: ReactNode }) {
+export function Frame({ title, caption, children }: { title: string; caption?: ReactNode; children: ReactNode }) {
   return (
     <figure className="not-prose my-10">
       <div className="relative overflow-hidden rounded-3xl bg-ink p-6 text-paper sm:p-8 dark:border dark:border-paper/15">
@@ -42,7 +42,7 @@ function Frame({ title, caption, children }: { title: string; caption?: string; 
 }
 
 /**
- * 比較図。2〜3個の対象をカードで並べる。
+ * 比較図。2〜4個の対象をカードで並べる（3個なら横3列、それ以外は2列）。
  * <FigureCompare title="SEOとGEOの違い" cols={[{ label: "SEO", tone: "seo", points: ["...", "..."] }, ...]} />
  */
 export function FigureCompare({
@@ -51,12 +51,12 @@ export function FigureCompare({
   cols,
 }: {
   title: string;
-  caption?: string;
+  caption?: ReactNode;
   cols: { label: string; tone?: Tone; sub?: string; points: string[] }[];
 }) {
   return (
     <Frame title={title} caption={caption}>
-      <div className={`grid gap-3 ${cols.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+      <div className={`grid gap-3 ${cols.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {cols.map((c) => (
           <div key={c.label} className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur">
             <div className={`h-1.5 ${TONE_BAR[c.tone ?? "accent"]}`} />
@@ -92,7 +92,7 @@ export function FigureDoDont({
   dontLabel = "やらなくていいこと",
 }: {
   title: string;
-  caption?: string;
+  caption?: ReactNode;
   dos: string[];
   donts: string[];
   doLabel?: string;
@@ -141,7 +141,7 @@ export function FigureFlow({
   steps,
 }: {
   title: string;
-  caption?: string;
+  caption?: ReactNode;
   steps: { label: string; desc?: string }[];
 }) {
   return (
@@ -174,7 +174,7 @@ export function FigureStats({
   stats,
 }: {
   title: string;
-  caption?: string;
+  caption?: ReactNode;
   stats: { value: string; label: string; note?: string }[];
 }) {
   return (
@@ -203,7 +203,7 @@ export function FigureBars({
   bars,
 }: {
   title: string;
-  caption?: string;
+  caption?: ReactNode;
   /** 値に付ける単位。例: "%" "倍" */
   unit?: string;
   bars: { label: string; value: number; note?: string }[];
@@ -253,7 +253,7 @@ export function FigureBars({
  * 引用パネル。一次情報の一文を大きく見せて、本文の流れに視覚的な区切りを作る。
  * <FigureQuote text="..." source="Google 検索セントラル" />
  */
-export function FigureQuote({ text, source }: { text: string; source?: string }) {
+export function FigureQuote({ text, source }: { text: string; source?: ReactNode }) {
   return (
     <figure className="not-prose my-10 overflow-hidden rounded-3xl border-l-8 border-accent bg-ink p-6 text-paper sm:p-8 dark:border-y dark:border-r dark:border-y-paper/15 dark:border-r-paper/15">
       <blockquote className="text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">「{text}」</blockquote>
@@ -262,5 +262,195 @@ export function FigureQuote({ text, source }: { text: string; source?: string })
   );
 }
 
+/**
+ * 処理の流れ図。段階を横に並べ、その段で落ちたときに何が起きるかを添える。
+ * <FigurePipeline title="..." stages={[{ label: "クロール", desc: "...", fail: "..." }]} />
+ */
+export function FigurePipeline({
+  title,
+  caption,
+  stages,
+}: {
+  title: string;
+  caption?: ReactNode;
+  stages: { label: string; desc?: string; fail?: string }[];
+}) {
+  return (
+    <Frame title={title} caption={caption}>
+      <div className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(0,1fr))] sm:grid-flow-col">
+        {stages.map((st, i) => (
+          <div key={st.label} className="relative rounded-2xl bg-white/5 p-4 backdrop-blur sm:p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-paper/40">Step {i + 1}</p>
+            <p className="mt-1 text-base font-bold text-accent">{st.label}</p>
+            {st.desc && <p className="mt-2 text-sm leading-relaxed text-paper/80">{st.desc}</p>}
+            {st.fail && (
+              <p className="mt-3 border-t border-paper/15 pt-3 text-xs leading-relaxed text-news">
+                <span className="font-bold">ここで落ちると</span> {st.fail}
+              </p>
+            )}
+            {i < stages.length - 1 && (
+              <span
+                className="absolute left-1/2 top-full z-10 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-ink sm:left-full sm:top-1/2 sm:-translate-x-1/2"
+                aria-hidden
+              >
+                <span className="sm:hidden">↓</span>
+                <span className="hidden sm:inline">→</span>
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </Frame>
+  );
+}
+
+/**
+ * 積み上げ図。土台から順に積む関係を、下ほど広いブロックで見せる。
+ * layers は上（最後に積む層）から順に渡す。
+ * <FigureStack title="..." layers={[{ label: "外部評価", desc: "...", tone: "geo" }, ...]} />
+ */
+export function FigureStack({
+  title,
+  caption,
+  layers,
+  baseNote,
+}: {
+  title: string;
+  caption?: ReactNode;
+  layers: { label: string; desc?: string; note?: string; tone?: Tone }[];
+  /** 一番下に添える一行（例: 「下の層が欠けたまま上を積んでも評価は伸びない」） */
+  baseNote?: string;
+}) {
+  return (
+    <Frame title={title} caption={caption}>
+      <div className="space-y-3">
+        {layers.map((l, i) => {
+          const width = 100 - (layers.length - 1 - i) * 12;
+          return (
+            <div key={l.label} className="mx-auto overflow-hidden rounded-2xl bg-white/5 backdrop-blur" style={{ maxWidth: `${width}%` }}>
+              <div className="flex">
+                <div className={`w-1.5 shrink-0 ${TONE_BAR[l.tone ?? "accent"]}`} />
+                <div className="flex-1 p-4 sm:px-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <p className={`text-base font-bold ${TONE_TEXT[l.tone ?? "accent"]}`}>{l.label}</p>
+                    {l.note && <p className="text-xs text-paper/50">{l.note}</p>}
+                  </div>
+                  {l.desc && <p className="mt-1.5 text-sm leading-relaxed text-paper/80">{l.desc}</p>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {baseNote && (
+        <p className="mt-4 border-t border-paper/15 pt-3 text-center text-xs leading-relaxed text-paper/60">{baseNote}</p>
+      )}
+    </Frame>
+  );
+}
+
+/**
+ * しきい値の帯。良好／改善が必要／不良の3区間を、境界の数値付きで見せる。
+ * <FigureGauge title="..." items={[{ label: "LCP", good: "2.5秒", poor: "4.0秒", unitNote: "..." }]} />
+ */
+export function FigureGauge({
+  title,
+  caption,
+  items,
+  labels = ["良好", "改善が必要", "不良"],
+}: {
+  title: string;
+  caption?: ReactNode;
+  /** good = 良好の上限値、poor = 不良の下限値（表示用の文字列） */
+  items: { label: string; sub?: string; good: string; poor: string; note?: string }[];
+  labels?: [string, string, string] | string[];
+}) {
+  return (
+    <Frame title={title} caption={caption}>
+      <div className="space-y-7">
+        {items.map((it) => (
+          <div key={it.label}>
+            <div className="mb-2 flex flex-wrap items-baseline gap-x-3">
+              <p className="text-base font-bold">{it.label}</p>
+              {it.sub && <p className="text-xs text-paper/60">{it.sub}</p>}
+            </div>
+            <div className="relative">
+              <div className="flex h-3 overflow-hidden rounded-full">
+                <div className="w-1/2 bg-accent" />
+                <div className="w-1/4 bg-amber-400" />
+                <div className="w-1/4 bg-news" />
+              </div>
+              {/* 境界の目盛り。数値は境界の真下に置く */}
+              {[50, 75].map((x) => (
+                <span key={x} className="absolute -top-1 h-5 w-px bg-paper/50" style={{ left: `${x}%` }} aria-hidden />
+              ))}
+            </div>
+            <div className="relative mt-2 h-4">
+              <span className="absolute -translate-x-1/2 text-[11px] font-semibold tabular-nums text-paper/80" style={{ left: "50%" }}>
+                {it.good}
+              </span>
+              <span className="absolute -translate-x-1/2 text-[11px] font-semibold tabular-nums text-paper/80" style={{ left: "75%" }}>
+                {it.poor}
+              </span>
+            </div>
+            <div className="mt-1 flex text-[11px] font-semibold">
+              <div className="w-1/2 text-accent">{labels[0]}</div>
+              <div className="w-1/4 text-center text-amber-400">{labels[1]}</div>
+              <div className="w-1/4 text-right text-news">{labels[2]}</div>
+            </div>
+            {it.note && <p className="mt-2 text-xs leading-relaxed text-paper/60">{it.note}</p>}
+          </div>
+        ))}
+      </div>
+    </Frame>
+  );
+}
+
+/**
+ * 期間の帯（ガント）。いつ何に手を付けるかを週単位で見せる。
+ * <FigureTimeline title="..." axis={["1週","4週","8週","12週"]} rows={[{ label: "...", start: 0, span: 20 }]} />
+ * start / span は全体を100とした割合で渡す。
+ */
+export function FigureTimeline({
+  title,
+  caption,
+  axis,
+  rows,
+}: {
+  title: string;
+  caption?: ReactNode;
+  axis: string[];
+  rows: { label: string; start: number; span: number; desc?: string; tone?: Tone }[];
+}) {
+  return (
+    <Frame title={title} caption={caption}>
+      <div className="space-y-4">
+        {rows.map((r) => (
+          <div key={r.label} className="grid gap-1.5 sm:grid-cols-[minmax(0,11rem)_1fr] sm:items-center sm:gap-4">
+            <div>
+              <p className="text-sm font-bold leading-snug">{r.label}</p>
+              {r.desc && <p className="mt-0.5 text-xs leading-relaxed text-paper/60">{r.desc}</p>}
+            </div>
+            <div className="relative h-7 rounded-full bg-white/10">
+              <div
+                className={`absolute inset-y-0 rounded-full ${TONE_BAR[r.tone ?? "accent"]}`}
+                style={{ left: `${r.start}%`, width: `${r.span}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,11rem)_1fr]">
+        <div className="hidden sm:block" />
+        <div className="flex justify-between border-t border-paper/15 pt-2 text-[11px] tabular-nums text-paper/50">
+          {axis.map((a) => (
+            <span key={a}>{a}</span>
+          ))}
+        </div>
+      </div>
+    </Frame>
+  );
+}
+
 // MDXRemote の components に渡す一覧
-export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote };
+export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote, FigurePipeline, FigureStack, FigureGauge, FigureTimeline };

@@ -35,15 +35,15 @@ export type Crawler = {
 };
 
 const V = "2026-08-30";
-const OPENAI = { title: "OpenAI Bots", url: "https://platform.openai.com/docs/bots" };
+const OPENAI = { title: "OpenAI Bots", url: "https://developers.openai.com/api/docs/bots" };
 const PERPLEXITY = { title: "Perplexity Bots", url: "https://docs.perplexity.ai/guides/bots" };
 const ANTHROPIC = {
   title: "Anthropic: Does Anthropic crawl data from the web?",
-  url: "https://support.anthropic.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler",
+  url: "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler",
 };
 const GOOGLE_CRAWLERS = {
   title: "Google 検索セントラル: Google の一般的なクローラー",
-  url: "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers",
+  url: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers",
 };
 const GOOGLE_AI = { title: "Google 検索セントラル: AI 機能と Google 検索", url: "https://developers.google.com/search/docs/appearance/ai-features" };
 

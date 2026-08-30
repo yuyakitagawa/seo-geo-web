@@ -35,6 +35,15 @@ function FindingCard({ f }: { f: Finding }) {
           <p className="mt-1 leading-relaxed">{f.fix}</p>
         </div>
       )}
+      {f.where && (
+        <div className="mt-4">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-mute">入れる場所</p>
+          <p className="leading-relaxed">{f.where.note}</p>
+          {f.where.code && (
+            <pre className="mt-2 overflow-x-auto rounded-2xl bg-ink/5 p-4 font-mono text-xs leading-relaxed dark:bg-paper/10">{f.where.code}</pre>
+          )}
+        </div>
+      )}
       {f.fixCode && <Code label="修正後のコード例" value={f.fixCode} />}
       {f.source && (
         <p className="mt-4 text-xs">
