@@ -75,7 +75,27 @@ kujira-watch は `supersededArticleIds()` で「同一（銘柄×提出者）の
 
 ### 残り
 
-- C-1（AIクローラーのアクセスログ）: Supabase相乗りの可否がオーナー判断待ち。
-- C-3（運用レポート3本）: GSC / GA4 のAPI設定（サービスアカウント登録）が先。
-  `docs/progress_brushup.md` のオーナー作業A・Bが終わってから。
-- D（サイト共通 `/faq`・用語集・コピースキル）: 未着手。
+- **C-1（AIクローラーのアクセスログ）**: stock-alert のSupabaseに**相乗りする方針でオーナー承認済み**（2026-08-31）。
+  ただし着手前に容量の整理が要る。**オーナーが2026-08-31の週に移行を検討中**なので、その判断待ち。
+- **C-3（運用レポート）**: GA4は本番で稼働済み（`curl https://seo-geo-lab.com/ | grep -c googletagmanager` → 1）。
+  `gcp_key.json` と `GA4_PROPERTY_ID` は stock-alert 側にある。**残るは `GSC_SITE_URL` の設定だけ。**
+  2026-08-31の夜にオーナーへ手順を説明する。
+- **D-2（日本語コピースキル）**: 未着手。
+- **D-3（サイト共通 `/faq`）**: 保留（上記のとおり）。
+
+### C-1 に着手するときの前提（2026-08-31 実測）
+
+Supabase MCP で確認した数値。着手時に測り直さなくて済むよう残す。
+
+| | 実測値 |
+|---|---|
+| 組織 `yuyakitagawa` のプラン | free（アクティブなプロジェクトは stock-alert / garminbot の2つ＝無料枠の上限） |
+| stock-alert のDB | **530MB**（無料枠の上限は500MB）。`default_transaction_read_only` は off |
+| 上位テーブル | `yahoo_price_cache` 172MB / `gen_rankings` 162MB / `blog_crawler_log` 139MB |
+| `blog_crawler_log` | 2026-08-02〜08-30 の**28日で405,554行**＝月150MBペース。保持期間の設定なし |
+
+新規プロジェクトを作るなら Pro $25/月 が要るが、相乗りなら $0。容量を食っているのは seo-geo-web ではなく
+**保持期間の無い生ログとキャッシュ**なので、$25 を払うより保持期間（生ログ30日＋日次集計）を入れるほうが筋が良い。
+
+**相乗り先はトレーディングシステムが乗っている本番DB**なので、seo-geo-web 側のテーブルには最初から保持期間を入れること。
+kujira-watch 側の `blog_crawler_log` にも手を入れてよいかは**未承認**（別途確認する）。
