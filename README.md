@@ -38,7 +38,7 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
       ↓ npm run generate N [--publish]
                                 「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
                                 --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
-      ↓ GitHub Actions           毎朝7時JST、collect→pick→generate --publish→本番ビルド検証→main へ push
+      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→pick→generate --publish→本番ビルド検証→main へ push
                                 （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
 ```
 **話題スコア**: 検索専門の公式ソース+3（その他公式+1）、同じ話題を報じた他ソース数×2（上限+6。タイトルの語の重なりでクラスタ化）、3日以内+1、テーマ語の一致数（上限3）、ツール発表+2。
@@ -46,9 +46,16 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 すでに「公開」「採用」にした話題と語が重なるものは選ばない（別ソースが報じた同じ発表の二重記事を防ぐ）。
 **記事の日付**（`date`）は出典が公開された日に合わせる（生成日ではない）。出典日が取れない・未来日の場合だけ生成日にする。
 **重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。話題の重なり判定は `scripts/topic.ts` に共通化。
-**自動公開の関門は2つ**: `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上・FAQ2問以上）と、
-Actions上の `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）。どちらかで落ちたらpushしないので、その日は何も公開されない。
+**自動公開の関門は3つ**:
+1. **生成の前**に `npm run typecheck` を1回（`.github/workflows/daily-articles.yml`）。mainが壊れているとAPI代を使ってから捨てることになるので、その前に落とす。
+   2026-08-28〜30の3便は、mainに `src/lib/apps.ts` が無いまま `sitemap.ts` がimportしていたせいで生成後に落ち、記事ごと捨てて課金だけが残った。
+2. `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上・FAQ2問以上）
+3. **生成の後**に `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）
+
+どれかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
+**失敗はLINEに飛ぶ**（Actions Secrets に `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` を入れたときだけ。未設定なら黙ってスキップ）。
+ワークフローの赤は誰も見ていない前提で運用する。
 
 ## HOW TO記事パイプライン（ストック型）
 上のパイプラインはRSS起点なので、出てくるのはニュース（フロー）だけになる。

@@ -21,7 +21,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/app/api/audit/route.ts`: ページ診断のAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査）を外さない。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/ai-crawlers`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
 - `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/topic.ts`: 同一話題の判定（collect/pick 共通）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
-- `.github/workflows/daily-articles.yml`: 毎朝7時JSTに collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。
+- `.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。失敗時はLINE通知（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ）。
 
 ## 2. Operations
 - 開発: `npm run dev` / 型: `npm run typecheck` / ビルド: `npm run build`
