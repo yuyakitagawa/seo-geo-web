@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import { HAS_CONTACT, POLICY_UPDATED_LABEL, SITE_NAME } from "@/lib/site";
+import { HAS_CONTACT, POLICY_UPDATED, POLICY_UPDATED_LABEL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "免責事項",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default function DisclaimerPage() {
   return (
     <>
+      <PageDatesJsonLd path="/disclaimer" name="免責事項" updated={POLICY_UPDATED} />
       <PageHeader
         eyebrow="Disclaimer"
         title="免責事項"
@@ -66,7 +68,7 @@ export default function DisclaimerPage() {
           <Link href="/privacy">プライバシーポリシー</Link>をご覧ください。
         </p>
 
-        <p className="text-sm text-mute">最終改定日：{POLICY_UPDATED_LABEL}</p>
+        <p className="text-sm text-mute">最終改定日：<time dateTime={POLICY_UPDATED}>{POLICY_UPDATED_LABEL}</time></p>
       </div>
     </>
   );

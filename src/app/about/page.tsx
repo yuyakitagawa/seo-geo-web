@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
-import { HAS_CONTACT, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
+import { HAS_CONTACT, POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 
 export const metadata: Metadata = {
@@ -61,6 +62,7 @@ export default function AboutPage() {
   return (
     <>
       <JsonLd data={faqPageJsonLd(`${SITE_URL}/about`, FAQ)} />
+      <PageDatesJsonLd path="/about" name="運営者情報" updated={POLICY_UPDATED} />
       <PageHeader eyebrow="About" title="運営者情報" crumbs={[{ name: "運営者情報" }]} />
       <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
       <h2>このサイトについて</h2>

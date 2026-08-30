@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import AiCrawlerChecker from "@/components/AiCrawlerChecker";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { CRAWLERS } from "@/lib/crawlers";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
+import { APP_TOOLS } from "@/lib/apps";
+import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const PATH = "/tools/ai-crawlers";
 const url = `${SITE_URL}${PATH}`;
+const UPDATED = APP_TOOLS.find((t) => t.path === PATH)!.updated;
 const TITLE = "AI検索クローラー robots.txt チェッカー";
 const DESCRIPTION =
   "robots.txt を貼るだけで、GPTBot・OAI-SearchBot・PerplexityBot・ClaudeBot・Google-Extended など14種のAI検索/AI学習クローラーを許可しているかを判定します。ブラウザ内で完結し、入力は送信しません。無料・登録不要。";
@@ -65,6 +70,7 @@ export default function AiCrawlersToolPage() {
     <>
       <JsonLd data={softwareJsonLd} />
       <JsonLd data={faqPageJsonLd(url, FAQ)} />
+      <PageDatesJsonLd path={PATH} name={TITLE} description={DESCRIPTION} updated={UPDATED} />
       <PageHeader
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
@@ -139,6 +145,8 @@ export default function AiCrawlersToolPage() {
         <p className="text-xs text-mute">
           {SITE_NAME}は判定結果の正確性を保証しません。robots.txt の解釈はクローラーごとに異なる場合があります。
         </p>
+
+        <NextStep links={siblingPages(PATH)} />
       </div>
     </>
   );

@@ -3,10 +3,13 @@ import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import CategoryBadge from "@/components/CategoryBadge";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
+import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import TypeBadge from "@/components/TypeBadge";
 import { collectionJsonLd, collectionSummary } from "@/lib/collection";
-import { getAllArticles, type ArticleMeta } from "@/lib/content";
+import { getAllArticles, latestUpdated, type ArticleMeta } from "@/lib/content";
+import { siblingPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_URL } from "@/lib/site";
 
 const DESCRIPTION =
@@ -35,6 +38,7 @@ export default function NewsPage() {
   const latest = articles.slice(0, ARTICLES_PER_PAGE);
   const months = byMonth(articles);
   const url = `${SITE_URL}/news`;
+  const dates = articles.map((a) => a.date).sort();
 
   return (
     <>
@@ -42,7 +46,16 @@ export default function NewsPage() {
       <PageHeader eyebrow={`News · ${articles.length}本`} title="ニュース" lead={DESCRIPTION} crumbs={[{ name: "ニュース" }]} />
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12">
         {/* 「SEO・GEOの最新動向は？」のような包括クエリに直答する段落 */}
-        <p className="mb-10 max-w-3xl leading-relaxed text-mute">{collectionSummary("SEO・GEO", articles)}</p>
+        <p className="max-w-3xl leading-relaxed text-mute">{collectionSummary("SEO・GEO", articles)}</p>
+        <div className="mb-10 mt-3">
+          <PageDates
+            path="/news"
+            name="ニュース（記事アーカイブ）"
+            description={DESCRIPTION}
+            published={dates[0]}
+            updated={latestUpdated(articles) ?? dates.at(-1)!}
+          />
+        </div>
 
         <ArticleList articles={latest} featuredFirst />
 
@@ -77,6 +90,8 @@ export default function NewsPage() {
             </div>
           </section>
         )}
+
+        <NextStep links={siblingPages("/news")} className="mt-20" />
       </div>
     </>
   );

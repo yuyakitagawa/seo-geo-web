@@ -2,12 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageAudit from "@/components/PageAudit";
+import NextStep from "@/components/NextStep";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
+import { APP_TOOLS } from "@/lib/apps";
+import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const PATH = "/tools/page-audit";
 const url = `${SITE_URL}${PATH}`;
+const UPDATED = APP_TOOLS.find((t) => t.path === PATH)!.updated;
 const TITLE = "SEO/GEO ページ診断（URLを入れるだけ）";
 const DESCRIPTION =
   "URLを入力すると、title・構造化データ・見出し・robots.txt・AI検索クローラーの許可状況などを検査し、直すべき箇所を実際のコードと修正後の書き方つきで指摘します。無料・登録不要。";
@@ -76,6 +81,7 @@ export default function PageAuditToolPage() {
     <>
       <JsonLd data={softwareJsonLd} />
       <JsonLd data={faqPageJsonLd(url, FAQ)} />
+      <PageDatesJsonLd path={PATH} name={TITLE} description={DESCRIPTION} updated={UPDATED} />
       <PageHeader
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
@@ -130,6 +136,8 @@ export default function PageAuditToolPage() {
         <p className="text-xs text-mute">
           {SITE_NAME}は診断結果の正確性・完全性を保証しません。判定は公開ドキュメントに基づく一般的な指摘で、順位や引用を約束するものではありません。
         </p>
+
+        <NextStep links={siblingPages(PATH)} />
       </div>
     </>
   );

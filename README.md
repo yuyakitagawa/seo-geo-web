@@ -168,6 +168,7 @@ actions:                  # 任意、1〜4項目
 sources:
   - title: "出典タイトル"
     url: "https://..."
+supersedes: 12            # 任意。この記事が置き換える古い記事のid（配列可）。指定された記事は noindex + sitemap除外
 draft: false
 ```
 
@@ -187,7 +188,10 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
-  ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）
+  ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）、
+  WebPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`）。
+  Organization には `logo`（`/icon-512.png`）、記事の Article には `image`（`/articles/<id>/opengraph-image`）を必ず入れる
+  ——どちらもリッチリザルトの要件。
 - **BreadcrumbList は `src/components/Breadcrumbs.tsx` が可視UIとJSON-LDを同じ配列から出す**（表示と構造化データがずれない）。
   一覧・固定ページは `PageHeader` に `crumbs` を渡すだけで付く。
 - **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
@@ -207,16 +211,35 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
-- **薄いタグページの足切り**: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは
-  `noindex, follow` にし sitemap からも外す。表示側と生成側が `src/lib/content.ts` の同じ関数を見るのでズレない。
-  ページ自体は残すので内部リンクの経路としては機能する。
-- sitemap の `lastmod` はそのページに載っている記事の最新更新日（全ページ同じ日付にしない）
+- **インデックス判定は `src/lib/indexability.ts` に集約する**。ページ側（robots メタ）・sitemap 側・内部リンク側で
+  条件がずれると「サイトマップに載っているのに noindex」という矛盾をGoogleに送ることになる。判定を足すときは必ずここに書く。
+  - 薄いタグページ: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは `noindex, follow` ＋ sitemap 除外。
+    ページ自体は残すので内部リンクの経路としては機能する。
+  - 同じ話題のカニバリ対策: 続報が前の記事を置き換えたときは、新しい記事の frontmatter に `supersedes: <古い記事のid>` を書く。
+    指定された記事は `noindex, follow` ＋ sitemap 除外になり、本文の冒頭から最新版へ送られる。
+    **タイトルの類似度で自動判定はしない** —— `npm run dupes` が候補を報告するだけにしてある。
+    `sameTopic()`（`src/lib/topic.ts`）はRSSの見出し重複を弾く基準で、記事タイトルに当てると別の出来事を同一視する
+    （実測: 「Google画像検索25周年」と「トップページのボタンをAI Modeに置き換えるテスト」が共有語 google/ai/mode/検索 だけで一致した）。
+- **回遊導線**: 記事は本文の**前**に `ArticleNextStep`（同じタグ／カテゴリの解説／ページ診断）を置く
+  —— 本文下の関連記事は読み切らないと到達しない。一覧・ツールページは末尾に `NextStep`＋`siblingPages()`（`src/lib/nav.ts`、
+  自分の次のページから順に拾うのでどのページも同じ顔にならない）。記事末尾には `ShareButtons`（SDKを読まずWeb Intentのリンクだけ）。
+- sitemap は **loc と lastmod だけ**を出す。`changefreq` と `priority` はGoogleが無視すると明言している値なので載せない。
+  `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
+  /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない
 - `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書10レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
 - アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
 - E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、
   収集元の媒体一覧（`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文でも一人称の経験談は書かない。
   連絡窓口は匿名のまま用意する（メール or フォーム or 公式X。Organization contactPoint はメール > フォーム > X の順で1つ宣言）
+
+## 計測
+- **GA4**: `NEXT_PUBLIC_GA_ID` があるときだけ `<GoogleAnalytics>` と `GaClickTracker` を出す。
+- **クリック計測**（`src/components/GaClickTracker.tsx`）: 全リンク・ボタンのクリックを `click` イベント
+  （`label` / `tag` / `external` / `path`）としてGA4へ送る。各ボタンに個別実装しない。
+  **PVだけでは「そのページから次へ行けたか」が分からない**ため、回遊導線（`NextStep` / `ShareButtons`）の
+  効果はこのイベントでしか確認できない。
+- Vercel Analytics / Speed Insights は常時有効。
 
 ## AdSense審査で見られる点（実装済み）
 - 固定ページ: `/about`（運営者・記事の作り方・編集方針・FAQ）/ `/privacy` / `/disclaimer` / `/contact`。全ページのフッターから到達できる
@@ -231,6 +254,11 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
 ## 未着手 / 将来
+- **AIクローラーのアクセスログ**（`proxy.ts` + Supabase）。AIクローラーはJSを実行しないのでGA4に載らず、
+  巡回の実態はサーバーログにしか無い。UAの定義は `src/lib/crawlers.ts` に14種そろっている。
+  コスト懸念で保留中（`docs/progress_ga_supabase_logging.md`、運営者判断）
+- 運用レポート（GSC / GA4 / AI巡回の前後比較）。kujira-watch の `tools/gsc_report.py` `ga4_clicks.py` `geo_report.py` 相当
+- サイト共通の `/faq`（カテゴリ分割が前提。1ページに全問置くとHTMLが肥大する）、用語集ページ
 - 記事内検索、英語版
 - タグURLのASCII化（現状 `/tag/店舗集客`）。308リダイレクトと衝突管理が必要なので、タグが定着してから判断する
 - 週次/月次のまとめページ。記事本数が増えて一覧が長くなってから

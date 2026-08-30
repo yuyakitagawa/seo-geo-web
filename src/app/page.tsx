@@ -1,16 +1,20 @@
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
-import { getAllArticles, getAllTags } from "@/lib/content";
+import { PageDatesJsonLd } from "@/components/PageDates";
+import { getAllArticles, getAllTags, latestUpdated } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
-import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_NAME, categoryHref } from "@/lib/site";
+import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_DESCRIPTION, SITE_NAME, categoryHref } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 
 export default function Home() {
   const articles = getAllArticles();
   const tags = getAllTags().slice(0, 16);
+  // 更新日は「載せている記事の最新更新日」。ビルド時刻を使うと、記事が増えていない日も更新扱いになる。
+  const updated = latestUpdated(articles);
 
   return (
     <>
+      {updated && <PageDatesJsonLd path="/" name={SITE_NAME} description={SITE_DESCRIPTION} updated={updated} />}
       {/* Hero。ファーストビューに記事を入れるため高さを抑え、1バンドに収める */}
       <section className="relative overflow-hidden bg-ink text-paper">
         <div className="bg-grid absolute inset-0 opacity-50" />

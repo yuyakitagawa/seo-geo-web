@@ -7,16 +7,19 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import AdUnit from "@/components/AdUnit";
 import ArticleCard from "@/components/ArticleCard";
+import ArticleNextStep from "@/components/ArticleNextStep";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import KeyVisual from "@/components/KeyVisual";
 import KeyPoints from "@/components/KeyPoints";
 import Toc from "@/components/Toc";
 import FollowCta from "@/components/FollowCta";
+import ShareButtons from "@/components/ShareButtons";
 import CategoryBadge from "@/components/CategoryBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
+import { supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { extractToc } from "@/lib/toc";
 import { CATEGORIES, SITE_URL, categoryHref } from "@/lib/site";
@@ -31,6 +34,9 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
   const { slug } = await params;
   const article = getArticle(slug);
   if (!article) return {};
+  // 続報に置き換えられた記事は同じクエリで最新版と食い合うので、インデックスさせず
+  // リンクだけ辿らせる（sitemap からも外れる。判定は src/lib/indexability.ts に集約）。
+  const superseded = supersededBy(article);
   return {
     title: article.title,
     description: article.description,
@@ -44,6 +50,7 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
       modifiedTime: article.updated,
       tags: article.tags,
     },
+    ...(superseded ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -54,6 +61,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
 
   const related = getRelatedArticles(article);
   const url = `${SITE_URL}/articles/${article.slug}`;
+  const superseded = supersededBy(article);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -65,6 +73,8 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
     dateModified: article.updated,
     inLanguage: "ja",
     mainEntityOfPage: url,
+    // opengraph-image.tsx が生成する実PNG。Article のリッチリザルトは image を要求する。
+    image: `${url}/opengraph-image`,
     keywords: article.tags.join(", "),
     articleSection: CATEGORIES[article.category].label,
     author: { "@id": `${SITE_URL}/#organization` },
@@ -107,7 +117,19 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
 
       <div className="mx-auto max-w-4xl px-5">
         <KeyPoints article={article} />
+
+        {superseded && (
+          <aside className="mb-10 rounded-3xl border border-accent/40 bg-accent/10 p-6 text-sm leading-relaxed">
+            この記事は続報に置き換わっています。最新の内容は
+            <Link href={`/articles/${superseded.slug}`} className="mx-1 font-bold underline decoration-accent decoration-2 underline-offset-4">
+              {superseded.title}
+            </Link>
+            を読んでください。
+          </aside>
+        )}
+
         <Toc items={extractToc(article.body)} />
+        <ArticleNextStep article={article} />
 
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">
           <MDXRemote
@@ -144,6 +166,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
           </ul>
         )}
 
+        <ShareButtons url={url} title={article.title} />
         <FollowCta />
         <AdUnit placement="bottom" />
       </div>

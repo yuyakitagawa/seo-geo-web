@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { APP_TOOLS } from "@/lib/apps";
+import { siblingPages } from "@/lib/nav";
 import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -84,6 +87,8 @@ export default function ToolsPage() {
   return (
     <>
       <JsonLd data={itemListJsonLd} />
+      {/* 更新日は掲載ツールの最終確認日。掲載内容が実際に変わるのはここだけ。 */}
+      <PageDatesJsonLd path="/tools" name="SEO・GEOツール比較一覧（国内・海外）" updated={updated} />
       <PageHeader
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
         title="SEO・GEOツール比較"
@@ -151,6 +156,8 @@ export default function ToolsPage() {
             <li>掲載は推奨ではありません。料金・機能は変わるため、契約前に公式ページを確認してください。</li>
           </ul>
         </section>
+
+        <NextStep links={siblingPages("/tools")} />
       </div>
     </>
   );

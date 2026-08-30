@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
-import { CATEGORY_KEYS, isCategoryKey, TAG_MIN_ARTICLES, type CategoryKey } from "./site";
+import { CATEGORY_KEYS, isCategoryKey, type CategoryKey } from "./site";
 
 // 記事は content/articles/<slug>.mdx に置く。AI生成パイプライン(scripts/)の出力先もここ。
 // CMSを使わずリポジトリ内で完結させることで、生成→PRレビュー→マージ→デプロイがGitだけで回る。
@@ -48,6 +48,8 @@ export type ArticleMeta = {
   audience?: string;
   /** 今すぐやること（任意、1〜4項目） */
   actions: string[];
+  /** この記事が置き換える古い記事の id。指定された記事は noindex + sitemap除外（src/lib/indexability.ts） */
+  supersedes: number[];
   /** true の記事は本番ビルドに含めない（AI生成の下書き状態） */
   draft: boolean;
   /** 読了時間（分） */
@@ -89,6 +91,8 @@ function parseFile(file: string): Article | null {
     impact: parseImpact(data.impact),
     audience: typeof data.audience === "string" ? data.audience : undefined,
     actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],
+    // 数値1つでも配列でも書ける（続報が複数の旧記事をまとめて置き換えることがある）。
+    supersedes: [data.supersedes ?? []].flat().map(Number).filter((n) => Number.isInteger(n) && n > 0),
     draft,
     readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
     body: content,
@@ -131,17 +135,6 @@ export function getAllTags(): { tag: string; count: number }[] {
   const counts = new Map<string, number>();
   for (const a of getAllArticles()) for (const t of a.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
   return [...counts].map(([tag, count]) => ({ tag, count })).sort((x, y) => y.count - x.count || x.tag.localeCompare(y.tag));
-}
-
-// インデックス対象にするタグ（TAG_MIN_ARTICLES 以上の記事を持つもの）。
-// sitemap もタグページの robots もこの1つの関数を見るので、
-// 「sitemapに載っているのに noindex」というズレが起きない。
-export function getIndexableTags(): { tag: string; count: number }[] {
-  return getAllTags().filter((t) => t.count >= TAG_MIN_ARTICLES);
-}
-
-export function isIndexableTag(tag: string): boolean {
-  return getArticlesByTag(tag).length >= TAG_MIN_ARTICLES;
 }
 
 /** タグ内の最新記事の更新日（sitemapのlastmod用）。全ページ同じ日付にしないための値 */

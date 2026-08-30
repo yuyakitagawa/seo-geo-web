@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import { HAS_CONTACT, POLICY_UPDATED_LABEL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { HAS_CONTACT, POLICY_UPDATED, POLICY_UPDATED_LABEL, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
+      <PageDatesJsonLd path="/privacy" name="プライバシーポリシー" updated={POLICY_UPDATED} />
       <PageHeader
         eyebrow="Privacy"
         title="プライバシーポリシー"
@@ -124,7 +126,7 @@ export default function PrivacyPage() {
           改定後の内容は、本ページに掲載した時点から効力を生じます。
         </p>
 
-        <p className="text-sm text-mute">最終改定日：{POLICY_UPDATED_LABEL}</p>
+        <p className="text-sm text-mute">最終改定日：<time dateTime={POLICY_UPDATED}>{POLICY_UPDATED_LABEL}</time></p>
       </div>
     </>
   );

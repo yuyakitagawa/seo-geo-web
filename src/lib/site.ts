@@ -9,6 +9,11 @@ export const SITE_URL = (
   "http://localhost:3000"
 ).replace(/\/$/, "");
 
+// 構造化データ用のロゴ。OGP画像（1200x630の横長）ではなく正方形を指す
+// （Organization.logo にはOGP用の横長比率ではなく正方形〜近い比率の画像を使う）。
+// 実体は src/app/icon-512.png/route.tsx が next/og で生成するPNG。
+export const SITE_LOGO = { url: `${SITE_URL}/icon-512.png`, width: 512, height: 512 };
+
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO GEO Lab";
 
 export const SITE_DESCRIPTION =

@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleList from "@/components/ArticleList";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
+import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { collectionJsonLd, collectionSummary } from "@/lib/collection";
-import { getAllTags, getArticlesByTag, isIndexableTag } from "@/lib/content";
+import { getAllTags, getArticlesByTag, latestUpdated } from "@/lib/content";
+import { siblingPages } from "@/lib/nav";
+import { isIndexableTag } from "@/lib/indexability";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
@@ -36,8 +40,18 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
       <JsonLd data={collectionJsonLd({ url, name: `#${tag} の記事`, description: `「${tag}」に関する記事一覧。`, articles })} />
       <PageHeader eyebrow="Topic" title={`#${tag}`} crumbs={[{ name: `#${tag}` }]} />
       <div className="mx-auto max-w-6xl px-5 pb-16 pt-12">
-        <p className="mb-10 max-w-3xl leading-relaxed text-mute">{collectionSummary(`「${tag}」`, articles)}</p>
+        <p className="max-w-3xl leading-relaxed text-mute">{collectionSummary(`「${tag}」`, articles)}</p>
+        <div className="mb-10 mt-3">
+          <PageDates
+            path={`/tag/${encodeURIComponent(tag)}`}
+            name={`#${tag} の記事`}
+            description={`「${tag}」に関する記事一覧。`}
+            published={articles.map((a) => a.date).sort()[0]}
+            updated={latestUpdated(articles)!}
+          />
+        </div>
         <ArticleList articles={articles} />
+        <NextStep links={siblingPages(`/tag/${tag}`)} className="mt-20" />
       </div>
     </>
   );
