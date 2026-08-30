@@ -69,7 +69,7 @@ const SRC = {
   robots: G("crawling-indexing/robots/intro", "Google 検索セントラル: robots.txt の概要"),
   ai: G("appearance/ai-features", "Google 検索セントラル: AI 機能と Google 検索"),
   helpful: G("fundamentals/creating-helpful-content", "Google 検索セントラル: 有用で信頼性の高いコンテンツの作成"),
-  llms: { title: "llms.txt 提案仕様", url: "https://llmstxt.org/" },
+  aiGuide: G("fundamentals/ai-optimization-guide", "Google 検索セントラル: Google 検索の生成 AI 機能向けにウェブサイトを最適化する"),
 };
 
 /** タグをそのまま見せるための整形。長すぎる場合は省略する */
@@ -580,11 +580,12 @@ export function audit(input: AuditInput): AuditResult {
       id: "llms",
       area: "geo",
       severity: "low",
-      title: "/llms.txt がありません",
-      detail: "LLM向けにサイトの構成を案内する提案仕様です。検索順位への効果は確認されていないため、優先度は低い項目です。",
-      fix: "サイトの主要ページと方針をMarkdownで書いた /llms.txt を置きます。効果を検証しながら進めます。",
-      where: { note: `ドメイン直下に置きます: https://${host}/llms.txt` },
-      source: SRC.llms,
+      title: "/llms.txt はありません（Google 検索には不要）",
+      detail:
+        "Google は公式ドキュメントで、Google 検索は llms.txt を使わないと明言しています。置いても順位・可視性は上がりも下がりもしません。ただし同じドキュメントは Google 以外のサービス向けに置くこと自体は問題ないとしており、対応するAIサービスが増えれば意味を持つ可能性はあります。",
+      fix: "Google 検索のために置く必要はありません。Google 以外のAIサービスへの備えとして置くなら、主要ページと方針を llmstxt.org の提案仕様に沿ってMarkdownで書き、参照されているかをアクセスログで確認します。",
+      where: { note: `置く場合はドメイン直下: https://${host}/llms.txt` },
+      source: SRC.aiGuide,
     });
   }
 

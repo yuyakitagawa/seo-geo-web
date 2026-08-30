@@ -50,7 +50,7 @@ export function GuideToc({ items }: { items: { id: string; label: string }[] }) 
 }
 
 /** h2セクション。lead は見出しへの直答1段落 */
-export function GuideSection({ id, title, lead, children }: { id: string; title: string; lead?: string; children?: ReactNode }) {
+export function GuideSection({ id, title, lead, children }: { id: string; title: string; lead?: ReactNode; children?: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-24">
       <h2>{title}</h2>
@@ -61,7 +61,7 @@ export function GuideSection({ id, title, lead, children }: { id: string; title:
 }
 
 /** 表。列幅を指定せず、狭い画面では横スクロールさせる */
-export function GuideTable({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
+export function GuideTable({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: ReactNode }) {
   return (
     <figure className="not-prose my-8">
       <div className="overflow-x-auto rounded-3xl border border-ink/10 dark:border-paper/10">
@@ -82,6 +82,23 @@ export function GuideTable({ head, rows, caption }: { head: string[]; rows: Reac
       </div>
       {caption && <figcaption className="mt-3 text-xs text-mute">{caption}</figcaption>}
     </figure>
+  );
+}
+
+/**
+ * 本文中の出典リンク。Googleなどが公式に述べている記述の直後に置き、その一文の一次情報へ直接飛ばす。
+ * ページ末尾の GuideSources は一覧、こちらは「どの記述がどの文書由来か」を示すためのもの。
+ */
+export function GuideRef({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener"
+      className="ml-0.5 break-all text-[0.75em] font-bold text-mute underline decoration-accent decoration-2 underline-offset-4 hover:text-ink dark:hover:text-paper"
+    >
+      [出典: {label}]
+    </a>
   );
 }
 

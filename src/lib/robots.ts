@@ -1,6 +1,6 @@
 // robots.txt の解析と許可判定。RFC 9309 と Google の仕様に合わせる。
 // ブラウザ側（ツール）とサーバー側の両方から使うため、DOMにもNode APIにも依存しない純関数だけを置く。
-// 参考: https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt
+// 参考: https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec
 
 export type Rule = { type: "allow" | "disallow"; pattern: string; line: number };
 export type Group = { tokens: string[]; rules: Rule[] };

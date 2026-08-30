@@ -79,6 +79,11 @@ const SEO: Guide = {
         "E-E-A-TはExperience（経験）・Expertise（専門性）・Authoritativeness（権威性）・Trust（信頼）の頭文字で、Googleが「有用で信頼性の高い、ユーザー第一のコンテンツ」を作れているかを自己評価するための観点として公開しているものです。E-E-A-Tという単一のスコアが公開されているわけではないため、順位を直接操作する設定ではなく、コンテンツを点検するチェックリストとして使います。",
     },
     {
+      question: "検索エンジンのBot（クローラー）にはどんな種類がありますか",
+      answer:
+        "Googleは自社のクローラーを3つに分けて公開しています。検索の索引を作る「一般的なクローラー」（Googlebot、Googlebot-Image、Googlebot-Newsなど）は自動で巡回し、常にrobots.txtのルールに従います。「特殊なケース用のクローラー」（AdsBot、Google-InspectionToolなど）は広告の品質確認やURL検査といった特定のサービスのために動き、AdsBotはrobots.txtのグローバル指定（*）を無視します。「ユーザー トリガー フェッチャー」（Google-NotebookLMなど）はユーザーが指定したURLをその場で取得するもので、フェッチがユーザーのリクエストによるため通常robots.txtのルールを無視します。ChatGPTやPerplexityなどAI検索側のBotは、これとは別に用途ごとのトークンが用意されています。",
+    },
+    {
       question: "Core Web Vitalsの合格ラインはいくつですか",
       answer:
         "Core Web VitalsはLCP（読み込み）・INP（応答性）・CLS（視覚的な安定性）の3指標です。良好とされる目安はLCPが2.5秒以内、INPが200ミリ秒以下、CLSが0.1以下で、判定はモバイルとPCを分けたうえで全体の75パーセンタイルの値で見ます。",
@@ -98,6 +103,14 @@ const SEO: Guide = {
     { title: "Web Vitals（Core Web Vitals のしきい値）", publisher: "web.dev（Google）", url: "https://web.dev/articles/vitals" },
     { title: "構造化データの仕組みについて", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja" },
     { title: "AI 機能とウェブサイト", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/ai-features?hl=ja" },
+    { title: "Google クローラーとフェッチャーの概要", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/overview-google-crawlers?hl=ja" },
+    { title: "Google の一般的なクローラー", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers?hl=ja" },
+    { title: "robots.txt の概要", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=ja" },
+    { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
+    { title: "JavaScript の基本を理解する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja" },
+    { title: "検索パフォーマンス レポート（検索結果）", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7576553?hl=ja" },
+    { title: "ページ インデックス登録レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7440203?hl=ja" },
+    { title: "URL 検査ツール", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9012289?hl=ja" },
   ],
 };
 
@@ -147,6 +160,11 @@ const GEO: Guide = {
         "llms.txtはコミュニティが提案している任意の仕様で、設置すれば引用されると保証する検索エンジンやAI事業者の公式な説明はありません。Googleは、AI機能に表示されるために新しいAIテキストファイルを作る必要はないと明記しています。設置する場合は、本文やサイト構造の代わりではなく補助として扱うのが安全です。",
     },
     {
+      question: "AIのBot（クローラー）には何種類ありますか",
+      answer:
+        "役割で4種類に分かれます。検索インデックス用（Googlebot、Bingbot）は検索結果の索引を作り、GoogleのAIによる概要・AIモードもこの索引を使います。AI検索インデックス用（OAI-SearchBot、PerplexityBot、Claude-SearchBot）はAIの回答にサイトを表示・リンクするために自動で巡回します。ユーザー起点フェッチャー（ChatGPT-User、Perplexity-User、Claude-User）は巡回せず、ユーザーが質問した時だけその場でページを取りに来ます。モデル学習用（GPTBot、ClaudeBot、Google-Extended）は学習データを集めるもので、拒否しても検索やAI検索での表示には影響しません。",
+    },
+    {
       question: "AIクローラーをブロックすると何が起きますか",
       answer:
         "ボットごとに影響が異なります。OpenAIは、OAI-SearchBotを拒否したサイトはChatGPTの検索の回答に表示されないと説明し、GPTBotの拒否は基盤モデルの学習からの除外を意味するとしています。PerplexityもPerplexityBotの許可を推奨しています。GoogleのGoogle-ExtendedはGeminiアプリの学習・グラウンディング用のトークンで、Google検索へのサイトの登録やランキングには影響しないと明記されています。",
@@ -164,10 +182,12 @@ const GEO: Guide = {
   ],
   sources: [
     { title: "AI 機能とウェブサイト", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/ai-features?hl=ja" },
-    { title: "Google の一般的なクローラー（Google-Extended）", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers?hl=ja" },
-    { title: "Overview of OpenAI Crawlers", publisher: "OpenAI", url: "https://platform.openai.com/docs/bots" },
+    { title: "Google の一般的なクローラー（Google-Extended）", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers?hl=ja" },
+    { title: "Google クローラーとフェッチャーの概要", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/overview-google-crawlers?hl=ja" },
+    { title: "ユーザー トリガー フェッチャー", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers?hl=ja" },
+    { title: "Overview of OpenAI Crawlers", publisher: "OpenAI", url: "https://developers.openai.com/api/docs/bots" },
     { title: "PerplexityBot", publisher: "Perplexity", url: "https://docs.perplexity.ai/guides/bots" },
-    { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.anthropic.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
+    { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
     { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか", url: "https://arxiv.org/abs/2311.09735" },
     { title: "The /llms.txt file", publisher: "llmstxt.org", url: "https://llmstxt.org/" },
     { title: "Google 検索の基本事項", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/essentials?hl=ja" },

@@ -11,6 +11,7 @@
     "pick": "tsx scripts/pick.ts",
     "generate": "tsx scripts/generate.ts",
     "generate:howto": "tsx scripts/generate-howto.ts",
+    "html": "tsx scripts/format-html.ts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

@@ -22,6 +22,11 @@ export default function Header() {
               </li>
             ))}
             <li>
+              <Link href="/learn" className="block whitespace-nowrap rounded-full px-2.5 py-1.5 font-medium transition sm:px-3 hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink">
+                教科書
+              </Link>
+            </li>
+            <li>
               <Link href="/tools" className="block whitespace-nowrap rounded-full px-2.5 py-1.5 font-medium transition sm:px-3 hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink">
                 ツール
               </Link>
