@@ -5,9 +5,9 @@
   --font-sans: var(--font-display), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* ブランド色: 黒地に効くエレクトリックライム。カテゴリ色はバッジ・カード用 */
-  --color-accent: #d7ff3b;
-  --color-accent-ink: #1a1f00;
+  /* ブランド色: Googleブルー(#4285f4)とChatGPTグリーン(#10a37f)を混ぜたシアンブルー。カテゴリ色はバッジ・カード用 */
+  --color-accent: #2994b9;
+  --color-accent-ink: #041c24;
   --color-seo: #4f7cff;
   --color-geo: #a855f7;
   --color-news: #ff6b35;

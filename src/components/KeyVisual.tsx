@@ -6,7 +6,7 @@ import type { CategoryKey } from "@/lib/site";
 // - 同じ記事は常に同じ図柄（乱数はslugをシードにした擬似乱数）
 
 const CATEGORY_HEX: Record<CategoryKey, string> = { seo: "#4f7cff", geo: "#a855f7", news: "#ff6b35" };
-const ACCENT = "#d7ff3b";
+const ACCENT = "#2994b9";
 
 const W = 1200;
 const H = 600;

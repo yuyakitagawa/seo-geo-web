@@ -6,9 +6,9 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = SITE_NAME;
 
-const TITLE = "検索は、毎日変わる。";
+const TITLE = "SEO・AI対策の「今」に追いつける";
 const LABEL = "SEO / GEO";
-const FOOTER = "Google検索・AI Overview・ChatGPT・Perplexityの最新動向を毎日追う";
+const FOOTER = "Google検索・AI Overview・ChatGPT・Perplexityを毎朝巡回し、出典リンク付きで解説";
 
 export default async function Image() {
   const fonts = await loadOgFont(TITLE + LABEL + FOOTER + SITE_NAME);
