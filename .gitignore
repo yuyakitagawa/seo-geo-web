@@ -44,3 +44,6 @@ next-env.d.ts
 # 収集キュー（毎回再生成される。processed.json はコミットして重複生成を防ぐ）
 content/queue.json
 content/processed.json
+
+# git worktree（.claude/worktrees 配下）はコミットしない
+.claude/worktrees/

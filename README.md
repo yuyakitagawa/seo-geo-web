@@ -21,6 +21,8 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説ページ（「SEO対策とは」「GEOとは」）。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
+| `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
+| `/tools/ai-crawlers` | 自作ツール: robots.txt を貼ってAI検索/AI学習クローラー14種の許可状況を判定（`src/lib/robots.ts` + `src/lib/crawlers.ts`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / `NEXT_PUBLIC_X_SCREEN_NAME` が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -75,8 +77,20 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   実画像でなくコード描画なので、生成パイプラインが出力でき、テキストが残るためAI・検索エンジンにも読める。
   props はJS式で渡すため記事ページの `MDXRemote` は `blockJS: false`（記事はリポジトリ内の信頼済みコンテンツ）
 
+## 自作ツール（/tools 配下）
+外部ツールの比較表とは別に、サイト自身が提供する無料ツールを置く。一覧の定義は `src/lib/apps.ts`（/tools のカードと sitemap が同じ定義を見る）。
+- **ページ診断 `/tools/page-audit`**: URLを `POST /api/audit` でサーバー側から1回取得し、`src/lib/audit.ts` が判定する。
+  指摘は「該当コード（実物）／なぜ直すか／修正後のコード」の3点＋公式ドキュメントのリンク。点数は出さない。
+  JSは実行しないので、サーバーが返すHTMLに本文が無いページは「本文が少ない」と出る（AI検索のクローラーと同じ見え方）。
+- **AIクローラー判定 `/tools/ai-crawlers`**: robots.txt を貼ると14種のクローラーの許可状況を判定する。ブラウザ内で完結し送信しない。
+  クローラーの定義は `src/lib/crawlers.ts`（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
+- **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
+  ページ診断とチェッカーの両方がこの1実装を使う。
+- **`POST /api/audit` の安全策**: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
+  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。
+
 ## デザイン
-- 黒×生成り（paper）×エレクトリックライム（accent）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
+- 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
 - 欧文は Space Grotesk（next/font）、和文は端末フォント
 - `globals.css` の `@theme` にトークン集約。ダークモード対応
 

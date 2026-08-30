@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-// ファビコン・アプリアイコンの共通図案。黒地に生成りの「SG」＋エレクトリックライムの点。
+// ファビコン・アプリアイコンの共通図案。黒地に生成りの「SG」＋ブランドカラーの点。
 // 画像素材を持たない方針なので next/og でその場で描く（欧文だけなので追加フォントは不要）。
 export function iconFrame(size: number): ReactElement {
   return (
@@ -28,7 +28,7 @@ export function iconFrame(size: number): ReactElement {
           width: size * 0.16,
           height: size * 0.16,
           borderRadius: 999,
-          backgroundColor: "#d7ff3b",
+          backgroundColor: "#2994b9",
         }}
       />
     </div>

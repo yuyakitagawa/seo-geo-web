@@ -69,7 +69,7 @@ export function ogFrame({
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ width: 16, height: 16, borderRadius: 999, backgroundColor: "#d7ff3b", marginRight: 14 }} />
+          <div style={{ width: 16, height: 16, borderRadius: 999, backgroundColor: "#2994b9", marginRight: 14 }} />
           <div style={{ fontSize: 28, color: "#f5f5f2" }}>{SITE_NAME}</div>
         </div>
 
@@ -87,8 +87,8 @@ export function ogFrame({
               {label ?? CATEGORIES[category].label}
             </div>
           </div>
-          <div style={{ display: "flex", width: 88, height: 8, borderRadius: 999, backgroundColor: "#d7ff3b", marginTop: 30 }} />
-          <div style={{ fontSize: 56, color: "#f5f5f2", lineHeight: 1.3, marginTop: 26, maxWidth: 920 }}>{title}</div>
+          <div style={{ display: "flex", width: 88, height: 8, borderRadius: 999, backgroundColor: "#2994b9", marginTop: 30 }} />
+          <div style={{ fontSize: 56, color: "#f5f5f2", lineHeight: 1.3, marginTop: 26, maxWidth: 1010 }}>{title}</div>
         </div>
 
         <div style={{ fontSize: 24, color: "rgba(245,245,242,0.55)" }}>{footer}</div>

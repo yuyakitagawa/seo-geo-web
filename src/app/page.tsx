@@ -21,10 +21,10 @@ export default function Home() {
               <span className="size-1.5 rounded-full bg-accent" /> 毎朝更新 · SEO &amp; GEO
             </p>
             <h1 className="text-[clamp(1.5rem,3.6vw,2.25rem)] font-bold leading-tight tracking-tight">
-              検索は<span className="text-accent">毎日</span>変わる。今日の変更点だけ。
+              SEO・AI対策の「今」に<span className="text-accent">追いつける</span>
             </h1>
             <p className="mt-3 line-clamp-2 max-w-2xl text-sm leading-relaxed text-paper/60 sm:line-clamp-none">
-              Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎日巡回し、SEO/GEO担当が読むべき変更だけを日本語で整理します。
+              Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎朝巡回し、SEO/GEO担当が今日おさえるべき点だけを日本語で整理します。
             </p>
           </div>
           <ul className="flex flex-wrap gap-2 animate-rise [animation-delay:120ms]">
