@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import ArticleCard from "@/components/ArticleCard";
+import CategoryArticles from "@/components/CategoryArticles";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
 import { FigureDoDont, FigureFlow, FigureQuote } from "@/components/figures";
 import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
-import { getArticlesByCategory } from "@/lib/content";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
@@ -38,8 +37,6 @@ const TOC = [
 ];
 
 export default function SeoGuidePage() {
-  const articles = getArticlesByCategory(guide.category).slice(0, 4);
-
   return (
     <>
       <JsonLd data={guideJsonLd(guide)} />
@@ -231,21 +228,13 @@ export default function SeoGuidePage() {
         <GuideCrossLinks
           links={[
             { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
-            { href: "/category/seo", label: "SEOの最新記事", note: "アルゴリズム更新やテクニカルSEOの実務を、一次情報付きで毎日更新。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "順位計測・クロール監査・AI可視性計測ツールを国内外で比較。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}
         />
       </div>
 
-      {articles.length > 0 && (
-        <section className="mx-auto mt-16 max-w-6xl px-5">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight">SEOの最新記事</h2>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {articles.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
-          </div>
-        </section>
-      )}
+      <CategoryArticles category={guide.category} />
     </>
   );
 }

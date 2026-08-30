@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, CATEGORY_KEYS, SITE_NAME } from "@/lib/site";
+import { CATEGORIES, CATEGORY_KEYS, SITE_NAME, categoryHref } from "@/lib/site";
 
 export default function Header() {
   return (
@@ -14,7 +14,7 @@ export default function Header() {
             {CATEGORY_KEYS.map((key) => (
               <li key={key}>
                 <Link
-                  href={`/category/${key}`}
+                  href={categoryHref(key)}
                   className="block whitespace-nowrap rounded-full px-2.5 py-1.5 font-medium transition sm:px-3 hover:bg-ink hover:text-paper dark:hover:bg-paper dark:hover:text-ink"
                 >
                   {CATEGORIES[key].label}

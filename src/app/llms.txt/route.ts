@@ -1,6 +1,6 @@
 import { getAllArticles } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
-import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 
 // 記事も設定もビルド時に確定するので静的ファイルとして配る（クローラーへのTTFBを詰める）。
@@ -23,13 +23,10 @@ export function GET() {
     "",
     "## サイト情報",
     `- [運営者情報](${SITE_URL}/about): 運営方針・記事制作プロセス・収集元の一覧・よくある質問`,
-    `- [記事一覧](${SITE_URL}/articles): 全${articles.length}本を新しい順に`,
+    `- [ニュース（記事アーカイブ）](${SITE_URL}/news): 全${articles.length}本を新しい順に、公開月ごとのアーカイブ付き`,
     `- [AI検索（GEO）ツール比較](${SITE_URL}/tools): 可視性計測ツールとサイト診断ツールの一覧（国内外・料金・対象AI）`,
     `- [免責事項](${SITE_URL}/disclaimer)`,
     `- [プライバシーポリシー](${SITE_URL}/privacy)`,
-    "",
-    "## カテゴリ",
-    ...Object.entries(CATEGORIES).map(([k, c]) => `- [${c.label}](${SITE_URL}/category/${k}): ${c.description}`),
     "",
     "## 記事の作り方",
     "- 数値・固有名詞は出典元の記事にあるものだけを書く。推論を含む場合は「〜と考えられます」と明示する。",

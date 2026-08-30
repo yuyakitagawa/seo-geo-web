@@ -17,7 +17,7 @@ import TypeBadge from "@/components/TypeBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
-import { CATEGORIES, SITE_URL } from "@/lib/site";
+import { CATEGORIES, SITE_URL, categoryHref } from "@/lib/site";
 
 export const dynamicParams = false;
 
@@ -87,7 +87,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         <div className="relative mx-auto max-w-4xl px-5 pb-14 pt-16 sm:pb-20 sm:pt-24">
           <Breadcrumbs
             items={[
-              { name: CATEGORIES[article.category].label, href: `/category/${article.category}` },
+              { name: CATEGORIES[article.category].label, href: categoryHref(article.category) },
               { name: article.title },
             ]}
           />

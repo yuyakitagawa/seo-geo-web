@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CRAWLERS, PRESETS, PURPOSE, PURPOSE_ORDER, type Crawler } from "@/lib/crawlers";
+import { CRAWLERS, PRESETS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
 import { check, parseRobots } from "@/lib/robots";
 
 const SAMPLE = `User-agent: *

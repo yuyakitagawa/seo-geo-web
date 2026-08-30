@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllArticles, getArticlesByCategory, getArticlesByTag, getIndexableTags, latestUpdated } from "@/lib/content";
 import { APP_TOOLS } from "@/lib/apps";
 import { GUIDE_LIST } from "@/lib/guides";
-import { CATEGORY_KEYS, HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
+import { HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const articles = getAllArticles();
@@ -10,15 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: SITE_URL, lastModified: latest, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/articles`, lastModified: latest, changeFrequency: "daily", priority: 0.8 },
-    // lastmod はそのページに載っている記事の最新更新日にする。
-    // 全ページを同じ日付にすると更新シグナルとして意味を持たない。
-    ...CATEGORY_KEYS.map((c) => ({
-      url: `${SITE_URL}/category/${c}`,
-      lastModified: latestUpdated(getArticlesByCategory(c)) ?? latest,
-      changeFrequency: "daily" as const,
-      priority: 0.7,
-    })),
+    // 記事アーカイブ。lastmod は載っている記事の最新更新日にする（全ページ同じ日付だと更新シグナルにならない）。
+    { url: `${SITE_URL}/news`, lastModified: latest, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/tools`, lastModified: latest, changeFrequency: "weekly", priority: 0.8 },
     // 自作ツール。継続的に使われる固定ページなので更新頻度は低く、優先度は高くする。
     ...APP_TOOLS.map((t) => ({
@@ -30,8 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // 解説ページ（/seo, /geo）。定義クエリの受け皿でトップページの次に重要なので priority を高くする。
     ...GUIDE_LIST.map((g) => ({
       url: `${SITE_URL}${g.path}`,
-      lastModified: g.updated,
-      changeFrequency: "monthly" as const,
+      lastModified: [g.updated, latestUpdated(getArticlesByCategory(g.category)) ?? g.updated].sort().at(-1)!,
+      changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
     // 固定ページ。/contact は窓口（env）が未設定のときビルドで404になるので載せない。

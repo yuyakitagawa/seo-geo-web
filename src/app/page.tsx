@@ -2,7 +2,7 @@ import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import { getAllArticles, getAllTags } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
-import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_NAME } from "@/lib/site";
+import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_NAME, categoryHref } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 
 export default function Home() {
@@ -21,16 +21,16 @@ export default function Home() {
               <span className="size-1.5 rounded-full bg-accent" /> 毎朝更新 · SEO &amp; GEO
             </p>
             <h1 className="text-[clamp(1.5rem,3.6vw,2.25rem)] font-bold leading-tight tracking-tight">
-              検索は<span className="text-accent">毎日</span>変わる。今日の変更点だけ。
+              SEO・AI対策の「今」に<span className="text-accent">追いつける</span>
             </h1>
             <p className="mt-3 line-clamp-2 max-w-2xl text-sm leading-relaxed text-paper/60 sm:line-clamp-none">
-              Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎日巡回し、SEO/GEO担当が読むべき変更だけを日本語で整理します。
+              Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎朝巡回し、SEO/GEO担当が今日おさえるべき点だけを日本語で整理します。
             </p>
           </div>
           <ul className="flex flex-wrap gap-2 animate-rise [animation-delay:120ms]">
             {CATEGORY_KEYS.map((k) => (
               <li key={k}>
-                <Link href={`/category/${k}`} className="inline-flex items-center gap-2 rounded-full border border-paper/20 px-3.5 py-1.5 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink">
+                <Link href={categoryHref(k)} className="inline-flex items-center gap-2 rounded-full border border-paper/20 px-3.5 py-1.5 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink">
                   <span className={`size-2 rounded-full ${CATEGORY_STYLE[k].dot}`} />
                   {CATEGORIES[k].label}
                 </Link>
@@ -44,7 +44,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:pb-20 sm:pt-10">
         <div className="mb-5 flex items-end justify-between">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">新着</h2>
-          <Link href="/articles" className="text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
+          <Link href="/news" className="text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
             すべての記事（{articles.length}）
           </Link>
         </div>
