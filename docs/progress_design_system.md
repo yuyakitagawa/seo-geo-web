@@ -10,6 +10,7 @@
 - [x] 6. `dark:` の重複を全廃 → typecheck / lint / build / 両モードのスクリーンショット確認
 - [x] 7. ドキュメント（`docs/design-system.md`）・README・CLAUDE.md 更新
 - [x] 8. 最新mainを取り込み、その間に増えたプロンプト適合度チェッカー（`PromptFit.tsx` / `/tools/prompt-fit`）と `guide.tsx` のチェックリスト表を載せ替え
+- [x] 9. レッスン08「ドメイン構造」・レッスン13「ブランドをAIに覚えさせる」を取り込み、`figures.tsx` のリンク構造図に残っていた `rounded-2xl` / `text-[11px]` をトークンに寄せた
 
 ## 意図して変えた見た目（統一のため）
 

@@ -524,12 +524,12 @@ function LinkMapCard({ map }: { map: LinkMap }) {
   const height = 10 + (rows - 1) * LAYER_GAP + NODE_H + (hasSide ? 34 : 10);
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur">
+    <div className="overflow-hidden rounded-panel bg-white/5 backdrop-blur">
       <div className={`h-1.5 ${good ? "bg-accent" : "bg-news"}`} />
       <div className="p-4 sm:p-5">
         <p className={`flex items-center gap-2.5 text-base font-bold ${good ? "text-accent" : "text-news"}`}>
           <span
-            className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+            className={`flex size-5 shrink-0 items-center justify-center rounded-full text-2xs font-bold ${
               good ? "bg-accent text-accent-ink" : "bg-news text-white"
             }`}
             aria-hidden
