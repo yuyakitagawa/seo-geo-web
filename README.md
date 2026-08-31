@@ -205,6 +205,8 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。
   出典は Google 検索セントラルの成功事例・web.dev のケーススタディ・arXiv の GEO 論文のみ。
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
+  レッスン08には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
+  1項目ごとに「見る場所・合格の条件・崩れていたら」を `GuideChecklist`（`src/components/guide.tsx`）で出す。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
 - **薄いタグページの足切り**: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは
