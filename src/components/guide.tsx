@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { COURSE, LESSONS, lessonPath, requireLesson } from "@/lib/curriculum";
+import { COURSE, LESSONS, lessonNo, lessonPath, requireLesson } from "@/lib/curriculum";
 import type { FaqItem } from "@/lib/faq";
 import { jpDate, type Guide } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -223,7 +223,7 @@ export function GuideLessonCta({ slug, lead }: { slug: string; lead: string }) {
         className="group block rounded-3xl border border-accent/40 bg-accent/10 p-6 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] sm:p-8"
       >
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">
-          Learn · {COURSE.h1} Lesson {String(lesson.order).padStart(2, "0")} / {LESSONS.length} · 約{lesson.minutes}分
+          Learn · {COURSE.h1} Lesson {lessonNo(lesson.slug)} / {LESSONS.length} · 約{lesson.minutes}分
         </p>
         <p className="mt-3 text-lg font-bold leading-snug tracking-tight sm:text-xl">
           {lesson.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
