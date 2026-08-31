@@ -13,14 +13,14 @@ const SCREEN_NOTE = "※Search Consoleの画面を模した図です。実際の
 /** ブラウザの窓。中身は常にライトUIで描く */
 function ScreenChrome({ url, children }: { url: string; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white text-ink shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10">
+    <div className="overflow-hidden rounded-panel bg-white text-ink shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10">
       <div className="flex items-center gap-3 border-b border-black/10 bg-[#f1f3f4] px-3 py-2">
         <div className="flex gap-1.5" aria-hidden>
           <span className="size-2.5 rounded-full bg-[#ff5f57]" />
           <span className="size-2.5 rounded-full bg-[#febc2e]" />
           <span className="size-2.5 rounded-full bg-[#28c840]" />
         </div>
-        <p className="truncate rounded-full bg-white px-3 py-1 text-[11px] text-mute ring-1 ring-black/5">{url}</p>
+        <p className="truncate rounded-full bg-white px-3 py-1 text-2xs text-mute ring-1 ring-black/5">{url}</p>
       </div>
       {children}
     </div>
@@ -32,8 +32,8 @@ function SideNav({ active }: { active: string }) {
   const items = ["サマリー", "検索パフォーマンス", "URL 検査", "ページ", "サイトマップ", "削除", "エクスペリエンス"];
   return (
     <nav className="hidden w-44 shrink-0 border-r border-black/10 bg-[#fafafa] py-3 sm:block" aria-hidden>
-      <p className="px-4 pb-3 text-[11px] font-bold tracking-tight text-[#5f6368]">Google Search Console</p>
-      <ul className="space-y-0.5 text-[11px]">
+      <p className="px-4 pb-3 text-2xs font-bold tracking-tight text-[#5f6368]">Google Search Console</p>
+      <ul className="space-y-0.5 text-2xs">
         {items.map((it) => (
           <li
             key={it}
@@ -66,7 +66,7 @@ function Legend({ items }: { items: string[] }) {
     <ol className="mt-5 space-y-2 border-t border-paper/15 pt-4 text-sm leading-relaxed text-paper/80">
       {items.map((t, i) => (
         <li key={t} className="flex gap-2.5">
-          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-ink">
+          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-2xs font-bold text-accent-ink">
             {i + 1}
           </span>
           <span>{t}</span>
@@ -110,13 +110,13 @@ export function ScreenSearchPerformance() {
           <div className="min-w-0 flex-1 p-4 sm:p-5">
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <p className="text-sm font-bold">検索パフォーマンス</p>
-              <span className="rounded-full bg-[#e8f0fe] px-2.5 py-0.5 text-[10px] font-semibold text-[#1967d2]">検索タイプ: ウェブ</span>
-              <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-[10px] text-mute">日付: 過去 3 か月間</span>
+              <span className="rounded-full bg-[#e8f0fe] px-2.5 py-0.5 text-3xs font-semibold text-[#1967d2]">検索タイプ: ウェブ</span>
+              <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-3xs text-mute">日付: 過去 3 か月間</span>
             </div>
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               {tiles.map((t) => (
                 <div key={t.label} className="rounded-lg border border-black/10 p-3">
-                  <p className="flex items-center whitespace-nowrap text-[10px] leading-tight text-mute">
+                  <p className="flex items-center whitespace-nowrap text-3xs leading-tight text-mute">
                     <span className="mr-1.5 inline-block size-2 shrink-0 rounded-[2px]" style={{ background: t.color }} aria-hidden />
                     {t.label}
                   </p>
@@ -148,7 +148,7 @@ export function ScreenSearchPerformance() {
             </div>
 
             <div className="mt-3 overflow-hidden rounded-lg border border-black/10">
-              <div className="flex gap-4 border-b border-black/10 px-3 pt-2 text-[11px]">
+              <div className="flex gap-4 border-b border-black/10 px-3 pt-2 text-2xs">
                 <span className="border-b-2 border-[#1a73e8] pb-1.5 font-bold text-[#1967d2]">
                   クエリ
                   <Mark n={5} />
@@ -158,8 +158,8 @@ export function ScreenSearchPerformance() {
                 <span className="pb-1.5 text-mute">デバイス</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] text-[11px]">
-                  <thead className="bg-black/[0.03] text-left text-[10px] text-mute">
+                <table className="w-full min-w-[420px] text-2xs">
+                  <thead className="bg-black/[0.03] text-left text-3xs text-mute">
                     <tr>
                       {["上位のクエリ", "クリック数", "表示回数", "CTR", "掲載順位"].map((h) => (
                         <th key={h} className="px-3 py-1.5 font-semibold">
@@ -220,7 +220,7 @@ export function ScreenIndexReport() {
             <div className="grid grid-cols-2 gap-2">
               <div className="relative rounded-lg border border-black/10 p-3">
                 <Mark n={1} corner />
-                <p className="flex items-center whitespace-nowrap text-[10px] text-mute">
+                <p className="flex items-center whitespace-nowrap text-3xs text-mute">
                   <span className="mr-1.5 inline-block size-2 rounded-[2px] bg-[#188038]" aria-hidden />
                   インデックスに登録済みのページ
                 </p>
@@ -228,7 +228,7 @@ export function ScreenIndexReport() {
               </div>
               <div className="relative rounded-lg border border-black/10 p-3">
                 <Mark n={2} corner />
-                <p className="flex items-center whitespace-nowrap text-[10px] text-mute">
+                <p className="flex items-center whitespace-nowrap text-3xs text-mute">
                   <span className="mr-1.5 inline-block size-2 rounded-[2px] bg-[#5f6368]" aria-hidden />
                   未登録のページ
                 </p>
@@ -239,13 +239,13 @@ export function ScreenIndexReport() {
               <div className="bg-[#188038]" style={{ width: "27%" }} />
               <div className="flex-1 bg-[#dadce0]" />
             </div>
-            <p className="mt-4 mb-2 flex items-center text-[11px] font-bold">
+            <p className="mt-4 mb-2 flex items-center text-2xs font-bold">
               ページがインデックスに登録されなかった理由
               <Mark n={3} />
             </p>
             <div className="overflow-hidden rounded-lg border border-black/10">
-              <table className="w-full text-[11px]">
-                <thead className="bg-black/[0.03] text-left text-[10px] text-mute">
+              <table className="w-full text-2xs">
+                <thead className="bg-black/[0.03] text-left text-3xs text-mute">
                   <tr>
                     <th className="px-3 py-1.5 font-semibold">理由</th>
                     <th className="w-20 px-3 py-1.5 text-right font-semibold">ページ数</th>
@@ -295,20 +295,20 @@ export function ScreenUrlInspection() {
               <span className="text-mute" aria-hidden>
                 🔍
               </span>
-              <span className="truncate text-[11px] text-mute">https://example.com/blog/seo-basics</span>
+              <span className="truncate text-2xs text-mute">https://example.com/blog/seo-basics</span>
             </div>
             <div className="rounded-lg border border-black/10 p-4">
               <p className="flex items-center gap-2 text-sm font-bold text-[#188038]">
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#188038] text-[11px] text-white" aria-hidden>
+                <span className="flex size-5 items-center justify-center rounded-full bg-[#188038] text-2xs text-white" aria-hidden>
                   ✓
                 </span>
                 URL は Google に登録されています
                 <Mark n={1} />
               </p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-mute">
+              <p className="mt-1.5 text-2xs leading-relaxed text-mute">
                 このページは検索結果に表示される可能性があります（拡張機能とセキュリティの問題がない場合）。
               </p>
-              <div className="mt-4 space-y-2 border-t border-black/10 pt-3 text-[11px]">
+              <div className="mt-4 space-y-2 border-t border-black/10 pt-3 text-2xs">
                 {[
                   ["検出元サイトマップ", "https://example.com/sitemap.xml"],
                   ["参照元ページ", "https://example.com/blog/"],
@@ -326,10 +326,10 @@ export function ScreenUrlInspection() {
                 ))}
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded border border-[#1a73e8] px-3 py-1.5 text-[11px] font-semibold text-[#1967d2]">
+                <span className="rounded border border-[#1a73e8] px-3 py-1.5 text-2xs font-semibold text-[#1967d2]">
                   公開 URL をテスト
                 </span>
-                <span className="rounded bg-[#1a73e8] px-3 py-1.5 text-[11px] font-semibold text-white">
+                <span className="rounded bg-[#1a73e8] px-3 py-1.5 text-2xs font-semibold text-white">
                   インデックス登録をリクエスト
                 </span>
                 <Mark n={3} />
@@ -386,7 +386,7 @@ export function ScreenSerp() {
                 </span>
               ))}
             </div>
-            <p className="mt-2 text-[10px] font-semibold text-[#1967d2]">
+            <p className="mt-2 text-3xs font-semibold text-[#1967d2]">
               ← 引用元として並ぶ枠。ここに載る前提はインデックス登録
             </p>
           </div>
@@ -398,13 +398,13 @@ export function ScreenSerp() {
               { site: "another.jp › column", title: "初心者向けSEOチェックリスト", you: false },
             ].map((r) => (
               <div key={r.title} className={r.you ? "-mx-2 rounded-lg bg-[#e6f4ea] px-2 py-1.5" : ""}>
-                <p className="text-[10px] text-mute">{r.site}</p>
+                <p className="text-3xs text-mute">{r.site}</p>
                 <p className="text-[13px] font-medium leading-snug text-[#1a0dab]">{r.title}</p>
                 <div className="mt-1 space-y-1" aria-hidden>
                   <div className="h-1.5 w-full rounded bg-black/10" />
                   <div className="h-1.5 w-9/12 rounded bg-black/10" />
                 </div>
-                {r.you && <p className="mt-1.5 text-[10px] font-bold text-[#188038]">← 自然検索の枠。順位・タイトル・説明文で流入が決まる</p>}
+                {r.you && <p className="mt-1.5 text-3xs font-bold text-[#188038]">← 自然検索の枠。順位・タイトル・説明文で流入が決まる</p>}
               </div>
             ))}
           </div>

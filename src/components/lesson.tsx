@@ -8,6 +8,8 @@ import { CASE_AREAS } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, type Lesson, lessonJsonLd, lessonNeighbors, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
 import { SITE_URL } from "@/lib/site";
+import { EYEBROW, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
+import { Card, CardLink, Eyebrow } from "./ui";
 
 // /learn のレッスンページ共通の枠。各ページは「目次(TOC)」と「本文」だけを書けば、
 // 到達目標パネル・現在位置・チェックリスト・FAQ・出典・前後ナビが同じ並びで付く。
@@ -35,8 +37,8 @@ export function LessonRail({ current }: { current: number }) {
                   here
                     ? "bg-accent text-ink"
                     : done
-                      ? "bg-ink/10 text-ink dark:bg-paper/15 dark:text-paper"
-                      : "border border-ink/10 text-mute hover:border-ink/40 dark:border-paper/10 dark:hover:border-paper/40"
+                      ? "bg-fill-strong text-fg"
+                      : "border border-line text-mute hover:border-line-strong"
                 }`}
               >
                 {l.order}
@@ -54,8 +56,8 @@ export function LessonGoal({ lesson }: { lesson: Lesson }) {
   const level = LEVELS[lesson.level];
   return (
     <section aria-label="このレッスンの到達目標" className="not-prose -mt-4 mb-12">
-      <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.4)] dark:border-paper/10 dark:bg-white/5 sm:p-9">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-mute">
+      <Card padding="roomy" className="shadow-panel">
+        <div className={cx(EYEBROW.mute, "flex flex-wrap items-center gap-3")}>
           <span className={`inline-flex items-center gap-2 ${TONE_TEXT[level.tone]}`}>
             <span className={`inline-block size-2 rounded-full ${TONE_BAR[level.tone]}`} />
             {level.label}
@@ -66,8 +68,8 @@ export function LessonGoal({ lesson }: { lesson: Lesson }) {
           <span>約{lesson.minutes}分</span>
         </div>
         <p className="mt-4 text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">{lesson.goal}</p>
-        <div className="mt-7 border-t border-ink/10 pt-6 dark:border-paper/10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-mute">このレッスンで扱うこと</p>
+        <div className="mt-7 border-t border-line pt-6">
+          <Eyebrow className="mb-3">このレッスンで扱うこと</Eyebrow>
           <ul className="space-y-2.5">
             {lesson.objectives.map((o) => (
               <li key={o} className="flex gap-3 text-sm leading-relaxed sm:text-base">
@@ -77,7 +79,7 @@ export function LessonGoal({ lesson }: { lesson: Lesson }) {
             ))}
           </ul>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }
@@ -85,11 +87,11 @@ export function LessonGoal({ lesson }: { lesson: Lesson }) {
 /** 到達チェックリスト。読者が自分のサイトで確認する項目 */
 export function LessonChecklist({ items }: { items: string[] }) {
   return (
-    <div className="not-prose my-8 rounded-3xl border border-ink/10 p-6 dark:border-paper/10 sm:p-8">
+    <div className={cx(SURFACE.outline, PADDING.card, "not-prose my-8")}>
       <ul className="space-y-4">
         {items.map((c) => (
           <li key={c} className="flex gap-4 text-sm leading-relaxed sm:text-base">
-            <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-ink/25 text-xs dark:border-paper/25" aria-hidden>
+            <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-line-strong text-xs" aria-hidden>
               ✓
             </span>
             <span>{c}</span>
@@ -110,20 +112,20 @@ export function CaseList({ cases, note }: { cases: Case[]; note?: ReactNode }) {
       {cases.map((c) => {
         const area = CASE_AREAS[c.area];
         return (
-          <article key={c.id} className="overflow-hidden rounded-3xl border border-ink/10 dark:border-paper/10">
+          <article key={c.id} className={cx(SURFACE.outline, "overflow-hidden")}>
             <div className={`h-1.5 ${TONE_BAR[area.tone]}`} />
-            <div className="p-6 sm:p-8">
-              <p className={`text-xs font-bold uppercase tracking-[0.2em] ${TONE_TEXT[area.tone]}`}>{area.label}</p>
+            <div className={PADDING.card}>
+              <p className={cx(EYEBROW.mute, TONE_TEXT[area.tone])}>{area.label}</p>
               <h3 className="mt-2 text-xl font-bold tracking-tight sm:text-2xl">{c.site}</h3>
               <p className="mt-1 text-sm text-mute">{c.sector}</p>
 
               <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_1fr]">
                 <div>
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-mute">やったこと</p>
+                  <Eyebrow className="mb-2">やったこと</Eyebrow>
                   <p className="text-sm leading-relaxed">{c.did}</p>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-mute">報告された結果</p>
+                  <Eyebrow className="mb-2">報告された結果</Eyebrow>
                   <ul className="space-y-2">
                     {c.results.map((r) => (
                       <li key={r} className="flex gap-2.5 text-sm leading-relaxed">
@@ -135,9 +137,9 @@ export function CaseList({ cases, note }: { cases: Case[]; note?: ReactNode }) {
                 </div>
               </div>
 
-              <p className="mt-6 border-t border-ink/10 pt-4 text-xs leading-relaxed text-mute dark:border-paper/10">
+              <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-mute">
                 出典:{" "}
-                <a href={c.source.url} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">
+                <a href={c.source.url} target="_blank" rel="noopener" className={LINK}>
                   {c.source.title}
                 </a>
                 （{c.source.publisher}）
@@ -159,30 +161,30 @@ export function LessonNav({ slug }: { slug: string }) {
   return (
     <nav aria-label="前後のレッスン" className="not-prose mt-6 grid gap-4 sm:grid-cols-2">
       {prev ? (
-        <Link href={lessonPath(prev.slug)} className="group rounded-3xl border border-ink/10 p-6 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">← 前のレッスン {String(prev.order).padStart(2, "0")}</p>
+        <CardLink href={lessonPath(prev.slug)}>
+          <Eyebrow>← 前のレッスン {String(prev.order).padStart(2, "0")}</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">{prev.title}</p>
           <p className="mt-2 text-sm leading-relaxed text-mute">{prev.goal}</p>
-        </Link>
+        </CardLink>
       ) : (
-        <Link href={COURSE.path} className="group rounded-3xl border border-ink/10 p-6 transition hover:-translate-y-1 dark:border-paper/10">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">← カリキュラム</p>
+        <CardLink href={COURSE.path}>
+          <Eyebrow>← カリキュラム</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">{COURSE.h1}</p>
           <p className="mt-2 text-sm leading-relaxed text-mute">10レッスン全体の地図に戻る。</p>
-        </Link>
+        </CardLink>
       )}
       {next ? (
-        <Link href={lessonPath(next.slug)} className="group rounded-3xl border border-ink/10 bg-ink p-6 text-paper transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:bg-paper dark:text-ink">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">次のレッスン {String(next.order).padStart(2, "0")} →</p>
+        <CardLink href={lessonPath(next.slug)} tone="invert">
+          <Eyebrow tone="faint">次のレッスン {String(next.order).padStart(2, "0")} →</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">{next.title}</p>
           <p className="mt-2 text-sm leading-relaxed opacity-70">{next.goal}</p>
-        </Link>
+        </CardLink>
       ) : (
-        <Link href={COURSE.path} className="group rounded-3xl border border-ink/10 bg-ink p-6 text-paper transition hover:-translate-y-1 dark:bg-paper dark:text-ink">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">修了 →</p>
+        <CardLink href={COURSE.path} tone="invert">
+          <Eyebrow tone="faint">修了 →</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">カリキュラムに戻る</p>
           <p className="mt-2 text-sm leading-relaxed opacity-70">10レッスンを通した。あとは4週間ごとに数値で確認しながら回す。</p>
-        </Link>
+        </CardLink>
       )}
     </nav>
   );
@@ -207,7 +209,7 @@ export function LessonShell({ lesson, toc, children }: { lesson: Lesson; toc: { 
         crumbs={[{ name: COURSE.h1, href: COURSE.path }, { name: lesson.title }]}
       />
 
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert prose-headings:scroll-mt-24 sm:py-20">
+      <div className={cx(PROSE.page, "prose-headings:scroll-mt-24")}>
         <LessonRail current={lesson.order} />
         <LessonGoal lesson={lesson} />
         <GuideToc items={fullToc} />

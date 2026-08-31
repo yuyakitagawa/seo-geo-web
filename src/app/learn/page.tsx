@@ -8,6 +8,7 @@ import { CASES } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
+import { EYEBROW, HEADING, LIFT, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
 const url = `${SITE_URL}${COURSE.path}`;
 
@@ -42,25 +43,25 @@ export default function LearnPage() {
         crumbs={[{ name: COURSE.h1 }]}
       />
 
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert prose-headings:scroll-mt-24 sm:py-20">
+      <div className={cx(PROSE.page, "prose-headings:scroll-mt-24")}>
         <section aria-label="このカリキュラムの概要" className="not-prose -mt-8 mb-14">
-          <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.4)] dark:border-paper/10 dark:bg-white/5 sm:p-9">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">Curriculum · 1行でいうと</p>
+          <div className={cx(SURFACE.card, PADDING.roomy, "shadow-panel")}>
+            <p className={EYEBROW.mute}>Curriculum · 1行でいうと</p>
             <p className="mt-4 text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">
               SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の順に3レベル{LESSONS.length}レッスンで積み上げる教科書です。
             </p>
-            <dl className="mt-7 grid gap-4 border-t border-ink/10 pt-6 dark:border-paper/10 sm:grid-cols-3">
+            <dl className="mt-7 grid gap-4 border-t border-line pt-6 sm:grid-cols-3">
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.2em] text-mute">レッスン数</dt>
-                <dd className="mt-1 text-2xl font-bold tracking-tight">{LESSONS.length}本</dd>
+                <dt className={EYEBROW.mute}>レッスン数</dt>
+                <dd className={cx(HEADING.section, "mt-1")}>{LESSONS.length}本</dd>
               </div>
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.2em] text-mute">通読の目安</dt>
-                <dd className="mt-1 text-2xl font-bold tracking-tight">約{totalMinutes}分</dd>
+                <dt className={EYEBROW.mute}>通読の目安</dt>
+                <dd className={cx(HEADING.section, "mt-1")}>約{totalMinutes}分</dd>
               </div>
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.2em] text-mute">収録した実例</dt>
-                <dd className="mt-1 text-2xl font-bold tracking-tight">{CASES.length}件</dd>
+                <dt className={EYEBROW.mute}>収録した実例</dt>
+                <dd className={cx(HEADING.section, "mt-1")}>{CASES.length}件</dd>
               </div>
             </dl>
           </div>
@@ -117,8 +118,8 @@ export default function LearnPage() {
                 <div className="mb-5 flex items-baseline gap-3">
                   <span className={`inline-block size-2.5 shrink-0 rounded-full ${TONE_BAR[level.tone]}`} />
                   <div>
-                    <p className={`text-xs font-bold uppercase tracking-[0.2em] ${TONE_TEXT[level.tone]}`}>{level.label}</p>
-                    <h3 className="mt-1 text-2xl font-bold tracking-tight">{level.name}</h3>
+                    <p className={cx(EYEBROW.mute, TONE_TEXT[level.tone])}>{level.label}</p>
+                    <h3 className={cx(HEADING.section, "mt-1")}>{level.name}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-mute">{level.lead}</p>
                   </div>
                 </div>
@@ -127,7 +128,7 @@ export default function LearnPage() {
                     <li key={l.slug}>
                       <Link
                         href={lessonPath(l.slug)}
-                        className="group flex gap-5 rounded-3xl border border-ink/10 p-5 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10 sm:p-6"
+                        className={cx("group flex gap-5 p-5 sm:p-6", SURFACE.outline, LIFT)}
                       >
                         <span className="mt-0.5 font-mono text-sm font-bold tabular-nums text-mute">{String(l.order).padStart(2, "0")}</span>
                         <span className="min-w-0">

@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { CONTAINER, cx } from "@/lib/ui";
 import { HAS_CONTACT, SITE_DESCRIPTION, SITE_NAME, X_PROFILE_URL } from "@/lib/site";
 
 export default function Footer() {
   return (
-    <footer className="mt-24 bg-ink text-paper dark:bg-paper dark:text-ink">
-      <div className="mx-auto max-w-6xl px-5 py-16">
+    <footer className="mt-24 bg-invert text-invert-fg">
+      <div className={cx(CONTAINER.page, "py-16")}>
         <p className="text-[clamp(2.5rem,9vw,7rem)] font-bold leading-none tracking-tighter">
           {SITE_NAME.split("・").map((w, i) => (
             <span key={w} className={i % 2 ? "text-accent" : ""}>{w}{i < 1 ? "・" : ""}</span>

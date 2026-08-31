@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CRAWLERS, PRESETS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
 import { check, parseRobots } from "@/lib/robots";
+import { CHIP, CODE, FIELD, cx } from "@/lib/ui";
 
 const SAMPLE = `User-agent: *
 Disallow: /wp-admin/
@@ -51,7 +52,7 @@ export default function AiCrawlerChecker() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-ink/10 bg-white p-6 dark:border-paper/10 dark:bg-white/5 sm:p-8">
+      <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <label htmlFor="robots" className="text-sm font-bold">
             robots.txt の中身を貼り付ける
@@ -60,21 +61,21 @@ export default function AiCrawlerChecker() {
             <button
               type="button"
               onClick={() => setText(SAMPLE)}
-              className="rounded-full border border-ink/15 px-3 py-1.5 font-medium transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink"
+              className={cx(CHIP, "font-medium")}
             >
               例を入れる
             </button>
             <button
               type="button"
               onClick={() => setText("")}
-              className="rounded-full border border-ink/15 px-3 py-1.5 font-medium transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink"
+              className={cx(CHIP, "font-medium")}
             >
               消す
             </button>
           </div>
         </div>
         <p className="mt-2 text-xs text-mute">
-          自分のサイトの <code className="rounded bg-ink/5 px-1 py-0.5 dark:bg-paper/10">https://（ドメイン）/robots.txt</code> をブラウザで開き、表示された全文をそのまま貼ってください。
+          自分のサイトの <code className="rounded bg-fill px-1 py-0.5">https://（ドメイン）/robots.txt</code> をブラウザで開き、表示された全文をそのまま貼ってください。
           このツールはブラウザの中だけで判定します（入力はどこにも送信されません）。
         </p>
         <textarea
@@ -84,7 +85,7 @@ export default function AiCrawlerChecker() {
           spellCheck={false}
           rows={10}
           placeholder={"User-agent: *\nDisallow: /wp-admin/"}
-          className="mt-4 w-full resize-y rounded-2xl border border-ink/15 bg-paper p-4 font-mono text-sm leading-relaxed outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+          className={cx(FIELD.area, "mt-4 w-full")}
         />
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label htmlFor="path" className="text-sm font-bold">
@@ -95,7 +96,7 @@ export default function AiCrawlerChecker() {
             value={path}
             onChange={(e) => setPath(e.target.value)}
             spellCheck={false}
-            className="w-64 rounded-full border border-ink/15 bg-paper px-4 py-2 font-mono text-sm outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+            className={cx(FIELD.input, "w-64 px-4 py-2")}
           />
           <span className="text-xs text-mute">例: /articles/12</span>
         </div>
@@ -103,7 +104,7 @@ export default function AiCrawlerChecker() {
 
       {hasInput && (
         <>
-          <div className="rounded-3xl bg-ink p-6 text-paper dark:bg-paper dark:text-ink sm:p-8">
+          <div className="rounded-card bg-invert p-6 text-invert-fg sm:p-8">
             <p className="text-xs font-bold uppercase tracking-wider opacity-60">判定結果</p>
             <p className="mt-2 text-xl font-bold leading-snug sm:text-2xl">
               {blockedAiSearch === 0
@@ -122,9 +123,9 @@ export default function AiCrawlerChecker() {
               <section key={purpose}>
                 <h3 className="text-lg font-bold tracking-tight">{PURPOSE[purpose].label}</h3>
                 <p className="mb-4 mt-1 text-sm text-mute">{PURPOSE[purpose].lead}</p>
-                <div className="overflow-x-auto rounded-3xl border border-ink/10 dark:border-paper/10">
+                <div className="overflow-x-auto rounded-card border border-line">
                   <table className="w-full min-w-[760px] text-sm">
-                    <thead className="bg-ink/5 text-left text-xs uppercase tracking-wider text-mute dark:bg-paper/5">
+                    <thead className="bg-fill text-left text-xs uppercase tracking-wider text-mute">
                       <tr>
                         <th className="px-4 py-3">クローラー</th>
                         <th className="px-4 py-3">判定</th>
@@ -134,7 +135,7 @@ export default function AiCrawlerChecker() {
                     </thead>
                     <tbody>
                       {rows.map(({ crawler, result }) => (
-                        <tr key={crawler.token} className="border-t border-ink/10 align-top dark:border-paper/10">
+                        <tr key={crawler.token} className="border-t border-line align-top">
                           <td className="px-4 py-4">
                             <code className="font-mono text-sm font-semibold">{crawler.token}</code>
                             <div className="mt-1 text-xs text-mute">{crawler.vendor}</div>
@@ -171,22 +172,22 @@ export default function AiCrawlerChecker() {
           {PRESETS.map((p) => {
             const value = p.build();
             return (
-              <div key={p.key} className="flex flex-col rounded-3xl border border-ink/10 p-5 dark:border-paper/10">
+              <div key={p.key} className="flex flex-col rounded-card border border-line p-5">
                 <p className="font-bold">{p.label}</p>
                 <p className="mt-1 text-xs leading-relaxed text-mute">{p.lead}</p>
-                <pre className="mt-4 max-h-56 flex-1 overflow-auto rounded-2xl bg-ink/5 p-3 font-mono text-[11px] leading-relaxed dark:bg-paper/10">{value}</pre>
+                <pre className={cx(CODE, "mt-4 max-h-56 flex-1 overflow-auto p-3 text-2xs")}>{value}</pre>
                 <div className="mt-3 flex gap-2">
                   <button
                     type="button"
                     onClick={() => copy(value, p.key)}
-                    className="rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-paper transition hover:opacity-80 dark:bg-paper dark:text-ink"
+                    className="rounded-full bg-invert px-3 py-1.5 text-xs font-semibold text-invert-fg transition hover:opacity-80"
                   >
                     {copied === p.key ? "コピーしました" : "コピー"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setText(value)}
-                    className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-semibold transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink"
+                    className={cx(CHIP, "text-xs font-semibold")}
                   >
                     上で判定する
                   </button>

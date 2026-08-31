@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { CRAWLERS } from "@/lib/crawlers";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
 
 const PATH = "/tools/ai-crawlers";
 const url = `${SITE_URL}${PATH}`;
@@ -72,7 +73,7 @@ export default function AiCrawlersToolPage() {
         crumbs={[{ name: "ツール", href: "/tools" }, { name: TITLE }]}
       />
 
-      <div className="mx-auto max-w-4xl space-y-14 px-5 py-14 sm:py-20">
+      <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>
         {/* 直答段落。AI検索と強調スニペットはここを抜き出す */}
         <p className="leading-relaxed text-mute">
           AI検索のクローラーは「回答に引用するために読むもの」と「モデルの学習に使うために読むもの」に分かれ、robots.txt では別々に指定します。
@@ -83,7 +84,7 @@ export default function AiCrawlersToolPage() {
         <AiCrawlerChecker />
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold tracking-tight">判定でよく誤解される3点</h2>
+          <h2 className={HEADING.section}>判定でよく誤解される3点</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
               {
@@ -99,7 +100,7 @@ export default function AiCrawlersToolPage() {
                 d: "ChatGPT-User や Perplexity-User はユーザーの操作で動くため、robots.txt が適用されない場合があると各社が明記しています。",
               },
             ].map((x) => (
-              <div key={x.t} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <div key={x.t} className={cx(SURFACE.outline, PADDING.tight)}>
                 <p className="font-bold leading-snug">{x.t}</p>
                 <p className="mt-2 text-sm leading-relaxed text-mute">{x.d}</p>
               </div>
@@ -108,10 +109,10 @@ export default function AiCrawlersToolPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold tracking-tight">よくある質問</h2>
+          <h2 className={HEADING.section}>よくある質問</h2>
           <dl className="space-y-5">
             {FAQ.map((f) => (
-              <div key={f.question} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <div key={f.question} className={cx(SURFACE.outline, PADDING.tight)}>
                 <dt className="font-bold leading-snug">{f.question}</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-mute">{f.answer}</dd>
               </div>
@@ -120,7 +121,7 @@ export default function AiCrawlersToolPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">出典</h2>
+          <h2 className={HEADING.section}>出典</h2>
           <p className="mt-1 text-sm text-mute">
             クローラー名と用途は、各社の公式ドキュメントで確認しています（確認日 {CRAWLERS[0].verified}）。
             仕様は変わるため、設定前に各ページを確認してください。
@@ -128,7 +129,7 @@ export default function AiCrawlersToolPage() {
           <ul className="mt-4 space-y-2 text-sm">
             {SOURCES.map((s) => (
               <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">
+                <a href={s.url} target="_blank" rel="noopener" className={LINK}>
                   {s.title}
                 </a>
               </li>

@@ -16,6 +16,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
 - `content/howto-topics.csv`: HOW TO記事のテーマ表（status/category/title/intent/sources/articleId/note）。人が「採用」を付け、generate-howto が記事化する。出典URLはここに書いたものだけ使える。
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
+- `src/app/globals.css` / `src/lib/ui.ts` / `src/components/ui.tsx`: デザインシステム（トークン／クラス定義／部品）。見た目は必ずこの3つ経由で書く。`dark:` は原則書かない（セマンティックトークンが反転する）。詳細は `docs/design-system.md`。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。カテゴリのリンク先は `categoryHref()` だけを通す（`/category/*` は廃止し `/seo` `/geo` `/news` に統合。旧URLは `next.config.ts` で308）。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
 - `src/lib/toc.ts`: 記事の目次（MDXから見出しを拾い、rehype-slug と同じidを再現する）。`src/lib/og.tsx`: OGP画像の共通枠（`ogFrame` / `pageOgImage`）。`opengraph-image.tsx` はセグメントごとに置き、下位ページへ引き継がれる。ただし `openGraph` を自前で書くページには引き継がれないので `images` を明示する。
 - `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。

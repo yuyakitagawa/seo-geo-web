@@ -29,7 +29,7 @@ export default function AdUnit({ placement, className = "" }: { placement: AdPla
 
   return (
     <aside className={`my-8 ${className}`}>
-      <p className="mb-1 text-xs tracking-wider text-neutral-400">広告</p>
+      <p className="mb-1 text-xs tracking-wider text-mute">広告</p>
       <ins
         ref={insRef}
         className="adsbygoogle"

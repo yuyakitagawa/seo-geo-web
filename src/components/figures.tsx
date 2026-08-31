@@ -14,24 +14,24 @@ const TONE_BAR: Record<Tone, string> = {
   geo: "bg-geo",
   news: "bg-news",
   accent: "bg-accent",
-  ink: "bg-ink dark:bg-paper",
+  ink: "bg-invert",
 };
 const TONE_TEXT: Record<Tone, string> = {
   seo: "text-seo",
   geo: "text-geo",
   news: "text-news",
   accent: "text-accent",
-  ink: "text-ink dark:text-paper",
+  ink: "text-fg",
 };
 
 // 共通の外枠。「画像」らしく本文から浮き上がる黒地カードにする。
 export function Frame({ title, caption, children }: { title: string; caption?: ReactNode; children: ReactNode }) {
   return (
     <figure className="not-prose my-10">
-      <div className="relative overflow-hidden rounded-3xl bg-ink p-6 text-paper sm:p-8 dark:border dark:border-paper/15">
+      <div className="relative overflow-hidden rounded-card bg-ink p-6 text-paper sm:p-8 dark:border dark:border-line-strong">
         <div className="bg-grid absolute inset-0 opacity-40" aria-hidden />
         <div className="relative">
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Figure</p>
+          <p className="mb-1 text-3xs font-bold uppercase tracking-[0.2em] text-accent">Figure</p>
           <p className="mb-6 text-lg font-bold leading-snug tracking-tight sm:text-xl">{title}</p>
           {children}
         </div>
@@ -58,7 +58,7 @@ export function FigureCompare({
     <Frame title={title} caption={caption}>
       <div className={`grid gap-3 ${cols.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {cols.map((c) => (
-          <div key={c.label} className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur">
+          <div key={c.label} className="overflow-hidden rounded-panel bg-white/5 backdrop-blur">
             <div className={`h-1.5 ${TONE_BAR[c.tone ?? "accent"]}`} />
             <div className="p-4 sm:p-5">
               <p className={`text-base font-bold ${TONE_TEXT[c.tone ?? "accent"]}`}>{c.label}</p>
@@ -99,7 +99,7 @@ export function FigureDoDont({
   dontLabel?: string;
 }) {
   const panel = (label: string, items: string[], positive: boolean) => (
-    <div className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur">
+    <div className="overflow-hidden rounded-panel bg-white/5 backdrop-blur">
       <div className={`h-1.5 ${positive ? "bg-accent" : "bg-news"}`} />
       <div className="p-4 sm:p-5">
         <p className={`text-base font-bold ${positive ? "text-accent" : "text-news"}`}>{label}</p>
@@ -107,7 +107,7 @@ export function FigureDoDont({
           {items.map((p) => (
             <li key={p} className="flex gap-2.5">
               <span
-                className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-2xs font-bold ${
                   positive ? "bg-accent text-accent-ink" : "bg-news text-white"
                 }`}
                 aria-hidden
@@ -181,7 +181,7 @@ export function FigureStats({
     <Frame title={title} caption={caption}>
       <div className={`grid gap-3 ${stats.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl bg-white/5 p-4 backdrop-blur sm:p-5">
+          <div key={s.label} className="rounded-panel bg-white/5 p-4 backdrop-blur sm:p-5">
             <p className="text-3xl font-bold tracking-tight text-accent sm:text-4xl">{s.value}</p>
             <p className="mt-2 text-sm font-semibold leading-snug">{s.label}</p>
             {s.note && <p className="mt-1 text-xs leading-relaxed text-paper/60">{s.note}</p>}
@@ -255,7 +255,7 @@ export function FigureBars({
  */
 export function FigureQuote({ text, source }: { text: string; source?: ReactNode }) {
   return (
-    <figure className="not-prose my-10 overflow-hidden rounded-3xl border-l-8 border-accent bg-ink p-6 text-paper sm:p-8 dark:border-y dark:border-r dark:border-y-paper/15 dark:border-r-paper/15">
+    <figure className="not-prose my-10 overflow-hidden rounded-card border-l-8 border-accent bg-ink p-6 text-paper sm:p-8 dark:border-y dark:border-r dark:border-y-line-strong dark:border-r-line-strong">
       <blockquote className="text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">「{text}」</blockquote>
       {source && <figcaption className="mt-4 text-sm text-paper/60">— {source}</figcaption>}
     </figure>
@@ -279,8 +279,8 @@ export function FigurePipeline({
     <Frame title={title} caption={caption}>
       <div className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(0,1fr))] sm:grid-flow-col">
         {stages.map((st, i) => (
-          <div key={st.label} className="relative rounded-2xl bg-white/5 p-4 backdrop-blur sm:p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-paper/40">Step {i + 1}</p>
+          <div key={st.label} className="relative rounded-panel bg-white/5 p-4 backdrop-blur sm:p-5">
+            <p className="text-3xs font-bold uppercase tracking-[0.2em] text-paper/40">Step {i + 1}</p>
             <p className="mt-1 text-base font-bold text-accent">{st.label}</p>
             {st.desc && <p className="mt-2 text-sm leading-relaxed text-paper/80">{st.desc}</p>}
             {st.fail && (
@@ -327,7 +327,7 @@ export function FigureStack({
         {layers.map((l, i) => {
           const width = 100 - (layers.length - 1 - i) * 12;
           return (
-            <div key={l.label} className="mx-auto overflow-hidden rounded-2xl bg-white/5 backdrop-blur" style={{ maxWidth: `${width}%` }}>
+            <div key={l.label} className="mx-auto overflow-hidden rounded-panel bg-white/5 backdrop-blur" style={{ maxWidth: `${width}%` }}>
               <div className="flex">
                 <div className={`w-1.5 shrink-0 ${TONE_BAR[l.tone ?? "accent"]}`} />
                 <div className="flex-1 p-4 sm:px-5">
@@ -386,14 +386,14 @@ export function FigureGauge({
               ))}
             </div>
             <div className="relative mt-2 h-4">
-              <span className="absolute -translate-x-1/2 text-[11px] font-semibold tabular-nums text-paper/80" style={{ left: "50%" }}>
+              <span className="absolute -translate-x-1/2 text-2xs font-semibold tabular-nums text-paper/80" style={{ left: "50%" }}>
                 {it.good}
               </span>
-              <span className="absolute -translate-x-1/2 text-[11px] font-semibold tabular-nums text-paper/80" style={{ left: "75%" }}>
+              <span className="absolute -translate-x-1/2 text-2xs font-semibold tabular-nums text-paper/80" style={{ left: "75%" }}>
                 {it.poor}
               </span>
             </div>
-            <div className="mt-1 flex text-[11px] font-semibold">
+            <div className="mt-1 flex text-2xs font-semibold">
               <div className="w-1/2 text-accent">{labels[0]}</div>
               <div className="w-1/4 text-center text-amber-400">{labels[1]}</div>
               <div className="w-1/4 text-right text-news">{labels[2]}</div>
@@ -442,7 +442,7 @@ export function FigureTimeline({
       </div>
       <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,11rem)_1fr]">
         <div className="hidden sm:block" />
-        <div className="flex justify-between border-t border-paper/15 pt-2 text-[11px] tabular-nums text-paper/50">
+        <div className="flex justify-between border-t border-paper/15 pt-2 text-2xs tabular-nums text-paper/50">
           {axis.map((a) => (
             <span key={a}>{a}</span>
           ))}

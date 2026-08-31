@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { CONTACT_EMAIL, CONTACT_FORM_URL, HAS_CONTACT, SITE_NAME, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
+import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
@@ -23,7 +24,7 @@ export default function ContactPage() {
         lead="記事の誤りのご指摘、権利関係のご連絡、その他のお問い合わせはこちらへお願いします。"
         crumbs={[{ name: "お問い合わせ" }]}
       />
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
+      <div className={PROSE.page}>
         <h2>連絡先</h2>
         <ul>
           {CONTACT_EMAIL && (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ArticleMeta } from "@/lib/content";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
+import { LIFT, SURFACE, cx } from "@/lib/ui";
 import KeyVisual from "./KeyVisual";
 import CategoryBadge from "./CategoryBadge";
 import TypeBadge from "./TypeBadge";
@@ -10,7 +11,7 @@ export default function ArticleCard({ article, featured = false, index = 0 }: { 
   const glow = CATEGORY_STYLE[article.category].glow;
   return (
     <article
-      className={`group relative overflow-hidden rounded-3xl border border-ink/10 bg-white transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10 dark:bg-white/5 ${featured ? "sm:col-span-2" : ""}`}
+      className={cx("group relative overflow-hidden", SURFACE.card, LIFT, featured && "sm:col-span-2")}
       style={{ animation: `rise 0.7s cubic-bezier(0.2,0.8,0.2,1) ${Math.min(index, 8) * 60}ms both` }}
     >
       <div className={`pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-gradient-to-br ${glow} to-transparent opacity-0 blur-3xl transition duration-700 group-hover:opacity-100`} />

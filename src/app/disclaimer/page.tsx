@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { HAS_CONTACT, POLICY_UPDATED_LABEL, SITE_NAME } from "@/lib/site";
+import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "免責事項",
@@ -18,7 +19,7 @@ export default function DisclaimerPage() {
         lead="記事の正確性、外部リンク、著作権と引用の扱いについての当サイトの立場です。"
         crumbs={[{ name: "免責事項" }]}
       />
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
+      <div className={PROSE.page}>
         <h2>記事内容について</h2>
         <p>
           当サイトの記事は、公開時点で入手できる一次情報をもとに正確を期して作成していますが、内容の正確性・

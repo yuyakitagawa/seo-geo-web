@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { HAS_CONTACT, POLICY_UPDATED_LABEL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
@@ -20,7 +21,7 @@ export default function PrivacyPage() {
         lead="当サイトが取得する情報と、広告配信・アクセス解析でのCookieの扱いについて説明します。"
         crumbs={[{ name: "プライバシーポリシー" }]}
       />
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
+      <div className={PROSE.page}>
         <p>
           {SITE_NAME}（{SITE_URL}、以下「当サイト」）における個人情報およびCookie等の取り扱いについて、
           以下のとおり定めます。本ポリシーは当サイトのすべてのページに適用されます。
