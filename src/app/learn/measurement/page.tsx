@@ -31,7 +31,7 @@ const TOC = [
   { id: "stop", label: "施策を畳む基準" },
 ];
 
-export default function Lesson08() {
+export default function Lesson10() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -158,7 +158,7 @@ export default function Lesson08() {
               check: "手動による対策に問題が出ていない",
               where: "セキュリティと手動による対策 → 手動による対策",
               ok: "「問題は検出されませんでした」と表示される",
-              ng: <>他の数値を見る前にここを処理する。手順は<Link href={lessonPath("updates-risk")}>レッスン11</Link>。<GuideRef {...REF.manual} /></>,
+              ng: <>他の数値を見る前にここを処理する。手順は<Link href={lessonPath("updates-risk")}>レッスン12</Link>。<GuideRef {...REF.manual} /></>,
             },
             {
               check: "セキュリティの問題が出ていない",
@@ -233,7 +233,7 @@ export default function Lesson08() {
               check: "URLを変えたら、旧URLと新URLの両方を追う",
               where: "URL 検査 ＋ ページ（インデックス登録）",
               ok: "旧URLがリダイレクト扱いになり、新URLが登録されていく",
-              ng: <>サイト移転時の手順は<Link href={lessonPath("updates-risk")}>レッスン11</Link>。</>,
+              ng: <>サイト移転時の手順は<Link href={lessonPath("updates-risk")}>レッスン12</Link>。</>,
             },
             {
               check: "施策の開始日と対象URLを記録した",
@@ -355,7 +355,7 @@ export default function Lesson08() {
             [
               "表示回数が落ちた",
               "原因を切り分ける",
-              "技術的な問題 → 手動による対策 → 季節性 → アルゴリズム更新の順に確認する（レッスン11）",
+              "技術的な問題 → 手動による対策 → 季節性 → アルゴリズム更新の順に確認する（レッスン12）",
             ],
             [
               "サイト全体で急落した",

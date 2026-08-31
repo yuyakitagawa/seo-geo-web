@@ -101,7 +101,7 @@ export default function Lesson01() {
           caption={
             <>
               経路Aの追加要件が無いことはGoogleが公式ドキュメントで明記しています。経路Bの各ボットの扱いは
-              <Link href={lessonPath("geo-implementation")}>レッスン08</Link>で扱います。
+              <Link href={lessonPath("geo-implementation")}>レッスン09</Link>で扱います。
               <GuideRef {...REF.aiFeatures} />
             </>
           }
@@ -118,7 +118,7 @@ export default function Lesson01() {
           ここから分かるのは、<strong>GEOはSEOの置き換えではなく追加である</strong>ということです。
           経路Aは検索インデックスに依存しているため、SEOをやめてGEOだけを行うことはできません。
           GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン06</Link>）と、
-          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン08</Link>）の2つです。
+          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン09</Link>）の2つです。
         </p>
       </GuideSection>
 
@@ -192,7 +192,7 @@ export default function Lesson01() {
         </p>
         <p>
           検索側については、Googleの成功事例やweb.devのケーススタディに、施策と数値が同じ文書で公開されている事例があります。
-          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン10</Link>に集め、
+          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン11</Link>に集め、
           各実装レッスンからも参照しています。
           <GuideRef {...REF.crawlers} />
         </p>
@@ -201,7 +201,7 @@ export default function Lesson01() {
       <GuideSection
         id="roadmap"
         title="この先の学習順序"
-        lead="残り9レッスンは、レベル1（基礎）で自分のサイトの現状を把握し、レベル2（実装）で手を入れ、レベル3（運用）で数値を見ながら回す、という順に並んでいます。"
+        lead="残り12レッスンは、レベル1（基礎）で自分のサイトの現状を把握し、レベル2（実装）で手を入れ、レベル3（運用）で数値を見ながら回す、という順に並んでいます。"
       >
         <GuideTable
           head={["レベル", "レッスン", "終わったときの状態"]}

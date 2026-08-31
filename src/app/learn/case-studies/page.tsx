@@ -26,7 +26,7 @@ const TOC = [
   { id: "caution", label: "自社に当てはめるときの注意" },
 ];
 
-export default function Lesson09() {
+export default function Lesson11() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -156,7 +156,7 @@ export default function Lesson09() {
             [
               "③ 1つの指標に絞る",
               "いま追いかけている指標が1つに決まっているか",
-              <Link key="l8" href={lessonPath("measurement")}>レッスン09</Link>,
+              <Link key="l8" href={lessonPath("measurement")}>レッスン10</Link>,
             ],
           ]}
         />
