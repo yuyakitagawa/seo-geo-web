@@ -61,7 +61,7 @@ export function CardLink({
   children: ReactNode;
 }) {
   return (
-    <Link href={href} className={cx("group", SURFACE[tone], padding !=="none" && PADDING[padding], LIFT, className)}>
+    <Link href={href} className={cx("group", SURFACE[tone], padding !== "none" && PADDING[padding], LIFT, className)}>
       {children}
     </Link>
   );
