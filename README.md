@@ -176,6 +176,13 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   **注意**: ページ側の `metadata` に `openGraph` を自分で書くと、上位セグメントの画像は引き継がれず
   og:image が消える。レッスン11ページがこれに当たるので、`lessonMetadata()`（`src/lib/curriculum.ts`）で
   `openGraph.images` を明示している。`openGraph` を書き足すときは画像も一緒に指定する。
+- **OGP/Twitterカードのメタタグ**: `openGraph` はマージされず**オブジェクトごと置き換わる**ので、
+  自前で書くページは `siteName` / `locale` / `url` も毎回書く。逆に `layout.tsx` の `openGraph` と `twitter` には
+  **`title` / `description` / `url` を置かない**。置くと全下層ページに継承され、記事を共有しても
+  カードの見出しがサイト名になる（X は `twitter:*` を `og:*` より優先する）。
+  `twitter.title` を空けておけば Next が `openGraph`→ページの `title` の順で埋める
+  （`node_modules/next/dist/lib/metadata/resolve-metadata.js` の `postProcessMetadata`）。
+  トップページ分の `og:url` は `src/app/page.tsx` が持つ。
 - **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
 
 ## 記事 frontmatter
@@ -279,7 +286,9 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
   自分の次のページから順に拾うのでどのページも同じ顔にならない）。記事末尾には `ShareButtons`（SDKを読まずWeb Intentのリンクだけ）。
   解説ページは本文の途中に `GuideLessonCta`（`src/components/guide.tsx`）を置いて教科書の該当レッスンへ送る
   —— 末尾の `GuideCrossLinks` は長い解説を読み切らないと届かない。レッスンの見出し・所要時間は `curriculum.ts` から引くので文言は1か所。
-  設置は `/geo` の「AIの回答に引用されるまでの経路」の直後 → レッスン09「GEO実装」。
+  設置は `/geo` の「AIの回答に引用されるまでの経路」の直後（→「GEO実装」）と、`/seo` の「検索Botの種類と動き」の直後（→「テクニカルSEO実装」）。
+  どちらも「仕組みが分かった直後 ＝ 自分のサイトで手を動かす番」の位置に置く。本文中の「レッスン05」のような番号は
+  `lessonNo()`（`src/lib/curriculum.ts`）から引く —— 手で書いた番号はレッスンを1本足した時点で嘘になる。
 - sitemap は **loc と lastmod だけ**を出す。`changefreq` と `priority` はGoogleが無視すると明言している値なので載せない。
   `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
   /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない
