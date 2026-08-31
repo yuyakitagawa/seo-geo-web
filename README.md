@@ -117,7 +117,18 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
   ページ診断とチェッカーの両方がこの1実装を使う。
 - **`POST /api/audit` の安全策**: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
-  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。
+  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。診断結果のHTML・本文は保存しない。
+- **検査されたURLの記録**（`src/lib/audit-log.ts`）: どんなページが検査されているかを記事の題材選びに使うため、
+  Supabase（stock-alert プロジェクトに相乗り）の `seogeo_audit_log` に1件ずつ残す。`SUPABASE_URL` と
+  `SUPABASE_PUBLISHABLE_KEY` があるときだけ動き、未設定なら何もしない（ローカル・プレビューは未設定でよい）。
+  - 残すもの: 検査対象の**ホスト名とパス**、HTTPステータス、指摘の件数、発火した指摘のID、取得時間、失敗時のエラー文
+  - 残さないもの: **URLのクエリ文字列**（`?` 以降。トークン付きURLを貼られても保存しないため `new URL()` で落とす）、
+    検査した人のIP・UA、対象ページのHTML
+  - **保持30日**。相乗り先が取引システムの本番DBなので、期限は Supabase 側の関数 `seogeo_log_audit` が
+    挿入のたびに古い行を削除して担保する（アプリの実装やcronに依存させない）
+  - 渡す鍵は publishable（anon）。テーブルへの直接権限は revoke 済みで、この関数の EXECUTE 以外は何もできない。
+    service_role キーは使わない（相乗り先のDB全体を触れる鍵をVercelに置かないため）
+  - 記録している事実は `/tools/page-audit` のFAQと `/privacy`（5章）に明記する。**内容を変えたら両方直す**
 
 ## デザイン
 - 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）

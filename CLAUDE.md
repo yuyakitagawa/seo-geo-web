@@ -22,6 +22,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/lib/glossary.ts`: 用語集（/glossary）のデータ。1語1文の定義＋出典1つ。可視テキストと DefinedTerm の description は同じ文字列。出典はサイトが既に一次情報として確認済みのURLだけ使う。
 - `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
 - `src/app/api/audit/route.ts`: ページ診断のAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査）を外さない。
+- `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/ai-crawlers`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
 - `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
 - `.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。失敗時はLINE通知（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ）。
@@ -35,7 +36,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - 公開: 毎朝のActionsが自動で main に push する。止めるときは workflow を disable。手で出すときは `draft: true` → `false` にしてpush
 
 ## 3. Env
-`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）。
+`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）/ `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY`（ページ診断のURL記録。未設定なら記録しない）。
 
 ## 4. Workflow
 - 複数ステップの作業は `docs/progress_<作業名>.md` に進捗を記録し、ステップ完了ごとに `[x]` を更新。再開時は進捗ファイルを最初に読む。

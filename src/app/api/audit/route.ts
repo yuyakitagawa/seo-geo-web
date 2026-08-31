@@ -4,6 +4,7 @@
 import dns from "node:dns/promises";
 import net from "node:net";
 import { audit } from "@/lib/audit";
+import { logAudit } from "@/lib/audit-log";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -152,12 +153,24 @@ export async function POST(request: Request) {
         .catch(() => false),
     ]);
 
-    return Response.json(
-      audit({ url, finalUrl, status: res.status, headers, html, robotsTxt, hasLlmsTxt, bytes, elapsedMs, redirects })
-    );
+    const result = audit({ url, finalUrl, status: res.status, headers, html, robotsTxt, hasLlmsTxt, bytes, elapsedMs, redirects });
+
+    await logAudit({
+      url: finalUrl,
+      status: res.status,
+      high: result.counts.high,
+      mid: result.counts.mid,
+      low: result.counts.low,
+      findingIds: result.findings.map((f) => f.id),
+      elapsedMs,
+    });
+
+    return Response.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : "取得に失敗しました";
     const timedOut = /timeout|aborted|signal/i.test(message);
-    return Response.json({ error: timedOut ? "取得がタイムアウトしました（12秒）" : message }, { status: 400 });
+    const error = timedOut ? "取得がタイムアウトしました（12秒）" : message;
+    await logAudit({ url, elapsedMs: Date.now() - started, error });
+    return Response.json({ error }, { status: 400 });
   }
 }
