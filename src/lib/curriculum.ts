@@ -935,7 +935,7 @@ const OG_PIXELS = { width: 1200, height: 630 };
  *
  * `openGraph` を自前で持つページには、上位セグメントの `opengraph-image.tsx` が
  * **自動では引き継がれない**（`/tools/page-audit` のように openGraph を書いていない
- * ページは引き継がれる）。明示しないとレッスン11ページだけ og:image が消えるので、
+ * ページは引き継がれる）。明示しないとレッスンのページだけ og:image が消えるので、
  * `/learn` の画像を images に入れる。
  */
 export function lessonMetadata(lesson: Lesson): Metadata {

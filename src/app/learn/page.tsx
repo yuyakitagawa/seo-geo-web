@@ -5,9 +5,10 @@ import PageHeader from "@/components/PageHeader";
 import { FigureFlow, FigureStack, FigureTimeline } from "@/components/figures";
 import { GuideCrossLinks, GuideTable } from "@/components/guide";
 import { CASES } from "@/lib/cases";
+import type { LevelKey } from "@/lib/curriculum";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonNo, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { EYEBROW, HEADING, LIFT, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
 const url = `${SITE_URL}${COURSE.path}`;
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
   alternates: { canonical: COURSE.path },
   openGraph: {
     type: "article",
+    siteName: SITE_NAME,
+    locale: "ja_JP",
     title: COURSE.metaTitle,
     description: COURSE.description,
     url,
@@ -30,6 +33,12 @@ const TONE_BAR = { accent: "bg-accent", seo: "bg-seo", geo: "bg-geo" } as const;
 const TONE_TEXT = { accent: "text-accent", seo: "text-seo", geo: "text-geo" } as const;
 
 const totalMinutes = LESSONS.reduce((n, l) => n + l.minutes, 0);
+
+// 「レッスン01-04」のようなレベル内の範囲。手で書くとレッスンを1本足した時点で嘘になる。
+function levelRange(level: LevelKey): string {
+  const ls = lessonsByLevel(level);
+  return `レッスン${lessonNo(ls[0].slug)}-${lessonNo(ls[ls.length - 1].slug)}`;
+}
 
 export default function LearnPage() {
   return (
@@ -96,9 +105,9 @@ export default function LearnPage() {
           <FigureStack
             title="レベル1から順に積む"
             layers={[
-              { label: "Level 3 運用", tone: "geo", note: "レッスン10-13", desc: "数値で効果を確認し、実例から共通パターンを取り出し、アップデートとペナルティに備える。" },
-              { label: "Level 2 実装", tone: "seo", note: "レッスン05-09", desc: "技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を順に仕上げる。" },
-              { label: "Level 1 基礎", tone: "accent", note: "レッスン01-04", desc: "検索と生成AIがページを回答に載せる仕組みを理解し、自分のサイトの初期状態を点検する。" },
+              { label: "Level 3 運用", tone: "geo", note: levelRange(3), desc: "数値で効果を確認し、実例から共通パターンを取り出し、アップデートとペナルティに備える。" },
+              { label: "Level 2 実装", tone: "seo", note: levelRange(2), desc: "技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を順に仕上げる。" },
+              { label: "Level 1 基礎", tone: "accent", note: levelRange(1), desc: "検索と生成AIがページを回答に載せる仕組みを理解し、自分のサイトの初期状態を点検する。" },
             ]}
             baseNote="上のレベルから手を付けると、なぜ効いたのか（効かなかったのか）を後から説明できなくなる。"
           />
@@ -194,16 +203,16 @@ export default function LearnPage() {
           <GuideTable
             head={["いまの状態", "入口", "理由"]}
             rows={[
-              ["サイトを作ったばかり／Search Console未登録", "レッスン01 → 02", "計測できない状態では、以降のどの施策も効果を確認できないため"],
-              ["記事はあるが検索結果に出てこない", "レッスン02 → 05", "インデックス登録の前提が満たせていない可能性が高いため"],
-              ["インデックスはされるが順位が伸びない", "レッスン03 → 06", "検索意図と本文の対応が取れていない可能性が高いため"],
-              ["書くテーマが尽きた／記事が単発で増えていくだけ", "レッスン04", "作るページを軸の掛け合わせで決めていないため"],
-              ["記事は増えたが評価が積み上がらない", "レッスン07", "個別記事が単発で並んでいるだけで、テーマとして束ねられていないため"],
-              ["サブドメインを増やすか、リニューアルでURLを変えるか迷っている", "レッスン08", "ドメインを分けた分だけ、設定と計測の単位が増えるため"],
-              ["SEOは回っているがAI検索に出てこない", "レッスン09", "AI各社のクローラー設定と、抜き出されやすい書き方が別作業のため"],
-              ["施策を続けているが効果が判断できない", "レッスン10", "見るべき指標と見る順番が決まっていないため"],
-              ["アップデートで流入が落ちた", "レッスン12", "原因の切り分け手順を先に決める必要があるため"],
-              ["AI検索の回答に自社名が出てこない", "レッスン13", "回答に載る候補は、ページを読まれるより前に決まっているため"],
+              ["サイトを作ったばかり／Search Console未登録", `レッスン${lessonNo("starter-guide")} → ${lessonNo("first-week")}`, "計測できない状態では、以降のどの施策も効果を確認できないため"],
+              ["記事はあるが検索結果に出てこない", `レッスン${lessonNo("first-week")} → ${lessonNo("technical")}`, "インデックス登録の前提が満たせていない可能性が高いため"],
+              ["インデックスはされるが順位が伸びない", `レッスン${lessonNo("search-intent")} → ${lessonNo("writing")}`, "検索意図と本文の対応が取れていない可能性が高いため"],
+              ["書くテーマが尽きた／記事が単発で増えていくだけ", `レッスン${lessonNo("long-tail")}`, "作るページを軸の掛け合わせで決めていないため"],
+              ["記事は増えたが評価が積み上がらない", `レッスン${lessonNo("structure")}`, "個別記事が単発で並んでいるだけで、テーマとして束ねられていないため"],
+              ["サブドメインを増やすか、リニューアルでURLを変えるか迷っている", `レッスン${lessonNo("domain")}`, "ドメインを分けた分だけ、設定と計測の単位が増えるため"],
+              ["SEOは回っているがAI検索に出てこない", `レッスン${lessonNo("geo-implementation")}`, "AI各社のクローラー設定と、抜き出されやすい書き方が別作業のため"],
+              ["施策を続けているが効果が判断できない", `レッスン${lessonNo("measurement")}`, "見るべき指標と見る順番が決まっていないため"],
+              ["アップデートで流入が落ちた", `レッスン${lessonNo("updates-risk")}`, "原因の切り分け手順を先に決める必要があるため"],
+              ["AI検索の回答に自社名が出てこない", `レッスン${lessonNo("brand-entity")}`, "回答に載る候補は、ページを読まれるより前に決まっているため"],
             ]}
           />
         </section>
