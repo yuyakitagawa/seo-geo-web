@@ -6,6 +6,7 @@ import KeyVisual from "./KeyVisual";
 import CategoryBadge from "./CategoryBadge";
 import TypeBadge from "./TypeBadge";
 import OriginalBadge from "./OriginalBadge";
+import SourceBadge from "./SourceBadge";
 
 // featured: トップの先頭1件。2カラム分の幅で大きく見せる。
 export default function ArticleCard({ article, featured = false, index = 0 }: { article: ArticleMeta; featured?: boolean; index?: number }) {
@@ -25,6 +26,7 @@ export default function ArticleCard({ article, featured = false, index = 0 }: { 
             <CategoryBadge category={article.category} asLink={false} />
             <TypeBadge type={article.type} />
             <OriginalBadge original={article.original} />
+            <SourceBadge sources={article.sources} original={article.original} />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             <span>{article.readingMinutes} min</span>
           </div>

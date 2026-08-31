@@ -1,4 +1,5 @@
 // 任意のURLをサーバーから1本取得するための共通処理。/api/audit と /api/prompt-fit が使う。
+// 回数制限は src/lib/rateLimit.ts。
 // 社内ネットワークへの踏み台にされないよう、「スキーム・ポート・名前解決先IP」を
 // リダイレクトの各ホップで検査する。ここを外さない。
 import dns from "node:dns/promises";
@@ -100,20 +101,4 @@ export async function readCapped(res: Response): Promise<{ text: string; bytes: 
     at += c.byteLength;
   }
   return { text: new TextDecoder("utf-8").decode(buf), bytes };
-}
-
-// 同一インスタンス内での連打だけを止める簡易な制限（サーバーレスなので厳密な制限にはならない）
-const hits = new Map<string, number[]>();
-const WINDOW_MS = 60_000;
-export function rateLimited(ip: string, limit = 10): boolean {
-  const now = Date.now();
-  const list = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  list.push(now);
-  hits.set(ip, list);
-  return list.length > limit;
-}
-
-/** x-forwarded-for から呼び出し元を1つ取る。取れなければ "unknown" */
-export function clientIp(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
 }

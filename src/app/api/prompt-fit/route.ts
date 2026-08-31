@@ -1,7 +1,8 @@
 // 狙っているプロンプトにページが合っているかを判定するAPI。/tools/prompt-fit のフォームから呼ばれる。
-// URLを取りに行く場合の取得（SSRF対策・バイト上限・回数制限）は src/lib/fetchPage.ts、判定は src/lib/promptFit.ts。
+// URLを取りに行く場合の取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、判定は src/lib/promptFit.ts。
 // 外部のAIや埋め込みAPIは呼ばない。計算はすべてこのサーバー内で完結する。
-import { clientIp, fetchChecked, rateLimited, readCapped } from "@/lib/fetchPage";
+import { fetchChecked, readCapped } from "@/lib/fetchPage";
+import { clientIp, rateLimited } from "@/lib/rateLimit";
 import { analyze, blocksFromHtml, blocksFromText } from "@/lib/promptFit";
 
 export const runtime = "nodejs";

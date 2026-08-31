@@ -1,8 +1,9 @@
 // URLを1本取得して src/lib/audit.ts で判定するAPI。/tools/page-audit のフォームから呼ばれる。
-// 取得（SSRF対策・バイト上限・回数制限）は src/lib/fetchPage.ts が持つ。
+// 取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、回数制限は src/lib/rateLimit.ts が持つ。
 import { audit } from "@/lib/audit";
 import { logAudit } from "@/lib/audit-log";
-import { clientIp, fetchChecked, rateLimited, readCapped } from "@/lib/fetchPage";
+import { fetchChecked, readCapped } from "@/lib/fetchPage";
+import { clientIp, rateLimited } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;

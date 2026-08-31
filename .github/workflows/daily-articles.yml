@@ -60,6 +60,12 @@ jobs:
         run: |
           git add -A content
           git diff --cached --quiet && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+          # 新しく増えた記事ファイル（公開後のLINE通知に使う）。修正だけの回は空になる。
+          {
+            echo "articles<<EOF"
+            git diff --cached --name-only --diff-filter=A -- content/articles
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       # 壊れたMDX・存在しない図解コンポーネントを本番に出さないための関門。
       # ここで落ちたら以降のステップを実行しないので、その日は何も公開されず、候補の状態変更も残らない。
@@ -75,6 +81,18 @@ jobs:
           git commit -m "chore: 記事を自動生成して公開"
           git pull --rebase origin main
           git push origin HEAD:main
+
+      # 公開できた記事をXに手で投稿するための通知。投稿文をそのまま送るので、長押しでコピーして貼るだけ。
+      # 自動投稿はしない（文面と投稿タイミングは人が決める）。
+      - name: 公開をLINE通知
+        if: steps.diff.outputs.changed == 'true' && steps.diff.outputs.articles != ''
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          # 記事URLの組み立てに使う。未設定だと localhost のURLを送ってしまうのでここで固定する。
+          NEXT_PUBLIC_SITE_URL: https://seo-geo-lab.com
+          ARTICLES: ${{ steps.diff.outputs.articles }}
+        run: npx tsx scripts/notify.ts $ARTICLES
 
       # ワークフローの赤は誰も見ていない、という前提で運用する。落ちたらスマホに届ける。
       # 認証情報が無ければ黙ってスキップするので、未設定のうちは何も起きない。

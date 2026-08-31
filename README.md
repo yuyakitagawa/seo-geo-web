@@ -26,7 +26,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
-| `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
+| `/contact` | お問い合わせ。フォーム（`POST /api/contact` → LINE・メールへ転送）＋ 窓口の一覧。フォームの転送先 / `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
 | `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（図案は `src/lib/icon.tsx` の1か所。黒地に「S」＝SEO（生成り）＋「G」＝GEO（ブランド色）） |
 
@@ -57,6 +57,9 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
 **失敗はLINEに飛ぶ**（Actions Secrets に `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` を入れたときだけ。未設定なら黙ってスキップ）。
 ワークフローの赤は誰も見ていない前提で運用する。
+**公開もLINEに飛ぶ**（`scripts/notify.ts`）。公開した記事のぶんだけ、**Xの投稿文（タイトル＋説明＋URL＋ハッシュタグ、280字の重み付き上限に収めたもの）**を1本1メッセージで送る。
+LINEで長押し→コピー→Xに貼る運用で、自動投稿はしない（文面と投稿タイミングは人が決める）。
+手で作った記事を通知したいときは `npm run notify -- content/articles/0123-foo.mdx`（認証情報が無ければ文面をログに出すだけ）。
 
 ## HOW TO記事パイプライン（ストック型）
 上のパイプラインはRSS起点なので、出てくるのはニュース（フロー）だけになる。
@@ -132,7 +135,14 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
-  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
+  12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
+  連打の抑制は `src/lib/rateLimit.ts`（同一インスタンス内で1分あたり、診断10回・お問い合わせ3回。IPは数えるだけで記録しない）。
+- **お問い合わせフォーム** `/contact` → `POST /api/contact`: 入力の検証と通知文は `src/lib/contact.ts`、転送は `src/lib/contact-notify.ts`。
+  転送先はLINE（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。記事公開の通知と同じBot。共通処理は `src/lib/line.ts`）と
+  メール（Resendの `RESEND_API_KEY` / `CONTACT_FROM_EMAIL` / `CONTACT_TO_EMAIL`。差出人は認証済みドメイン、`reply_to` に入力されたアドレス）。
+  両方設定すれば両方に届き、**1つも無ければフォーム自体を表示しない**（Vercelの環境変数に入れて再デプロイすると出る）。
+  **内容はDBにもログにも保存しない**（転送のみ）。迷惑投稿対策はハニーポット・3秒未満の送信の破棄・回数制限・文字数上限で、外部のCAPTCHAは使わない。
+  記載は `/privacy` の「お問い合わせフォームについて」の章と揃える。
 - **検査されたURLの記録**（`src/lib/audit-log.ts`）: どんなページが検査されているかを記事の題材選びに使うため、
   Supabase（stock-alert プロジェクトに相乗り）の `seogeo_audit_log` に1件ずつ残す。`SUPABASE_URL` と
   `SUPABASE_PUBLISHABLE_KEY` があるときだけ動き、未設定なら何もしない（ローカル・プレビューは未設定でよい）。
@@ -143,7 +153,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
     挿入のたびに古い行を削除して担保する（アプリの実装やcronに依存させない）
   - 渡す鍵は publishable（anon）。テーブルへの直接権限は revoke 済みで、この関数の EXECUTE 以外は何もできない。
     service_role キーは使わない（相乗り先のDB全体を触れる鍵をVercelに置かないため）
-  - 記録している事実は `/tools/page-audit` のFAQと `/privacy`（5章）に明記する。**内容を変えたら両方直す**
+  - 記録している事実は `/tools/page-audit` のFAQと `/privacy`（「ツールに入力されたURLの記録」の章）に明記する。**内容を変えたら両方直す**
 
 ## デザイン
 - 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
@@ -191,6 +201,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   （`node_modules/next/dist/lib/metadata/resolve-metadata.js` の `postProcessMetadata`）。
   トップページ分の `og:url` は `src/app/page.tsx` が持つ。
 - **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
+- **記事のバッジ（チップ）**: 軸ごとに1つまで。①何の話か＝カテゴリ（SEO/GEO/ニュース、必ず1つ）②記事の型＝`解説`（`type: howto` のときだけ。news は既定なので出さない）③根拠の強さ＝`独自`（`original: true`）か `Google公式`（出典に当事者のドメインがある。`src/lib/sourceVendor.ts` の表で判定。独自記事には出さない）。全記事に付くバッジは情報量がゼロなので増やさない。
 
 ## 記事 frontmatter
 ```yaml
@@ -207,7 +218,7 @@ impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意
 actions:                  # 任意、1〜4項目
   - "robots.txt を確認する"
-sources:
+sources:                  # url が Google・OpenAI など当事者自身のドメインなら「Google公式」バッジが出る（src/lib/sourceVendor.ts）
   - title: "出典タイトル"
     url: "https://..."
 supersedes: 12            # 任意。この記事が置き換える古い記事のid（配列可）。指定された記事は noindex + sitemap除外

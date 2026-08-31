@@ -5,7 +5,8 @@ import { APP_TOOLS } from "@/lib/apps";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
 import { GLOSSARY_PATH, GLOSSARY_UPDATED } from "@/lib/glossary";
 import { GUIDE_LIST } from "@/lib/guides";
-import { HAS_CONTACT, POLICY_UPDATED, SITE_URL } from "@/lib/site";
+import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
+import { POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
 // changefreq と priority は出さない。Googleが無視すると明言している値で、
 // 「毎日更新」と書いても実態が伴わなければ何の効果もない（kujira-watch も同じ理由で外した）。
@@ -30,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}${COURSE.path}`, lastModified: COURSE.updated },
     ...LESSONS.map((l) => ({ url: `${SITE_URL}${lessonPath(l.slug)}`, lastModified: l.updated })),
     // 固定ページ。/contact は窓口（env）が未設定のときビルドで404になるので載せない。
-    ...["about", "privacy", "disclaimer", ...(HAS_CONTACT ? ["contact"] : [])].map((p) => ({
+    ...["about", "privacy", "disclaimer", ...(HAS_CONTACT_PAGE ? ["contact"] : [])].map((p) => ({
       url: `${SITE_URL}/${p}`,
       lastModified: POLICY_UPDATED,
     })),

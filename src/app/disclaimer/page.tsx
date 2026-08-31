@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import { HAS_CONTACT, POLICY_UPDATED, POLICY_UPDATED_LABEL, SITE_NAME } from "@/lib/site";
+import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
+import { POLICY_UPDATED, POLICY_UPDATED_LABEL, SITE_NAME } from "@/lib/site";
 import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default function DisclaimerPage() {
           各記事の末尾に記載した一次情報（公式ドキュメント）で最新の内容をご確認ください。
         </p>
         <p>
-          誤りを見つけられた場合は{HAS_CONTACT ? <><Link href="/contact">お問い合わせ</Link>から</> : "問い合わせ窓口から"}
+          誤りを見つけられた場合は{HAS_CONTACT_PAGE ? <><Link href="/contact">お問い合わせ</Link>から</> : "問い合わせ窓口から"}
           ご指摘ください。確認のうえ、該当記事を訂正または削除します。
         </p>
 
@@ -52,7 +53,7 @@ export default function DisclaimerPage() {
           記事内で言及する製品名・サービス名・企業名は、各社の商標または登録商標です。
         </p>
         <p>
-          掲載内容に著作権上の問題があると判断された権利者の方は{HAS_CONTACT ? <><Link href="/contact">お問い合わせ</Link>から</> : "問い合わせ窓口から"}
+          掲載内容に著作権上の問題があると判断された権利者の方は{HAS_CONTACT_PAGE ? <><Link href="/contact">お問い合わせ</Link>から</> : "問い合わせ窓口から"}
           ご連絡ください。確認のうえ、速やかに削除等の対応を行います。
         </p>
 

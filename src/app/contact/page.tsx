@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ContactForm from "@/components/ContactForm";
 import PageHeader from "@/components/PageHeader";
+import { CONTACT_FORM_ENABLED } from "@/lib/contact-notify";
 import { CONTACT_EMAIL, CONTACT_FORM_URL, HAS_CONTACT, SITE_NAME, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { PROSE } from "@/lib/ui";
 
@@ -11,10 +13,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-// 窓口（NEXT_PUBLIC_CONTACT_EMAIL / NEXT_PUBLIC_CONTACT_FORM_URL / NEXT_PUBLIC_X_SCREEN_NAME）が
+// 窓口（フォームの転送先 / NEXT_PUBLIC_CONTACT_EMAIL / NEXT_PUBLIC_CONTACT_FORM_URL / NEXT_PUBLIC_X_SCREEN_NAME）が
 // 1つも設定されていないときは中身が無いページになるので、ビルド時に404にする。
 export default function ContactPage() {
-  if (!HAS_CONTACT) notFound();
+  if (!HAS_CONTACT && !CONTACT_FORM_ENABLED) notFound();
 
   return (
     <>
@@ -25,24 +27,35 @@ export default function ContactPage() {
         crumbs={[{ name: "お問い合わせ" }]}
       />
       <div className={PROSE.page}>
-        <h2>連絡先</h2>
-        <ul>
-          {CONTACT_EMAIL && (
-            <li>
-              メール：<a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-            </li>
-          )}
-          {CONTACT_FORM_URL && (
-            <li>
-              フォーム：<a href={CONTACT_FORM_URL} target="_blank" rel="noopener">お問い合わせフォーム</a>
-            </li>
-          )}
-          {X_PROFILE_URL && (
-            <li>
-              X（旧Twitter）：<a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a> へのリプライまたはDM
-            </li>
-          )}
-        </ul>
+        {CONTACT_FORM_ENABLED && (
+          <>
+            <h2>フォームから送る</h2>
+            <ContactForm />
+          </>
+        )}
+
+        {HAS_CONTACT && (
+          <>
+            <h2>{CONTACT_FORM_ENABLED ? "フォーム以外の窓口" : "連絡先"}</h2>
+            <ul>
+              {CONTACT_EMAIL && (
+                <li>
+                  メール：<a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                </li>
+              )}
+              {CONTACT_FORM_URL && (
+                <li>
+                  フォーム：<a href={CONTACT_FORM_URL} target="_blank" rel="noopener">お問い合わせフォーム</a>
+                </li>
+              )}
+              {X_PROFILE_URL && (
+                <li>
+                  X（旧Twitter）：<a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a> へのリプライまたはDM
+                </li>
+              )}
+            </ul>
+          </>
+        )}
 
         <h2>お受けする内容</h2>
         <ul>
@@ -58,7 +71,8 @@ export default function ContactPage() {
 
         <h2>お預かりした情報の扱い</h2>
         <p>
-          いただいた連絡先と内容は、返信と内容の確認のためだけに利用し、第三者に提供しません。詳細は
+          いただいた連絡先と内容は、返信と内容の確認のためだけに利用し、第三者に提供しません。
+          {CONTACT_FORM_ENABLED ? "フォームの内容は当サイトのデータベースには保存せず、運営者への通知としてのみ送られます。" : ""}詳細は
           <Link href="/privacy">プライバシーポリシー</Link>をご覧ください。運営方針と情報源の一覧は
           <Link href="/about">運営者情報</Link>に記載しています。
         </p>

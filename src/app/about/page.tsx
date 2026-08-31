@@ -3,7 +3,8 @@ import JsonLd from "@/components/JsonLd";
 import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
-import { HAS_CONTACT, POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
+import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
+import { POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 import { PROSE } from "@/lib/ui";
 
@@ -123,11 +124,10 @@ export default function AboutPage() {
         <p>
           公式アカウントは、X（旧Twitter）の
           <a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>
-          （{X_PROFILE_URL}）1つだけです。記事の公開と、記事にするほどでもない小さなアップデートはここで告知します。
-          これ以外に{SITE_NAME}を名乗るアカウントは運営していません。
+          （{X_PROFILE_URL}）です。
         </p>
       ) : null}
-      {HAS_CONTACT ? (
+      {HAS_CONTACT_PAGE ? (
         <p>
           お問い合わせは<a href="/contact">お問い合わせページ</a>に記載の窓口
           {X_PROFILE_URL ? <>、または公式Xアカウント（<a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>）</> : null}
@@ -137,9 +137,8 @@ export default function AboutPage() {
 
       <h2>広告について</h2>
       <p>
-        当サイトは第三者配信の広告（Google AdSense）を掲載する場合があります。広告の表示によって記事の内容が
-        左右されることはありません。広告配信とCookieの扱いは<a href="/privacy">プライバシーポリシー</a>を、
-        記事内容の免責と著作権の扱いは<a href="/disclaimer">免責事項</a>をご覧ください。
+        当サイトは広告（Google AdSense）を掲載する場合があります。詳しくは
+        <a href="/privacy">プライバシーポリシー</a>と<a href="/disclaimer">免責事項</a>をご覧ください。
       </p>
       </div>
     </>

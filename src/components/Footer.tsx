@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CONTAINER, cx } from "@/lib/ui";
-import { HAS_CONTACT, SITE_DESCRIPTION, SITE_NAME, X_PROFILE_URL } from "@/lib/site";
+import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
+import { SITE_DESCRIPTION, SITE_NAME, X_PROFILE_URL } from "@/lib/site";
 
 export default function Footer() {
   return (
@@ -21,7 +22,7 @@ export default function Footer() {
               <li><Link href="/glossary" className="hover:text-accent">用語集</Link></li>
               <li><Link href="/learn" className="hover:text-accent">SEO・GEO教科書</Link></li>
               <li><Link href="/about" className="hover:text-accent">運営者情報</Link></li>
-              {HAS_CONTACT && <li><Link href="/contact" className="hover:text-accent">お問い合わせ</Link></li>}
+              {HAS_CONTACT_PAGE && <li><Link href="/contact" className="hover:text-accent">お問い合わせ</Link></li>}
               <li><Link href="/privacy" className="hover:text-accent">プライバシーポリシー</Link></li>
               <li><Link href="/disclaimer" className="hover:text-accent">免責事項</Link></li>
               <li><a href="/feed.xml" className="hover:text-accent">RSS</a></li>
