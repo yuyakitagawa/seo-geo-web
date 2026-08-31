@@ -8,6 +8,7 @@ import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import TypeBadge from "@/components/TypeBadge";
 import OriginalBadge from "@/components/OriginalBadge";
+import SourceBadge from "@/components/SourceBadge";
 import { collectionJsonLd, collectionSummary } from "@/lib/collection";
 import { getAllArticles, getAllTags, latestUpdated, type ArticleMeta } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
@@ -99,6 +100,7 @@ export default function NewsPage() {
                             <CategoryBadge category={a.category} asLink={false} />
                             <TypeBadge type={a.type} />
                             <OriginalBadge original={a.original} />
+                            <SourceBadge sources={a.sources} original={a.original} />
                           </span>
                           <span className="flex-1 font-medium leading-snug underline-offset-4 group-hover:underline">{a.title}</span>
                         </Link>
