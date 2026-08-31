@@ -111,7 +111,11 @@ export default function PageAuditToolPage() {
             <Link href="/tools/ai-crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
               AI検索クローラー robots.txt チェッカー
             </Link>
-            を使ってください。
+            を使ってください。狙った質問にページの中身が噛み合っているかは
+            <Link href="/tools/prompt-fit" className="underline decoration-accent decoration-2 underline-offset-4">
+              プロンプト適合度チェッカー
+            </Link>
+            が判定します。
           </p>
         </section>
 

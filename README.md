@@ -23,6 +23,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
+| `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/tools/ai-crawlers` | 自作ツール: robots.txt を貼ってAI検索/AI学習クローラー14種の許可状況を判定（`src/lib/robots.ts` + `src/lib/crawlers.ts`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / `NEXT_PUBLIC_X_SCREEN_NAME` が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
@@ -111,12 +112,18 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   「無い」系の指摘（title・canonical・JSON-LD・h1 など）は該当コードが存在しないので、代わりに実物の head や既存の見出しを並べ、
   追加する位置に `<!-- ここに◯◯を追加 -->` の印を入れて返す（`headSpot()`）。
   JSは実行しないので、サーバーが返すHTMLに本文が無いページは「本文が少ない」と出る（AI検索のクローラーと同じ見え方）。
+- **プロンプト適合度 `/tools/prompt-fit`**: 狙っているプロンプト（最大5本）とページを比べ、どの見出しブロックがその質問を担当しているかを出す。
+  判定は `src/lib/promptFit.ts`。URLは `POST /api/prompt-fit` で取得するが、原稿を貼り付ければ公開前でも判定できる。
+  日本語は形態素解析なしで扱う。文字bigram（英数字は単語）でベクトル化し、TF-IDFのコサイン類似度を見出しブロック単位で取る（埋め込みAPIも外部AIも使わない）。
+  返すのは4つ: プロンプトの語が本文にあるか（`語の一致`）、最も近いブロック（`近さ`）、そのブロックの先頭に直答があるか、
+  意図（定義/手順/比較/費用/事例/判断）に合った形式（番号付きリスト・表・金額・数値）があるか。足りない場合は見出し・入れる場所・入れる語・文の型を返す。
+  ページが多く語っている語のうち、どのプロンプトにも無いものは「狙いから離れている語」として並べる。
 - **AIクローラー判定 `/tools/ai-crawlers`**: robots.txt を貼ると14種のクローラーの許可状況を判定する。ブラウザ内で完結し送信しない。
   クローラーの定義は `src/lib/crawlers.ts`（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
   ページ診断とチェッカーの両方がこの1実装を使う。
-- **`POST /api/audit` の安全策**: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
-  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。
+- **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
+  12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
 
 ## デザイン
 - 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
@@ -134,7 +141,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   **その画像で使う文字だけ**を切り出して読む（`loadOgFont`。ImageResponseの500KB制限対策）。
   フォント取得に失敗しても画像自体は出る（和文が欠けるだけ）。ビルド時にネットワークが必要。
   置き場所は `opengraph-image.tsx` をセグメントごとに置く方式で、**下位のページには自動で引き継がれる**
-  （`/tools` の画像が `/tools/page-audit` にも出る）。記事以外は `pageOgImage()` に文言を渡すだけ:
+  （`/tools` の画像が `/tools/page-audit` などにも出る）。記事以外は `pageOgImage()` に文言を渡すだけ:
 
   | ファイル | 対象 | 見出し |
   |---|---|---|
@@ -199,6 +206,10 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   定義文・要点・FAQ・出典・更新日を `src/lib/guides.ts` の1か所に持ち、**可視テキスト・JSON-LD（DefinedTerm / FAQPage）・llms.txt が同じ文字列を使う**。
   記事（フロー）と違い日付で古くならないストックページなので、sitemap の priority はトップの次に高い 0.9。
   事実は各社の公式ドキュメント（Google 検索セントラル / OpenAI / Perplexity / Anthropic / arXiv / web.dev）で裏取りし、citation に入れている。
+- **用語の表記ルール（パッセージ / チャンク）**: 本文中の一部分を指す読者向けの語は「パッセージ」に統一する。
+  説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
+  「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
+  語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
 - **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった10レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。

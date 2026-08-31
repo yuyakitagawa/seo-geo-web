@@ -8,7 +8,7 @@ const IMPACT_STYLE = {
 } as const;
 
 // 記事冒頭の固定パネル。「影響度 / 対象 / やること」を本文より先に見せる。
-// AI検索にとっても、記事の要点がひとかたまりの短いパッセージとして抽出しやすい。
+// AI検索にとっても、記事の要点が本文中の短いまとまり（パッセージ）として抽出しやすい。
 export default function KeyPoints({ article }: { article: ArticleMeta }) {
   if (!article.impact && !article.audience && article.actions.length === 0) return null;
   return (
