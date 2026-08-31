@@ -82,11 +82,14 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   （目次に出さない見出しもsluggerに通して採番をそろえる。ずらすとリンクが外れる）
 - 本文に「## 影響を受けるページ・クエリ」（自社のどのページ・クエリが動くかを特定。検索側のKPI推測は書かない）と「## やること／やらなくていいこと」を必須化
 - 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
-- **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける10種:
+- **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける11種:
   `FigureCompare`（比較。3個なら横3列、それ以外は2列）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
   `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）/ `FigureBars`（横棒グラフ。マイナス混在で中央0の左右振り分け）/
   `FigureQuote`（一次情報の引用パネル）/ `FigurePipeline`（横並びの処理の流れ。段ごとに「ここで落ちると」を添える）/
-  `FigureStack`（土台から積む階層）/ `FigureGauge`（良好／改善が必要／不良のしきい値の帯）/ `FigureTimeline`（期間の帯）。
+  `FigureStack`（土台から積む階層）/ `FigureGauge`（良好／改善が必要／不良のしきい値の帯）/ `FigureTimeline`（期間の帯）/
+  `FigureLinkMap`（リンク構造図。ページを箱・内部リンクを矢印で描く。`layer` で階層を指定すると座標は自動。
+  `kind` は down（片方向）/ both（双方向）/ side（同じ階層どうしの曲線）、`dim` で孤立ページを破線にする。
+  崩れた構造と直した構造を並べるため `maps` に複数渡せる）。
   実画像でなくコード描画なので、生成パイプラインが出力でき、テキストが残るためAI・検索エンジンにも読める。
   props はJS式で渡すため記事ページの `MDXRemote` は `blockJS: false`（記事はリポジトリ内の信頼済みコンテンツ）
 - **画面の模式図**（`src/components/screens.tsx`）は解説ページ専用。Search Consoleと検索結果の画面を、スクリーンショットではなく
