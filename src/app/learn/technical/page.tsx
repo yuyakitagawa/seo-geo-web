@@ -15,6 +15,10 @@ const REF = {
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
   indexReport: { href: "https://support.google.com/webmasters/answer/7440203?hl=ja", label: "ページ インデックス登録レポート" },
   urlInspection: { href: "https://support.google.com/webmasters/answer/9012289?hl=ja", label: "URL 検査ツール" },
+  crawlStats: { href: "https://support.google.com/webmasters/answer/9679690?hl=ja", label: "クロールの統計情報レポート" },
+  crawlBudget: { href: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget?hl=ja", label: "大規模なサイト所有者向けのクロール バジェット管理ガイド" },
+  crawlResources: { href: "https://developers.google.com/search/blog/2024/12/crawling-december-resources", label: "Google 検索セントラル ブログ「The how and why of Googlebot crawling」" },
+  crawlCaching: { href: "https://developers.google.com/search/blog/2024/12/crawling-december-caching", label: "Google 検索セントラル ブログ「HTTP caching」" },
   essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
   structuredData: { href: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja", label: "構造化データの仕組みについて" },
   gallery: { href: "https://developers.google.com/search/docs/appearance/structured-data/search-gallery?hl=ja", label: "構造化データ マークアップの一覧" },
@@ -30,6 +34,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 const TOC = [
   { id: "control", label: "クロールとインデックスの制御" },
   { id: "not-indexed", label: "未インデックスの対処法" },
+  { id: "crawl-stats", label: "クローラーの訪問頻度と取得ファイル" },
   { id: "duplicate", label: "重複と正規URLの整理" },
   { id: "structured", label: "構造化データの選び方" },
   { id: "vitals", label: "Core Web Vitalsの直し方" },
@@ -204,6 +209,129 @@ export default function Lesson04() {
           <Link href={lessonPath("structure")}>レッスン06</Link>で確認してください。なお、Googleは基本事項を満たしていても
           インデックス登録や掲載を保証していないと明記しています。すべての未登録を0にすることは目標になりません。
           <GuideRef {...REF.essentials} />
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="crawl-stats"
+        title="クローラーの訪問頻度と取得ファイル"
+        lead={
+          <>
+            Googleがいつ・何件・どのファイルを取得したかは、Search Consoleの「設定 → クロールの統計情報」で見られます。
+            Googleはこのレポートを上級者向けと位置づけており、ページ数が1,000未満のサイトでは使う必要はないと明記しています。
+            また、ドメインプロパティなどルートレベルのプロパティでのみ利用できます。
+            <GuideRef {...REF.crawlStats} />
+          </>
+        }
+      >
+        <h3>訪問頻度は絶対値ではなく推移で見る</h3>
+        <p>
+          何件クロールされていれば正常、という基準はありません。見るのは合計クロールリクエスト数の推移と、
+          同じ画面に出る平均応答時間です。Googleは、サイトが速く応答する状態が続けばクロール頻度の上限が上がり、
+          応答が遅い場合やサーバーエラーが返る場合は上限が下がってクロールが減る、と説明しています。
+          <GuideRef {...REF.crawlBudget} />
+          つまり<strong>クロール数の減少は、多くの場合サーバー側の症状</strong>です。原因を本文や被リンクに求める前に、
+          応答時間と5xxの発生を確認します。
+        </p>
+        <FigureDoDont
+          title="クロール数が減ったときの見方"
+          dos={[
+            "平均応答時間が悪化していないかを同じ画面で確認する",
+            "レスポンス別の内訳で 5xx・429・403 が増えていないかを見る",
+            "サーバーやCDN、WAFがクローラーを弾いていないかログで確認する",
+            "更新頻度を上げていない時期に、クロールが減ること自体は異常ではないと考える",
+          ]}
+          donts={[
+            "クロール数そのものを増やすことを目標にする",
+            "順位や流入の変動を、クロール数の増減だけで説明する",
+            "クロールを増やす目的で、同じ内容のページを量産する",
+            "ページ数の少ないサイトでこのレポートを毎週見る（Googleは上級者向けとしている）",
+          ]}
+        />
+
+        <h3>何を取りに来ているか：4つの内訳</h3>
+        <GuideTable
+          head={["内訳", "何がわかるか", "崩れているサイン"]}
+          rows={[
+            [
+              "レスポンス別",
+              "取得の成否。200のほか、301・404・5xxなどの割合",
+              "301や404が上位に来ている。内部リンクやサイトマップが古いURLを指している",
+            ],
+            [
+              "ファイル形式別",
+              "HTML・画像・JavaScript・CSSなど、どの種類の取得に回数を使っているか",
+              "HTMLが押し出され、画像やJS・CSSの取得が大半を占め続けている",
+            ],
+            [
+              "目的別（検出・更新）",
+              "新しいURLを見つけるための取得か、既知URLの再取得か",
+              "新規ページを増やしているのに検出が伸びない。導線かサイトマップの問題",
+            ],
+            [
+              "Googlebotタイプ別",
+              "どのクローラーが来ているか。レンダリングに必要なリソースの取得も別に出る",
+              "想定と違うクローラーばかり来ている、または特定のタイプが極端に多い",
+            ],
+          ]}
+          caption={
+            <>
+              各内訳をクリックするとサンプルURLが見られますが、Googleはこれを網羅ではなく代表例だと説明しています。
+              <GuideRef {...REF.crawlStats} />
+            </>
+          }
+        />
+
+        <h3>HTMLが主になっているか</h3>
+        <p>
+          ファイル形式別で<strong>HTMLが最も多い形式になっているか</strong>を見ます。Googleが「HTMLは何％あるべき」という
+          基準を出しているわけではないので、当サイトでは「HTMLが上位にあり続けているか」を目安にしています。
+          画像の多いサイトや、リソースを入れ替えた直後は一時的に他の形式が増えます。問題なのは、
+          <strong>HTML以外の取得が続けて大半を占め、新規ページや更新ページの取得が後回しになっている状態</strong>です。
+          Googleは、CSSやJavaScriptなど埋め込みリソースの取得もサイトのクロール割り当てを消費すると説明しています。
+          <GuideRef {...REF.crawlBudget} />
+        </p>
+        <GuideTable
+          head={["HTMLが押し出されている原因", "確認する場所", "対処"]}
+          rows={[
+            [
+              "ビルドのたびにJS・CSSのファイル名が変わる",
+              "ファイル形式別のサンプルURL（ハッシュ付きのファイル名が並ぶ）",
+              <>中身が変わったときだけファイル名を変える。GoogleはURLが変わると内容が同じでも取り直しが必要になり、クロール割り当てを使うと説明している。<GuideRef key="c1" {...REF.crawlResources} /></>,
+            ],
+            [
+              "同じ画像がサイズ・パラメータ違いで多数のURLになっている",
+              "ファイル形式別の画像のサンプルURL",
+              "生成する画像のパターンを減らす。CDNのパラメータを固定し、URLを1本にそろえる",
+            ],
+            [
+              "再取得のたびに全文が返っている",
+              "サーバーのレスポンスヘッダー（ETag・Last-Modified）",
+              <>ETagとLast-Modifiedを返し、条件付きリクエストに304を返せるようにする。GoogleはETagの利用を推奨している。<GuideRef key="c2" {...REF.crawlCaching} /></>,
+            ],
+            [
+              "絞り込み・並び替え・カレンダーでURLが無限に増える",
+              "レスポンス別・その他のサンプルURL",
+              "パラメータ付きURLはcanonicalで代表URLに寄せ、クロール自体が不要なパスはrobots.txtで止める",
+            ],
+            [
+              "リダイレクトや404の取得が多い",
+              "レスポンス別の内訳",
+              "内部リンクとサイトマップを最終URLに直す。リダイレクトの連鎖を1回に縮める",
+            ],
+          ]}
+        />
+        <p>
+          逆に、<strong>レンダリングに必要なJavaScriptやCSSをrobots.txtで止めるのは対処になりません</strong>。
+          Googleは、レンダリングに必要なリソースを取得できないと、ページの内容の抽出や検索での掲載に支障が出ると説明しています。
+          <GuideRef {...REF.crawlResources} />
+          減らすべきなのは<strong>同じ内容を何度も取り直させている無駄</strong>で、リソースそのものへのアクセスではありません。
+        </p>
+        <p>
+          なお、クロールの統計情報を細かく追う価値があるのは、ページ数が多いサイトです。
+          Googleのクロール バジェットのガイドも、対象を大規模なサイト（100万ページ以上で更新頻度が中程度など）としています。
+          <GuideRef {...REF.crawlBudget} />
+          小規模なサイトでは、前節の未インデックスの解消と本文の改善のほうが先です。
         </p>
       </GuideSection>
 

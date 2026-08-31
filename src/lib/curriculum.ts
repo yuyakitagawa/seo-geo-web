@@ -87,6 +87,10 @@ const S = {
   perf: { title: "検索パフォーマンス レポート（検索結果）", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7576553?hl=ja" },
   indexReport: { title: "ページ インデックス登録レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7440203?hl=ja" },
   urlInspection: { title: "URL 検査ツール", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9012289?hl=ja" },
+  crawlStats: { title: "クロールの統計情報レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9679690?hl=ja" },
+  crawlBudget: { title: "大規模なサイト所有者向けのクロール バジェット管理ガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget?hl=ja" },
+  crawlResources: { title: "Crawling December: The how and why of Googlebot crawling", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-resources" },
+  crawlCaching: { title: "Crawling December: HTTP caching", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-caching" },
   manualActions: { title: "[手動による対策] レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9044175?hl=ja" },
   geoPaper: { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか（KDD 2024）", url: "https://arxiv.org/abs/2311.09735" },
   openaiBots: { title: "Overview of OpenAI Crawlers", publisher: "OpenAI", url: "https://platform.openai.com/docs/bots" },
@@ -271,14 +275,16 @@ export const LESSONS: Lesson[] = [
     objectives: [
       "robots.txt（クロールの制御）とnoindex（インデックスの制御）の使い分け",
       "インデックス未登録の切り分けと、レポートに出る理由ごとの対処",
+      "クロールの統計情報で見る訪問頻度と、取得されているファイルの内訳（HTMLが主か）",
       "canonical・301リダイレクト・サイトマップで重複と正規URLを整理する",
       "構造化データの選び方と、ページ表示との一致という条件",
       "LCP・INP・CLSそれぞれの代表的な原因と、実際に効果が報告された直し方",
     ],
-    minutes: 21,
+    minutes: 24,
     checklist: [
       "robots.txtでDisallowにしているパスと、noindexにしているページを一覧にできた",
       "登録されていない重要ページについて、URL検査で理由を確認し、設定由来か中身由来かを切り分けた",
+      "クロールの統計情報で、レスポンス別・ファイル形式別の内訳を確認し、HTMLが上位にあるかを見た",
       "同じ内容が複数URLで見える箇所を洗い出し、canonicalか301で1本化した",
       "自分のページ種別に対応する構造化データの型を選び、リッチリザルトテストで検証した",
       "PageSpeed InsightsでLCP・INP・CLSの現状値を記録し、悪い指標を1つ特定した",
@@ -294,6 +300,16 @@ export const LESSONS: Lesson[] = [
         question: "ページがインデックスされません。何から確認すればよいですか",
         answer:
           "推測で本文を書き直す前に、URL検査ツールで表示される理由を読みます。noindex、robots.txtによるブロック、代替ページ（canonical）、リダイレクト、404や5xxは設定由来なので、設定を直せば戻ります。一方「クロール済み - インデックス未登録」は取得できたうえで登録されなかった状態で、内容の薄さや重複が原因のことが多く、設定を直しても変わりません。「検出 - インデックス未登録」はまだクロールされていない状態なので、内部リンクとサイトマップで到達しやすくします。なお、Googleは基本事項を満たしていてもインデックス登録を保証していません。",
+      },
+      {
+        question: "Googlebotがどれくらい来ているか、何を取得しているかはどこで見られますか",
+        answer:
+          "Search Consoleの「設定 → クロールの統計情報」です。合計クロールリクエスト数と平均応答時間の推移に加えて、レスポンス別・ファイル形式別・目的別（検出と更新）・Googlebotタイプ別の内訳が見られます。ドメインプロパティなどルートレベルのプロパティでのみ利用でき、Googleは上級者向けのレポートで、ページ数が1,000未満のサイトでは使う必要はないとしています。クロール数が減った場合は、まず平均応答時間とサーバーエラーを確認します。Googleは、応答が遅い場合やサーバーエラーが返る場合にクロール頻度の上限が下がると説明しています。",
+      },
+      {
+        question: "クロールされているファイルがHTML以外ばかりです。どうすればよいですか",
+        answer:
+          "GoogleはHTMLの割合について基準を出していないため、当サイトでは「HTMLが上位の形式であり続けているか」を目安にしています。画像やJavaScript・CSSの取得が続けて大半を占める場合、典型的な原因は、ビルドのたびにファイル名が変わる（内容が同じでも別URLとして取り直される）、同じ画像がパラメータ違いで多数のURLになっている、条件付きリクエストに304を返せていない、絞り込みやカレンダーでURLが無限に増えている、の4つです。対処は、ファイル名を内容が変わったときだけ変える、URLを1本にそろえる、ETagとLast-Modifiedを返す、不要なパスをrobots.txtで止める、になります。レンダリングに必要なJavaScriptやCSSをブロックするのは逆効果で、Googleはリソースを取得できないとページの内容の抽出や掲載に支障が出ると説明しています。",
       },
       {
         question: "インデックス登録のリクエストは何度も送ったほうがよいですか",
@@ -316,7 +332,7 @@ export const LESSONS: Lesson[] = [
           "必須ではありません。Googleは、Googleニュースやトップニュース枠への掲載にAMPを必須とはしておらず、通常のページでCore Web Vitalsを満たせば同じ扱いを受けられます。過去の成功事例にAMPが登場するのは、当時の実装として選ばれたためです。いまから始める場合は、通常のページの表示速度を直すほうが優先です。",
       },
     ],
-    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
+    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.crawlStats, S.crawlBudget, S.crawlResources, S.crawlCaching, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
