@@ -39,7 +39,7 @@ export default function Lesson09() {
           stats={[
             { value: `${CASES.length}件`, label: "収録している事例", note: "施策と数値が同じ文書で公開されているもの" },
             { value: "3件", label: "日本のサイト", note: "楽天レシピ・Yahoo! JAPANニュース・Rakuten 24" },
-            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン05・07で扱った作業に対応" },
+            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン05・08で扱った作業に対応" },
           ]}
         />
         <GuideTable
