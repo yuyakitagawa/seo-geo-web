@@ -5,7 +5,7 @@ import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { ScreenIndexReport, ScreenUrlInspection } from "@/components/screens";
 import { getCases } from "@/lib/cases";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("first-week");
 
@@ -144,7 +144,7 @@ export default function Lesson02() {
           Googlebotとは別の自前のクローラーで巡回するため、Googlebotを許可していても、これらを拒否していれば
           その事業者の回答には出ません。いまの許可状況は<Link href="/tools/page-audit">ページ診断</Link>にURLを入れると分かります。
           ボット名の一覧と各社の公式な説明、設定の方針は
-          <Link href={lessonPath("geo-implementation")}>レッスン09</Link>にまとめています。
+          <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>にまとめています。
         </p>
 
         <h3>7日目: 改善前の数値を記録する</h3>

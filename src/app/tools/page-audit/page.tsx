@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { lessonNo } from "@/lib/curriculum";
 import JsonLd from "@/components/JsonLd";
 import PageAudit from "@/components/PageAudit";
 import NextStep from "@/components/NextStep";
@@ -146,7 +147,7 @@ export default function PageAuditToolPage() {
           <p className="mt-4 text-sm text-mute">
             AIクローラー14種の一覧と、方針別のrobots.txtのひな形は
             <Link href="/learn/geo-implementation#crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
-              レッスン09「AI検索に拾われる設定」
+              レッスン{lessonNo("geo-implementation")}「GEO実装」
             </Link>
             にあります。狙った質問にページの中身が噛み合っているかは
             <Link href="/tools/prompt-fit" className="underline decoration-accent decoration-2 underline-offset-4">
