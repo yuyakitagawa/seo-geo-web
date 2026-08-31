@@ -9,6 +9,7 @@
 - [x] 5. ページの載せ替え（top, news, seo, geo, learn, tools, 各ツール, articles, tag, 固定ページ）
 - [x] 6. `dark:` の重複を全廃 → typecheck / lint / build / 両モードのスクリーンショット確認
 - [x] 7. ドキュメント（`docs/design-system.md`）・README・CLAUDE.md 更新
+- [x] 8. 最新mainを取り込み、その間に増えたプロンプト適合度チェッカー（`PromptFit.tsx` / `/tools/prompt-fit`）と `guide.tsx` のチェックリスト表を載せ替え
 
 ## 意図して変えた見た目（統一のため）
 

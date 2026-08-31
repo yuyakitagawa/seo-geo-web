@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FigureBars, FigureDoDont, FigureGauge, FigurePipeline } from "@/components/figures";
+import { FigureBars, FigureDoDont, FigureFlow, FigureGauge, FigurePipeline } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
@@ -13,6 +13,13 @@ const REF = {
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
+  indexReport: { href: "https://support.google.com/webmasters/answer/7440203?hl=ja", label: "ページ インデックス登録レポート" },
+  urlInspection: { href: "https://support.google.com/webmasters/answer/9012289?hl=ja", label: "URL 検査ツール" },
+  crawlStats: { href: "https://support.google.com/webmasters/answer/9679690?hl=ja", label: "クロールの統計情報レポート" },
+  crawlBudget: { href: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget?hl=ja", label: "大規模なサイト所有者向けのクロール バジェット管理ガイド" },
+  crawlResources: { href: "https://developers.google.com/search/blog/2024/12/crawling-december-resources", label: "Google 検索セントラル ブログ「The how and why of Googlebot crawling」" },
+  crawlCaching: { href: "https://developers.google.com/search/blog/2024/12/crawling-december-caching", label: "Google 検索セントラル ブログ「HTTP caching」" },
+  essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
   structuredData: { href: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja", label: "構造化データの仕組みについて" },
   gallery: { href: "https://developers.google.com/search/docs/appearance/structured-data/search-gallery?hl=ja", label: "構造化データ マークアップの一覧" },
   vitals: { href: "https://web.dev/articles/vitals#core-web-vitals", label: "web.dev「Web Vitals」" },
@@ -26,6 +33,8 @@ export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "control", label: "クロールとインデックスの制御" },
+  { id: "not-indexed", label: "未インデックスの対処法" },
+  { id: "crawl-stats", label: "クローラーの訪問頻度と取得ファイル" },
   { id: "duplicate", label: "重複と正規URLの整理" },
   { id: "structured", label: "構造化データの選び方" },
   { id: "vitals", label: "Core Web Vitalsの直し方" },
@@ -86,6 +95,243 @@ export default function Lesson04() {
         <p>
           robots.txtを変更したら、Search Consoleのrobots.txtレポートで<strong>Googleが実際に読んだ内容</strong>を確認します。
           CDNやサーバーの設定によっては、ブラウザで見えている内容とクローラーが取得する内容が違うことがあります。
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="not-indexed"
+        title="未インデックスの対処法"
+        lead="インデックスされない状態には2種類あります。設定のせいで登録できない状態（noindex・robots.txt・canonical・リダイレクト・エラー）と、取得はできたがGoogleが登録する価値を認めなかった状態です。前者は設定を直せば戻りますが、後者は設定を直しても戻りません。まず、どちらなのかを確定させます。"
+      >
+        <FigureFlow
+          title="未インデックスの切り分け"
+          steps={[
+            { label: "① URL検査で、いまの登録状態を確定する", desc: "「URLはGoogleに登録されていません」と出たら、その画面に表示される理由をそのまま読む。推測で直し始めない。" },
+            { label: "② 理由が設定由来かを見る", desc: "noindex・robots.txtによるブロック・canonicalによる代替扱い・リダイレクト・404/5xxは、こちらに入る。該当すればページの中身は関係ない。" },
+            { label: "③ 設定を直し、ライブテストで読み取れることを確認する", desc: "直したうえで「公開URLをテスト」を実行し、クローラーが取得できる状態になったことを確認してから登録をリクエストする。" },
+            { label: "④ 設定に問題が無ければ、中身と導線の問題として扱う", desc: "「クロール済み - インデックス未登録」「検出 - インデックス未登録」はここ。リクエストを繰り返しても状況は変わらない。" },
+            { label: "⑤ 数日〜数週間おいて再確認する", desc: "Googleは要件を満たしたページのインデックス登録を保証していない。直後に登録されなくても、それ自体は異常ではない。" },
+          ]}
+          caption={
+            <>
+              理由の一覧と各理由の意味は、ページ インデックス登録レポートのヘルプに載っています。
+              <GuideRef {...REF.indexReport} />
+            </>
+          }
+        />
+
+        <h3>理由別の対処</h3>
+        <GuideTable
+          head={["レポートに出る理由", "起きていること", "対処", "直ったかの確認"]}
+          rows={[
+            [
+              "noindex タグによって除外されました",
+              "ページ側でインデックス登録を拒否している。CMSの設定や公開前の設定が残っていることが多い",
+              "meta robots と X-Robots-Tag ヘッダーの両方を確認し、noindex を外す",
+              <>URL検査のライブテストで noindex が消えていること。<GuideRef key="r1" {...REF.noindex} /></>,
+            ],
+            [
+              "robots.txt によりブロックされました",
+              "クロールが禁止されているため、ページの中身を読めていない",
+              "該当パスの Disallow を外す。noindex を併用していた場合は、noindex も読まれていない点に注意",
+              <>robots.txt レポートでGoogleが読んだ内容が更新されていること。<GuideRef key="r2" {...REF.robots} /></>,
+            ],
+            [
+              "代替ページ（適切な canonical タグあり）",
+              "別URLを正規として扱っている。意図どおりなら正常な状態で、直す必要はない",
+              "意図と違う場合だけ、canonical の向き先を直す",
+              "URL検査の「Googleが選択した正規URL」が意図したURLになること",
+            ],
+            [
+              "重複しています。Googleが選んだ正規ページとユーザーの指定が異なります",
+              "canonicalの指定を採用せず、Googleが別のURLを正規と判断している",
+              "内容の重なりを減らすか、統合して1本にする。canonical・内部リンク・サイトマップの指す先をそろえる",
+              "URL検査で選択された正規URLが変わること（反映には時間がかかる）",
+            ],
+            [
+              "クロール済み - インデックス未登録",
+              "取得はできたが、登録する価値を認められなかった。内容の薄さ・重複・自動生成の一覧ページが典型",
+              "加筆して独自の情報を足すか、近い内容のページへ統合する。残す必要のない一覧はnoindexにする",
+              "再クロール後に登録済みへ変わること。登録リクエストの連打では変わらない",
+            ],
+            [
+              "検出 - インデックス未登録",
+              "URLは把握しているが、まだクロールされていない。導線が弱いか、サーバーが重い",
+              "内部リンクを張る（トップや一覧から1本でよい）。サイトマップに載せる。サーバーの応答速度を確認する",
+              "URL検査の「前回のクロール」に日付が入ること",
+            ],
+            [
+              "ページにリダイレクトがあります",
+              "そのURL自体は転送されている。転送先が登録されていれば正常",
+              "転送先のURLを検査する。リダイレクトが連鎖している場合は1回で着くように直す",
+              "転送先が「登録されています」になっていること",
+            ],
+            [
+              "見つかりませんでした（404）／ソフト 404",
+              "削除済み、またはエラー相当の内容が200で返っている（中身が実質空のページなど）",
+              "残すべきページなら復旧、移転済みなら301。削除で正しいなら放置してよい",
+              "URL検査のHTTPレスポンスとページの中身が一致すること",
+            ],
+            [
+              "サーバーエラー（5xx）／クロールの問題",
+              "取得しようとして失敗している。サーバー・CDN・WAFがクローラーを弾いていることもある",
+              "サーバーログでGooglebotのリクエストを確認し、レート制限やブロックを解除する",
+              "URL検査のライブテストが成功すること",
+            ],
+          ]}
+          caption={
+            <>
+              レポートの表記はGoogle側の更新で変わることがあります。最新の理由の一覧はヘルプで確認してください。
+              <GuideRef {...REF.indexReport} />
+            </>
+          }
+        />
+
+        <h3>直したあとにやること</h3>
+        <FigureDoDont
+          title="未インデックスへの対応"
+          dos={[
+            "原因を直してから、URL検査の「インデックス登録をリクエスト」を1回だけ実行する",
+            "重要なページには、トップや一覧から内部リンクを1本以上張る",
+            "サイトマップに載せ、lastmod を実際の更新日にする",
+            "直後に登録されなくても、数日〜数週間おいて再確認する",
+          ]}
+          donts={[
+            "原因を直さないまま、インデックス登録を何度もリクエストする（順番は早まらない）",
+            "noindex と robots.txt の Disallow を同時に指定する（取得できないので noindex が読まれない）",
+            "「クロール済み - インデックス未登録」に対して、中身を変えずにタイトルだけ書き換える",
+            "インデックス登録を保証するとうたう外部サービスに費用を払う",
+          ]}
+        />
+        <p>
+          「クロール済み - インデックス未登録」が特定のページ種別に固まっている場合、個別ページの問題ではなく
+          サイト構造の問題です。中身がリンク数個しかない一覧ページを大量に作っていないかを、
+          <Link href={lessonPath("structure")}>レッスン07</Link>で確認してください。なお、Googleは基本事項を満たしていても
+          インデックス登録や掲載を保証していないと明記しています。すべての未登録を0にすることは目標になりません。
+          <GuideRef {...REF.essentials} />
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="crawl-stats"
+        title="クローラーの訪問頻度と取得ファイル"
+        lead={
+          <>
+            Googleがいつ・何件・どのファイルを取得したかは、Search Consoleの「設定 → クロールの統計情報」で見られます。
+            Googleはこのレポートを上級者向けと位置づけており、ページ数が1,000未満のサイトでは使う必要はないと明記しています。
+            また、ドメインプロパティなどルートレベルのプロパティでのみ利用できます。
+            <GuideRef {...REF.crawlStats} />
+          </>
+        }
+      >
+        <h3>訪問頻度は絶対値ではなく推移で見る</h3>
+        <p>
+          何件クロールされていれば正常、という基準はありません。見るのは合計クロールリクエスト数の推移と、
+          同じ画面に出る平均応答時間です。Googleは、サイトが速く応答する状態が続けばクロール頻度の上限が上がり、
+          応答が遅い場合やサーバーエラーが返る場合は上限が下がってクロールが減る、と説明しています。
+          <GuideRef {...REF.crawlBudget} />
+          つまり<strong>クロール数の減少は、多くの場合サーバー側の症状</strong>です。原因を本文や被リンクに求める前に、
+          応答時間と5xxの発生を確認します。
+        </p>
+        <FigureDoDont
+          title="クロール数が減ったときの見方"
+          dos={[
+            "平均応答時間が悪化していないかを同じ画面で確認する",
+            "レスポンス別の内訳で 5xx・429・403 が増えていないかを見る",
+            "サーバーやCDN、WAFがクローラーを弾いていないかログで確認する",
+            "更新頻度を上げていない時期に、クロールが減ること自体は異常ではないと考える",
+          ]}
+          donts={[
+            "クロール数そのものを増やすことを目標にする",
+            "順位や流入の変動を、クロール数の増減だけで説明する",
+            "クロールを増やす目的で、同じ内容のページを量産する",
+            "ページ数の少ないサイトでこのレポートを毎週見る（Googleは上級者向けとしている）",
+          ]}
+        />
+
+        <h3>何を取りに来ているか：4つの内訳</h3>
+        <GuideTable
+          head={["内訳", "何がわかるか", "崩れているサイン"]}
+          rows={[
+            [
+              "レスポンス別",
+              "取得の成否。200のほか、301・404・5xxなどの割合",
+              "301や404が上位に来ている。内部リンクやサイトマップが古いURLを指している",
+            ],
+            [
+              "ファイル形式別",
+              "HTML・画像・JavaScript・CSSなど、どの種類の取得に回数を使っているか",
+              "HTMLが押し出され、画像やJS・CSSの取得が大半を占め続けている",
+            ],
+            [
+              "目的別（検出・更新）",
+              "新しいURLを見つけるための取得か、既知URLの再取得か",
+              "新規ページを増やしているのに検出が伸びない。導線かサイトマップの問題",
+            ],
+            [
+              "Googlebotタイプ別",
+              "どのクローラーが来ているか。レンダリングに必要なリソースの取得も別に出る",
+              "想定と違うクローラーばかり来ている、または特定のタイプが極端に多い",
+            ],
+          ]}
+          caption={
+            <>
+              各内訳をクリックするとサンプルURLが見られますが、Googleはこれを網羅ではなく代表例だと説明しています。
+              <GuideRef {...REF.crawlStats} />
+            </>
+          }
+        />
+
+        <h3>HTMLが主になっているか</h3>
+        <p>
+          ファイル形式別で<strong>HTMLが最も多い形式になっているか</strong>を見ます。Googleが「HTMLは何％あるべき」という
+          基準を出しているわけではないので、当サイトでは「HTMLが上位にあり続けているか」を目安にしています。
+          画像の多いサイトや、リソースを入れ替えた直後は一時的に他の形式が増えます。問題なのは、
+          <strong>HTML以外の取得が続けて大半を占め、新規ページや更新ページの取得が後回しになっている状態</strong>です。
+          Googleは、CSSやJavaScriptなど埋め込みリソースの取得もサイトのクロール割り当てを消費すると説明しています。
+          <GuideRef {...REF.crawlBudget} />
+        </p>
+        <GuideTable
+          head={["HTMLが押し出されている原因", "確認する場所", "対処"]}
+          rows={[
+            [
+              "ビルドのたびにJS・CSSのファイル名が変わる",
+              "ファイル形式別のサンプルURL（ハッシュ付きのファイル名が並ぶ）",
+              <>中身が変わったときだけファイル名を変える。GoogleはURLが変わると内容が同じでも取り直しが必要になり、クロール割り当てを使うと説明している。<GuideRef key="c1" {...REF.crawlResources} /></>,
+            ],
+            [
+              "同じ画像がサイズ・パラメータ違いで多数のURLになっている",
+              "ファイル形式別の画像のサンプルURL",
+              "生成する画像のパターンを減らす。CDNのパラメータを固定し、URLを1本にそろえる",
+            ],
+            [
+              "再取得のたびに全文が返っている",
+              "サーバーのレスポンスヘッダー（ETag・Last-Modified）",
+              <>ETagとLast-Modifiedを返し、条件付きリクエストに304を返せるようにする。GoogleはETagの利用を推奨している。<GuideRef key="c2" {...REF.crawlCaching} /></>,
+            ],
+            [
+              "絞り込み・並び替え・カレンダーでURLが無限に増える",
+              "レスポンス別・その他のサンプルURL",
+              "パラメータ付きURLはcanonicalで代表URLに寄せ、クロール自体が不要なパスはrobots.txtで止める",
+            ],
+            [
+              "リダイレクトや404の取得が多い",
+              "レスポンス別の内訳",
+              "内部リンクとサイトマップを最終URLに直す。リダイレクトの連鎖を1回に縮める",
+            ],
+          ]}
+        />
+        <p>
+          逆に、<strong>レンダリングに必要なJavaScriptやCSSをrobots.txtで止めるのは対処になりません</strong>。
+          Googleは、レンダリングに必要なリソースを取得できないと、ページの内容の抽出や検索での掲載に支障が出ると説明しています。
+          <GuideRef {...REF.crawlResources} />
+          減らすべきなのは<strong>同じ内容を何度も取り直させている無駄</strong>で、リソースそのものへのアクセスではありません。
+        </p>
+        <p>
+          なお、クロールの統計情報を細かく追う価値があるのは、ページ数が多いサイトです。
+          Googleのクロール バジェットのガイドも、対象を大規模なサイト（100万ページ以上で更新頻度が中程度など）としています。
+          <GuideRef {...REF.crawlBudget} />
+          小規模なサイトでは、前節の未インデックスの解消と本文の改善のほうが先です。
         </p>
       </GuideSection>
 
@@ -157,7 +403,7 @@ export default function Lesson04() {
         <p>
           なお、生成AI向けの特別な構造化データは存在しません。Googleは、AI機能に表示されるために
           特別なschema.orgの構造化データを追加する必要はないと明記しています。詳しくは
-          <Link href={lessonPath("geo-implementation")}>レッスン07</Link>で扱います。
+          <Link href={lessonPath("geo-implementation")}>レッスン08</Link>で扱います。
         </p>
       </GuideSection>
 
@@ -261,7 +507,7 @@ export default function Lesson04() {
           }
         />
         <p>
-          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン09</Link>にまとめています。
+          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン10</Link>にまとめています。
           次のレッスンでは、技術的に読める状態になったページに、引用される本文を書いていきます。
         </p>
       </GuideSection>

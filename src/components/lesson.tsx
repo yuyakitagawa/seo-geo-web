@@ -19,7 +19,7 @@ import { Card, CardLink, Eyebrow } from "./ui";
 const TONE_BAR = { accent: "bg-accent", seo: "bg-seo", geo: "bg-geo", news: "bg-news" } as const;
 const TONE_TEXT = { accent: "text-accent", seo: "text-seo", geo: "text-geo", news: "text-news" } as const;
 
-/** カリキュラム内の現在位置。10レッスンをドットで並べ、いま何番目かを示す */
+/** カリキュラム内の現在位置。全レッスンをドットで並べ、いま何番目かを示す */
 export function LessonRail({ current }: { current: number }) {
   return (
     <nav aria-label="カリキュラムの現在位置" className="not-prose mb-10">
@@ -170,7 +170,7 @@ export function LessonNav({ slug }: { slug: string }) {
         <CardLink href={COURSE.path}>
           <Eyebrow>← カリキュラム</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">{COURSE.h1}</p>
-          <p className="mt-2 text-sm leading-relaxed text-mute">10レッスン全体の地図に戻る。</p>
+          <p className="mt-2 text-sm leading-relaxed text-mute">カリキュラム全体の地図に戻る。</p>
         </CardLink>
       )}
       {next ? (
@@ -183,7 +183,7 @@ export function LessonNav({ slug }: { slug: string }) {
         <CardLink href={COURSE.path} tone="invert">
           <Eyebrow tone="faint">修了 →</Eyebrow>
           <p className="mt-2 text-lg font-bold tracking-tight">カリキュラムに戻る</p>
-          <p className="mt-2 text-sm leading-relaxed opacity-70">10レッスンを通した。あとは4週間ごとに数値で確認しながら回す。</p>
+          <p className="mt-2 text-sm leading-relaxed opacity-70">全レッスンを通した。あとは4週間ごとに数値で確認しながら回す。</p>
         </CardLink>
       )}
     </nav>

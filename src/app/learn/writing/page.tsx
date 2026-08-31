@@ -237,7 +237,7 @@ export default function Lesson05() {
         <p>
           次のレッスンでは、こうして書いたページを、テーマごとに束ねて評価が積み上がる構造に組み替えます。
           個別ページの品質だけを上げても、サイト全体としてのまとまりが無いと積み上がりません。
-          <Link href={lessonPath("structure")}>レッスン06</Link>へ進んでください。
+          <Link href={lessonPath("structure")}>レッスン07</Link>へ進んでください。
         </p>
       </GuideSection>
     </LessonShell>

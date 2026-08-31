@@ -112,10 +112,11 @@ export const TABLE = {
   cell: "px-4 py-4",
 } as const;
 
-/** 入力欄。input=1行 / area=複数行 */
+/** 入力欄。input=1行 / area=複数行（コード・URL） / text=複数行（日本語の文章） */
 export const FIELD = {
   input: "rounded-full border border-line-strong bg-canvas px-5 py-3 font-mono text-sm outline-none focus:border-accent",
   area: "resize-y rounded-panel border border-line-strong bg-canvas p-4 font-mono text-sm leading-relaxed outline-none focus:border-accent",
+  text: "resize-y rounded-panel border border-line-strong bg-canvas px-5 py-4 text-sm leading-relaxed outline-none focus:border-accent",
 } as const;
 
 /** コードの表示面 */

@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 const TOC = [
-  { id: "definition", label: "GEOとは（定義）" },
+  { id: "definition", label: "GEO対策とは（定義）" },
   { id: "names", label: "GEO・AIO・LLMO・AEOの違い" },
   { id: "vs-seo", label: "SEOとGEOの違い" },
   { id: "how", label: "AIの回答に引用されるまでの経路" },
@@ -52,8 +52,8 @@ export default function GeoGuidePage() {
 
         <GuideSection
           id="definition"
-          title="GEOとは（定義）"
-          lead="GEO（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。"
+          title="GEO対策とは（定義）"
+          lead="GEO対策（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。"
         >
           <p>
             用語の初出は、2023年11月にarXivで公開された論文「GEO: Generative Engine Optimization」（Aggarwalほか）です。この論文は、
@@ -86,7 +86,7 @@ export default function GeoGuidePage() {
         <GuideSection
           id="vs-seo"
           title="SEOとGEOの違い"
-          lead="SEOは「検索結果ページで上位に表示されること」を、GEOは「AIが生成する回答の中で引用・言及されること」を目標にします。土台となるクロールとインデックスの要件は共通で、違いが出るのは評価される単位（ページか、本文中のパッセージか）と、対応すべきクローラーの数です。"
+          lead="SEOは「検索結果ページで上位に表示されること」を、GEOは「AIが生成する回答の中で引用・言及されること」を目標にします。土台となるクロールとインデックスの要件は共通で、違いが出るのは評価される単位（ページ全体か、本文中の短いまとまり＝パッセージか）と、対応すべきクローラーの数です。"
         >
           <FigureCompare
             title="SEOとGEOの違い"
@@ -133,7 +133,7 @@ export default function GeoGuidePage() {
             steps={[
               { label: "クロールを許可する", desc: "robots.txt に加えて、CDNやWAFがAIクローラーを弾いていないかを確認する。ここで止まっていると以降はすべて成立しない。" },
               { label: "索引に登録される", desc: "Googleの場合はインデックス登録され、スニペットが表示される状態であること。ChatGPT・Perplexityの場合は各社のクローラーが取得した索引に入ること。" },
-              { label: "質問の候補として取り出される", desc: "質問と、その周辺のサブトピックに答えている本文が候補になる。ページ全体ではなく該当箇所（パッセージ）が単位。" },
+              { label: "質問の候補として取り出される", desc: "質問と、その周辺のサブトピックに答えている本文が候補になる。ページ全体ではなく、該当するパッセージが単位。" },
               { label: "回答の根拠として引用・リンクされる", desc: "回答文に要約が使われ、参照元としてリンクが添えられる。ここで初めてブランド名やURLがユーザーの目に触れる。" },
             ]}
           />
@@ -245,7 +245,7 @@ export default function GeoGuidePage() {
               },
               {
                 label: "候補の抽出",
-                desc: "質問と周辺のサブトピックに答えている本文（パッセージ）が索引から取り出される。",
+                desc: "質問と周辺のサブトピックに答えている本文のパッセージが索引から取り出される。",
                 fail: "直答の段落が無く、他サイトの文が使われる。",
               },
               {
@@ -311,7 +311,7 @@ export default function GeoGuidePage() {
         <GuideSection
           id="writing"
           title="引用されやすいページの書き方"
-          lead="GEOで書き方として効くのは、生成AIが本文中の短いまとまり（パッセージ）を取り出して回答に使う、という性質への対応です。見出しの直後に質問へ直答する2〜3文を置き、数値や条件は表と箇条書きで構造化し、根拠となる一次情報のURLを本文に添えます。"
+          lead="GEOで書き方として効くのは、生成AIが本文中のパッセージを取り出して回答に使う、という性質への対応です。見出しの直後に質問へ直答する2〜3文を置き、数値や条件は表と箇条書きで構造化し、根拠となる一次情報のURLを本文に添えます。"
         >
           <FigureDoDont
             title="AIに引用されるための書き方"
@@ -381,7 +381,7 @@ export default function GeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/learn", label: "SEO・GEO教科書（11レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/seo", label: "SEO対策とは", note: "定義、3つの領域、Googleが公式に示す基準、最初の90日でやること。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
