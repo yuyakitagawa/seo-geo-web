@@ -6,7 +6,7 @@ import { FigureCompare, FigureDoDont, FigureFlow, FigurePipeline, FigureQuote } 
 import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideLessonCta, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { PROSE, cx } from "@/lib/ui";
 
 const guide = GUIDES.geo;
@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   alternates: { canonical: guide.path },
   openGraph: {
     type: "article",
+    siteName: SITE_NAME,
+    locale: "ja_JP",
     title: guide.metaTitle,
     description: guide.description,
     url,

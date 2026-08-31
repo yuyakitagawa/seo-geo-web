@@ -4,7 +4,7 @@ import { FigureCompare, FigureDoDont, FigureFlow } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { ScreenSearchPerformance } from "@/components/screens";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("search-intent");
 
@@ -172,8 +172,8 @@ export default function Lesson03() {
           統合すると決めたら、残すURLを1つ選び、他のページからは301リダイレクトするか、
           canonicalで残すURLを指定します。内容は捨てずに、残すページに統合します。
           <GuideRef {...REF.canonical} />
-          リダイレクトの実装は<Link href={lessonPath("technical")}>レッスン05</Link>、
-          統合後のサイト構造の整理は<Link href={lessonPath("structure")}>レッスン07</Link>で扱います。
+          リダイレクトの実装は<Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>、
+          統合後のサイト構造の整理は<Link href={lessonPath("structure")}>レッスン{lessonNo("structure")}</Link>で扱います。
         </p>
         <p>
           一方で、Googleが意図ごとに別々のページを正しく出し分けられている場合は、無理に統合する必要はありません。

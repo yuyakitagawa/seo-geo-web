@@ -4,7 +4,7 @@ import { FigureDoDont, FigureStack, FigureStats } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { CASES, casesByArea } from "@/lib/cases";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("case-studies");
 
@@ -66,7 +66,7 @@ export default function Lesson11() {
           Saraminで注目すべきなのは順番です。2015年にクロールエラーを解消した段階で流入が15%増え、
           そのうえでmetaタグの整理・canonicalによる重複統合・構造化データの追加が続き、2019年の102%増につながっています。
           構造化データから始めていたら、この結果にはなっていません。作業の順序は
-          <Link href={lessonPath("technical")}>レッスン05</Link>で扱ったとおりです。
+          <Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>で扱ったとおりです。
         </p>
       </GuideSection>
 
@@ -107,7 +107,7 @@ export default function Lesson11() {
           最下位が<strong>キーワードの詰め込み</strong>という従来型のテクニックだという点です。
           生成AI向けの作業は、記述テクニックではなく内容の裏付けを増やす作業に寄っています。
           <GuideRef {...REF.geoPaper} />
-          具体的な書き方は<Link href={lessonPath("writing")}>レッスン06</Link>にまとめています。
+          具体的な書き方は<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>にまとめています。
         </p>
       </GuideSection>
 

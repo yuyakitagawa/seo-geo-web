@@ -4,7 +4,7 @@ import { FigureCompare, FigureDoDont, FigureLinkMap, FigureStack } from "@/compo
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("structure");
 
@@ -307,7 +307,7 @@ export default function Lesson07() {
         <p>
           リンクを置く位置も効きます。ページ末尾の関連記事一覧よりも、
           <strong>その話題に触れた本文中</strong>からのリンクのほうが、読者にとってもクローラーにとっても文脈が明確です。
-          このレッスンでも、canonicalの話が出たところで<Link href={lessonPath("technical")}>レッスン05</Link>へリンクしています。
+          このレッスンでも、canonicalの話が出たところで<Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>へリンクしています。
         </p>
       </GuideSection>
 

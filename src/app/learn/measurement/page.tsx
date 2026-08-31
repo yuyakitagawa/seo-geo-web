@@ -4,7 +4,7 @@ import { FigureDoDont, FigureFlow, FigurePipeline, FigureTimeline } from "@/comp
 import { GuideChecklist, GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { ScreenIndexReport, ScreenSearchPerformance, ScreenUrlInspection } from "@/components/screens";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("measurement");
 
@@ -115,7 +115,7 @@ export default function Lesson10() {
               check: "所有権を確認し、検索パフォーマンスの画面が開く",
               where: "プロパティを追加 → 所有権の確認",
               ok: "「検索パフォーマンス」のグラフが開く（作りたてでデータが0でもよい）",
-              ng: <>確認方法を変える（DNSレコードが触れない場合はHTMLタグ）。手順は<Link href={lessonPath("first-week")}>レッスン02</Link>。</>,
+              ng: <>確認方法を変える（DNSレコードが触れない場合はHTMLタグ）。手順は<Link href={lessonPath("first-week")}>レッスン{lessonNo("first-week")}</Link>。</>,
             },
             {
               check: "サイト全体の数値が1つのプロパティに集まっている",
@@ -158,7 +158,7 @@ export default function Lesson10() {
               check: "手動による対策に問題が出ていない",
               where: "セキュリティと手動による対策 → 手動による対策",
               ok: "「問題は検出されませんでした」と表示される",
-              ng: <>他の数値を見る前にここを処理する。手順は<Link href={lessonPath("updates-risk")}>レッスン12</Link>。<GuideRef {...REF.manual} /></>,
+              ng: <>他の数値を見る前にここを処理する。手順は<Link href={lessonPath("updates-risk")}>レッスン{lessonNo("updates-risk")}</Link>。<GuideRef {...REF.manual} /></>,
             },
             {
               check: "セキュリティの問題が出ていない",
@@ -178,19 +178,19 @@ export default function Lesson10() {
               check: "表示回数はあるのにCTRが低いクエリを書き出した",
               where: "検索パフォーマンス → クエリ別（表示回数で並べ替え）",
               ok: "上位クエリごとに、タイトルと説明文を直す候補が3件以内に絞れている",
-              ng: <>本文ではなくタイトルから直す。書き方は<Link href={lessonPath("writing")}>レッスン06</Link>。</>,
+              ng: <>本文ではなくタイトルから直す。書き方は<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>。</>,
             },
             {
               check: "表示回数はあるのに、そのクエリに答えるページが無いものを拾った",
               where: "検索パフォーマンス → クエリ別 ＋ ページ別",
               ok: "次に作るページが、思いつきではなく数値から決まっている",
-              ng: <>クエリの意図から作る手順は<Link href={lessonPath("search-intent")}>レッスン03</Link>。</>,
+              ng: <>クエリの意図から作る手順は<Link href={lessonPath("search-intent")}>レッスン{lessonNo("search-intent")}</Link>。</>,
             },
             {
               check: "先月公開したページがインデックス登録されている",
               where: "URL 検査（1本ずつ）",
               ok: "「URLはGoogleに登録されています」と表示される",
-              ng: <>理由別の対処は<Link href={`${lessonPath("technical")}#not-indexed`}>レッスン05の「未インデックスの対処法」</Link>。<GuideRef {...REF.urlInspection} /></>,
+              ng: <>理由別の対処は<Link href={`${lessonPath("technical")}#not-indexed`}>レッスン{lessonNo("technical")}の「未インデックスの対処法」</Link>。<GuideRef {...REF.urlInspection} /></>,
             },
             {
               check: "主要ページで「Googleが選択した正規URL」が意図どおり",
@@ -202,7 +202,7 @@ export default function Lesson10() {
               check: "構造化データ（拡張レポート）にエラーが出ていない",
               where: "拡張 → 各リッチリザルトのレポート",
               ok: "エラー0。警告は内容を見て判断する",
-              ng: <>マークアップの直し方は<Link href={lessonPath("technical")}>レッスン05</Link>。</>,
+              ng: <>マークアップの直し方は<Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>。</>,
             },
             {
               check: "AI検索からの流入を、検索とは別に把握している",
@@ -221,7 +221,7 @@ export default function Lesson10() {
               check: "robots.txtを変えたら、Googleが読んだ内容を確認する",
               where: "設定 → robots.txt レポート",
               ok: "取得日時が変更後になっていて、内容が意図どおり",
-              ng: <>書き方と使い分けは<Link href={lessonPath("technical")}>レッスン05</Link>。<GuideRef {...REF.robots} /></>,
+              ng: <>書き方と使い分けは<Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>。<GuideRef {...REF.robots} /></>,
             },
             {
               check: "重要ページを公開・大きく書き換えたら、インデックス登録をリクエストする",
@@ -233,7 +233,7 @@ export default function Lesson10() {
               check: "URLを変えたら、旧URLと新URLの両方を追う",
               where: "URL 検査 ＋ ページ（インデックス登録）",
               ok: "旧URLがリダイレクト扱いになり、新URLが登録されていく",
-              ng: <>サイト移転時の手順は<Link href={lessonPath("updates-risk")}>レッスン12</Link>。</>,
+              ng: <>サイト移転時の手順は<Link href={lessonPath("updates-risk")}>レッスン{lessonNo("updates-risk")}</Link>。</>,
             },
             {
               check: "施策の開始日と対象URLを記録した",

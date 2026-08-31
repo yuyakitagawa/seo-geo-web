@@ -23,7 +23,7 @@ import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { extractToc } from "@/lib/toc";
-import { CATEGORIES, SITE_URL, categoryHref } from "@/lib/site";
+import { CATEGORIES, SITE_NAME, SITE_URL, categoryHref } from "@/lib/site";
 import { CHIP, CONTAINER, EYEBROW, HEADING, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
 export const dynamicParams = false;
@@ -43,8 +43,11 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
     title: article.title,
     description: article.description,
     alternates: { canonical: `/articles/${article.slug}` },
+    // openGraph は上位の値とマージされず丸ごと置き換わるので、siteName / locale もここで書き直す。
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
+      locale: "ja_JP",
       title: article.title,
       description: article.description,
       url: `${SITE_URL}/articles/${article.slug}`,

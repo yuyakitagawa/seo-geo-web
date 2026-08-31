@@ -4,7 +4,7 @@ import { FigureBars, FigureCompare, FigurePipeline, FigureQuote } from "@/compon
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { ScreenSerp } from "@/components/screens";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 import { LINK } from "@/lib/ui";
 
 const lesson = requireLesson("starter-guide");
@@ -55,7 +55,7 @@ export default function Lesson01() {
           このうち<strong>発見・取得・理解</strong>の3段階はテクニカルな設定の問題で、確認すればすぐ分かります。
           <strong>選択・提示</strong>の2段階はコンテンツの問題で、時間がかかります。順位が上がらないと悩んでいるサイトの多くは、
           実際には「理解」で止まっていて、そもそも選択の対象になっていません。どこで止まっているかを先に特定するのが、
-          このカリキュラムの<Link href={lessonPath("first-week")}>レッスン02</Link>です。
+          このカリキュラムの<Link href={lessonPath("first-week")}>レッスン{lessonNo("first-week")}</Link>です。
         </p>
         <ScreenSerp />
       </GuideSection>
@@ -101,7 +101,7 @@ export default function Lesson01() {
           caption={
             <>
               経路Aの追加要件が無いことはGoogleが公式ドキュメントで明記しています。経路Bの各ボットの扱いは
-              <Link href={lessonPath("geo-implementation")}>レッスン09</Link>で扱います。
+              <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>で扱います。
               <GuideRef {...REF.aiFeatures} />
             </>
           }
@@ -117,8 +117,8 @@ export default function Lesson01() {
         <p>
           ここから分かるのは、<strong>GEOはSEOの置き換えではなく追加である</strong>ということです。
           経路Aは検索インデックスに依存しているため、SEOをやめてGEOだけを行うことはできません。
-          GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン06</Link>）と、
-          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン09</Link>）の2つです。
+          GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>）と、
+          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>）の2つです。
         </p>
       </GuideSection>
 
@@ -188,11 +188,11 @@ export default function Lesson01() {
           注目すべきは、上位を占めているのが<strong>引用・統計・出典</strong>という「情報としての確かさ」に関わる要素で、
           最下位が<strong>キーワードの詰め込み</strong>という従来型のテクニックだという点です。
           生成AIに引用されるための作業は、小手先の記述ではなく、内容の裏付けを増やす作業に寄っています。
-          具体的な書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱います。
+          具体的な書き方は<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>で扱います。
         </p>
         <p>
           検索側については、Googleの成功事例やweb.devのケーススタディに、施策と数値が同じ文書で公開されている事例があります。
-          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン11</Link>に集め、
+          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン{lessonNo("case-studies")}</Link>に集め、
           各実装レッスンからも参照しています。
           <GuideRef {...REF.crawlers} />
         </p>

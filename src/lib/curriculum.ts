@@ -945,6 +945,8 @@ export function lessonMetadata(lesson: Lesson): Metadata {
     alternates: { canonical: lessonPath(lesson.slug) },
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
+      locale: "ja_JP",
       title: lesson.metaTitle,
       description: lesson.description,
       url: `${SITE_URL}${lessonPath(lesson.slug)}`,

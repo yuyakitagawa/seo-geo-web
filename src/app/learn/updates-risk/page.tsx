@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FigureDoDont, FigureFlow, FigureQuote } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 import { LINK } from "@/lib/ui";
 
 const lesson = requireLesson("updates-risk");
@@ -173,7 +173,7 @@ export default function Lesson12() {
           問題になるのは、ユーザーにとっての価値を付加せず、検索順位の操作を主な目的として大量にページを生成する場合です。
           <GuideRef {...REF.spamScaled} />
           判断の分かれ目は、生成に使ったかどうかではなく、そのページが読者の質問に答えているかどうかです
-          （<Link href={lessonPath("writing")}>レッスン06</Link>）。
+          （<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>）。
         </p>
       </GuideSection>
 
@@ -257,10 +257,10 @@ export default function Lesson12() {
         />
         <p>
           移行後は、URL検査で主要ページの状態を確認し、インデックス登録レポートで「未登録」が急増していないかを見ます。
-          確認の手順は<Link href={lessonPath("measurement")}>レッスン10</Link>と同じです。
+          確認の手順は<Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>と同じです。
         </p>
         <p>
-          ここまででサイト側の作業は一巡します。最後の<Link href={lessonPath("brand-entity")}>レッスン13</Link>では、
+          ここまででサイト側の作業は一巡します。最後の<Link href={lessonPath("brand-entity")}>レッスン{lessonNo("brand-entity")}</Link>では、
           AIの回答候補にそもそも自社が入るための、ブランド側の作業を扱います。
         </p>
       </GuideSection>

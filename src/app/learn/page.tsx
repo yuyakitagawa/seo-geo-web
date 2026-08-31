@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { FigureFlow, FigureStack, FigureTimeline } from "@/components/figures";
 import { GuideCrossLinks, GuideTable } from "@/components/guide";
 import { CASES } from "@/lib/cases";
-import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonPath, lessonsByLevel } from "@/lib/curriculum";
+import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonNo, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
 import { EYEBROW, HEADING, LIFT, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
@@ -83,7 +83,7 @@ export default function LearnPage() {
             この教科書に載せている実例は、<strong>実施した施策と結果の数値が同じ一次情報の中で公開されているもの</strong>だけです。
             出典は、サイト運営者本人の発表か、Google（検索セントラルの成功事例・web.devのケーススタディ）、
             および査読を経た論文に限っています。数値は各社の環境での結果であり、同じ施策で同じ結果が出ることを示すものではありません。
-            すべての実例は<Link href={lessonPath("case-studies")}>レッスン11</Link>にまとめてあります。
+            すべての実例は<Link href={lessonPath("case-studies")}>レッスン{lessonNo("case-studies")}</Link>にまとめてあります。
           </p>
         </section>
 
@@ -150,19 +150,19 @@ export default function LearnPage() {
         <section id="plan" className="scroll-mt-24">
           <h2>最初の90日でやること</h2>
           <p>
-            10レッスンを実際のカレンダーに割り当てると、次の順番になります。計測環境の用意 → 技術的な土台の確認 →
+            {LESSONS.length}レッスンを実際のカレンダーに割り当てると、次の順番になります。計測環境の用意 → 技術的な土台の確認 →
             既存ページの改善 → 新規ページの追加、の順です。計測ができていない状態で施策だけ増やすと、
             順位が動いた理由を後から確認できなくなります。
           </p>
           <FigureFlow
             title="SEO対策の着手順（最初の90日）"
             steps={[
-              { label: "Search Consoleとアクセス解析を入れる", desc: "所有権を確認し、表示回数・クリック数・平均掲載順位を見られる状態にする。ここが無いと施策の効果を確認できない（レッスン02）。" },
-              { label: "インデックス状況とrobots.txtを確認する", desc: "重要なページが「登録済み」になっているか、意図せず noindex や Disallow になっていないかを確認する（レッスン02・04）。" },
-              { label: "XMLサイトマップとcanonicalを整える", desc: "サイトマップを送信し、同じ内容が複数URLで見える状態（パラメータ違いなど）を canonical で1本化する（レッスン04）。" },
-              { label: "既に表示回数のあるページを直す", desc: "検索クエリに対してタイトル・導入文・見出しが答えているかを見直す。新規作成より先に、既に見られているページを直すほうが早い（レッスン05）。" },
-              { label: "答えの無いクエリに対して新しいページを作る", desc: "Search Consoleで表示回数はあるのに該当ページが無いクエリを探し、その質問に直答するページを追加する（レッスン03・06）。" },
-              { label: "4週間おきに数値で確認する", desc: "順位の体感ではなく、表示回数・クリック数・インデックス数の推移で判断する。改善が無い施策は畳む（レッスン08）。" },
+              { label: "Search Consoleとアクセス解析を入れる", desc: `所有権を確認し、表示回数・クリック数・平均掲載順位を見られる状態にする。ここが無いと施策の効果を確認できない（レッスン${lessonNo("first-week")}）。` },
+              { label: "インデックス状況とrobots.txtを確認する", desc: `重要なページが「登録済み」になっているか、意図せず noindex や Disallow になっていないかを確認する（レッスン${lessonNo("first-week")}・${lessonNo("technical")}）。` },
+              { label: "XMLサイトマップとcanonicalを整える", desc: `サイトマップを送信し、同じ内容が複数URLで見える状態（パラメータ違いなど）を canonical で1本化する（レッスン${lessonNo("technical")}）。` },
+              { label: "既に表示回数のあるページを直す", desc: `検索クエリに対してタイトル・導入文・見出しが答えているかを見直す。新規作成より先に、既に見られているページを直すほうが早い（レッスン${lessonNo("writing")}）。` },
+              { label: "答えの無いクエリに対して新しいページを作る", desc: `Search Consoleで表示回数はあるのに該当ページが無いクエリを探し、その質問に直答するページを追加する（レッスン${lessonNo("search-intent")}・${lessonNo("writing")}）。` },
+              { label: "4週間おきに数値で確認する", desc: `順位の体感ではなく、表示回数・クリック数・インデックス数の推移で判断する。改善が無い施策は畳む（レッスン${lessonNo("measurement")}）。` },
             ]}
           />
           <FigureTimeline
@@ -180,7 +180,7 @@ export default function LearnPage() {
           />
           <p>
             AI検索（GEO）側の作業は、この90日の外に別枠で足すものではありません。
-            <Link href={lessonPath("geo-implementation")}>レッスン07</Link>のAIクローラーの確認は、
+            <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>のAIクローラーの確認は、
             2番目のrobots.txtの確認と同じタイミングで済ませられます。
           </p>
         </section>
@@ -212,7 +212,7 @@ export default function LearnPage() {
           links={[
             { href: "/seo", label: "SEO対策とは", note: "用語の定義、3領域、Googleが公式に示している基準。" },
             { href: "/geo", label: "GEO対策とは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
-            { href: lessonPath("starter-guide"), label: "レッスン01を始める", note: "検索と生成AIがページを回答に載せるまでの経路から。" },
+            { href: lessonPath("starter-guide"), label: `レッスン${lessonNo("starter-guide")}を始める`, note: "検索と生成AIがページを回答に載せるまでの経路から。" },
             { href: "/tools", label: "SEO・GEOツール", note: "ページ診断・AIクローラー確認など、教科書と一緒に使うツール。" },
             { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
           ]}

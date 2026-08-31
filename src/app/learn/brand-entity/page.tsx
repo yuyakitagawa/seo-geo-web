@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FigureDoDont, FigureFlow, FigurePipeline } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("brand-entity");
 
@@ -92,7 +92,7 @@ export default function Lesson13() {
           }
         />
         <p>
-          実装は<Link href={lessonPath("technical")}>レッスン05</Link>で入れた構造化データの延長にあります。
+          実装は<Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>で入れた構造化データの延長にあります。
           旧名やリブランド前の名前がある場合は、旧名からの対応を公式ページに残してください。
           モデルの学習データには旧名の記事が大量に残るため、旧名で候補に入り新名で回答されるのが理想の状態です。
           表記ゆれが候補入りに直接効く仕組みは
@@ -139,7 +139,7 @@ export default function Lesson13() {
           GEOという用語の初出であるarXiv論文（KDD 2024採録）でも、統計の追加で可視性が約32%、引用の追加で最大41%、
           出典の明示で約28%向上した一方、キーワードの詰め込みはほとんど効果が無かったと報告されています。
           研究環境での測定値であり各社のサービスが同じ挙動をする保証はありませんが、数値と出典を持つことが
-          効く方向にあるという点は<Link href={lessonPath("writing")}>レッスン06</Link>の書き方とも一致します。
+          効く方向にあるという点は<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>の書き方とも一致します。
           <GuideRef {...REF.geoPaper} />
         </p>
         <p>
@@ -177,11 +177,11 @@ export default function Lesson13() {
         <p>
           記録は同じ質問文・同じ月内でそろえます。モデルの更新や会話の履歴で結果は動くため、1回の結果で判断しないでください。
           手作業での確認に加えて、可視性を継続測定するツールもあります（<Link href="/tools">SEO・GEOツール</Link>）。
-          数値の読み方と改善サイクルの回し方は<Link href={lessonPath("measurement")}>レッスン10</Link>と同じで、
+          数値の読み方と改善サイクルの回し方は<Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>と同じで、
           4週間ごとに確認する枠にこの3段階を足す形になります。
         </p>
         <p>
-          これで教科書は終わりです。ここから先は、<Link href={lessonPath("measurement")}>レッスン10</Link>の
+          これで教科書は終わりです。ここから先は、<Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>の
           4週間サイクルを回しながら、このレッスンの3段階を月1回記録し続けることが実務になります。
           検索とAI検索の仕様は頻繁に変わるため、<Link href="/news">ニュース</Link>で変更を追いながら、
           各レッスンのチェックリストを定期的に見直してください。
