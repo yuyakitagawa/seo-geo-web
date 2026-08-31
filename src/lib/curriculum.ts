@@ -195,6 +195,11 @@ export const LESSONS: Lesson[] = [
           "まずURL検査ツールでそのURLを調べ、「インデックス登録済み」かどうかを確認します。登録されていない場合、原因はnoindexタグ、robots.txtのDisallow、canonicalが別URLを指している、そもそもクロールされていない、のいずれかであることが多いです。登録済みなのに表示されない場合は、インデックスされているが順位が低いという別の問題なので、対策も変わります。",
       },
       {
+        question: "Search Consoleに身に覚えのないURLやディレクトリが出てきます",
+        answer:
+          "Search Consoleのインデックスレポートには、自分では作った覚えのないURLが並ぶことがあります。外部サイトからの誤ったリンク、以前使っていたCMSの残骸、WordPressなどを狙って存在しないパスを次々に試す自動巡回botのアクセスがきっかけで、GoogleがそのURLを知るためです。まずURL検査でそのURLを調べ、自分のサイト内にリンクが無く、実際に404が返っているなら、それが正しい状態なので直す必要はありません。ここでrobots.txtのDisallowを使って隠すのは逆効果で、Googleはブロックされたページでも他のページからリンクされていればURLがインデックスに登録されることがあると説明しており、ブロックすると404もnoindexも読み取れなくなってURLが残り続けます。手を入れる対象は、自分のサイトが実際にリンクしているURLだけです。",
+      },
+      {
         question: "robots.txtは作らないといけませんか",
         answer:
           "必須ではありません。robots.txtが無い場合、クローラーはサイト全体をクロールしてよいと解釈します。問題になるのは、内容を確認しないままCMSやテーマが出力しているrobots.txtを放置し、重要なディレクトリがDisallowになっているケースです。作るかどうかより、いま何が書かれているかを確認するほうが先です。",
@@ -207,7 +212,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.perf, S.saramin],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "search-intent",
