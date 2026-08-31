@@ -86,6 +86,61 @@ export function GuideTable({ head, rows, caption }: { head: string[]; rows: Reac
 }
 
 /**
+ * 点検チェックリスト。1項目につき「確認すること・どこで見るか・合格の条件・崩れていたときの動き」を
+ * まとめて置く。読者がその場で自分のサイトを開いて確認できるように、判断基準まで書ける形にしている。
+ */
+export function GuideChecklist({
+  title,
+  cadence,
+  items,
+  caption,
+}: {
+  title: string;
+  /** 「週に1回・5分」のような頻度。無ければ出さない */
+  cadence?: string;
+  items: { check: string; where: string; ok: string; ng: ReactNode }[];
+  caption?: ReactNode;
+}) {
+  return (
+    <figure className="not-prose my-8">
+      <div className="overflow-hidden rounded-3xl border border-ink/10 dark:border-paper/10">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 bg-ink/5 px-6 py-4 dark:border-paper/10 dark:bg-paper/5">
+          <h3 className="text-sm font-bold tracking-tight sm:text-base">{title}</h3>
+          {cadence && <span className="text-xs font-bold uppercase tracking-[0.2em] text-mute">{cadence}</span>}
+        </div>
+        <ul className="divide-y divide-ink/10 dark:divide-paper/10">
+          {items.map((it) => (
+            <li key={it.check} className="flex gap-4 px-6 py-5">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-ink/25 text-xs dark:border-paper/25" aria-hidden>
+                ✓
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold leading-relaxed sm:text-base">{it.check}</p>
+                <dl className="mt-3 grid gap-3 text-xs leading-relaxed sm:grid-cols-3">
+                  <div>
+                    <dt className="font-bold uppercase tracking-[0.2em] text-mute">見る場所</dt>
+                    <dd className="mt-1">{it.where}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold uppercase tracking-[0.2em] text-mute">合格の条件</dt>
+                    <dd className="mt-1">{it.ok}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold uppercase tracking-[0.2em] text-mute">崩れていたら</dt>
+                    <dd className="mt-1 text-mute">{it.ng}</dd>
+                  </div>
+                </dl>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {caption && <figcaption className="mt-3 text-xs text-mute">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+/**
  * 本文中の出典リンク。Googleなどが公式に述べている記述の直後に置き、その一文の一次情報へ直接飛ばす。
  * ページ末尾の GuideSources は一覧、こちらは「どの記述がどの文書由来か」を示すためのもの。
  */
