@@ -561,7 +561,7 @@ export default function SeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/learn", label: "SEO・GEO教科書（11レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "順位計測・クロール監査・AI可視性計測ツールを国内外で比較。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
