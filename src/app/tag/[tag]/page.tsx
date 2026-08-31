@@ -10,6 +10,7 @@ import { getAllTags, getArticlesByTag, latestUpdated } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
 import { isIndexableTag } from "@/lib/indexability";
 import { SITE_URL } from "@/lib/site";
+import { CONTAINER, cx } from "@/lib/ui";
 
 export const dynamicParams = false;
 
@@ -39,7 +40,7 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
     <>
       <JsonLd data={collectionJsonLd({ url, name: `#${tag} の記事`, description: `「${tag}」に関する記事一覧。`, articles })} />
       <PageHeader eyebrow="Topic" title={`#${tag}`} crumbs={[{ name: `#${tag}` }]} />
-      <div className="mx-auto max-w-6xl px-5 pb-16 pt-12">
+      <div className={cx(CONTAINER.page, "pb-16 pt-12")}>
         <p className="max-w-3xl leading-relaxed text-mute">{collectionSummary(`「${tag}」`, articles)}</p>
         <div className="mb-10 mt-3">
           <PageDates

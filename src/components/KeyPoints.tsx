@@ -1,10 +1,12 @@
 import type { ArticleMeta } from "@/lib/content";
 import { IMPACT_LABEL } from "@/lib/content";
+import { PADDING, SURFACE, cx } from "@/lib/ui";
+import { Eyebrow, Steps } from "./ui";
 
 const IMPACT_STYLE = {
   high: "bg-news text-white",
   mid: "bg-accent text-accent-ink",
-  low: "bg-ink/10 text-ink dark:bg-paper/15 dark:text-paper",
+  low: "bg-fill-strong text-fg",
 } as const;
 
 // 記事冒頭の固定パネル。「影響度 / 対象 / やること」を本文より先に見せる。
@@ -12,23 +14,16 @@ const IMPACT_STYLE = {
 export default function KeyPoints({ article }: { article: ArticleMeta }) {
   if (!article.impact && !article.audience && article.actions.length === 0) return null;
   return (
-    <aside className="my-10 rounded-3xl border border-ink/10 bg-white p-6 dark:border-paper/10 dark:bg-white/5 sm:p-8" aria-label="この記事のポイント">
+    <aside className={cx(SURFACE.card, PADDING.card, "my-10")} aria-label="この記事のポイント">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-mute">Key points</p>
+        <Eyebrow>Key points</Eyebrow>
         {article.impact && (
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${IMPACT_STYLE[article.impact]}`}>{IMPACT_LABEL[article.impact]}</span>
         )}
         {article.audience && <span className="text-sm text-mute">対象: {article.audience}</span>}
       </div>
       {article.actions.length > 0 && (
-        <ol className="mt-5 space-y-3">
-          {article.actions.map((a, i) => (
-            <li key={a} className="flex gap-4">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-paper dark:bg-paper dark:text-ink">{i + 1}</span>
-              <span className="leading-relaxed">{a}</span>
-            </li>
-          ))}
-        </ol>
+        <Steps items={article.actions} className="mt-5" />
       )}
     </aside>
   );

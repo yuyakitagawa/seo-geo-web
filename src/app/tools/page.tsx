@@ -8,6 +8,8 @@ import { APP_TOOLS } from "@/lib/apps";
 import { siblingPages } from "@/lib/nav";
 import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { BADGE, CHIP, CONTAINER, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
+import { Card, CardLink } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "SEO・GEOツール比較一覧（国内・海外）",
@@ -32,15 +34,15 @@ function ToolCard({ t }: { t: Tool }) {
   const primary = jaPrimary ?? t.url;
   const secondary = jaPrimary && jaPrimary !== t.url ? t.url : undefined;
   return (
-    <article className="flex flex-col rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+    <Card as="article" padding="tight" className="flex flex-col">
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${TOOL_TYPE_COLOR[t.type]}`}>{TOOL_TYPE_LABEL[t.type]}</span>
-        {t.free && <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-ink">無料あり</span>}
+        <span className={cx(BADGE.sm, TOOL_TYPE_COLOR[t.type])}>{TOOL_TYPE_LABEL[t.type]}</span>
+        {t.free && <span className={cx(BADGE.sm, "bg-accent text-accent-ink")}>無料あり</span>}
       </div>
-      <h3 className="mt-3 text-lg font-bold leading-snug tracking-tight">{t.name}</h3>
+      <h3 className={cx(HEADING.card, "mt-3 leading-snug")}>{t.name}</h3>
       <p className="mt-0.5 text-xs text-mute">{t.vendor}</p>
       <p className="mt-3 text-sm leading-relaxed">{t.note}</p>
-      <dl className="mt-4 space-y-2 border-t border-ink/10 pt-4 text-xs dark:border-paper/10">
+      <dl className="mt-4 space-y-2 border-t border-line pt-4 text-xs">
         <div className="flex gap-3">
           <dt className="w-14 shrink-0 text-mute">料金</dt>
           <dd className="font-semibold">{t.price}</dd>
@@ -50,7 +52,7 @@ function ToolCard({ t }: { t: Tool }) {
             <dt className="w-14 shrink-0 text-mute">対象</dt>
             <dd className="flex flex-wrap gap-1">
               {t.engines.map((e) => (
-                <span key={e} className="rounded-full border border-ink/15 px-2 py-0.5 dark:border-paper/15">{e}</span>
+                <span key={e} className="rounded-full border border-line-strong px-2 py-0.5">{e}</span>
               ))}
             </dd>
           </div>
@@ -62,7 +64,7 @@ function ToolCard({ t }: { t: Tool }) {
           target="_blank"
           rel="noopener"
           aria-label={`${t.name} の公式ページを外部サイトの新しいタブで開く`}
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-bold text-paper transition hover:opacity-80 dark:bg-paper dark:text-ink"
+          className={button("invert", "sm")}
         >
           公式ページ{jaPrimary ? "（日本語）" : ""}を開く
           <ExternalIcon />
@@ -74,7 +76,7 @@ function ToolCard({ t }: { t: Tool }) {
           </a>
         )}
       </div>
-    </article>
+    </Card>
   );
 }
 
@@ -131,10 +133,10 @@ export default function ToolsPage() {
         title="SEO・GEOツール比較"
         lead="従来のSEOツールと、AI検索向けのGEOツールを1か所で比較します。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
       />
-      <div className="mx-auto max-w-6xl space-y-14 px-5 pb-16">
+      <div className={cx(CONTAINER.page, "space-y-14 pb-16")}>
         <nav aria-label="セクション" className="flex flex-wrap gap-2 text-sm">
           {sections.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="rounded-full border border-ink/15 px-3 py-1.5 transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">
+            <a key={s.id} href={`#${s.id}`} className={CHIP}>
               {s.title} <span className="opacity-50">{s.rows.length}</span>
             </a>
           ))}
@@ -142,16 +144,12 @@ export default function ToolsPage() {
 
         {/* 自作ツール。外部ツールの比較表より先に置く */}
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">{SITE_NAME}の無料ツール</h2>
+          <h2 className={HEADING.section}>{SITE_NAME}の無料ツール</h2>
           <p className="mb-4 mt-1 text-sm text-mute">登録不要で使えます。判定の根拠は各ページに公式ドキュメントのリンクを添えています。</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {APP_TOOLS.map((t) => (
-              <Link
-                key={t.path}
-                href={t.path}
-                className="group rounded-3xl border border-ink/10 p-7 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
-              >
-                <span className="mb-4 inline-block rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-ink">無料ツール</span>
+              <CardLink key={t.path} href={t.path}>
+                <span className={cx(BADGE.sm, "mb-4 bg-accent text-accent-ink")}>無料ツール</span>
                 <p className="text-xl font-bold leading-snug tracking-tight">
                   {t.name} <span className="inline-block transition group-hover:translate-x-1">→</span>
                 </p>
@@ -161,41 +159,41 @@ export default function ToolsPage() {
                     <li key={p}>・{p}</li>
                   ))}
                 </ul>
-              </Link>
+              </CardLink>
             ))}
           </div>
         </section>
 
-        {/* 比較表の「種別」バッジの用語解説。表より前に置き、GEOツールが別物の2種類であることを先に伝える */}
+        {/* 比較表の「種別」バッジの用語解説。カードより前に置き、GEOツールが別物の2種類であることを先に伝える */}
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">GEOツールは別物の2種類</h2>
+          <h2 className={HEADING.section}>GEOツールは別物の2種類</h2>
           <p className="mb-4 mt-1 text-sm text-mute">
-            下の比較表の「種別」列は、この2つ（と両方を持つ「計測＋診断」）で分けています。目的が違うので、どちらが要るかを決めてから表を見てください。
+            下のカードの「種別」バッジは、この2つ（と両方を持つ「計測＋診断」）で分けています。目的が違うので、どちらが要るかを決めてから読んでください。
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-              <p className="mb-2 inline-block rounded-full bg-geo px-2.5 py-1 text-[11px] font-bold text-white">AI可視性計測</p>
+            <div className={cx(SURFACE.outline, PADDING.tight)}>
+              <p className={cx(BADGE.sm, "mb-2 bg-geo text-white")}>AI可視性計測</p>
               <p className="text-sm font-semibold">AIの回答に自社が「出るか」を測る</p>
               <p className="mt-2 text-sm leading-relaxed text-mute">決めた質問をAIに定期的に投げ、回答に自社名・自社URLが出た割合と競合比較を出す。測れるのは「ツールが投げた質問への回答」で、実ユーザーの回答ではない。多くは有料・継続契約。</p>
             </div>
-            <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-              <p className="mb-2 inline-block rounded-full bg-geo/70 px-2.5 py-1 text-[11px] font-bold text-white">AI対応診断</p>
+            <div className={cx(SURFACE.outline, PADDING.tight)}>
+              <p className={cx(BADGE.sm, "mb-2 bg-geo/70 text-white")}>AI対応診断</p>
               <p className="text-sm font-semibold">そのページをAIが「読めるか」を調べる</p>
-              <p className="mt-2 text-sm leading-relaxed text-mute">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。多くは無料で、SEOの技術監査とほぼ同じ項目。上の<Link href="/tools/page-audit" className="underline decoration-accent decoration-2 underline-offset-4">ページ診断</Link>もこの種別。</p>
+              <p className="mt-2 text-sm leading-relaxed text-mute">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。多くは無料で、SEOの技術監査とほぼ同じ項目。上の<Link href="/tools/page-audit" className={LINK}>ページ診断</Link>もこの種別。</p>
             </div>
           </div>
         </section>
 
         {sections.map((s) => (
           <section key={s.id} id={s.id} className="scroll-mt-24">
-            <h2 className="text-2xl font-bold tracking-tight">{s.title}</h2>
+            <h2 className={HEADING.section}>{s.title}</h2>
             <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
             <ToolCards rows={s.rows} />
           </section>
         ))}
 
-        <section className="rounded-3xl bg-ink p-6 text-sm text-paper dark:bg-paper dark:text-ink sm:p-8">
-          <h2 className="text-lg font-bold">掲載基準</h2>
+        <section className={cx(SURFACE.invert, PADDING.card, "text-sm")}>
+          <h2 className={HEADING.card}>掲載基準</h2>
           <ul className="mt-3 list-disc space-y-1 pl-5 opacity-80">
             <li>運営者が公式ページで機能・料金を確認できたものだけを載せています（最終確認 {updated}）。</li>
             <li>新ツールの発表は{SITE_NAME}の収集システムが日次で検知し、確認後に追記します。掲載依頼・誤りの指摘は公式Xまで。</li>

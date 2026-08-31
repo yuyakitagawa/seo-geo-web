@@ -12,6 +12,7 @@ import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { LINK, PROSE, cx } from "@/lib/ui";
 
 const guide = GUIDES.seo;
 const url = `${SITE_URL}${guide.path}`;
@@ -66,7 +67,7 @@ export default function SeoGuidePage() {
       <JsonLd data={faqPageJsonLd(url, guide.faq)} />
       <PageHeader eyebrow={`Guide · 更新 ${jpDate(guide.updated)}`} title={guide.h1} lead={guide.description} crumbs={[{ name: guide.h1 }]} />
 
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert prose-headings:scroll-mt-24 sm:py-20">
+      <div className={cx(PROSE.page, "prose-headings:scroll-mt-24")}>
         <GuideAnswer guide={guide} />
         <GuideToc items={TOC} />
 
@@ -445,7 +446,7 @@ export default function SeoGuidePage() {
           <FigureQuote
             text="SEO のベスト プラクティスは、引き続き Google 検索の AI 機能（AI による概要や AI モードなど）でも有効です"
             source={
-              <a href={REF.aiFeatures.href} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">
+              <a href={REF.aiFeatures.href} target="_blank" rel="noopener" className={LINK}>
                 Google 検索セントラル「AI 機能とウェブサイト」
               </a>
             }

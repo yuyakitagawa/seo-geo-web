@@ -1,9 +1,10 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { COURSE, LESSONS, lessonNo, lessonPath, requireLesson } from "@/lib/curriculum";
 import type { FaqItem } from "@/lib/faq";
 import { jpDate, type Guide } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { EYEBROW, LINK, PADDING, SURFACE, TABLE, cx } from "@/lib/ui";
+import { Card, CardLink, Eyebrow } from "./ui";
 
 // /seo・/geo の解説ページで使う部品。
 // AI検索は「見出し → 直答の1段落 → 表や箇条書き」という並びのパッセージを抜き出すため、
@@ -13,20 +14,20 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 export function GuideAnswer({ guide }: { guide: Guide }) {
   return (
     <section aria-label="定義と要点" className="not-prose -mt-8 mb-14">
-      <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.4)] dark:border-paper/10 dark:bg-white/5 sm:p-9">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">Definition · 1行でいうと</p>
+      <Card padding="roomy" className="shadow-panel">
+        <Eyebrow>Definition · 1行でいうと</Eyebrow>
         <p className="mt-4 text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">{guide.definition}</p>
-        <ol className="mt-7 space-y-3 border-t border-ink/10 pt-6 dark:border-paper/10">
+        <ol className="mt-7 space-y-3 border-t border-line pt-6">
           {guide.summary.map((s, i) => (
             <li key={s} className="flex gap-4 text-sm leading-relaxed sm:text-base">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-paper dark:bg-paper dark:text-ink">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-invert text-xs font-bold text-invert-fg">
                 {i + 1}
               </span>
               <span>{s}</span>
             </li>
           ))}
         </ol>
-      </div>
+      </Card>
     </section>
   );
 }
@@ -35,11 +36,11 @@ export function GuideAnswer({ guide }: { guide: Guide }) {
 export function GuideToc({ items }: { items: { id: string; label: string }[] }) {
   return (
     <nav aria-label="目次" className="not-prose mb-14">
-      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-mute">Contents</p>
+      <Eyebrow className="mb-3">Contents</Eyebrow>
       <ol className="grid gap-2 sm:grid-cols-2">
         {items.map((t, i) => (
           <li key={t.id}>
-            <a href={`#${t.id}`} className="flex gap-3 rounded-2xl border border-ink/10 px-4 py-3 text-sm transition hover:bg-ink hover:text-paper dark:border-paper/10 dark:hover:bg-paper dark:hover:text-ink">
+            <a href={`#${t.id}`} className="flex gap-3 rounded-panel border border-line px-4 py-3 text-sm transition hover:bg-invert hover:text-invert-fg">
               <span className="font-mono text-xs opacity-50">{String(i + 1).padStart(2, "0")}</span>
               {t.label}
             </a>
@@ -65,16 +66,16 @@ export function GuideSection({ id, title, lead, children }: { id: string; title:
 export function GuideTable({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: ReactNode }) {
   return (
     <figure className="not-prose my-8">
-      <div className="overflow-x-auto rounded-3xl border border-ink/10 dark:border-paper/10">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-ink/5 text-left text-xs uppercase tracking-wider text-mute dark:bg-paper/5">
-            <tr>{head.map((h) => <th key={h} className="px-4 py-3 font-bold">{h}</th>)}</tr>
+      <div className={TABLE.frame}>
+        <table className={cx(TABLE.table, "min-w-[640px]")}>
+          <thead className={TABLE.head}>
+            <tr>{head.map((h) => <th key={h} className={cx(TABLE.headCell, "font-bold")}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={i} className="border-t border-ink/10 align-top dark:border-paper/10">
+              <tr key={i} className={TABLE.row}>
                 {r.map((cell, j) => (
-                  <td key={j} className={`px-4 py-4 leading-relaxed ${j === 0 ? "font-semibold" : "text-mute"}`}>{cell}</td>
+                  <td key={j} className={cx(TABLE.cell, "leading-relaxed", j === 0 ? "font-semibold" : "text-mute")}>{cell}</td>
                 ))}
               </tr>
             ))}
@@ -104,15 +105,15 @@ export function GuideChecklist({
 }) {
   return (
     <figure className="not-prose my-8">
-      <div className="overflow-hidden rounded-3xl border border-ink/10 dark:border-paper/10">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 bg-ink/5 px-6 py-4 dark:border-paper/10 dark:bg-paper/5">
+      <div className={cx(SURFACE.outline, "overflow-hidden")}>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-fill px-6 py-4">
           <h3 className="text-sm font-bold tracking-tight sm:text-base">{title}</h3>
           {cadence && <span className="text-xs font-bold uppercase tracking-[0.2em] text-mute">{cadence}</span>}
         </div>
-        <ul className="divide-y divide-ink/10 dark:divide-paper/10">
+        <ul className="divide-y divide-line">
           {items.map((it) => (
             <li key={it.check} className="flex gap-4 px-6 py-5">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-ink/25 text-xs dark:border-paper/25" aria-hidden>
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-line-strong text-xs" aria-hidden>
                 ✓
               </span>
               <div className="min-w-0">
@@ -151,7 +152,7 @@ export function GuideRef({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noopener"
-      className="ml-0.5 break-all text-[0.75em] font-bold text-mute underline decoration-accent decoration-2 underline-offset-4 hover:text-ink dark:hover:text-paper"
+      className={cx(LINK, "ml-0.5 break-all text-[0.75em] font-bold text-mute hover:text-fg")}
     >
       [出典: {label}]
     </a>
@@ -175,12 +176,12 @@ export function GuideFaq({ items }: { items: FaqItem[] }) {
 /** 出典。記事ページと同じ見た目にそろえる */
 export function GuideSources({ sources }: { sources: Guide["sources"] }) {
   return (
-    <section className="not-prose mt-12 rounded-3xl border border-ink/10 p-6 text-sm dark:border-paper/10">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-mute">Sources · 一次情報</h2>
+    <section className={cx(SURFACE.outline, PADDING.tight, "not-prose mt-12 text-sm")}>
+      <h2 className={cx(EYEBROW.mute, "mb-3")}>Sources · 一次情報</h2>
       <ul className="space-y-2">
         {sources.map((s) => (
           <li key={s.url}>
-            <a href={s.url} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">{s.title}</a>
+            <a href={s.url} target="_blank" rel="noopener" className={LINK}>{s.title}</a>
             <span className="text-mute">（{s.publisher}）</span>
           </li>
         ))}
@@ -196,8 +197,8 @@ export function GuideSources({ sources }: { sources: Guide["sources"] }) {
 export function GuideCitation({ guide }: { guide: Guide }) {
   const url = `${SITE_URL}${guide.path}`;
   return (
-    <section className="not-prose mt-6 rounded-3xl bg-ink p-6 text-sm text-paper dark:bg-paper dark:text-ink sm:p-8">
-      <h2 className="text-xs font-bold uppercase tracking-wider opacity-60">Cite this page · このページを引用する</h2>
+    <section className={cx(SURFACE.invert, PADDING.card, "not-prose mt-6 text-sm")}>
+      <h2 className={EYEBROW.faint}>Cite this page · このページを引用する</h2>
       <p className="mt-3 leading-relaxed opacity-90">
         このページの内容は、出典を明記すれば引用できます。表記例:「{guide.h1}」{SITE_NAME}、{jpDate(guide.updated)}更新、{url}
       </p>
@@ -218,18 +219,15 @@ export function GuideLessonCta({ slug, lead }: { slug: string; lead: string }) {
   const lesson = requireLesson(slug);
   return (
     <aside aria-label="教科書のレッスンへ" className="not-prose my-12">
-      <Link
-        href={lessonPath(lesson.slug)}
-        className="group block rounded-3xl border border-accent/40 bg-accent/10 p-6 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] sm:p-8"
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">
+      <CardLink href={lessonPath(lesson.slug)} tone="accent">
+        <Eyebrow tone="faint">
           Learn · {COURSE.h1} Lesson {lessonNo(lesson.slug)} / {LESSONS.length} · 約{lesson.minutes}分
-        </p>
+        </Eyebrow>
         <p className="mt-3 text-lg font-bold leading-snug tracking-tight sm:text-xl">
           {lesson.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-mute">{lead}</p>
-      </Link>
+        <p className="mt-3 text-sm leading-relaxed opacity-80">{lead}</p>
+      </CardLink>
     </aside>
   );
 }
@@ -239,16 +237,12 @@ export function GuideCrossLinks({ links }: { links: { href: string; label: strin
   return (
     <nav aria-label="関連ページ" className="not-prose mt-6 grid gap-4 sm:grid-cols-2">
       {links.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className="group rounded-3xl border border-ink/10 p-6 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
-        >
+        <CardLink key={l.href} href={l.href}>
           <p className="text-lg font-bold tracking-tight">
             {l.label} <span className="inline-block transition group-hover:translate-x-1">→</span>
           </p>
           <p className="mt-2 text-sm leading-relaxed text-mute">{l.note}</p>
-        </Link>
+        </CardLink>
       ))}
     </nav>
   );

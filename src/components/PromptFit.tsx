@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import { INTENT_LABEL, VERDICT_LABEL, type PromptFit, type PromptFitResult, type TermHit, type Verdict } from "@/lib/promptFit";
+import { CODE, EYEBROW, FIELD, HEADING, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const VERDICT_STYLE: Record<Verdict, string> = {
-  covered: "bg-ink/10 text-ink dark:bg-paper/15 dark:text-paper",
+  covered: "bg-fill-strong text-fg",
   weak: "bg-accent text-accent-ink",
   missing: "bg-news text-white",
 };
 
 const HIT_STYLE: Record<TermHit["hit"], string> = {
-  full: "border-ink/15 text-mute dark:border-paper/15",
-  partial: "border-accent bg-accent/15 text-ink dark:text-paper",
+  full: "border-line-strong text-mute",
+  partial: "border-accent bg-accent/15 text-fg",
   none: "border-news bg-news/10 text-news",
 };
 
@@ -24,23 +25,23 @@ function Bar({ label, value, note }: { label: string; value: number; note: strin
         <span className="font-bold">{label}</span>
         <span className="font-mono text-mute">{value}</span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/10 dark:bg-paper/15">
-        <div className="h-full rounded-full bg-ink dark:bg-paper" style={{ width: `${Math.max(2, value)}%` }} />
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-fill-strong">
+        <div className="h-full rounded-full bg-invert" style={{ width: `${Math.max(2, value)}%` }} />
       </div>
-      <p className="mt-1 text-[11px] leading-snug text-mute">{note}</p>
+      <p className="mt-1 text-2xs leading-snug text-mute">{note}</p>
     </div>
   );
 }
 
 function FitCard({ f }: { f: PromptFit }) {
   return (
-    <article className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10 sm:p-7">
+    <article className={cx(SURFACE.outline, "p-6 sm:p-7")}>
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2.5 py-1 font-bold ${VERDICT_STYLE[f.verdict]}`}>{VERDICT_LABEL[f.verdict]}</span>
-        <span className="rounded-full border border-ink/15 px-2.5 py-1 font-medium text-mute dark:border-paper/15">{INTENT_LABEL[f.intent]}</span>
+        <span className="rounded-full border border-line-strong px-2.5 py-1 font-medium text-mute">{INTENT_LABEL[f.intent]}</span>
         <span className="ml-auto font-mono text-lg font-bold">{f.fit}</span>
       </div>
-      <h3 className="text-lg font-bold leading-snug tracking-tight">{f.prompt}</h3>
+      <h3 className={cx(HEADING.card, "leading-snug")}>{f.prompt}</h3>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <Bar label="語の一致" value={f.coverage} note="プロンプトの語が本文にどれだけ出てくるか" />
@@ -59,7 +60,7 @@ function FitCard({ f }: { f: PromptFit }) {
 
       {f.best && (
         <div className="mt-5">
-          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-mute">このプロンプトを担当しているブロック</p>
+          <p className={cx(EYEBROW.mute, "mb-1.5 text-2xs")}>このプロンプトを担当しているブロック</p>
           <p className="font-bold leading-snug">{f.best.heading}</p>
           <p className="mt-1 text-sm leading-relaxed text-mute">{f.best.excerpt}…</p>
         </div>
@@ -67,11 +68,11 @@ function FitCard({ f }: { f: PromptFit }) {
 
       {f.answer ? (
         <div className="mt-4">
-          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-mute">引用されうる直答</p>
-          <p className="rounded-2xl bg-ink/5 p-4 text-sm leading-relaxed dark:bg-paper/10">{f.answer}</p>
+          <p className={cx(EYEBROW.mute, "mb-1.5 text-2xs")}>引用されうる直答</p>
+          <p className="rounded-panel bg-fill p-4 text-sm leading-relaxed">{f.answer}</p>
         </div>
       ) : (
-        <p className="mt-4 rounded-2xl bg-ink/5 p-4 text-sm leading-relaxed dark:bg-paper/10">
+        <p className="mt-4 rounded-panel bg-fill p-4 text-sm leading-relaxed">
           担当ブロックの先頭に、このプロンプトへの直答が見つかりません。AI検索は先頭の1〜2文を引用します。
         </p>
       )}
@@ -85,14 +86,14 @@ function FitCard({ f }: { f: PromptFit }) {
       ))}
 
       {f.verdict !== "covered" && (
-        <div className="mt-5 rounded-2xl border-l-4 border-accent bg-accent/10 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-mute">修正方針</p>
+        <div className="mt-5 rounded-panel border-l-4 border-accent bg-accent/10 p-4">
+          <p className={cx(EYEBROW.mute, "text-2xs")}>修正方針</p>
           <p className="mt-1 leading-relaxed">{f.fix.note}</p>
           <p className="mt-2 text-sm leading-relaxed text-mute">入れる場所: {f.fix.where}</p>
           {f.fix.add.length > 0 && (
             <p className="mt-2 text-sm leading-relaxed text-mute">本文に入れる語: {f.fix.add.join("、")}</p>
           )}
-          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap rounded-2xl bg-paper p-4 font-mono text-xs leading-relaxed dark:bg-ink">
+          <pre className={cx(CODE, "mt-3 whitespace-pre-wrap bg-canvas")}>
             {`${f.fix.heading}\n\n${f.fix.template}`}
           </pre>
         </div>
@@ -143,7 +144,7 @@ export default function PromptFit() {
       type="button"
       onClick={() => setMode(value)}
       className={`rounded-full px-4 py-2 text-sm font-bold transition ${
-        mode === value ? "bg-ink text-paper dark:bg-paper dark:text-ink" : "border border-ink/15 text-mute dark:border-paper/15"
+        mode === value ? "bg-invert text-invert-fg" : "border border-line-strong text-mute"
       }`}
     >
       {label}
@@ -152,7 +153,7 @@ export default function PromptFit() {
 
   return (
     <div className="space-y-8">
-      <form onSubmit={run} className="rounded-3xl border border-ink/10 bg-white p-6 dark:border-paper/10 dark:bg-white/5 sm:p-8">
+      <form onSubmit={run} className={cx(SURFACE.card, PADDING.card)}>
         <div className="flex gap-2">
           {tab("url", "公開中のURL")}
           {tab("text", "原稿を貼り付け")}
@@ -170,7 +171,7 @@ export default function PromptFit() {
               placeholder="https://example.com/article/1"
               inputMode="url"
               spellCheck={false}
-              className="mt-3 w-full rounded-full border border-ink/15 bg-paper px-5 py-3 font-mono text-sm outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+              className={cx(FIELD.input, "mt-3 w-full")}
             />
           </div>
         ) : (
@@ -184,7 +185,7 @@ export default function PromptFit() {
               onChange={(e) => setText(e.target.value)}
               rows={8}
               placeholder={"# 見出し\n本文…"}
-              className="mt-3 w-full rounded-3xl border border-ink/15 bg-paper px-5 py-4 text-sm leading-relaxed outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+              className={cx(FIELD.text, "mt-3 w-full")}
             />
           </div>
         )}
@@ -199,14 +200,14 @@ export default function PromptFit() {
             onChange={(e) => setPrompts(e.target.value)}
             rows={5}
             placeholder={"GEOとSEOの違いは？\nAI検索に引用されるにはどうすればいい？\n中小企業のGEO対策の費用は？"}
-            className="mt-3 w-full rounded-3xl border border-ink/15 bg-paper px-5 py-4 text-sm leading-relaxed outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+            className={cx(FIELD.text, "mt-3 w-full")}
           />
         </div>
 
         <button
           type="submit"
           disabled={loading || !filled}
-          className="mt-5 rounded-full bg-ink px-7 py-3 text-sm font-bold text-paper transition hover:opacity-80 disabled:opacity-40 dark:bg-paper dark:text-ink"
+          className={cx(button("invert"), "mt-5 px-7 py-3 disabled:opacity-40")}
         >
           {loading ? "判定中…" : "適合度を見る"}
         </button>
@@ -214,7 +215,7 @@ export default function PromptFit() {
           計算はすべてサーバー内で完結します。外部のAIや埋め込みAPIには送りません。入力したURL・原稿・プロンプトは保存しません。
         </p>
         {error && (
-          <p className="mt-4 rounded-2xl border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
+          <p className="mt-4 rounded-panel border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
             {error}
           </p>
         )}
@@ -222,8 +223,8 @@ export default function PromptFit() {
 
       {result && (
         <>
-          <div className="rounded-3xl bg-ink p-6 text-paper dark:bg-paper dark:text-ink sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-wider opacity-60">判定結果</p>
+          <div className={cx(SURFACE.invert, PADDING.card)}>
+            <p className={EYEBROW.faint}>判定結果</p>
             <p className="mt-2 text-xl font-bold leading-snug sm:text-2xl">
               答えている {result.counts.covered} 本 / 弱い {result.counts.weak} 本 / 答えていない {result.counts.missing} 本
             </p>
@@ -242,7 +243,7 @@ export default function PromptFit() {
           </div>
 
           {result.textLength < 400 && (
-            <p className="rounded-2xl border border-news/40 bg-news/10 p-4 text-sm leading-relaxed text-news">
+            <p className="rounded-panel border border-news/40 bg-news/10 p-4 text-sm leading-relaxed text-news">
               本文がほとんど取れていません。JavaScriptで本文を描画している場合、AI検索のクローラーにも同じように見えていません。
             </p>
           )}
@@ -253,8 +254,8 @@ export default function PromptFit() {
             ))}
           </div>
 
-          <section className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10 sm:p-7">
-            <h3 className="text-lg font-bold tracking-tight">ページが実際に多く語っている語</h3>
+          <section className={cx(SURFACE.outline, "p-6 sm:p-7")}>
+            <h3 className={HEADING.card}>ページが実際に多く語っている語</h3>
             <p className="mt-2 text-sm leading-relaxed text-mute">
               赤い語は、狙ったプロンプトのどれにも出てこない語です。ここに紙面を使っているほど、ページの中身は狙いから離れています。
             </p>
@@ -262,7 +263,7 @@ export default function PromptFit() {
               {result.focus.map((t) => (
                 <span
                   key={t.term}
-                  className={`rounded-full border px-2.5 py-1 text-xs ${t.targeted ? "border-ink/15 text-mute dark:border-paper/15" : "border-news bg-news/10 text-news"}`}
+                  className={`rounded-full border px-2.5 py-1 text-xs ${t.targeted ? "border-line-strong text-mute" : "border-news bg-news/10 text-news"}`}
                 >
                   {t.term}
                   <span className="ml-1 opacity-60">{t.count}</span>
@@ -272,8 +273,8 @@ export default function PromptFit() {
           </section>
 
           {result.overlaps.length > 0 && (
-            <section className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10 sm:p-7">
-              <h3 className="text-lg font-bold tracking-tight">1つのブロックが複数のプロンプトを兼任しています</h3>
+            <section className={cx(SURFACE.outline, "p-6 sm:p-7")}>
+              <h3 className={HEADING.card}>1つのブロックが複数のプロンプトを兼任しています</h3>
               <p className="mt-2 text-sm leading-relaxed text-mute">
                 同じブロックが複数のプロンプトの受け皿になっています。プロンプトごとに見出しを分けると、AIがどちらの質問にも引用しやすくなります。
               </p>

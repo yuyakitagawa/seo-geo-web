@@ -12,6 +12,7 @@ import { collectionJsonLd, collectionSummary } from "@/lib/collection";
 import { getAllArticles, getAllTags, latestUpdated, type ArticleMeta } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_URL } from "@/lib/site";
+import { CONTAINER, HEADING, cx } from "@/lib/ui";
 
 const DESCRIPTION =
   "Google検索・AI Overview・AI Mode・ChatGPT・Perplexityのアップデート解説を新しい順に一覧。全記事に影響度・対象・やることと一次情報のURLが付いています。";
@@ -46,7 +47,7 @@ export default function NewsPage() {
     <>
       <JsonLd data={collectionJsonLd({ url, name: "ニュース（記事アーカイブ）", description: DESCRIPTION, articles })} />
       <PageHeader eyebrow={`News · ${articles.length}本`} title="ニュース" lead={DESCRIPTION} crumbs={[{ name: "ニュース" }]} />
-      <div className="mx-auto max-w-6xl px-5 pb-16 pt-12">
+      <div className={cx(CONTAINER.page, "pb-16 pt-12")}>
         {/* 「SEO・GEOの最新動向は？」のような包括クエリに直答する段落 */}
         <p className="max-w-3xl leading-relaxed text-mute">{collectionSummary("SEO・GEO", articles)}</p>
         <div className="mb-10 mt-3">
@@ -79,15 +80,15 @@ export default function NewsPage() {
 
         {articles.length > latest.length && (
           <section className="mt-20">
-            <h2 className="text-2xl font-bold tracking-tight">アーカイブ</h2>
+            <h2 className={HEADING.section}>アーカイブ</h2>
             <p className="mb-8 mt-1 text-sm text-mute">公開月ごとの全{articles.length}本。</p>
             <div className="space-y-10">
               {months.map((m) => (
                 <div key={m.month}>
-                  <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-mute">
+                  <h3 className={cx(HEADING.label, "mb-3")}>
                     {m.label} <span className="opacity-60">（{m.items.length}）</span>
                   </h3>
-                  <ul className="divide-y divide-ink/10 border-y border-ink/10 dark:divide-paper/10 dark:border-paper/10">
+                  <ul className="divide-y divide-line border-y border-line">
                     {m.items.map((a) => (
                       <li key={a.slug}>
                         <Link href={`/articles/${a.slug}`} className="group flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3.5">

@@ -2,52 +2,53 @@
 
 import { useState } from "react";
 import { AREA_LABEL, SEVERITY_LABEL, type AuditResult, type Finding, type Severity } from "@/lib/audit";
+import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const SEVERITY_STYLE: Record<Severity, string> = {
   high: "bg-news text-white",
   mid: "bg-accent text-accent-ink",
-  low: "bg-ink/10 text-ink dark:bg-paper/15 dark:text-paper",
-  ok: "bg-ink/10 text-ink dark:bg-paper/15 dark:text-paper",
+  low: "bg-fill-strong text-fg",
+  ok: "bg-fill-strong text-fg",
 };
 
 function Code({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-4">
-      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-mute">{label}</p>
-      <pre className="overflow-x-auto rounded-2xl bg-ink/5 p-4 font-mono text-xs leading-relaxed dark:bg-paper/10">{value}</pre>
+      <p className={cx(EYEBROW.mute, "mb-1.5 text-2xs")}>{label}</p>
+      <pre className={CODE}>{value}</pre>
     </div>
   );
 }
 
 function FindingCard({ f }: { f: Finding }) {
   return (
-    <article className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10 sm:p-7">
+    <article className={cx(SURFACE.outline, "p-6 sm:p-7")}>
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2.5 py-1 font-bold ${SEVERITY_STYLE[f.severity]}`}>{SEVERITY_LABEL[f.severity]}</span>
-        <span className="rounded-full border border-ink/15 px-2.5 py-1 font-medium text-mute dark:border-paper/15">{AREA_LABEL[f.area]}</span>
+        <span className="rounded-full border border-line-strong px-2.5 py-1 font-medium text-mute">{AREA_LABEL[f.area]}</span>
       </div>
-      <h3 className="text-lg font-bold leading-snug tracking-tight">{f.title}</h3>
+      <h3 className={cx(HEADING.card, "leading-snug")}>{f.title}</h3>
       <p className="mt-2 leading-relaxed text-mute">{f.detail}</p>
       {f.code && <Code label="該当箇所" value={f.code} />}
       {f.fix && (
-        <div className="mt-4 rounded-2xl border-l-4 border-accent bg-accent/10 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-mute">修正方針</p>
+        <div className="mt-4 rounded-panel border-l-4 border-accent bg-accent/10 p-4">
+          <p className={cx(EYEBROW.mute, "text-2xs")}>修正方針</p>
           <p className="mt-1 leading-relaxed">{f.fix}</p>
         </div>
       )}
       {f.where && (
         <div className="mt-4">
-          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-mute">入れる場所</p>
+          <p className={cx(EYEBROW.mute, "mb-1.5 text-2xs")}>入れる場所</p>
           <p className="leading-relaxed">{f.where.note}</p>
           {f.where.code && (
-            <pre className="mt-2 overflow-x-auto rounded-2xl bg-ink/5 p-4 font-mono text-xs leading-relaxed dark:bg-paper/10">{f.where.code}</pre>
+            <pre className={cx(CODE, "mt-2")}>{f.where.code}</pre>
           )}
         </div>
       )}
       {f.fixCode && <Code label="修正後のコード例" value={f.fixCode} />}
       {f.source && (
         <p className="mt-4 text-xs">
-          <a href={f.source.url} target="_blank" rel="noopener" className="text-mute underline decoration-accent decoration-2 underline-offset-4">
+          <a href={f.source.url} target="_blank" rel="noopener" className={cx(LINK, "text-mute")}>
             根拠: {f.source.title}
           </a>
         </p>
@@ -86,7 +87,7 @@ export default function PageAudit() {
 
   return (
     <div className="space-y-8">
-      <form onSubmit={run} className="rounded-3xl border border-ink/10 bg-white p-6 dark:border-paper/10 dark:bg-white/5 sm:p-8">
+      <form onSubmit={run} className={cx(SURFACE.card, PADDING.card)}>
         <label htmlFor="url" className="text-sm font-bold">
           検査するページのURL
         </label>
@@ -98,12 +99,12 @@ export default function PageAudit() {
             placeholder="https://example.com/article/1"
             inputMode="url"
             spellCheck={false}
-            className="flex-1 rounded-full border border-ink/15 bg-paper px-5 py-3 font-mono text-sm outline-none focus:border-accent dark:border-paper/15 dark:bg-ink"
+            className={cx(FIELD.input, "flex-1")}
           />
           <button
             type="submit"
             disabled={loading || !url.trim()}
-            className="rounded-full bg-ink px-7 py-3 text-sm font-bold text-paper transition hover:opacity-80 disabled:opacity-40 dark:bg-paper dark:text-ink"
+            className={cx(button("invert"), "px-7 py-3 disabled:opacity-40")}
           >
             {loading ? "検査中…" : "検査する"}
           </button>
@@ -112,7 +113,7 @@ export default function PageAudit() {
           公開されているページだけ検査できます。サーバーが返すHTMLをそのまま読むため、JavaScriptで後から描画される内容は「本文が無い」と判定されます（AI検索のクローラーと同じ見え方です）。
         </p>
         {error && (
-          <p className="mt-4 rounded-2xl border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
+          <p className="mt-4 rounded-panel border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
             {error}
           </p>
         )}
@@ -120,8 +121,8 @@ export default function PageAudit() {
 
       {result && (
         <>
-          <div className="rounded-3xl bg-ink p-6 text-paper dark:bg-paper dark:text-ink sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-wider opacity-60">検査結果</p>
+          <div className={cx(SURFACE.invert, PADDING.card)}>
+            <p className={EYEBROW.faint}>検査結果</p>
             <p className="mt-2 text-xl font-bold leading-snug sm:text-2xl">
               {result.findings.length === 0
                 ? "指摘はありません。主要な項目はすべて満たしています。"

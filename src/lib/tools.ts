@@ -18,7 +18,7 @@ export const TOOL_TYPE_COLOR: Record<ToolType, string> = {
   both: "bg-accent text-accent-ink",
   rank: "bg-seo text-white",
   keyword: "bg-seo/70 text-white",
-  crawl: "bg-ink text-paper dark:bg-paper dark:text-ink",
+  crawl: "bg-invert text-invert-fg",
   suite: "bg-news text-white",
 };
 

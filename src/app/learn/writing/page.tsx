@@ -5,6 +5,7 @@ import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
 import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
+import { LINK } from "@/lib/ui";
 
 const lesson = requireLesson("writing");
 
@@ -170,7 +171,7 @@ export default function Lesson06() {
         <FigureQuote
           text="SEO のベスト プラクティスは、引き続き Google 検索の AI 機能（AI による概要や AI モードなど）でも有効です"
           source={
-            <a href={REF.aiFeatures.href} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">
+            <a href={REF.aiFeatures.href} target="_blank" rel="noopener" className={LINK}>
               Google 検索セントラル「AI 機能とウェブサイト」
             </a>
           }
