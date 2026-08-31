@@ -50,6 +50,8 @@ export type ArticleMeta = {
   actions: string[];
   /** true の記事は本番ビルドに含めない（AI生成の下書き状態） */
   draft: boolean;
+  /** 独自記事。自分で取ったログ・実測値・検証結果が本文の中心にあるものだけ true */
+  original: boolean;
   /** 読了時間（分） */
   readingMinutes: number;
 };
@@ -90,6 +92,7 @@ function parseFile(file: string): Article | null {
     audience: typeof data.audience === "string" ? data.audience : undefined,
     actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],
     draft,
+    original: Boolean(data.original),
     readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
     body: content,
   };

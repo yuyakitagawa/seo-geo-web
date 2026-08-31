@@ -12,7 +12,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - **記事の事実は一次情報で裏取り**: frontmatter `sources` に必ず出典URL。元記事に無い数値・固有名詞を書かない。
 
 ## 1. File Map
-- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/updated（任意。あるときだけ「更新」表示とdateModified）/category/type/tags/impact/audience/actions/sources/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`draft: true` は本番ビルドから除外。
+- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/updated（任意。あるときだけ「更新」表示とdateModified）/category/type/tags/impact/audience/actions/sources/original（任意）/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`original: true` は独自記事（自分で取ったログ・実測値・検証が中心）だけに付け、「独自」バッジが出る（要約記事に付けない）。`draft: true` は本番ビルドから除外。
 - `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
 - `content/howto-topics.csv`: HOW TO記事のテーマ表（status/category/title/intent/sources/articleId/note）。人が「採用」を付け、generate-howto が記事化する。出典URLはここに書いたものだけ使える。
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。

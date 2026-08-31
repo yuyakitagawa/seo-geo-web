@@ -5,6 +5,7 @@ import CategoryBadge from "@/components/CategoryBadge";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
 import TypeBadge from "@/components/TypeBadge";
+import OriginalBadge from "@/components/OriginalBadge";
 import { collectionJsonLd, collectionSummary } from "@/lib/collection";
 import { getAllArticles, type ArticleMeta } from "@/lib/content";
 import { ARTICLES_PER_PAGE, SITE_URL } from "@/lib/site";
@@ -66,6 +67,7 @@ export default function NewsPage() {
                           <span className="flex items-center gap-2">
                             <CategoryBadge category={a.category} asLink={false} />
                             <TypeBadge type={a.type} />
+                            <OriginalBadge original={a.original} />
                           </span>
                           <span className="flex-1 font-medium leading-snug underline-offset-4 group-hover:underline">{a.title}</span>
                         </Link>
