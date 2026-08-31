@@ -19,7 +19,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
-| `/learn` | SEO・GEO教科書の目次。3レベル11レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル12レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
@@ -155,7 +155,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
   | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
   | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
-  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**11レッスン全部** | 「SEO・GEO教科書」 |
+  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**12レッスン全部** | 「SEO・GEO教科書」 |
   | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
   | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
   | `src/app/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
@@ -217,20 +217,20 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
   「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
   語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
-- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった11レッスン。
+- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった12レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。
   出典は Google 検索セントラルの成功事例・web.dev のケーススタディ・arXiv の GEO 論文のみ。
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
   レッスンの並びは 01 スターターガイド / 02 初期点検 / 03 検索意図とキーワード設計 / 04 ロングテール設計 /
-  05 テクニカル / 06 本文の書き方 / 07 サイト構造 / 08 GEO実装 / 09 計測 / 10 実例 / 11 アップデート対応。
+  05 テクニカル / 06 本文の書き方 / 07 サイト構造 / 08 ドメイン構造 / 09 GEO実装 / 10 計測 / 11 実例 / 12 アップデート対応。
   **レッスン番号は各ページの本文にも「レッスン07」の形で書かれている**ため、順番を入れ替えるときは
   `src/lib/curriculum.ts` の `order` だけでなく `src/app/learn/**` の本文表記も直す（URLは slug 固定なので変わらない）。
-  レッスン09には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
+  レッスン10には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
   1項目ごとに「見る場所・合格の条件・崩れていたら」を `GuideChecklist`（`src/components/guide.tsx`）で出す。
   レッスン05には「未インデックスの対処法」（`#not-indexed`）を置き、インデックス登録レポートの理由別に
-  「起きていること・対処・直ったかの確認」を並べる。レッスン02・09からはこのアンカーへ送る。
+  「起きていること・対処・直ったかの確認」を並べる。レッスン02・10からはこのアンカーへ送る。
   同じくレッスン05の「クローラーの訪問頻度と取得ファイル」（`#crawl-stats`）は、クロールの統計情報レポートの
   4つの内訳（レスポンス／ファイル形式／目的／Googlebotタイプ）と、HTMLが押し出されているときの対処を扱う。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
@@ -239,7 +239,7 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   `noindex, follow` にし sitemap からも外す。表示側と生成側が `src/lib/content.ts` の同じ関数を見るのでズレない。
   ページ自体は残すので内部リンクの経路としては機能する。
 - sitemap の `lastmod` はそのページに載っている記事の最新更新日（全ページ同じ日付にしない）
-- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書11レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書12レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
 - アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
 - E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、

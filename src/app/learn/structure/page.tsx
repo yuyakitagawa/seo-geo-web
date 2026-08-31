@@ -26,7 +26,7 @@ const TOC = [
   { id: "example", label: "実例：このサイトの構造" },
 ];
 
-export default function Lesson06() {
+export default function Lesson07() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -364,7 +364,7 @@ export default function Lesson06() {
           rows={[
             ["ハブ（SEO）", "/seo", "「SEO対策とは」の定義ページ。同カテゴリの記事一覧を兼ねる"],
             ["ハブ（GEO）", "/geo", "「GEO対策とは」の定義ページ。同カテゴリの記事一覧を兼ねる"],
-            ["ハブ（教科書）", "/learn", "11レッスンの目次。各レッスンの到達目標つきで並べる"],
+            ["ハブ（教科書）", "/learn", "12レッスンの目次。各レッスンの到達目標つきで並べる"],
             ["スポーク", "/learn/<レッスン>", "各レッスン。前後リンクとハブへの導線を固定で置く"],
             ["スポーク", "/articles/<id>", "個別のニュース記事。カテゴリのハブへ戻る導線を持つ"],
             ["薄いページの制御", "/tag/<タグ>", "記事が一定本数未満のタグはnoindex。サイトマップからも除外"],

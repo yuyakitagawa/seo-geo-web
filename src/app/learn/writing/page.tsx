@@ -27,7 +27,7 @@ const TOC = [
   { id: "ai", label: "AIで書く場合の線引き" },
 ];
 
-export default function Lesson05() {
+export default function Lesson06() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection

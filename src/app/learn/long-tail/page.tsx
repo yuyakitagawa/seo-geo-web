@@ -220,7 +220,7 @@ export default function Lesson04() {
           個別ページが単発で並んでいるだけでは、テーマとしての評価が積み上がらず、読者も次のページに移動できません。
           一覧ページ（ハブ）を置き、そこから各ページへ、各ページから一覧へ戻す内部リンクを張るところまでが必要です。
           その設計は<Link href={lessonPath("structure")}>レッスン07</Link>で扱います。
-          効果の確認は<Link href={lessonPath("measurement")}>レッスン09</Link>です。
+          効果の確認は<Link href={lessonPath("measurement")}>レッスン10</Link>です。
         </p>
       </GuideSection>
     </LessonShell>
