@@ -135,7 +135,14 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 ## デザイン
 - 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
 - 欧文は Space Grotesk（next/font）、和文は端末フォント
-- `globals.css` の `@theme` にトークン集約。ダークモード対応
+- **デザインシステムは3層**（詳細は `docs/design-system.md`）
+  - トークン `src/app/globals.css` の `@theme`: 色・角丸・影・ページ幅・極小文字。値を持つのはここだけ
+  - クラス定義 `src/lib/ui.ts`: 面・ボタン・チップ・表・入力・本文の組み合わせ（`SURFACE` / `button()` / `CHIP` / `TABLE` …）
+  - 部品 `src/components/ui.tsx`: `Container` / `Card` / `CardLink` / `Button` / `Chip` / `Eyebrow` / `SectionHeading` / `Steps`
+- ダークモードは**セマンティックトークンが吸収する**ので `dark:` は原則書かない
+  （`canvas` / `fg` / `surface` / `line` / `fill` / `invert` が配色モードで反転する）。
+  例外は常に黒地の帯（ヒーロー・PageHeader・記事ヘッダー・図解）で、そこだけ `ink` / `paper` を直接使う
+- ページに1回きりのクラスの並びを書かない。同じ形が2か所目に出たら `src/lib/ui.ts` に名前を足す
 
 ## 画像（写真素材を持たずにビジュアルを作る）
 - **キービジュアルはコードで生成する**（`src/components/KeyVisual.tsx`）。写真素材は持たない。

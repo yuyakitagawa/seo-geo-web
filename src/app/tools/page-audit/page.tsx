@@ -5,6 +5,7 @@ import PageAudit from "@/components/PageAudit";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
 
 const PATH = "/tools/page-audit";
 const url = `${SITE_URL}${PATH}`;
@@ -100,7 +101,7 @@ export default function PageAuditToolPage() {
         crumbs={[{ name: "ツール", href: "/tools" }, { name: "ページ診断" }]}
       />
 
-      <div className="mx-auto max-w-4xl space-y-14 px-5 py-14 sm:py-20">
+      <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>
         <p className="leading-relaxed text-mute">
           このツールは、URLのページをサーバー側で1回取得し、クローラーが最初に受け取るHTMLだけを見て判定します。
           指摘は「該当箇所の実際のコード」「なぜ直すか」「修正後の書き方」の3点で返します。
@@ -110,10 +111,10 @@ export default function PageAuditToolPage() {
         <PageAudit />
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">検査する項目</h2>
+          <h2 className={HEADING.section}>検査する項目</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {CHECKS.map((c) => (
-              <div key={c.area} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <div key={c.area} className={cx(SURFACE.outline, PADDING.tight)}>
                 <p className="font-bold">{c.area}</p>
                 <ul className="mt-3 space-y-1.5 text-sm text-mute">
                   {c.items.map((i) => (
@@ -129,7 +130,7 @@ export default function PageAuditToolPage() {
               href="https://arxiv.org/abs/2311.09735"
               target="_blank"
               rel="noopener"
-              className="underline decoration-accent decoration-2 underline-offset-4"
+              className={LINK}
             >
               GEO: Generative Engine Optimization（arXiv:2311.09735 / KDD 2024）
             </a>
@@ -139,11 +140,11 @@ export default function PageAuditToolPage() {
           </p>
           <p className="mt-4 text-sm text-mute">
             AI検索クローラーの設定だけを詳しく見たい場合は、
-            <Link href="/tools/ai-crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
+            <Link href="/tools/ai-crawlers" className={LINK}>
               AI検索クローラー robots.txt チェッカー
             </Link>
             を使ってください。狙った質問にページの中身が噛み合っているかは
-            <Link href="/tools/prompt-fit" className="underline decoration-accent decoration-2 underline-offset-4">
+            <Link href="/tools/prompt-fit" className={LINK}>
               プロンプト適合度チェッカー
             </Link>
             が判定します。
@@ -151,10 +152,10 @@ export default function PageAuditToolPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold tracking-tight">よくある質問</h2>
+          <h2 className={HEADING.section}>よくある質問</h2>
           <dl className="space-y-5">
             {FAQ.map((f) => (
-              <div key={f.question} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <div key={f.question} className={cx(SURFACE.outline, PADDING.tight)}>
                 <dt className="font-bold leading-snug">{f.question}</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-mute">{f.answer}</dd>
               </div>

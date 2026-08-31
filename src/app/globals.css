@@ -1,20 +1,49 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* デザイントークン。値を持つのはここだけで、クラスの組み合わせは src/lib/ui.ts にある。 */
 @theme {
   --font-sans: var(--font-display), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* ブランド色: Googleブルー(#4285f4)とChatGPTグリーン(#10a37f)を混ぜたシアンブルー。カテゴリ色はバッジ・カード用 */
+  /* 1. パレット（生の色。配色モードで変わらない）
+     ブランド色: Googleブルー(#4285f4)とChatGPTグリーン(#10a37f)を混ぜたシアンブルー。
+     ヒーロー・記事ヘッダーのような「常に黒地」の帯だけ ink / paper を直接使う。 */
+  --color-ink: #0a0a0a;
+  --color-paper: #f5f5f2;
   --color-accent: #2994b9;
   --color-accent-ink: #041c24;
   --color-seo: #4f7cff;
   --color-geo: #a855f7;
   --color-news: #ff6b35;
 
-  --color-ink: #0a0a0a;
-  --color-paper: #f5f5f2;
-  --color-mute: #6b6b66;
+  /* 2. セマンティック（役割の色。下の @media で反転する）
+     ページ面はこちらだけを使う。`dark:` を書き足さなくても両モードで成立させるための層。 */
+  --color-canvas: var(--color-paper); /* ページ地・入力欄の地 */
+  --color-fg: var(--color-ink); /* 本文 */
+  --color-mute: #6b6b66; /* 補足文・ラベル */
+  --color-surface: #ffffff; /* カードの面 */
+  --color-line: rgb(10 10 10 / 0.1); /* 通常の罫線 */
+  --color-line-strong: rgb(10 10 10 / 0.18); /* チップ・入力欄の輪郭 */
+  --color-fill: rgb(10 10 10 / 0.05); /* 表ヘッダー・コードブロックの地 */
+  --color-fill-strong: rgb(10 10 10 / 0.1); /* 弱いバッジの地 */
+  --color-invert: var(--color-ink); /* 反転面（フッター・CTA・ホバー） */
+  --color-invert-fg: var(--color-paper);
+
+  /* 3. 形 */
+  --radius-card: 1.5rem; /* カード・パネル */
+  --radius-panel: 1rem; /* 表・コードブロックなど中サイズ */
+  --shadow-lift: 0 30px 60px -30px rgb(0 0 0 / 0.35); /* リンクカードのホバー */
+  --shadow-panel: 0 30px 60px -40px rgb(0 0 0 / 0.4); /* 常時出す薄い影 */
+
+  /* 4. ページ幅（px-5 のガター込みの指定は src/lib/ui.ts の CONTAINER） */
+  --container-page: 72rem; /* 一覧・トップ */
+  --container-wide: 56rem;
+  --container-text: 48rem; /* 本文 */
+
+  /* 5. 極小文字（バッジ・キャプション）。行間は継承のまま */
+  --text-2xs: 0.6875rem;
+  --text-3xs: 0.625rem;
 
   --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-float: float 9s ease-in-out infinite;
@@ -28,16 +57,29 @@
   }
 }
 
+/* 配色モード。セマンティックトークンだけを差し替え、ユーティリティ側（bg-surface 等）は触らない。 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: var(--color-ink);
+    --color-fg: var(--color-paper);
+    --color-mute: #9c9c95;
+    --color-surface: rgb(255 255 255 / 0.05);
+    --color-line: rgb(245 245 242 / 0.1);
+    --color-line-strong: rgb(245 245 242 / 0.18);
+    --color-fill: rgb(245 245 242 / 0.06);
+    --color-fill-strong: rgb(245 245 242 / 0.15);
+    --color-invert: var(--color-paper);
+    --color-invert-fg: var(--color-ink);
+  }
+}
+
 /* 和文はWebフォントを読まず端末フォントに任せる（初期表示を軽く保つ）。欧文のみディスプレイ書体。 */
 html { scroll-behavior: smooth; }
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--color-canvas);
+  color: var(--color-fg);
   font-feature-settings: "palt";
   letter-spacing: 0.01em;
-}
-@media (prefers-color-scheme: dark) {
-  body { background: var(--color-ink); color: var(--color-paper); }
 }
 
 ::selection { background: var(--color-accent); color: var(--color-accent-ink); }
