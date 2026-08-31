@@ -29,7 +29,19 @@ const CHECKS = [
   },
   {
     area: "GEO（AI検索）",
-    items: ["サーバーが返すHTMLに本文があるか（JS依存の検出）", "冒頭の直答文の長さ", "質問と回答の形式・FAQPage", "外部の出典リンク", "公開日・更新日の機械可読性", "AI検索クローラー（OAI-SearchBot等）の許可状況", "/llms.txt"],
+    items: [
+      "サーバーが返すHTMLに本文があるか（JS依存の検出）",
+      "冒頭の直答文の長さ",
+      "質問と回答の形式・FAQPage",
+      "原文の引用（GEO論文で最大41%）",
+      "具体的な数値（同 約32%）",
+      "1文の長さ（同 約29%）",
+      "外部の出典リンク（同 約28%）",
+      "キーワードの詰め込み（同 効果なし）",
+      "公開日・更新日の機械可読性",
+      "AI検索クローラー（OAI-SearchBot等）の許可状況",
+      "/llms.txt",
+    ],
   },
 ];
 
@@ -48,6 +60,11 @@ const FAQ: FaqItem[] = [
     question: "指摘がゼロなら上位に表示されますか",
     answer:
       "されません。この診断が見ているのは、検索エンジンとAIがページを正しく読める状態かという前提条件だけです。順位や引用は、扱う内容そのものと他サイトからの評価で決まります。",
+  },
+  {
+    question: "GEOの指摘は何を根拠にしていますか",
+    answer:
+      "Googleの公開ドキュメントと、生成AIの回答内での可視性を実測した論文「GEO: Generative Engine Optimization」（arXiv:2311.09735、KDD 2024）です。論文は10,000件のクエリで9通りの書き換えを比較し、引用の追加で最大41%、統計の追加で約32%、読みやすさの改善で約29%、出典の明示で約28%可視性が上がり、キーワードの詰め込みはほとんど効かないと報告しています。診断はこの4つが本文にあるかを見ています。ただし論文の測定は特定の生成エンジンと期間のもので、同じ幅の改善を保証するものではありません。",
   },
   {
     question: "検査したURLは保存されますか",
@@ -106,12 +123,30 @@ export default function PageAuditToolPage() {
               </div>
             ))}
           </div>
+          <p className="mt-4 text-sm leading-relaxed text-mute">
+            GEO（AI検索）の一部は、生成AIの回答内での可視性を実測した論文{" "}
+            <a
+              href="https://arxiv.org/abs/2311.09735"
+              target="_blank"
+              rel="noopener"
+              className="underline decoration-accent decoration-2 underline-offset-4"
+            >
+              GEO: Generative Engine Optimization（arXiv:2311.09735 / KDD 2024）
+            </a>
+            の測定結果を基準にしています。10,000件のクエリで9通りの書き換えを比較し、引用の追加（最大41%）・統計の追加（約32%）・
+            読みやすさの改善（約29%）・出典の明示（約28%）が可視性を上げ、キーワードの詰め込みはほとんど効かないという結果でした。
+            この4つが本文にあるかを見て、無ければ入れ方を出します。
+          </p>
           <p className="mt-4 text-sm text-mute">
             AI検索クローラーの設定だけを詳しく見たい場合は、
             <Link href="/tools/ai-crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
               AI検索クローラー robots.txt チェッカー
             </Link>
-            を使ってください。
+            を使ってください。狙った質問にページの中身が噛み合っているかは
+            <Link href="/tools/prompt-fit" className="underline decoration-accent decoration-2 underline-offset-4">
+              プロンプト適合度チェッカー
+            </Link>
+            が判定します。
           </p>
         </section>
 
@@ -128,7 +163,7 @@ export default function PageAuditToolPage() {
         </section>
 
         <p className="text-xs text-mute">
-          {SITE_NAME}は診断結果の正確性・完全性を保証しません。判定は公開ドキュメントに基づく一般的な指摘で、順位や引用を約束するものではありません。
+          {SITE_NAME}は診断結果の正確性・完全性を保証しません。判定は公開ドキュメントと論文に基づく一般的な指摘で、順位や引用を約束するものではありません。
         </p>
       </div>
     </>

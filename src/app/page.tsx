@@ -51,7 +51,7 @@ export default function Home() {
         <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
       </section>
 
-      {/* 用語の解説。定義クエリ（「SEO対策とは」「GEOとは」）の受け皿へトップから直接リンクする */}
+      {/* 用語の解説。定義クエリ（「SEO対策とは」「GEO対策とは」）の受け皿へトップから直接リンクする */}
       <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-20">
         <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 用語の解説</h2>
         <div className="grid gap-4 sm:grid-cols-2">

@@ -27,7 +27,7 @@ const TOC = [
   { id: "shape", label: "引用される形に整える" },
 ];
 
-export default function Lesson08() {
+export default function Lesson09() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -58,7 +58,7 @@ export default function Lesson08() {
         />
         <p>
           つまりGEOの実装作業は、<strong>設定（クローラーを止めない）</strong>と<strong>書き方（抜き出せる形にする）</strong>の
-          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン05</Link>で扱ったので、
+          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱ったので、
           このレッスンでは設定を決めます。
         </p>
       </GuideSection>
@@ -199,12 +199,12 @@ export default function Lesson08() {
             [
               "AI可視性ツールでの計測",
               "ツールが投げた質問への回答を測るもので、実ユーザーが受け取った回答そのものではない",
-              "測っているものを理解したうえでなら有用（レッスン09）",
+              "測っているものを理解したうえでなら有用（レッスン10）",
             ],
             [
               "引用・統計・出典を本文に足す",
               "GEO論文が、引用の追加で最大41%、統計で約32%、出典で約28%の可視性向上を報告",
-              "優先度が高い。レッスン05の書き方に含まれる",
+              "優先度が高い。レッスン06の書き方に含まれる",
             ],
           ]}
           caption={
@@ -221,7 +221,7 @@ export default function Lesson08() {
       <GuideSection
         id="shape"
         title="引用される形に整える"
-        lead="設定が済んだら、主要ページを引用される形に整えます。作業はレッスン05の書き方と同じですが、ここでは「AIが読む単位」に注目して点検します。"
+        lead="設定が済んだら、主要ページを引用される形に整えます。作業はレッスン06の書き方と同じですが、ここでは「AIが読む単位」に注目して点検します。"
       >
         <GuideTable
           head={["点検する場所", "満たしている状態", "直し方"]}
@@ -238,7 +238,7 @@ export default function Lesson08() {
           最後に、AI検索からの流入を分けて見られるようにしておきます。Googleは、AIによる概要やAIモードに表示されたサイトも
           Search Consoleの検索タイプ「ウェブ」に含まれると説明しているため、AI機能だけを切り出したレポートはありません。
           ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。計測の詳細は
-          <Link href={lessonPath("measurement")}>レッスン09</Link>で扱います。
+          <Link href={lessonPath("measurement")}>レッスン10</Link>で扱います。
         </p>
       </GuideSection>
     </LessonShell>

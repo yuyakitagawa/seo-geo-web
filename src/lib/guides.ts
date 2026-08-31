@@ -2,7 +2,7 @@ import type { FaqItem } from "./faq";
 import type { CategoryKey } from "./site";
 import { SITE_URL } from "./site";
 
-// 「SEO対策とは」「GEOとは」に答える解説ページ（/seo, /geo）のデータ。
+// 「SEO対策とは」「GEO対策とは」に答える解説ページ（/seo, /geo）のデータ。
 // 定義文・要点・FAQ・出典をここ1か所に置き、ページ本文・JSON-LD・llms.txt が同じ文字列を使う。
 // AI検索は「質問に直答する短いパッセージ」を抜き出すため、definition は単体で意味が通る1文にする。
 
@@ -40,8 +40,8 @@ const SEO: Guide = {
   metaTitle: "SEO対策とは｜定義・3つの領域・最初の90日でやること",
   description:
     "SEO対策（検索エンジン最適化）の定義、テクニカル・コンテンツ・外部評価の3領域、Googleが公式に示す基準（検索の基本事項・E-E-A-T・Core Web Vitals）と、最初の90日でやることを一次情報のリンク付きで整理します。",
-  term: "SEO対策",
-  alternateNames: ["SEO", "Search Engine Optimization", "検索エンジン最適化"],
+  term: "SEO",
+  alternateNames: ["SEO対策", "Search Engine Optimization", "検索エンジン最適化"],
   definition:
     "SEO対策（Search Engine Optimization／検索エンジン最適化）とは、検索エンジンが自社サイトのページを取得（クロール）し、内容を理解（インデックス）し、ユーザーの検索クエリに対して上位に表示できる状態に整える一連の施策のことです。",
   summary: [
@@ -89,7 +89,7 @@ const SEO: Guide = {
         "Core Web VitalsはLCP（読み込み）・INP（応答性）・CLS（視覚的な安定性）の3指標です。良好とされる目安はLCPが2.5秒以内、INPが200ミリ秒以下、CLSが0.1以下で、判定はモバイルとPCを分けたうえで全体の75パーセンタイルの値で見ます。",
     },
     {
-      question: "SEO対策とGEOは別々に取り組む必要がありますか",
+      question: "SEOとGEOは別々に取り組む必要がありますか",
       answer:
         "土台は共通なので、SEOをやめてGEOだけを行う意味はありません。Googleは、AIによる概要やAIモードに表示されるための追加要件はなく、特別な最適化を行う必要もないと公式ドキュメントで説明しています。GEO側の追加作業は、新しいマークアップの追加ではなく、質問にそのまま答える短い段落を置くことと、AI各社のクローラーをrobots.txtで止めないことの2点です。",
     },
@@ -117,14 +117,14 @@ const SEO: Guide = {
 const GEO: Guide = {
   key: "geo",
   path: "/geo",
-  h1: "GEOとは",
-  metaTitle: "GEOとは｜生成AI検索最適化の定義・SEOとの違い・AIクローラー一覧",
+  h1: "GEO対策とは",
+  metaTitle: "GEO対策とは｜生成AI検索最適化の定義・SEOとの違い・AIクローラー一覧",
   description:
-    "GEO（Generative Engine Optimization／生成AI検索最適化）の定義、AIO・LLMOとの違い、SEOとの違い、ChatGPTやGeminiに引用されるまでの経路とAIクローラーの一覧を、各社の公式ドキュメントを出典に整理します。",
+    "GEO対策（Generative Engine Optimization／生成AI検索最適化）の定義、AIO・LLMOとの違い、SEOとの違い、ChatGPTやGeminiに引用されるまでの経路とAIクローラーの一覧を、各社の公式ドキュメントを出典に整理します。",
   term: "GEO",
-  alternateNames: ["Generative Engine Optimization", "生成AI検索最適化", "AIO", "LLMO", "AEO"],
+  alternateNames: ["GEO対策", "Generative Engine Optimization", "生成AI検索最適化", "AIO", "LLMO", "AEO"],
   definition:
-    "GEO（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。",
+    "GEO対策（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。",
   summary: [
     "用語の初出は2023年11月にarXivで公開された論文「GEO: Generative Engine Optimization」。日本で使われるAIO・LLMOは同じ領域を指す別の呼び名で、当サイトはGEOに統一している。",
     "AIの回答に載る経路は2つ。Google検索のインデックス経由（AIによる概要・AIモード）と、AI各社の独自クローラー経由（OAI-SearchBot、PerplexityBot、Claude-SearchBotなど）で、前者はSEOそのもの、後者はrobots.txtでの許可が前提になる。",
@@ -135,9 +135,9 @@ const GEO: Guide = {
   category: "geo",
   faq: [
     {
-      question: "GEOとは何ですか",
+      question: "GEO対策とは何ですか",
       answer:
-        "GEO（Generative Engine Optimization、生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。",
+        "GEO対策（Generative Engine Optimization、生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。",
     },
     {
       question: "GEOという言葉はどこから来たのですか",
@@ -148,6 +148,11 @@ const GEO: Guide = {
       question: "AIO・LLMO・AEOはGEOと違うものですか",
       answer:
         "指している実務の中身はほぼ同じで、呼び名の違いです。AIO（AI Optimization）とLLMO（Large Language Model Optimization）は主に日本で使われる語、AEO（Answer Engine Optimization）は回答エンジン向けの最適化を指す語で、いずれも生成AIの回答で引用されることを目標にします。当サイトでは用語をGEOに統一して表記します。",
+    },
+    {
+      question: "パッセージとチャンクは違うものですか",
+      answer:
+        "どちらも「ページ全体ではなく本文中の一部分」を指しますが、語が出てきた立場が違います。パッセージは検索エンジン側の語です。Googleはランキング システムに関するガイドで、ページ内の個々のセクション（パッセージ）を識別して、そのページが検索とどれだけ関連するかを判断するAIシステムとして「パッセージ ランキング」を挙げています。チャンクは生成AI側の実装の語で、文書を参照しやすいように機械的に切り分けた断片を指します。書き手が操作できるのはどちらも同じで、1つの見出しに1つの問い、単体で意味が通る長さ、という本文の作り方です。当サイトでは本文の説明を「パッセージ」に統一し、AI側の処理を指すときだけ「チャンク」と書きます。",
     },
     {
       question: "AI検索に載るために特別な最適化やマークアップは必要ですか",
@@ -189,6 +194,7 @@ const GEO: Guide = {
     { title: "PerplexityBot", publisher: "Perplexity", url: "https://docs.perplexity.ai/guides/bots" },
     { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
     { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか", url: "https://arxiv.org/abs/2311.09735" },
+    { title: "Google 検索のランキング システムに関するガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/ranking-systems-guide?hl=ja" },
     { title: "The /llms.txt file", publisher: "llmstxt.org", url: "https://llmstxt.org/" },
     { title: "Google 検索の基本事項", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/essentials?hl=ja" },
   ],

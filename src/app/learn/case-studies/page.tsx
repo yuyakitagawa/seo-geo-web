@@ -26,7 +26,7 @@ const TOC = [
   { id: "caution", label: "自社に当てはめるときの注意" },
 ];
 
-export default function Lesson10() {
+export default function Lesson11() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -39,7 +39,7 @@ export default function Lesson10() {
           stats={[
             { value: `${CASES.length}件`, label: "収録している事例", note: "施策と数値が同じ文書で公開されているもの" },
             { value: "3件", label: "日本のサイト", note: "楽天レシピ・Yahoo! JAPANニュース・Rakuten 24" },
-            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン04・08で扱った作業に対応" },
+            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン05・08で扱った作業に対応" },
           ]}
         />
         <GuideTable
@@ -66,7 +66,7 @@ export default function Lesson10() {
           Saraminで注目すべきなのは順番です。2015年にクロールエラーを解消した段階で流入が15%増え、
           そのうえでmetaタグの整理・canonicalによる重複統合・構造化データの追加が続き、2019年の102%増につながっています。
           構造化データから始めていたら、この結果にはなっていません。作業の順序は
-          <Link href={lessonPath("technical")}>レッスン04</Link>で扱ったとおりです。
+          <Link href={lessonPath("technical")}>レッスン05</Link>で扱ったとおりです。
         </p>
       </GuideSection>
 
@@ -107,7 +107,7 @@ export default function Lesson10() {
           最下位が<strong>キーワードの詰め込み</strong>という従来型のテクニックだという点です。
           生成AI向けの作業は、記述テクニックではなく内容の裏付けを増やす作業に寄っています。
           <GuideRef {...REF.geoPaper} />
-          具体的な書き方は<Link href={lessonPath("writing")}>レッスン05</Link>にまとめています。
+          具体的な書き方は<Link href={lessonPath("writing")}>レッスン06</Link>にまとめています。
         </p>
       </GuideSection>
 
@@ -151,12 +151,12 @@ export default function Lesson10() {
             [
               "② テンプレート単位で直す",
               "構造化データやメタ情報が、テンプレートから一括で出力されているか",
-              <Link key="l4" href={lessonPath("technical")}>レッスン04</Link>,
+              <Link key="l4" href={lessonPath("technical")}>レッスン05</Link>,
             ],
             [
               "③ 1つの指標に絞る",
               "いま追いかけている指標が1つに決まっているか",
-              <Link key="l8" href={lessonPath("measurement")}>レッスン09</Link>,
+              <Link key="l8" href={lessonPath("measurement")}>レッスン10</Link>,
             ],
           ]}
         />

@@ -19,7 +19,7 @@ export function GET() {
     `> ${SITE_DESCRIPTION}`,
     "",
     "## 用語の定義",
-    // 「SEO対策とは」「GEOとは」への直答をそのまま置く（可視ページと同じ文字列）。
+    // 「SEO対策とは」「GEO対策とは」への直答をそのまま置く（可視ページと同じ文字列）。
     ...GUIDE_LIST.map((g) => `- [${g.h1}](${SITE_URL}${g.path}): ${g.definition}（最終更新 ${g.updated}）`),
     "",
     "## 教科書（順番のある学習コンテンツ）",

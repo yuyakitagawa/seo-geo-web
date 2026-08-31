@@ -100,7 +100,7 @@ export default function Lesson01() {
           caption={
             <>
               経路Aの追加要件が無いことはGoogleが公式ドキュメントで明記しています。経路Bの各ボットの扱いは
-              <Link href={lessonPath("geo-implementation")}>レッスン08</Link>で扱います。
+              <Link href={lessonPath("geo-implementation")}>レッスン09</Link>で扱います。
               <GuideRef {...REF.aiFeatures} />
             </>
           }
@@ -116,8 +116,8 @@ export default function Lesson01() {
         <p>
           ここから分かるのは、<strong>GEOはSEOの置き換えではなく追加である</strong>ということです。
           経路Aは検索インデックスに依存しているため、SEOをやめてGEOだけを行うことはできません。
-          GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン05</Link>）と、
-          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン08</Link>）の2つです。
+          GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン06</Link>）と、
+          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン09</Link>）の2つです。
         </p>
       </GuideSection>
 
@@ -139,7 +139,7 @@ export default function Lesson01() {
             ["Core Web Vitals", "LCP・INP・CLSの3指標で測るページ体験", "速度の話。数値のしきい値が公開されている"],
             ["構造化データ", "ページの内容を機械可読な形で併記するマークアップ", "順位を上げる設定ではなく、内容を正確に伝える手段"],
           ]}
-          caption="用語の対応関係は当サイトの整理です。GEO・AIO・LLMO・AEOの関係については「GEOとは」のページで出典つきで扱っています。"
+          caption="用語の対応関係は当サイトの整理です。GEO・AIO・LLMO・AEOの関係については「GEO対策とは」のページで出典つきで扱っています。"
         />
         <p>
           このうち、最初に理解しておく必要があるのは<strong>クロール・インデックス・ランキング</strong>の3語だけです。
@@ -187,11 +187,11 @@ export default function Lesson01() {
           注目すべきは、上位を占めているのが<strong>引用・統計・出典</strong>という「情報としての確かさ」に関わる要素で、
           最下位が<strong>キーワードの詰め込み</strong>という従来型のテクニックだという点です。
           生成AIに引用されるための作業は、小手先の記述ではなく、内容の裏付けを増やす作業に寄っています。
-          具体的な書き方は<Link href={lessonPath("writing")}>レッスン05</Link>で扱います。
+          具体的な書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱います。
         </p>
         <p>
           検索側については、Googleの成功事例やweb.devのケーススタディに、施策と数値が同じ文書で公開されている事例があります。
-          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン10</Link>に集め、
+          このカリキュラムでは、そうした確認できる事例だけを<Link href={lessonPath("case-studies")}>レッスン11</Link>に集め、
           各実装レッスンからも参照しています。
           <GuideRef {...REF.crawlers} />
         </p>

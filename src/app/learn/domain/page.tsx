@@ -28,7 +28,7 @@ const TOC = [
   { id: "example", label: "実例：このサイトのドメイン構成" },
 ];
 
-export default function Lesson07() {
+export default function Lesson08() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -130,7 +130,7 @@ export default function Lesson07() {
         <p>
           どちらを選んでも、<strong>後から変えるとURLの変更を伴う移転になります</strong>。
           移転には旧URLと新URLの対応表と301リダイレクトが必要で、対応漏れがそのまま流入の損失になります。
-          手順は<Link href={lessonPath("updates-risk")}>レッスン11</Link>で扱いますが、最も安全なのは最初に決めて動かさないことです。
+          手順は<Link href={lessonPath("updates-risk")}>レッスン12</Link>で扱いますが、最も安全なのは最初に決めて動かさないことです。
           <GuideRef {...REF.siteMove} />
         </p>
       </GuideSection>
@@ -209,7 +209,7 @@ export default function Lesson07() {
         <p>
           noindexを使う場合、そのページはクロールできる必要があります。robots.txtでブロックすると、
           noindexの指定自体が読まれません。ブロックと除外は別の手段だと理解して使い分けます
-          （<Link href={lessonPath("technical")}>レッスン04</Link>）。
+          （<Link href={lessonPath("technical")}>レッスン05</Link>）。
         </p>
       </GuideSection>
 

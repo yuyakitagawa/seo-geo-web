@@ -453,4 +453,194 @@ export function FigureTimeline({
 }
 
 // MDXRemote の components に渡す一覧
-export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote, FigurePipeline, FigureStack, FigureGauge, FigureTimeline };
+
+// ---- リンク構造図 ----------------------------------------------------------
+// ページを箱、内部リンクを矢印で描く。層(layer)ごとに横並びに自動配置するので、
+// 呼び出し側は座標を書かずにノードと辺だけを渡す。
+// 崩れた構造と直した構造を並べられるよう、1つの図に複数のマップを置ける。
+
+type LinkNode = {
+  id: string;
+  label: string;
+  /** 0=トップ。数字が大きいほど下の階層 */
+  layer: number;
+  sub?: string;
+  tone?: Tone;
+  /** 孤立ページなど「つながっていない」ノードを薄い破線にする */
+  dim?: boolean;
+};
+/** down=片方向 / both=双方向（ハブとスポーク） / side=同じ階層どうし（曲線） */
+type LinkEdge = { from: string; to: string; kind?: "down" | "both" | "side"; tone?: Tone };
+type LinkMap = {
+  label: string;
+  verdict: "good" | "bad";
+  /** 図の内容を1文で説明する代替テキスト */
+  alt: string;
+  note?: string;
+  nodes: LinkNode[];
+  edges: LinkEdge[];
+};
+
+const MAP_W = 320;
+const NODE_H = 32;
+const LAYER_GAP = 64;
+const TONE_HEX: Record<Tone, string> = {
+  seo: "#4f7cff",
+  geo: "#a855f7",
+  news: "#ff6b35",
+  accent: "#2994b9",
+  ink: "#f5f5f2",
+};
+
+const r = (n: number) => Math.round(n * 10) / 10;
+
+/** 矢印の先端。線の終点と向きから三角形の3点を返す */
+function arrowHead(x: number, y: number, angle: number) {
+  const bx = x - Math.cos(angle) * 7;
+  const by = y - Math.sin(angle) * 7;
+  const px = Math.cos(angle + Math.PI / 2) * 3.6;
+  const py = Math.sin(angle + Math.PI / 2) * 3.6;
+  return `${r(x)},${r(y)} ${r(bx + px)},${r(by + py)} ${r(bx - px)},${r(by - py)}`;
+}
+
+/** 同じ layer のノードを横に等間隔で並べる */
+function layoutNodes(nodes: LinkNode[]) {
+  const layers = [...new Set(nodes.map((n) => n.layer))].sort((a, b) => a - b);
+  const pos = new Map<string, { x: number; y: number; w: number }>();
+  layers.forEach((layer, row) => {
+    const inLayer = nodes.filter((n) => n.layer === layer);
+    const slot = MAP_W / inLayer.length;
+    inLayer.forEach((n, i) => {
+      pos.set(n.id, { x: slot * (i + 0.5), y: 10 + row * LAYER_GAP, w: Math.min(slot - 14, 112) });
+    });
+  });
+  return { pos, rows: layers.length };
+}
+
+function LinkMapCard({ map }: { map: LinkMap }) {
+  const good = map.verdict === "good";
+  const { pos, rows } = layoutNodes(map.nodes);
+  const hasSide = map.edges.some((e) => e.kind === "side");
+  const height = 10 + (rows - 1) * LAYER_GAP + NODE_H + (hasSide ? 34 : 10);
+
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur">
+      <div className={`h-1.5 ${good ? "bg-accent" : "bg-news"}`} />
+      <div className="p-4 sm:p-5">
+        <p className={`flex items-center gap-2.5 text-base font-bold ${good ? "text-accent" : "text-news"}`}>
+          <span
+            className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+              good ? "bg-accent text-accent-ink" : "bg-news text-white"
+            }`}
+            aria-hidden
+          >
+            {good ? "✓" : "✕"}
+          </span>
+          {map.label}
+        </p>
+
+        <svg
+          viewBox={`0 0 ${MAP_W} ${height}`}
+          className="mx-auto mt-4 w-full max-w-[360px]"
+          role="img"
+          aria-label={map.alt}
+        >
+          {map.edges.map((e) => {
+            const a = pos.get(e.from);
+            const b = pos.get(e.to);
+            if (!a || !b) return null;
+            const color = TONE_HEX[e.tone ?? "accent"];
+            const key = `${e.from}-${e.to}-${e.kind ?? "down"}`;
+
+            if (e.kind === "side") {
+              const y0 = a.y + NODE_H;
+              const y1 = b.y + NODE_H;
+              const cx = (a.x + b.x) / 2;
+              const cy = Math.max(y0, y1) + 28;
+              return (
+                <g key={key}>
+                  <path
+                    d={`M${r(a.x)},${r(y0)} Q${r(cx)},${r(cy)} ${r(b.x)},${r(y1)}`}
+                    fill="none"
+                    stroke={color}
+                    strokeOpacity="0.75"
+                    strokeWidth="1.4"
+                  />
+                  <polygon points={arrowHead(b.x, y1, Math.atan2(y1 - cy, b.x - cx))} fill={color} />
+                  <polygon points={arrowHead(a.x, y0, Math.atan2(y0 - cy, a.x - cx))} fill={color} />
+                </g>
+              );
+            }
+
+            const y0 = a.y + NODE_H;
+            const y1 = b.y;
+            const angle = Math.atan2(y1 - y0, b.x - a.x);
+            return (
+              <g key={key}>
+                <line x1={r(a.x)} y1={r(y0)} x2={r(b.x)} y2={r(y1)} stroke={color} strokeOpacity="0.75" strokeWidth="1.4" />
+                <polygon points={arrowHead(b.x, y1, angle)} fill={color} />
+                {e.kind === "both" && <polygon points={arrowHead(a.x, y0, angle + Math.PI)} fill={color} />}
+              </g>
+            );
+          })}
+
+          {map.nodes.map((n) => {
+            const p = pos.get(n.id);
+            if (!p) return null;
+            return (
+              <g key={n.id} opacity={n.dim ? 0.55 : 1}>
+                <rect
+                  x={r(p.x - p.w / 2)}
+                  y={p.y}
+                  width={r(p.w)}
+                  height={NODE_H}
+                  rx="8"
+                  fill="rgba(255,255,255,0.07)"
+                  stroke={TONE_HEX[n.tone ?? "ink"]}
+                  strokeOpacity="0.85"
+                  strokeWidth="1.2"
+                  strokeDasharray={n.dim ? "3 3" : undefined}
+                />
+                <text
+                  x={r(p.x)}
+                  y={n.sub ? p.y + 15 : p.y + 20}
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontWeight="700"
+                  fill="#f5f5f2"
+                >
+                  {n.label}
+                </text>
+                {n.sub && (
+                  <text x={r(p.x)} y={p.y + 26} textAnchor="middle" fontSize="8" fill="rgba(245,245,242,0.65)">
+                    {n.sub}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        {map.note && <p className="mt-3 text-sm leading-relaxed text-paper/80">{map.note}</p>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * リンク構造図。サイト内のページと内部リンクの張り方を、箱と矢印で描く。
+ * <FigureLinkMap title="..." maps={[{ label: "...", verdict: "bad", alt: "...", nodes: [...], edges: [...] }]} />
+ */
+export function FigureLinkMap({ title, caption, maps }: { title: string; caption?: ReactNode; maps: LinkMap[] }) {
+  return (
+    <Frame title={title} caption={caption}>
+      <div className={`grid gap-3 ${maps.length > 1 ? "sm:grid-cols-2" : ""}`}>
+        {maps.map((m) => (
+          <LinkMapCard key={m.label} map={m} />
+        ))}
+      </div>
+    </Frame>
+  );
+}
+
+export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote, FigurePipeline, FigureStack, FigureGauge, FigureTimeline, FigureLinkMap };

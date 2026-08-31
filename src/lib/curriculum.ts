@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
 import { SITE_NAME, SITE_URL } from "./site";
 
-// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル11レッスンに分け、
+// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル12レッスンに分け、
 // 前提 → 実装 → 運用の順に積めるようにしたもの。
 // 各レッスンの本文は src/app/learn/<slug>/page.tsx にあり、ここには
 // 「見出し・到達目標・チェックリスト・FAQ・出典」など、目次ページ・JSON-LD・llms.txt が
@@ -35,7 +35,7 @@ export const LEVEL_KEYS: LevelKey[] = [1, 2, 3];
 
 export type Lesson = {
   slug: string;
-  /** 1〜11。目次と前後ナビの順序 */
+  /** 1〜12。目次と前後ナビの順序 */
   order: number;
   level: LevelKey;
   /** 目次・パンくず・前後ナビで使う短いタイトル */
@@ -87,6 +87,10 @@ const S = {
   perf: { title: "検索パフォーマンス レポート（検索結果）", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7576553?hl=ja" },
   indexReport: { title: "ページ インデックス登録レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7440203?hl=ja" },
   urlInspection: { title: "URL 検査ツール", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9012289?hl=ja" },
+  crawlStats: { title: "クロールの統計情報レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9679690?hl=ja" },
+  crawlBudget: { title: "大規模なサイト所有者向けのクロール バジェット管理ガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget?hl=ja" },
+  crawlResources: { title: "Crawling December: The how and why of Googlebot crawling", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-resources" },
+  crawlCaching: { title: "Crawling December: HTTP caching", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-caching" },
   manualActions: { title: "[手動による対策] レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9044175?hl=ja" },
   geoPaper: { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか（KDD 2024）", url: "https://arxiv.org/abs/2311.09735" },
   openaiBots: { title: "Overview of OpenAI Crawlers", publisher: "OpenAI", url: "https://platform.openai.com/docs/bots" },
@@ -106,10 +110,10 @@ const S = {
 export const COURSE = {
   path: "/learn",
   h1: "SEO・GEO教科書",
-  metaTitle: "SEO・GEO教科書｜11レッスンで基礎から運用まで（実例つき）",
+  metaTitle: "SEO・GEO教科書｜12レッスンで基礎から運用まで（実例つき）",
   description:
-    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル11レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
-  lead: "「SEO対策とは」「GEOとは」の次に読む、順番の決まった教科書です。1から10まで通すと、自分のサイトを検索と生成AIの両方に対応させ、数値で確認しながら運用できるようになります。",
+    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル12レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
+  lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から12まで通すと、自分のサイトを検索と生成AIの両方に対応させ、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
   updated: "2026-08-31",
 };
@@ -157,7 +161,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.aiFeatures, S.helpful, S.geoPaper, S.crawlers],
     published: "2026-08-30",
-    updated: "2026-08-31",
+    updated: "2026-08-30",
   },
   {
     slug: "first-week",
@@ -193,6 +197,11 @@ export const LESSONS: Lesson[] = [
         question: "記事を公開したのに検索結果に出てきません",
         answer:
           "まずURL検査ツールでそのURLを調べ、「インデックス登録済み」かどうかを確認します。登録されていない場合、原因はnoindexタグ、robots.txtのDisallow、canonicalが別URLを指している、そもそもクロールされていない、のいずれかであることが多いです。登録済みなのに表示されない場合は、インデックスされているが順位が低いという別の問題なので、対策も変わります。",
+      },
+      {
+        question: "Search Consoleに身に覚えのないURLやディレクトリが出てきます",
+        answer:
+          "Search Consoleのインデックスレポートには、自分では作った覚えのないURLが並ぶことがあります。外部サイトからの誤ったリンク、以前使っていたCMSの残骸、WordPressなどを狙って存在しないパスを次々に試す自動巡回botのアクセスがきっかけで、GoogleがそのURLを知るためです。まずURL検査でそのURLを調べ、自分のサイト内にリンクが無く、実際に404が返っているなら、それが正しい状態なので直す必要はありません。ここでrobots.txtのDisallowを使って隠すのは逆効果で、Googleはブロックされたページでも他のページからリンクされていればURLがインデックスに登録されることがあると説明しており、ブロックすると404もnoindexも読み取れなくなってURLが残り続けます。手を入れる対象は、自分のサイトが実際にリンクしているURLだけです。",
       },
       {
         question: "robots.txtは作らないといけませんか",
@@ -256,27 +265,81 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.helpful, S.titleLink, S.snippet, S.canonical, S.perf, S.saramin],
     published: "2026-08-30",
+    updated: "2026-08-30",
+  },
+  {
+    slug: "long-tail",
+    order: 4,
+    level: 1,
+    title: "ロングテール設計",
+    h1: "ロングテール設計：細かい質問を面で押さえる",
+    metaTitle: "ロングテールSEOのやり方｜細かい検索を面で押さえるページ設計",
+    description:
+      "検索の大半を占める細かいクエリを、1本ずつではなく面で押さえる設計です。掛け合わせの軸の決め方、Search Consoleから拾う手順、AI検索のクエリ ファンアウトで効く理由、薄いページの量産がスパムになる線引きまで扱います。",
+    goal: "どの軸を掛け合わせて何ページ作るかを、薄い量産にならない範囲で自分で決められるようになる。",
+    objectives: [
+      "検索需要の分布（少数の太いクエリと、多数の細かいクエリ）と、どちらから取るかの判断",
+      "掛け合わせの軸（対象 × 条件 × 目的）でクエリ空間を面で埋めるページ設計",
+      "AIによる概要・AIモードの「クエリ ファンアウト」で、細かい質問に答えるページが候補になる理由",
+      "薄いページの量産がスパムポリシーに当たる線引きと、それを越えないための条件",
+    ],
+    minutes: 13,
+    checklist: [
+      "自分のサイトの主要テーマについて、掛け合わせの軸を2つ以上書き出した",
+      "その軸で作れるページを一覧にし、実際に固有の答えを持っているものだけに絞り込んだ",
+      "Search Consoleで表示回数の少ないクエリを50件抽出し、対応ページの有無を確認した",
+      "各ページについて「他のページには書けない情報」を1つずつ挙げられる",
+      "作ったページ群を束ねる一覧ページ（ハブ）と、そこへの内部リンクを決めた",
+    ],
+    faq: [
+      {
+        question: "ロングテールSEOはGoogleの公式用語ですか",
+        answer:
+          "公式用語ではありません。Googleのドキュメントに「ロングテール」という区分はなく、これは検索需要の分布を説明するために業界で使われてきた言い方です。Googleが公式に述べているのは、ユーザーの役に立つコンテンツを作ること、そしてAIによる概要とAIモードが1つの質問を複数のサブトピックに分解する「クエリ ファンアウト」という手法を使う場合があることです。ロングテール設計は、この2つに沿ってページの粒度を決めるための、当サイトの整理だと考えてください。",
+      },
+      {
+        question: "ページ数は多いほうが有利ですか",
+        answer:
+          "数そのものは評価されません。Googleはスパムに関するポリシーで「スケーリングされたコンテンツの不正使用」を挙げており、検索結果のランキング操作を主な目的として多数のページを生成する行為を対象としています。判断されるのは生成方法ではなく目的と中身なので、1ページごとに他では得られない情報があるかどうかが線引きになります。答えを持っていない軸まで機械的に掛け合わせた時点で、この線を越えます。",
+      },
+      {
+        question: "AIで大量に記事を作るのは違反になりますか",
+        answer:
+          "AIを使うこと自体は違反ではありません。Googleは、コンテンツの制作方法ではなく品質で評価すると説明しており、自動化を理由に順位を下げるとは述べていません。違反になるのは、検索順位の操作を主な目的として量産する場合です。実務上の分かれ目は、そのページに一次情報・実際の検証・固有の判断が入っているかどうかで、これは人が書いてもAIが書いても同じ基準です。",
+      },
+      {
+        question: "細かいクエリは1ページあたりの流入が少なすぎませんか",
+        answer:
+          "1本単位で見ると少ないのが正常です。ロングテールは、1本の流入ではなく群としての合計と、意図の明確さで評価します。細かいクエリほど利用者の状況が具体的なため、読了率や次の行動につながりやすくなります。ただし、単発のページが並んでいるだけでは群になりません。一覧ページで束ね、内部リンクでつなぐところまでがこのレッスンの範囲です。",
+      },
+    ],
+    sources: [S.starter, S.helpful, S.spam, S.aiContent, S.aiFeatures, S.perf, S.canonical],
+    published: "2026-08-31",
     updated: "2026-08-31",
   },
   {
     slug: "technical",
-    order: 4,
+    order: 5,
     level: 2,
     title: "テクニカルSEO実装",
     h1: "テクニカルSEO実装：クロール・インデックス・表示速度",
     metaTitle: "テクニカルSEO実装｜robots・canonical・構造化データ・Core Web Vitals",
     description:
-      "robots.txtとnoindexの使い分け、canonicalによる重複統合、サイトマップ、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
+      "robots.txtとnoindexの使い分け、未インデックスの理由別の対処、canonicalによる重複統合、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
     goal: "検索エンジンがページを取得し、正しく理解し、快適に表示できる状態を自分で作れるようになる。",
     objectives: [
       "robots.txt（クロールの制御）とnoindex（インデックスの制御）の使い分け",
+      "インデックス未登録の切り分けと、レポートに出る理由ごとの対処",
+      "クロールの統計情報で見る訪問頻度と、取得されているファイルの内訳（HTMLが主か）",
       "canonical・301リダイレクト・サイトマップで重複と正規URLを整理する",
       "構造化データの選び方と、ページ表示との一致という条件",
       "LCP・INP・CLSそれぞれの代表的な原因と、実際に効果が報告された直し方",
     ],
-    minutes: 18,
+    minutes: 24,
     checklist: [
       "robots.txtでDisallowにしているパスと、noindexにしているページを一覧にできた",
+      "登録されていない重要ページについて、URL検査で理由を確認し、設定由来か中身由来かを切り分けた",
+      "クロールの統計情報で、レスポンス別・ファイル形式別の内訳を確認し、HTMLが上位にあるかを見た",
       "同じ内容が複数URLで見える箇所を洗い出し、canonicalか301で1本化した",
       "自分のページ種別に対応する構造化データの型を選び、リッチリザルトテストで検証した",
       "PageSpeed InsightsでLCP・INP・CLSの現状値を記録し、悪い指標を1つ特定した",
@@ -287,6 +350,26 @@ export const LESSONS: Lesson[] = [
         question: "robots.txtでDisallowにすればインデックスされませんか",
         answer:
           "されないとは限りません。Googleは、robots.txtでブロックされたページでも、他のページからリンクされていればURLがインデックスに登録されることがあると説明しています。検索結果に出したくないページには、robots.txtのDisallowではなくnoindexを使います。noindexは、クローラーがそのページを取得できて初めて読み取られるため、Disallowと同時に指定すると機能しません。",
+      },
+      {
+        question: "ページがインデックスされません。何から確認すればよいですか",
+        answer:
+          "推測で本文を書き直す前に、URL検査ツールで表示される理由を読みます。noindex、robots.txtによるブロック、代替ページ（canonical）、リダイレクト、404や5xxは設定由来なので、設定を直せば戻ります。一方「クロール済み - インデックス未登録」は取得できたうえで登録されなかった状態で、内容の薄さや重複が原因のことが多く、設定を直しても変わりません。「検出 - インデックス未登録」はまだクロールされていない状態なので、内部リンクとサイトマップで到達しやすくします。なお、Googleは基本事項を満たしていてもインデックス登録を保証していません。",
+      },
+      {
+        question: "Googlebotがどれくらい来ているか、何を取得しているかはどこで見られますか",
+        answer:
+          "Search Consoleの「設定 → クロールの統計情報」です。合計クロールリクエスト数と平均応答時間の推移に加えて、レスポンス別・ファイル形式別・目的別（検出と更新）・Googlebotタイプ別の内訳が見られます。ドメインプロパティなどルートレベルのプロパティでのみ利用でき、Googleは上級者向けのレポートで、ページ数が1,000未満のサイトでは使う必要はないとしています。クロール数が減った場合は、まず平均応答時間とサーバーエラーを確認します。Googleは、応答が遅い場合やサーバーエラーが返る場合にクロール頻度の上限が下がると説明しています。",
+      },
+      {
+        question: "クロールされているファイルがHTML以外ばかりです。どうすればよいですか",
+        answer:
+          "GoogleはHTMLの割合について基準を出していないため、当サイトでは「HTMLが上位の形式であり続けているか」を目安にしています。画像やJavaScript・CSSの取得が続けて大半を占める場合、典型的な原因は、ビルドのたびにファイル名が変わる（内容が同じでも別URLとして取り直される）、同じ画像がパラメータ違いで多数のURLになっている、条件付きリクエストに304を返せていない、絞り込みやカレンダーでURLが無限に増えている、の4つです。対処は、ファイル名を内容が変わったときだけ変える、URLを1本にそろえる、ETagとLast-Modifiedを返す、不要なパスをrobots.txtで止める、になります。レンダリングに必要なJavaScriptやCSSをブロックするのは逆効果で、Googleはリソースを取得できないとページの内容の抽出や掲載に支障が出ると説明しています。",
+      },
+      {
+        question: "インデックス登録のリクエストは何度も送ったほうがよいですか",
+        answer:
+          "原因を直さずに繰り返しても状況は変わりません。リクエストは登録の順番を早める手段ではなく、変更をGoogleに知らせるためのものです。noindexやrobots.txtのブロックを外す、内容を加筆または統合する、内部リンクを張るといった対処を先に行い、そのうえで1回リクエストして、数日〜数週間おいて再確認します。",
       },
       {
         question: "構造化データを入れると順位が上がりますか",
@@ -304,13 +387,13 @@ export const LESSONS: Lesson[] = [
           "必須ではありません。Googleは、Googleニュースやトップニュース枠への掲載にAMPを必須とはしておらず、通常のページでCore Web Vitalsを満たせば同じ扱いを受けられます。過去の成功事例にAMPが登場するのは、当時の実装として選ばれたためです。いまから始める場合は、通常のページの表示速度を直すほうが優先です。",
       },
     ],
-    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
+    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.crawlStats, S.crawlBudget, S.crawlResources, S.crawlCaching, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
   {
     slug: "writing",
-    order: 5,
+    order: 6,
     level: 2,
     title: "引用される本文の書き方",
     h1: "引用される本文の書き方：直答・パッセージ・E-E-A-T",
@@ -356,11 +439,11 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.helpful, S.aiFeatures, S.spam, S.aiContent, S.geoPaper, S.snippet, S.titleLink],
     published: "2026-08-30",
-    updated: "2026-08-31",
+    updated: "2026-08-30",
   },
   {
     slug: "structure",
-    order: 6,
+    order: 7,
     level: 2,
     title: "サイト構造と内部リンク",
     h1: "サイト構造と内部リンク：トピッククラスタで積み上げる",
@@ -370,14 +453,17 @@ export const LESSONS: Lesson[] = [
     goal: "1本ずつバラバラな記事群を、テーマごとに束ねて評価が積み上がる構造に組み替えられるようになる。",
     objectives: [
       "ハブ（定義・網羅ページ）とスポーク（個別トピック）の役割分担",
+      "リンク構造のよくある崩れ方（フラット・孤立ページ・深すぎる階層）と、その直し方",
       "URL設計とパンくずで階層を明示する",
       "内部リンクのアンカーテキストの書き方と、リンクを置く位置",
       "タグ一覧など中身の薄いページを、noindexとサイトマップからどう外すか",
     ],
-    minutes: 14,
+    minutes: 17,
     checklist: [
       "主要テーマごとにハブページを1本決め、そこから各記事へリンクがある",
       "各記事からハブページへ戻るリンクがある",
+      "どのページにも、本文か一覧から最低1本の内部リンクが入っている（孤立ページが無い）",
+      "重要なページに、トップから2〜3クリック以内で到達できる",
       "アンカーテキストが「こちら」ではなく、リンク先の内容を表す語になっている",
       "パンくずを設置し、BreadcrumbList構造化データを出している",
       "記事1本しかないタグ一覧のような薄いページを、noindexにするか統合した",
@@ -386,7 +472,17 @@ export const LESSONS: Lesson[] = [
       {
         question: "トピッククラスタとは何ですか",
         answer:
-          "1つのテーマについて、全体を扱うハブページと、個別の論点を扱う複数のスポークページを作り、相互にリンクで結ぶ構造のことです。このサイトでいえば「SEO対策とは」「GEOとは」がハブ、日々のニュース記事や各レッスンがスポークにあたります。同じテーマのページが相互に参照し合うことで、そのテーマを扱っているサイトだと理解されやすくなります。",
+          "1つのテーマについて、全体を扱うハブページと、個別の論点を扱う複数のスポークページを作り、相互にリンクで結ぶ構造のことです。このサイトでいえば「SEO対策とは」「GEO対策とは」がハブ、日々のニュース記事や各レッスンがスポークにあたります。同じテーマのページが相互に参照し合うことで、そのテーマを扱っているサイトだと理解されやすくなります。",
+      },
+      {
+        question: "リンク構造はどうあるべきですか",
+        answer:
+          "3つの条件で判断します。1つ目は、テーマの軸になるハブページがあり、どのページもハブから2クリック以内にあること。2つ目は、ハブとスポークが双方向にリンクしていること（ハブから記事へのリンクだけでは、記事に直接来た読者がテーマ全体に戻れません）。3つ目は、どのページにも本文か一覧から最低1本のリンクが入っていることです。よくある崩れ方は、トップに全記事を直接ぶら下げるフラット型、どこからもリンクされていない孤立ページ、ページ送りでしか辿れない深い階層の3つです。",
+      },
+      {
+        question: "孤立ページはどうやって見つけますか",
+        answer:
+          "サイトマップに載っているURLの一覧と、サイト内リンクのリンク先URLの一覧を突き合わせ、サイトマップにあってリンク先に出てこないURLを探します。それが、リンクをたどっては到達できないページです。サイトマップに載せることとリンクを張ることは別で、サイトマップは「こういうURLがある」という一覧、リンクはページ同士の関係を示すものです。",
       },
       {
         question: "内部リンクは多いほどよいのですか",
@@ -410,7 +506,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "domain",
-    order: 7,
+    order: 8,
     level: 2,
     title: "ドメイン構造",
     h1: "ドメイン構造：サブドメインとサブディレクトリ、ホスト名の統一",
@@ -467,7 +563,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "geo-implementation",
-    order: 8,
+    order: 9,
     level: 2,
     title: "GEO実装",
     h1: "GEO実装：AIクローラーの許可と、引用される形に整える",
@@ -513,29 +609,32 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.aiFeatures, S.crawlers, S.openaiBots, S.perplexityBots, S.anthropicBots, S.llmstxt, S.geoPaper, S.structuredData],
     published: "2026-08-30",
-    updated: "2026-08-31",
+    updated: "2026-08-30",
   },
   {
     slug: "measurement",
-    order: 9,
+    order: 10,
     level: 3,
     title: "計測と改善サイクル",
     h1: "計測と改善サイクル：何を見て、いつ判断するか",
     metaTitle: "SEO・GEOの計測｜Search Consoleの見方とAI流入の測り方",
     description:
-      "順位チェックツールの体感ではなく、Search Consoleの数値で判断するための手順です。見る順番（表示回数→クリック→順位）、インデックス状況の読み方、AI検索からの流入の測り方、4週間サイクルでの判断基準を扱います。",
+      "順位チェックツールの体感ではなく、Search Consoleの数値で判断するための手順です。見る順番（表示回数→クリック→順位）、初期設定・週次・月次に分けた点検チェックリスト、AI検索からの流入の測り方、4週間サイクルでの判断基準を扱います。",
     goal: "施策の効果を数値で確認し、続けるか畳むかを自分で判断できるようになる。",
     objectives: [
       "検索パフォーマンス・ページインデックス登録・URL検査の3画面の役割",
       "表示回数・クリック数・CTR・平均掲載順位を見る順番",
+      "Search Consoleの点検チェックリスト（初期設定・週次・月次・変更したとき）",
       "AI検索（AIによる概要／AIモード、ChatGPT、Perplexity）からの流入の測り方と限界",
       "4週間サイクルで判断し、効果の出ない施策を畳む基準",
     ],
-    minutes: 15,
+    minutes: 18,
     checklist: [
       "検索パフォーマンスで、直近28日と前年同期を比較できる状態になっている",
       "主要ページごとの表示回数・クリック数・CTRを一覧にできた",
       "インデックス登録レポートの「未登録」の内訳を確認し、公開したいページが混ざっていないことを確認した",
+      "「手動による対策」と「セキュリティの問題」に検出がないことを確認した",
+      "週次（壊れていないかの確認）と月次（数値で判断）の点検を、実施する曜日まで決めた",
       "アクセス解析で、ChatGPTやPerplexityからの参照を分けて見られるようにした",
       "施策ごとに開始日をメモし、4週間後に見直す予定を入れた",
     ],
@@ -551,6 +650,11 @@ export const LESSONS: Lesson[] = [
           "Googleは、AIによる概要やAIモードに表示されたサイトも、Search Consoleの検索タイプ「ウェブ」のパフォーマンスレポートに含まれると説明しています。つまり通常の検索と合算されており、AI機能だけを切り出したレポートは提供されていません。ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。",
       },
       {
+        question: "Search Consoleは毎日見たほうがよいですか",
+        answer:
+          "毎日見る必要はありません。当サイトでは、週に1回は「壊れていないかの確認」だけを行い（表示回数の急落、インデックス登録済みページ数の減少、手動による対策とセキュリティの問題の有無）、数値を読んで次の作業を決めるのは月に1回にしています。直近数日のデータは確定していないため、前日比ではなく期間同士の比較で見ます。施策を続けるか畳むかの判断は、さらに間隔をあけて4週間ごとに行います。",
+      },
+      {
         question: "AI可視性ツールは契約すべきですか",
         answer:
           "測っているものを理解したうえでなら有用です。これらのツールが測るのは、ツールが投げた質問に対する回答であり、実ユーザーが受け取った回答そのものではありません。契約前に、自分で決めた質問を追跡できるか（カスタムプロンプトに対応しているか）を確認するのが実務上の分かれ目になります。",
@@ -561,13 +665,13 @@ export const LESSONS: Lesson[] = [
           "当サイトの整理では、技術的な修正は数週間、コンテンツの改善は1〜3か月を見て、表示回数がまったく動かなければ前提を疑います。順位そのものではなく表示回数を先に見るのは、表示回数が増えていればクリックされていなくてもインデックスと関連性は前進しているためです。Googleは効果が出るまでの期間を保証していません。",
       },
     ],
-    sources: [S.perf, S.indexReport, S.urlInspection, S.aiFeatures, S.trafficDrops, S.essentials],
+    sources: [S.perf, S.indexReport, S.urlInspection, S.manualActions, S.sitemaps, S.robots, S.aiFeatures, S.trafficDrops, S.essentials],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
   {
     slug: "case-studies",
-    order: 10,
+    order: 11,
     level: 3,
     title: "実例：強いサイトがやったこと",
     h1: "実例：検索とAIに強いサイトが実際にやったこと",
@@ -607,11 +711,11 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.saramin, S.rakutenRecipe, S.eventbrite, S.mxPlayer, S.yahooNews, S.rakuten24, S.nuvemshop, S.redbus, S.vitalsBusiness, S.geoPaper],
     published: "2026-08-30",
-    updated: "2026-08-31",
+    updated: "2026-08-30",
   },
   {
     slug: "updates-risk",
-    order: 11,
+    order: 12,
     level: 3,
     title: "アップデート対応とリスク管理",
     h1: "アップデート対応とリスク管理：落ちたときに何をするか",
@@ -656,7 +760,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.coreUpdates, S.trafficDrops, S.spam, S.manualActions, S.siteMove, S.helpful, S.aiContent],
     published: "2026-08-30",
-    updated: "2026-08-31",
+    updated: "2026-08-30",
   },
 ];
 
@@ -758,11 +862,11 @@ export function lessonJsonLd(lesson: Lesson) {
 const OG_PIXELS = { width: 1200, height: 630 };
 
 /**
- * レッスンページの metadata。全ページで完全に同じ形なので1か所に置く。
+ * レッスンページの metadata。10ページで完全に同じ形なので1か所に置く。
  *
  * `openGraph` を自前で持つページには、上位セグメントの `opengraph-image.tsx` が
  * **自動では引き継がれない**（`/tools/page-audit` のように openGraph を書いていない
- * ページは引き継がれる）。明示しないとレッスンのページだけ og:image が消えるので、
+ * ページは引き継がれる）。明示しないとレッスン11ページだけ og:image が消えるので、
  * `/learn` の画像を images に入れる。
  */
 export function lessonMetadata(lesson: Lesson): Metadata {
