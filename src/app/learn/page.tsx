@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
-import { FigureStack } from "@/components/figures";
+import { FigureFlow, FigureStack, FigureTimeline } from "@/components/figures";
 import { GuideCrossLinks, GuideTable } from "@/components/guide";
 import { CASES } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonPath, lessonsByLevel } from "@/lib/curriculum";
@@ -144,6 +144,44 @@ export default function LearnPage() {
               </div>
             );
           })}
+        </section>
+
+        <section id="plan" className="scroll-mt-24">
+          <h2>最初の90日でやること</h2>
+          <p>
+            10レッスンを実際のカレンダーに割り当てると、次の順番になります。計測環境の用意 → 技術的な土台の確認 →
+            既存ページの改善 → 新規ページの追加、の順です。計測ができていない状態で施策だけ増やすと、
+            順位が動いた理由を後から確認できなくなります。
+          </p>
+          <FigureFlow
+            title="SEO対策の着手順（最初の90日）"
+            steps={[
+              { label: "Search Consoleとアクセス解析を入れる", desc: "所有権を確認し、表示回数・クリック数・平均掲載順位を見られる状態にする。ここが無いと施策の効果を確認できない（レッスン02）。" },
+              { label: "インデックス状況とrobots.txtを確認する", desc: "重要なページが「登録済み」になっているか、意図せず noindex や Disallow になっていないかを確認する（レッスン02・04）。" },
+              { label: "XMLサイトマップとcanonicalを整える", desc: "サイトマップを送信し、同じ内容が複数URLで見える状態（パラメータ違いなど）を canonical で1本化する（レッスン04）。" },
+              { label: "既に表示回数のあるページを直す", desc: "検索クエリに対してタイトル・導入文・見出しが答えているかを見直す。新規作成より先に、既に見られているページを直すほうが早い（レッスン05）。" },
+              { label: "答えの無いクエリに対して新しいページを作る", desc: "Search Consoleで表示回数はあるのに該当ページが無いクエリを探し、その質問に直答するページを追加する（レッスン03・06）。" },
+              { label: "4週間おきに数値で確認する", desc: "順位の体感ではなく、表示回数・クリック数・インデックス数の推移で判断する。改善が無い施策は畳む（レッスン08）。" },
+            ]}
+          />
+          <FigureTimeline
+            title="90日の割り振り（何を、いつ動かすか）"
+            axis={["1週目", "4週目", "8週目", "12週目"]}
+            rows={[
+              { label: "計測環境の用意", start: 0, span: 10, desc: "Search Console・アクセス解析", tone: "accent" },
+              { label: "インデックスとrobots.txtの確認", start: 6, span: 16, desc: "登録済みか、止めていないか", tone: "accent" },
+              { label: "サイトマップとcanonical", start: 14, span: 18, desc: "送信と重複URLの1本化", tone: "accent" },
+              { label: "既存ページの改善", start: 24, span: 46, desc: "表示回数のあるページから", tone: "seo" },
+              { label: "新規ページの追加", start: 52, span: 48, desc: "答えの無いクエリに対して", tone: "seo" },
+              { label: "4週おきの数値確認", start: 24, span: 76, desc: "表示回数・クリック数・登録数", tone: "geo" },
+            ]}
+            caption="割り振りは当サイトの整理です。効果が出るまでの期間はGoogleが保証しているものではありません。"
+          />
+          <p>
+            AI検索（GEO）側の作業は、この90日の外に別枠で足すものではありません。
+            <Link href={lessonPath("geo-implementation")}>レッスン07</Link>のAIクローラーの確認は、
+            2番目のrobots.txtの確認と同じタイミングで済ませられます。
+          </p>
         </section>
 
         <section id="who" className="scroll-mt-24">

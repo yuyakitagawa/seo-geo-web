@@ -73,6 +73,8 @@ const S = {
   canonical: { title: "重複した URL を統合する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja" },
   sitemaps: { title: "サイトマップの作成と送信", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja" },
   crawlers: { title: "Google の一般的なクローラー", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers?hl=ja" },
+  jsBasics: { title: "JavaScript の基本を理解する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja" },
+  verifyGooglebot: { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
   titleLink: { title: "Google 検索結果のタイトルリンクを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/title-link?hl=ja" },
   snippet: { title: "スニペットを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/snippet?hl=ja" },
   coreUpdates: { title: "Google 検索のランキング アップデート", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/updates/core-updates?hl=ja" },
@@ -111,7 +113,7 @@ export const COURSE = {
     "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル10レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
   lead: "「SEO対策とは」「GEOとは」の次に読む、順番の決まった教科書です。1から10まで通すと、自分のサイトを検索と生成AIの両方に対応させ、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
-  updated: "2026-08-30",
+  updated: "2026-08-31",
 };
 
 export const LESSONS: Lesson[] = [
@@ -266,17 +268,19 @@ export const LESSONS: Lesson[] = [
     h1: "テクニカルSEO実装：クロール・インデックス・表示速度",
     metaTitle: "テクニカルSEO実装｜robots・canonical・構造化データ・Core Web Vitals",
     description:
-      "robots.txtとnoindexの使い分け、canonicalによる重複統合、サイトマップ、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
+      "robots.txtとnoindexの使い分け、JavaScriptのレンダリング、canonicalによる重複統合、サイトマップ、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
     goal: "検索エンジンがページを取得し、正しく理解し、快適に表示できる状態を自分で作れるようになる。",
     objectives: [
       "robots.txt（クロールの制御）とnoindex（インデックスの制御）の使い分け",
+      "JavaScriptで描画した本文がインデックスに入りにくい理由と、偽のGooglebotの見分け方",
       "canonical・301リダイレクト・サイトマップで重複と正規URLを整理する",
       "構造化データの選び方と、ページ表示との一致という条件",
       "LCP・INP・CLSそれぞれの代表的な原因と、実際に効果が報告された直し方",
     ],
-    minutes: 18,
+    minutes: 19,
     checklist: [
       "robots.txtでDisallowにしているパスと、noindexにしているページを一覧にできた",
+      "URL検査の「クロール済みのページ」で、重要な見出し・本文・内部リンクが最初のHTMLに入っていることを確認した",
       "同じ内容が複数URLで見える箇所を洗い出し、canonicalか301で1本化した",
       "自分のページ種別に対応する構造化データの型を選び、リッチリザルトテストで検証した",
       "PageSpeed InsightsでLCP・INP・CLSの現状値を記録し、悪い指標を1つ特定した",
@@ -304,9 +308,9 @@ export const LESSONS: Lesson[] = [
           "必須ではありません。Googleは、Googleニュースやトップニュース枠への掲載にAMPを必須とはしておらず、通常のページでCore Web Vitalsを満たせば同じ扱いを受けられます。過去の成功事例にAMPが登場するのは、当時の実装として選ばれたためです。いまから始める場合は、通常のページの表示速度を直すほうが優先です。",
       },
     ],
-    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
+    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.jsBasics, S.verifyGooglebot, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "writing",

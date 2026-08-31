@@ -14,13 +14,13 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 ## ページ構成
 | パス | 内容 |
 |---|---|
-| `/` | 新着記事・解説ページ・タグ |
+| `/` | 新着記事・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
-| `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
+| `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
-| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEOとは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
+| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEOとは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
-| `/learn` | SEO・GEO教科書の目次。3レベル10レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル10レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
@@ -101,6 +101,8 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとの全記事リスト。
 - `/learn` = 教科書（ストック）。`/seo` `/geo` が「定義」、`/learn` が「順番のある実務手順」という役割分担で、
   ハブ（定義ページ）→ スポーク（各レッスン）の相互リンクを張る。
+  **同じ手順を両方に書かない**（着手順・Search Consoleの見方・Googlebotのレンダリングと本人確認・Core Web Vitalsの直し方は `/learn` 側だけに置く）。
+  定義ページが長くなったら、手順にあたる節を `/learn` へ移し、跡地に `NextStep` の導線を残す。
 - **旧URLは308でリダイレクト**（`next.config.ts`）: `/category/seo`→`/seo`、`/category/geo`→`/geo`、`/category/news`→`/news`、`/articles`→`/news`。
   記事詳細 `/articles/<id>` は変えない（完全一致のみリダイレクト）。
 - カテゴリのリンク先は `categoryHref()`（`src/lib/site.ts`）だけを通す。URLを変えるときはここ1か所を直す。
@@ -242,6 +244,9 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 - **回遊導線**: 記事は本文の**前**に `ArticleNextStep`（同じタグ／カテゴリの解説／ページ診断）を置く
   —— 本文下の関連記事は読み切らないと到達しない。一覧・ツールページは末尾に `NextStep`＋`siblingPages()`（`src/lib/nav.ts`、
   自分の次のページから順に拾うのでどのページも同じ顔にならない）。記事末尾には `ShareButtons`（SDKを読まずWeb Intentのリンクだけ）。
+  解説ページは本文の途中に `GuideLessonCta`（`src/components/guide.tsx`）を置いて教科書の該当レッスンへ送る
+  —— 末尾の `GuideCrossLinks` は長い解説を読み切らないと届かない。レッスンの見出し・所要時間は `curriculum.ts` から引くので文言は1か所。
+  設置は `/geo` の「AIの回答に引用されるまでの経路」の直後 → レッスン7「GEO実装」。
 - sitemap は **loc と lastmod だけ**を出す。`changefreq` と `priority` はGoogleが無視すると明言している値なので載せない。
   `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
   /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない

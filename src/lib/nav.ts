@@ -6,7 +6,7 @@ export type NavLink = { href: string; label: string; note: string };
 // カテゴリ・日付ページは入口の直帰率100%）を受けて各ページの末尾に兄弟ページを3件置いた。
 const HUB_PAGES: NavLink[] = [
   { href: "/news", label: "ニュース", note: "検索とAI検索のアップデートを新しい順に。全記事に一次情報のURL付き。" },
-  { href: "/seo", label: "SEO対策とは", note: "定義・3つの領域・最初の90日でやることを一次情報のリンク付きで。" },
+  { href: "/seo", label: "SEO対策とは", note: "定義・検索Botの3分類・3つの領域・Googleの基準を一次情報のリンク付きで。" },
   { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義と、AIに引用されるための実務。" },
   { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで。" },
   { href: "/learn", label: "SEO・GEO教科書", note: "仕組み→実装→運用の3レベル10レッスン。到達チェックリスト付き。" },
@@ -25,4 +25,16 @@ export function siblingPages(currentHref: string, limit = 3): NavLink[] {
   const others = HUB_PAGES.filter((p) => p.href !== currentHref);
   const start = Math.max(0, HUB_PAGES.findIndex((p) => p.href === currentHref));
   return Array.from({ length: Math.min(limit, others.length) }, (_, i) => others[(start + i) % others.length]);
+}
+
+/**
+ * ハブページを名指しで取り出す。並び順で回す `siblingPages` と違い、
+ * トップから教科書・ツールへ送るような固定の導線で使う。文言をここ1か所に保つのが目的。
+ */
+export function hubPages(hrefs: string[]): NavLink[] {
+  return hrefs.map((href) => {
+    const page = HUB_PAGES.find((p) => p.href === href);
+    if (!page) throw new Error(`nav: unknown hub page ${href}`);
+    return page;
+  });
 }

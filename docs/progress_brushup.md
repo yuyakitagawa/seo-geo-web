@@ -77,10 +77,15 @@ GitHubのメール通知は設定が要らないぶん、LINEを設定するま�
 コード側は**すでに入っている**。`src/app/layout.tsx` が `NEXT_PUBLIC_GA_ID` があるときだけ
 `@next/third-parties` の `GoogleAnalytics` を出す。**環境変数を入れるだけで動く。**
 
-本番（https://seo-geo-lab.com）を確認したところ、現状は計測タグが1つも入っていない:
+着手時点（2026-08-30）の本番には計測タグが1つも入っていなかった:
 ```
 $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 0
+```
+→ **2026-08-31 に解消**（オーナーが `NEXT_PUBLIC_GA_ID` を設定）:
+```
+$ curl -s https://seo-geo-lab.com/ | grep -c googletagmanager
+1
 ```
 
 ### → オーナー作業A: GA4
@@ -118,17 +123,19 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 | 公開記事数 | 27本 | `/news` の表示 |
 | sitemap 掲載URL数 | 55 | `curl -s https://seo-geo-lab.com/sitemap.xml \| grep -c "<loc>"` |
 | 内訳 | 記事27 / タグ18 / ツール3 / 解説2（seo・geo）/ 固定4 / トップ1 | 同上 |
-| GA4 | 未導入（タグ0件） | `curl -s https://seo-geo-lab.com/ \| grep -c gtag` |
+| GA4 | 未導入（タグ0件）→ **2026-08-31 に導入済み** | `curl -s https://seo-geo-lab.com/ \| grep -c googletagmanager` |
 | Search Console | 未登録 | — |
 | クリック / 表示 / CTR / 平均順位 | **未計測** | GSC登録後に記入 |
 | インデックス済みURL数 | **未計測** | GSC登録後に記入 |
 
-※ このブランチをmainにマージすると `/learn` の11URL（目次1＋レッスン10）が加わり、sitemap は **66** になる。
+※ その後 PR #8 で main にマージし、`/learn` の11URL（目次1＋レッスン10）が加わって sitemap は **66** になった（2026-08-31 本番実測）。
 
 - [x] コード側の準備（`NEXT_PUBLIC_GA_ID` を入れるだけで動く状態）を確認
 - [x] 導入前ベースラインを記録
-- [ ] **オーナー作業A**: GA4 プロパティ作成 → Vercel env → 再デプロイ → リアルタイムで自分のアクセスを確認
+- [x] **オーナー作業A**: GA4 導入済み（2026-08-31 確認）。本番にタグが入っていることを実測:
+      `curl -s https://seo-geo-lab.com/ | grep -c googletagmanager` → **1**
 - [ ] **オーナー作業B**: Search Console 登録 → sitemap 送信
+      （外部からは確認できないので、済んでいればここに日付を入れる）
 - [ ] GSC のデータが溜まったら（登録から2〜3日後）下の表に記入する
 
 **GSCベースライン（記入待ち。登録から数日後の28日間で取る）**
@@ -175,6 +182,7 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 
 - [x] 何を用意すればよいかを手順化（コード変更は不要）
 - [ ] **オーナー作業**: 窓口を1つ用意して env に設定 → 再デプロイ → 200 を確認
+      （2026-08-31 時点でまだ404。ここだけが1〜3で唯一残っている作業）
 
 ---
 
@@ -226,5 +234,6 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
   ただし「MDXは壊れていないがビルドだけ落ちる」種類の不整合が main にあった場合は素通りする。
   Actions分数は public リポジトリなら無料なので、`npm run typecheck && npm run build` に
   広げれば穴は塞がる（1便あたり +1〜2分）。広げるかはオーナー判断。
-- **このブランチ（`feat/audit-where`）を main にマージするか。**
-  毎朝のワークフローは main を見るので、`/learn` と今回の関門を効かせるにはマージが要る。
+- ~~**このブランチ（`feat/audit-where`）を main にマージするか。**~~
+  → **PR #8 で main にマージ済み**（2026-08-31 確認）。生成前の関門・目次・OGP・`/learn` はすべて本番で有効。
+  次の定期実行（毎日 07:00 JST）が、新しい関門を通る最初の便になる。

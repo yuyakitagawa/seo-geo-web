@@ -7,8 +7,9 @@ import NextStep from "@/components/NextStep";
 import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import TypeBadge from "@/components/TypeBadge";
+import OriginalBadge from "@/components/OriginalBadge";
 import { collectionJsonLd, collectionSummary } from "@/lib/collection";
-import { getAllArticles, latestUpdated, type ArticleMeta } from "@/lib/content";
+import { getAllArticles, getAllTags, latestUpdated, type ArticleMeta } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_URL } from "@/lib/site";
 
@@ -37,6 +38,7 @@ export default function NewsPage() {
   const articles = getAllArticles();
   const latest = articles.slice(0, ARTICLES_PER_PAGE);
   const months = byMonth(articles);
+  const tags = getAllTags().slice(0, 16);
   const url = `${SITE_URL}/news`;
   const dates = articles.map((a) => a.date).sort();
 
@@ -59,6 +61,22 @@ export default function NewsPage() {
 
         <ArticleList articles={latest} featuredFirst />
 
+        {/* タグ。記事を探す導線なので、記事一覧のこのページに置く */}
+        {tags.length > 0 && (
+          <section className="mt-20">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-mute">Topics</h2>
+            <ul className="flex flex-wrap gap-2">
+              {tags.map(({ tag, count }) => (
+                <li key={tag}>
+                  <Link href={`/tag/${encodeURIComponent(tag)}`} className="inline-block rounded-full border border-ink/15 px-3 py-1.5 text-sm transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">
+                    {tag} <span className="opacity-50">{count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {articles.length > latest.length && (
           <section className="mt-20">
             <h2 className="text-2xl font-bold tracking-tight">アーカイブ</h2>
@@ -79,6 +97,7 @@ export default function NewsPage() {
                           <span className="flex items-center gap-2">
                             <CategoryBadge category={a.category} asLink={false} />
                             <TypeBadge type={a.type} />
+                            <OriginalBadge original={a.original} />
                           </span>
                           <span className="flex-1 font-medium leading-snug underline-offset-4 group-hover:underline">{a.title}</span>
                         </Link>

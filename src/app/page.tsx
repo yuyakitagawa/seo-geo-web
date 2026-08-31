@@ -1,14 +1,14 @@
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import { PageDatesJsonLd } from "@/components/PageDates";
-import { getAllArticles, getAllTags, latestUpdated } from "@/lib/content";
+import { getAllArticles, latestUpdated } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
-import { ARTICLES_PER_PAGE, CATEGORIES, CATEGORY_KEYS, SITE_DESCRIPTION, SITE_NAME, categoryHref } from "@/lib/site";
+import { hubPages } from "@/lib/nav";
+import { ARTICLES_PER_PAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 
 export default function Home() {
   const articles = getAllArticles();
-  const tags = getAllTags().slice(0, 16);
   // 更新日は「載せている記事の最新更新日」。ビルド時刻を使うと、記事が増えていない日も更新扱いになる。
   const updated = latestUpdated(articles);
 
@@ -19,7 +19,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-ink text-paper">
         <div className="bg-grid absolute inset-0 opacity-50" />
         <div className="pointer-events-none absolute -right-32 -top-40 size-[28rem] rounded-full bg-accent/25 blur-[120px] animate-float" />
-        <div className="relative mx-auto flex max-w-6xl flex-col gap-5 px-5 py-6 sm:flex-row sm:items-end sm:justify-between sm:py-10">
+        <div className="relative mx-auto max-w-6xl px-5 py-6 sm:py-10">
           <div className="animate-rise">
             <p className="mb-3 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-paper/60">
               <span className="size-1.5 rounded-full bg-accent" /> 毎朝更新 · SEO &amp; GEO
@@ -31,16 +31,6 @@ export default function Home() {
               Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎朝巡回し、SEO/GEO担当が今日おさえるべき点だけを日本語で整理します。
             </p>
           </div>
-          <ul className="flex flex-wrap gap-2 animate-rise [animation-delay:120ms]">
-            {CATEGORY_KEYS.map((k) => (
-              <li key={k}>
-                <Link href={categoryHref(k)} className="inline-flex items-center gap-2 rounded-full border border-paper/20 px-3.5 py-1.5 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink">
-                  <span className={`size-2 rounded-full ${CATEGORY_STYLE[k].dot}`} />
-                  {CATEGORIES[k].label}
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
@@ -55,9 +45,9 @@ export default function Home() {
         <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
       </section>
 
-      {/* 用語の解説。定義クエリ（「SEO対策とは」「GEOとは」）の受け皿へトップから直接リンクする */}
+      {/* 用語の解説。定義クエリ（「SEO対策とは」「GEOとは」）の受け皿と、その先の教科書・ツールへトップから直接リンクする */}
       <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-20">
-        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 用語の解説</h2>
+        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 解説・教科書・ツール</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDE_LIST.map((g) => (
             <Link
@@ -73,23 +63,22 @@ export default function Home() {
             </Link>
           ))}
         </div>
+        {/* 解説を読んだ人の次の行き先。体系（教科書）と実務（ツール）へ。文言は nav.ts と共通 */}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {hubPages(["/learn", "/tools"]).map((p) => (
+            <Link
+              key={p.href}
+              href={p.href}
+              className="group rounded-3xl border border-ink/10 p-5 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
+            >
+              <p className="font-bold tracking-tight">
+                {p.label} <span className="inline-block transition group-hover:translate-x-1">→</span>
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-mute">{p.note}</p>
+            </Link>
+          ))}
+        </div>
       </section>
-
-      {/* Tags */}
-      {tags.length > 0 && (
-        <section className="mx-auto max-w-6xl px-5 pb-8">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-mute">Topics</h2>
-          <ul className="flex flex-wrap gap-2">
-            {tags.map(({ tag, count }) => (
-              <li key={tag}>
-                <Link href={`/tag/${encodeURIComponent(tag)}`} className="inline-block rounded-full border border-ink/15 px-3 py-1.5 text-sm transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">
-                  {tag} <span className="opacity-50">{count}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* About strip */}
       <section className="mx-auto max-w-6xl px-5 pb-8">

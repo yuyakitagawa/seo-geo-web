@@ -13,6 +13,8 @@ const REF = {
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
+  jsBasics: { href: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja", label: "JavaScript の基本を理解する" },
+  verifyGooglebot: { href: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja", label: "Google クローラーの確認" },
   structuredData: { href: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja", label: "構造化データの仕組みについて" },
   gallery: { href: "https://developers.google.com/search/docs/appearance/structured-data/search-gallery?hl=ja", label: "構造化データ マークアップの一覧" },
   vitals: { href: "https://web.dev/articles/vitals#core-web-vitals", label: "web.dev「Web Vitals」" },
@@ -26,6 +28,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "control", label: "クロールとインデックスの制御" },
+  { id: "rendering", label: "Googlebotの動きを前提にする" },
   { id: "duplicate", label: "重複と正規URLの整理" },
   { id: "structured", label: "構造化データの選び方" },
   { id: "vitals", label: "Core Web Vitalsの直し方" },
@@ -86,6 +89,38 @@ export default function Lesson04() {
         <p>
           robots.txtを変更したら、Search Consoleのrobots.txtレポートで<strong>Googleが実際に読んだ内容</strong>を確認します。
           CDNやサーバーの設定によっては、ブラウザで見えている内容とクローラーが取得する内容が違うことがあります。
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="rendering"
+        title="Googlebotの動きを前提にする"
+        lead="robots.txtとnoindexを正しく設定しても、Googlebotがページの中身を読めなければインデックスには入りません。ここでは、JavaScriptで描画したコンテンツの扱いと、アクセスログのGooglebotが本物かどうかの確認方法を押さえます。"
+      >
+        <h3>クロールとレンダリングは別のタイミング</h3>
+        <p>
+          GooglebotはHTMLを取得したあと、ヘッドレスChromiumでページをレンダリングしてJavaScriptを実行し、その結果をインデックスに登録します。
+          ただしレンダリングはクロールと同時ではなく順番待ちのキューに入り、ページがこのキューで数秒間、またはそれ以上待機することがあると
+          Googleは説明しています。JavaScriptでしか描画されない本文は、登録が遅れたり、失敗すれば登録されなかったりします。
+          重要な見出し・本文・内部リンクは、最初のHTMLに含めておくのが安全です。
+          <GuideRef {...REF.jsBasics} />
+        </p>
+        <p>
+          確認は、URL検査ツールの「クロール済みのページを表示」でGoogleが取得したHTMLを見るのが確実です。
+          ブラウザの表示にはあるのに、そこに本文が無ければ、レンダリング前提のページになっています。
+        </p>
+        <h3>Googlebotを名乗る偽のアクセスを見分ける</h3>
+        <p>
+          User-Agentの文字列は誰でも名乗れるため、アクセスログの「Googlebot」が本物とは限りません。Googleは確認方法として、
+          アクセス元IPアドレスの逆引きDNSでドメイン名がgooglebot.com・google.com・googleusercontent.comのいずれかであることを確認し、
+          さらにそのドメイン名を順引きして元のIPに一致するかを見る手順を示しています。クローラーごとの
+          <a href="https://developers.google.com/search/apis/ipranges/googlebot.json" target="_blank" rel="noopener">IPレンジのJSON</a>
+          も公開されているので、ログ側で突き合わせることもできます。サーバー負荷を理由にBotを遮断する前に、まず本物かどうかを確認します。
+          <GuideRef {...REF.verifyGooglebot} />
+        </p>
+        <p>
+          Botの分類そのもの（一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャー）は
+          <Link href="/seo">SEO対策とは</Link>で、AI各社のBotは<Link href={lessonPath("geo-implementation")}>レッスン07</Link>で扱います。
         </p>
       </GuideSection>
 
