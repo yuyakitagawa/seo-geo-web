@@ -156,33 +156,56 @@ $ curl -s https://seo-geo-lab.com/ | grep -c googletagmanager
 `HAS_CONTACT`（`src/lib/site.ts`）が false の間は `notFound()` で404にし、フッターにも出さない作りで、
 窓口が1つでも設定されれば自動的に公開され、フッター・sitemap・Organization の `contactPoint` にも載る。
 
-本番の現状: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` → **404**
+本番の現状（2026-08-31 時点）: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` → **404**
 
 窓口が無いのは AdSense 審査（サイトの信頼性）でも検索評価（E-E-A-T）でも不利なので、1つ用意する。
-**実名は不要**。次のどちらか片方でよい。
+**実名は不要**。
 
-### → オーナー作業（どちらか1つ）
+### 採用した窓口: 公式X @seogeolab（2026-08-31）
 
-**案A: サイト専用のメールアドレス（おすすめ）**
-1. Gmail で新規アカウントを作る（例: `seogeolab.contact@gmail.com`）。個人用とは分ける
-2. Vercel → Settings → Environment Variables → Production
-   - `NEXT_PUBLIC_CONTACT_EMAIL` = そのアドレス
-3. Redeploy
+オーナーが https://x.com/seogeolab を問い合わせ窓口として用意した。
+`HAS_CONTACT` は **メール / フォーム / X のどれか1つ**で true になるので、Xだけで `/contact` は公開される。
 
-**案B: Googleフォーム**
-1. https://forms.google.com/ で「お問い合わせ」フォームを作る（項目: 種別 / 内容 / 返信用メール）
-   - 回答は自分のGmailに通知させる（フォーム → 設定 → 新しい回答についてのメール通知）
-2. 「送信」→ リンクのURLをコピー
-3. Vercel → Environment Variables → Production
-   - `NEXT_PUBLIC_CONTACT_FORM_URL` = そのURL
-4. Redeploy
+有効になると連動して出るもの（すべて `X_SCREEN_NAME` 由来。1か所直せば全部変わる）:
 
-どちらでも、設定して再デプロイすれば `/contact` が200になり、フッターに「お問い合わせ」が出る。
+| 出る場所 | 内容 |
+|---|---|
+| `/contact` | 404 → 200。「X（旧Twitter）：@seogeolab へのリプライまたはDM」（`rel="me"`） |
+| フッター | 「お問い合わせ」リンクが出る |
+| sitemap | `/contact` が載る（`HAS_CONTACT` で分岐） |
+| JSON-LD | Organization の `sameAs` と `contactPoint`（url = Xプロフィール） |
+| メタタグ | `twitter:site` |
+| 記事下 | `FollowCta`（フォロー導線） |
+
+### → オーナー作業（どちらか。**案Aを推奨**）
+
+**案A: Vercel の環境変数だけで出す（推奨・コード変更もデプロイ待ちも不要）**
+1. Vercel → プロジェクト → Settings → Environment Variables → **Production**
+   - `NEXT_PUBLIC_X_SCREEN_NAME` = `seogeolab`
+2. Deployments → 最新を **Redeploy**
+
+**案B: 作業ツリーの変更をコミットして出す**
+`src/lib/site.ts` は既に `process.env.NEXT_PUBLIC_X_SCREEN_NAME || "seogeolab"` と既定値を持つよう
+**未コミットで変更済み**（別作業の一部）。これをコミット＆デプロイすればenvなしでも出る。
+ただし同じ作業ツリーには未完了の別作業（`GaClickTracker.tsx` / `ShareButtons.tsx` /
+`indexability.ts` / `nav.ts` ほか）が混ざっているので、それらを一緒に本番へ出してよいか確認してから。
+
 確認: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` が **200** になればOK。
 
+### 注意（Xを唯一の窓口にする場合）
+- **DMの受信設定**を確認する。X の設定 → プライバシーと安全 → ダイレクトメッセージで
+  「すべてのアカウントからのメッセージリクエストを許可する」にしておかないと、
+  フォロワー以外からのDMが届かず、窓口として機能しない
+- Xアカウントを持たない人は連絡できない。AdSense審査を通したあとでよいので、
+  **サイト専用メールを1つ足しておく**とより堅い（`NEXT_PUBLIC_CONTACT_EMAIL` を足すだけで、
+  `contactPoint` もメール優先に自動で切り替わる）
+
 - [x] 何を用意すればよいかを手順化（コード変更は不要）
-- [ ] **オーナー作業**: 窓口を1つ用意して env に設定 → 再デプロイ → 200 を確認
-      （2026-08-31 時点でまだ404。ここだけが1〜3で唯一残っている作業）
+
+- [x] 何を用意すればよいかを手順化（コード変更は不要）
+- [x] 窓口を決めた: 公式X **@seogeolab**（2026-08-31）
+- [ ] **オーナー作業**: Vercel に `NEXT_PUBLIC_X_SCREEN_NAME=seogeolab` を設定 → Redeploy → 200 を確認
+- [ ] XのDM受信設定を「すべてのアカウントから許可」にする
 
 ---
 

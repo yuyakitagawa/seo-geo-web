@@ -72,6 +72,12 @@ const SRC = {
   aiGuide: G("fundamentals/ai-optimization-guide", "Google 検索セントラル: Google 検索の生成 AI 機能向けにウェブサイトを最適化する"),
 };
 
+/** GEO論文（GEO-bench）。9通りの書き換えが生成AIの回答内での可視性をどう変えるかを実測した研究 */
+const PAPER = {
+  title: "GEO: Generative Engine Optimization（arXiv:2311.09735 / KDD 2024）",
+  url: "https://arxiv.org/abs/2311.09735",
+};
+
 /** タグをそのまま見せるための整形。長すぎる場合は省略する */
 function snippet(s: string, max = 300): string {
   const one = s.replace(/\s+/g, " ").trim();
@@ -494,11 +500,125 @@ export function audit(input: AuditInput): AuditResult {
     add({
       id: "citation",
       area: "geo",
-      severity: "low",
+      severity: text.length > 2000 ? "mid" : "low",
       title: "外部の出典リンクがありません",
-      detail: "数値や仕様の根拠が示されていないページは、AI検索が引用元として選びにくくなります。",
+      detail:
+        "数値や仕様の根拠が示されていないページは、AI検索が引用元として選びにくくなります。GEO論文の測定では、出典の明示（Cite Sources）で生成AIの回答内での可視性が約28%上がりました。",
+      code: `本文 ${text.length}文字 / 外部リンク 0本（同一ホスト以外の http(s) リンク）`,
       fix: "引用した数値・仕様の一次情報へリンクします。記事末尾に出典一覧を置きます。",
-      source: SRC.helpful,
+      fixCode: '<p>出典: <a href="https://example.com/doc">（発行元）（ページ名）</a>（YYYY-MM-DD 確認）</p>',
+      where: { note: "根拠を使った段落の直後、または本文末尾の「出典」節。" },
+      source: PAPER,
+    });
+  }
+
+  // ---------- GEO（論文 GEO-bench の実測に基づく観点） ----------
+  // 引用・統計・読みやすさ・出典が可視性を上げ、キーワードの詰め込みは効かない、という測定結果を
+  // 「ページにその要素があるか」に落として見る。数値は論文の測定値をそのまま使う。
+  // 文の長さはナビや一覧の文言を混ぜないよう、段落（p）だけから数える
+  const sentences = body
+    .querySelectorAll("p")
+    .map((x) => x.text.replace(/\s+/g, " ").trim())
+    .join(" ")
+    .split(/(?<=[。！？])/)
+    .map((x) => x.trim())
+    .filter((x) => x.length > 0);
+  const longSentences = sentences.filter((x) => x.length > 100);
+
+  if (text.length >= 1000) {
+    const quoteEls = body.querySelectorAll("blockquote, q").filter((e) => e.text.trim().length >= 10);
+    const quotedSpans = text.match(/[「『“"][^「」『』“”"]{15,}[」』”"]/g) ?? [];
+    if (quoteEls.length === 0 && quotedSpans.length === 0) {
+      add({
+        id: "geo-quotation",
+        area: "geo",
+        severity: "low",
+        title: "原文をそのまま引用した箇所がありません",
+        detail:
+          "GEO論文の測定では、引用の追加（Quotation Addition）が生成AIの回答内での可視性を最大41%上げ、9通りの書き換えの中で最も効きました。要約だけのページは、そのまま抜き出せる一次情報を持ちません。",
+        code: `本文 ${text.length}文字 / blockquote・q 要素 0個 / かぎ括弧で囲まれた15文字以上の文 0件`,
+        fix: "公式ドキュメントや調査結果の該当箇所を、言い換えずに原文のまま引用し、出典へリンクします。自分の解釈は引用の外に書きます。",
+        fixCode:
+          '<blockquote cite="https://example.com/doc">\n  （原文をそのまま。改変しない）\n</blockquote>\n<p>出典: <a href="https://example.com/doc">（発行元）（ページ名）</a></p>',
+        where: { note: "根拠が必要な段落の直後。引用の直後に出典リンクを置きます。" },
+        source: PAPER,
+      });
+    }
+  }
+
+  if (text.length >= 800) {
+    // 日付と混ざる「年・月・日」は数えない
+    const stats = text.match(/\d+(?:[.,]\d+)?\s*(?:%|％|割|倍|件|人|社|回|位|点|円|ドル|万|億|ポイント|pt|秒|時間|文字|語)/g) ?? [];
+    if (stats.length < 3) {
+      add({
+        id: "geo-statistics",
+        area: "geo",
+        severity: "low",
+        title: `具体的な数値が本文に${stats.length}件しかありません`,
+        detail:
+          "GEO論文の測定では、統計の追加（Statistics Addition）が生成AIの回答内での可視性を約32%上げました。数値が無い説明は、他ページと入れ替え可能な一般論として扱われます。",
+        code: stats.length > 0 ? `検出した数値表現: ${stats.slice(0, 5).join(" / ")}` : `本文 ${text.length}文字 / 単位つきの数値 0件`,
+        fix: "件数・割合・金額・所要時間など、出典のある数字を本文に入れます。数字には必ず出典と計測時点を添えます。",
+        fixCode: "調査対象1,000件のうち32%が該当した（出典: （発行元）、YYYY年M月時点）。",
+        where: { note: "結論の段落と、各セクションの1文目。" },
+        source: PAPER,
+      });
+    }
+  }
+
+  if (sentences.length >= 10 && longSentences.length / sentences.length >= 0.2) {
+    add({
+      id: "geo-fluency",
+      area: "geo",
+      severity: "low",
+      title: `100文字を超える文が${longSentences.length}件あります（全${sentences.length}文）`,
+      detail:
+        "GEO論文の測定では、文章の読みやすさの改善（Fluency Optimization）が生成AIの回答内での可視性を約29%上げました。長い文は、そのまま引用できる単位になりません。",
+      code: longSentences
+        .slice()
+        .sort((a, b) => b.length - a.length)
+        .slice(0, 2)
+        .map((x) => `${x.length}文字: ${snippet(x, 160)}`)
+        .join("\n"),
+      fix: "1文1情報に分けます。接続助詞（〜が、〜ので、〜ため）でつないだ箇所を句点で切り、主語を補います。",
+      source: PAPER,
+    });
+  }
+
+  // キーワードの詰め込み。論文では効果がほとんど無かった書き換え。
+  // 対策語は title と h1 から拾う（区切り記号と助詞で切って、本文で最も多くの文字を占める語を選ぶ）
+  const candidates = new Set(
+    `${title} ${h1s[0]?.text ?? ""}`
+      .split(/[\s|｜/／・,、。:：；「」『』【】\[\]()（）\-–—~〜!?！？]+/)
+      .flatMap((t) => [t, ...t.split(/[のをにがはでとへやもから]/)])
+      .map((t) => t.trim())
+      .filter((t) => t.length >= 2 && t.length <= 20),
+  );
+  let keyword = "";
+  let occurrences = 0;
+  let coverage = 0;
+  if (text.length >= 500) {
+    for (const c of candidates) {
+      const n = text.split(c).length - 1;
+      const cov = (n * c.length) / text.length;
+      if (cov > coverage) {
+        keyword = c;
+        occurrences = n;
+        coverage = cov;
+      }
+    }
+  }
+  if (occurrences >= 10 && coverage >= 0.05) {
+    add({
+      id: "geo-keyword-stuffing",
+      area: "geo",
+      severity: "mid",
+      title: `「${keyword}」が${occurrences}回出てきます（本文の約${Math.round(coverage * 100)}%）`,
+      detail:
+        "GEO論文の測定では、キーワードの詰め込み（Keyword Stuffing）は生成AIの回答内での可視性をほとんど上げませんでした。繰り返しても引用されやすくはならず、読みにくさだけが残ります。",
+      code: `本文 ${text.length}文字 / 「${keyword}」${occurrences}回`,
+      fix: "指示語や言い換えに置き換えて回数を減らし、空いた分を統計・引用・出典に使います。効果が確認されているのはそちらです。",
+      source: PAPER,
     });
   }
 

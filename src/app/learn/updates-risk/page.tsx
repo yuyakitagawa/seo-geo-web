@@ -29,7 +29,7 @@ const TOC = [
   { id: "migration", label: "リニューアル・移転のリスク" },
 ];
 
-export default function Lesson10() {
+export default function Lesson12() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -172,7 +172,7 @@ export default function Lesson10() {
           問題になるのは、ユーザーにとっての価値を付加せず、検索順位の操作を主な目的として大量にページを生成する場合です。
           <GuideRef {...REF.spamScaled} />
           判断の分かれ目は、生成に使ったかどうかではなく、そのページが読者の質問に答えているかどうかです
-          （<Link href={lessonPath("writing")}>レッスン05</Link>）。
+          （<Link href={lessonPath("writing")}>レッスン06</Link>）。
         </p>
       </GuideSection>
 
@@ -256,12 +256,11 @@ export default function Lesson10() {
         />
         <p>
           移行後は、URL検査で主要ページの状態を確認し、インデックス登録レポートで「未登録」が急増していないかを見ます。
-          確認の手順は<Link href={lessonPath("measurement")}>レッスン08</Link>と同じです。
+          確認の手順は<Link href={lessonPath("measurement")}>レッスン10</Link>と同じです。
         </p>
         <p>
-          これで10レッスンは終わりです。ここから先は、<Link href={lessonPath("measurement")}>レッスン08</Link>の
-          4週間サイクルを回し続けることが実務になります。検索とAI検索の仕様は頻繁に変わるため、
-          <Link href="/news">ニュース</Link>で変更を追いながら、この教科書のチェックリストを定期的に見直してください。
+          ここまででサイト側の作業は一巡します。最後の<Link href={lessonPath("brand-entity")}>レッスン13</Link>では、
+          AIの回答候補にそもそも自社が入るための、ブランド側の作業を扱います。
         </p>
       </GuideSection>
     </LessonShell>

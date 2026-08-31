@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
       { source: "/category/geo", destination: "/geo", permanent: true },
       { source: "/category/news", destination: "/news", permanent: true },
       { source: "/articles", destination: "/news", permanent: true },
+      // robots.txt チェッカーは判定がページ診断と重複していたため統合（2026-08-31）。
+      { source: "/tools/ai-crawlers", destination: "/tools/page-audit", permanent: true },
     ];
   },
 };

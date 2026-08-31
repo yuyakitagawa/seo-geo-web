@@ -5,9 +5,9 @@ import JsonLd from "@/components/JsonLd";
 import NextStep from "@/components/NextStep";
 import PageHeader from "@/components/PageHeader";
 import { FigureCompare, FigureDoDont, FigurePipeline, FigureQuote, FigureStack } from "@/components/figures";
-import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideRef, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
+import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideLessonCta, GuideRef, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
 import { ScreenSerp } from "@/components/screens";
-import { lessonPath } from "@/lib/curriculum";
+import { lessonNo, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
@@ -53,7 +53,7 @@ const TOC = [
   { id: "google", label: "Googleが公式に示している基準" },
   { id: "dodont", label: "やること／やらなくていいこと" },
   { id: "myths", label: "よくある誤解" },
-  { id: "geo", label: "SEO対策とGEOの関係" },
+  { id: "geo", label: "SEOとGEOの関係" },
   { id: "faq", label: "よくある質問" },
 ];
 
@@ -196,15 +196,15 @@ export default function SeoGuidePage() {
             <GuideRef {...REF.robotsIntro} />
           </p>
           <p>
-            Googlebotの動きを前提にした実装（JavaScriptで描画した本文がインデックスに入りにくい理由、アクセスログのGooglebotが
-            本物かどうかの確認手順、robots.txtとnoindexの使い分け）は、教科書の
-            <Link href={lessonPath("technical")}>レッスン04 テクニカルSEO実装</Link>で扱います。
-          </p>
-          <p>
             ChatGPT・Perplexity・ClaudeなどのAI検索側のBotは、これとは別に用途ごとのトークンが用意されています。
             種類ごとの動きと、robots.txtで止めたときに何を失うかは<a href="/geo#bots">GEOの解説ページ</a>にまとめています。
           </p>
         </GuideSection>
+
+        <GuideLessonCta
+          slug="technical"
+          lead="ここまでが「検索Botがどう動くか」。教科書のこのレッスンでは、その動きを前提にした実装 —— JavaScriptで描画した本文がインデックスに入りにくい理由、アクセスログのGooglebotが本物かどうかの確認手順、robots.txtとnoindexの使い分け —— を、到達チェックリスト付きで扱います。"
+        />
 
         <GuideSection
           id="areas"
@@ -354,7 +354,7 @@ export default function SeoGuidePage() {
           <p>
             しきい値そのものはこのページで足りますが、どこから直すか（フィールドデータで最も悪い1指標に絞る、
             テンプレート単位で直す）は実装の話です。指標ごとのよくある原因と対処は、教科書の
-            <Link href={lessonPath("technical")}>レッスン04</Link>にまとめています。
+            <Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>にまとめています。
           </p>
         </GuideSection>
 
@@ -365,8 +365,8 @@ export default function SeoGuidePage() {
           className="my-16"
           links={[
             ...hubPages(["/learn"]),
-            { href: lessonPath("first-week"), label: "レッスン02 初期点検", note: "最初の1週間でやる7つの点検。Search Console登録からrobots.txtの確認まで1日1つずつ。" },
-            { href: lessonPath("measurement"), label: "レッスン08 計測と改善", note: "Search Consoleのどの画面を、どの順番で見るか。4週間サイクルでの判断と、施策を畳む基準。" },
+            { href: lessonPath("first-week"), label: `レッスン${lessonNo("first-week")} 初期点検`, note: "最初の1週間でやる7つの点検。Search Console登録からrobots.txtの確認まで1日1つずつ。" },
+            { href: lessonPath("measurement"), label: `レッスン${lessonNo("measurement")} 計測と改善`, note: "Search Consoleのどの画面を、どの順番で見るか。4週間サイクルでの判断と、施策を畳む基準。" },
           ]}
         />
 
@@ -431,7 +431,7 @@ export default function SeoGuidePage() {
 
         <GuideSection
           id="geo"
-          title="SEO対策とGEOの関係"
+          title="SEOとGEOの関係"
           lead={
             <>
               SEO対策の土台は、そのままGEO（生成AI検索最適化）にも効きます。Googleは公式ドキュメントで、AIによる概要やAIモードにコンテンツが
@@ -497,8 +497,8 @@ export default function SeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
-            { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
+            { href: "/learn", label: "SEO・GEO教科書（13レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/geo", label: "GEO対策とは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "順位計測・クロール監査・AI可視性計測ツールを国内外で比較。" },
             { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },

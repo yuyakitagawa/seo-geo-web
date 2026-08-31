@@ -12,7 +12,6 @@ const HUB_PAGES: NavLink[] = [
   { href: "/learn", label: "SEO・GEO教科書", note: "仕組み→実装→運用の3レベル10レッスン。到達チェックリスト付き。" },
   { href: "/tools", label: "ツール比較", note: "国内・海外のSEO/GEOツールを料金と対象で比較。公式ページ確認済みのみ。" },
   { href: "/tools/page-audit", label: "ページ診断", note: "URLを入れると、検索エンジンとAI検索がそのページをどう読むかを検査。" },
-  { href: "/tools/ai-crawlers", label: "robots.txt チェッカー", note: "AI検索クローラー14種の許可・ブロックを判定。" },
 ];
 
 /**

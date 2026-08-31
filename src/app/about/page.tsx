@@ -118,6 +118,14 @@ export default function AboutPage() {
         当サイトは、検索とAI検索のアップデートを追う目的で個人が運営しています。実名は公開していませんが、
         記事の誤りのご指摘や権利関係のご連絡には問い合わせ窓口で対応します。
       </p>
+      {X_PROFILE_URL ? (
+        <p>
+          公式アカウントは、X（旧Twitter）の
+          <a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>
+          （{X_PROFILE_URL}）1つだけです。記事の公開と、記事にするほどでもない小さなアップデートはここで告知します。
+          これ以外に{SITE_NAME}を名乗るアカウントは運営していません。
+        </p>
+      ) : null}
       {HAS_CONTACT ? (
         <p>
           お問い合わせは<a href="/contact">お問い合わせページ</a>に記載の窓口

@@ -113,7 +113,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition:
       "クロールとは、検索エンジンのプログラムがリンクやサイトマップをたどってページのURLを訪問し、その中身をダウンロードすることです。",
     note: "クロールされなければインデックスもされません。robots.txt でブロックしているページは、そもそもここで止まります。",
-    seeAlso: [{ href: "/tools/ai-crawlers", label: "robots.txt チェッカーで許可状況を見る" }],
+    seeAlso: [{ href: "/tools/page-audit", label: "ページ診断でクロールの許可状況を見る" }],
     source: S.crawlersOverview,
   },
   {
@@ -170,7 +170,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition:
       "robots.txt とは、サイトのルートに置くテキストファイルで、どのクローラーにどのパスのクロールを許可するかを指示するものです。",
     note: "クロールを止めるファイルであって、インデックスを止めるものではありません。インデックスさせたくないページには noindex を使います。",
-    seeAlso: [{ href: "/tools/ai-crawlers", label: "robots.txt チェッカー" }],
+    seeAlso: [{ href: "/learn/geo-implementation#robots", label: "robots.txtでの書き分け" }],
     source: S.robots,
   },
   {
@@ -393,7 +393,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition:
       "AIクローラーとは、生成AIを提供する事業者が運用する、回答の生成やモデルの学習のためにWebページを取得するプログラムのことです。",
     note: "用途は「AI検索の回答に出るため」と「モデルの学習に使われる」に分かれ、robots.txt では別々のトークンで制御します。ブロックの影響が違うので、一括で止めないこと。",
-    seeAlso: [{ href: "/tools/ai-crawlers", label: "robots.txt チェッカーで14種を判定する" }],
+    seeAlso: [{ href: "/learn/geo-implementation#crawlers", label: "AIクローラー14種の一覧と役割" }],
     source: S.openaiBots,
   },
   {
@@ -404,7 +404,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition:
       "Google-Extended とは、GoogleのAIモデルの学習などにコンテンツを使うかどうかを、robots.txt で個別に制御するためのトークンです。",
     note: "ページのクロールを行う実体ではなく、用途の制御に使うトークンです。ブロックしてもGoogle検索でのインデックスや順位には影響しません。",
-    seeAlso: [{ href: "/tools/ai-crawlers", label: "robots.txt チェッカー" }],
+    seeAlso: [{ href: "/learn/geo-implementation#robots", label: "robots.txtでの書き分け" }],
     source: S.commonCrawlers,
   },
   {
@@ -446,7 +446,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition:
       "学習用クローラーとは、AIモデルの訓練データを集める目的でページを取得するクローラーのことです。",
     note: "ブロックしても、検索結果やAI検索での引用には影響しません。引用してほしいが学習には使わせたくない、という切り分けができます。",
-    seeAlso: [{ href: "/tools/ai-crawlers", label: "用途別に許可・ブロックを判定する" }],
+    seeAlso: [{ href: "/learn/geo-implementation#crawlers", label: "用途別のクローラー一覧" }],
     source: S.anthropicBots,
   },
 
