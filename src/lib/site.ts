@@ -22,8 +22,8 @@ export const SITE_DESCRIPTION =
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
 export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO・GEO Lab", "SEOGEOラボ"];
 
-// 公式Xアカウント。未開設の間は空文字にしておくとフォロー導線・twitter:siteが出ない。
-export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "";
+// 公式Xアカウント。空文字にするとフォロー導線・twitter:site・rel="me" が出なくなる。
+export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "seogeolab";
 export const X_PROFILE_URL = X_SCREEN_NAME ? `https://x.com/${X_SCREEN_NAME}` : "";
 export const X_HANDLE = X_SCREEN_NAME ? `@${X_SCREEN_NAME}` : undefined;
 
