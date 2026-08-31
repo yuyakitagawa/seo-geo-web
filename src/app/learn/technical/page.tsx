@@ -206,7 +206,7 @@ export default function Lesson04() {
         <p>
           「クロール済み - インデックス未登録」が特定のページ種別に固まっている場合、個別ページの問題ではなく
           サイト構造の問題です。中身がリンク数個しかない一覧ページを大量に作っていないかを、
-          <Link href={lessonPath("structure")}>レッスン06</Link>で確認してください。なお、Googleは基本事項を満たしていても
+          <Link href={lessonPath("structure")}>レッスン07</Link>で確認してください。なお、Googleは基本事項を満たしていても
           インデックス登録や掲載を保証していないと明記しています。すべての未登録を0にすることは目標になりません。
           <GuideRef {...REF.essentials} />
         </p>
@@ -403,7 +403,7 @@ export default function Lesson04() {
         <p>
           なお、生成AI向けの特別な構造化データは存在しません。Googleは、AI機能に表示されるために
           特別なschema.orgの構造化データを追加する必要はないと明記しています。詳しくは
-          <Link href={lessonPath("geo-implementation")}>レッスン07</Link>で扱います。
+          <Link href={lessonPath("geo-implementation")}>レッスン08</Link>で扱います。
         </p>
       </GuideSection>
 
@@ -507,7 +507,7 @@ export default function Lesson04() {
           }
         />
         <p>
-          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン09</Link>にまとめています。
+          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン10</Link>にまとめています。
           次のレッスンでは、技術的に読める状態になったページに、引用される本文を書いていきます。
         </p>
       </GuideSection>

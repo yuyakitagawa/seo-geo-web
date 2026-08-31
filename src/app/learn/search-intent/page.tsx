@@ -172,8 +172,8 @@ export default function Lesson03() {
           統合すると決めたら、残すURLを1つ選び、他のページからは301リダイレクトするか、
           canonicalで残すURLを指定します。内容は捨てずに、残すページに統合します。
           <GuideRef {...REF.canonical} />
-          リダイレクトの実装は<Link href={lessonPath("technical")}>レッスン04</Link>、
-          統合後のサイト構造の整理は<Link href={lessonPath("structure")}>レッスン06</Link>で扱います。
+          リダイレクトの実装は<Link href={lessonPath("technical")}>レッスン05</Link>、
+          統合後のサイト構造の整理は<Link href={lessonPath("structure")}>レッスン07</Link>で扱います。
         </p>
         <p>
           一方で、Googleが意図ごとに別々のページを正しく出し分けられている場合は、無理に統合する必要はありません。
@@ -198,8 +198,9 @@ export default function Lesson03() {
           caption="3本それぞれについて、この5項目が埋まっていれば準備完了です。"
         />
         <p>
-          次のレベル2では、技術的な土台（レッスン04）、本文の書き方（レッスン05）、
-          サイト構造（レッスン06）、AIクローラーへの対応（レッスン07）の順に実装していきます。
+          次のレッスン04では、ここで決めた意図を細かいクエリの面に広げ、何ページ作るかを決めます。
+          その先のレベル2では、技術的な土台（レッスン05）、本文の書き方（レッスン06）、
+          サイト構造（レッスン07）、AIクローラーへの対応（レッスン08）の順に実装していきます。
         </p>
       </GuideSection>
     </LessonShell>

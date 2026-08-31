@@ -17,7 +17,7 @@ import { SITE_URL } from "@/lib/site";
 const TONE_BAR = { accent: "bg-accent", seo: "bg-seo", geo: "bg-geo", news: "bg-news" } as const;
 const TONE_TEXT = { accent: "text-accent", seo: "text-seo", geo: "text-geo", news: "text-news" } as const;
 
-/** カリキュラム内の現在位置。10レッスンをドットで並べ、いま何番目かを示す */
+/** カリキュラム内の現在位置。全レッスンをドットで並べ、いま何番目かを示す */
 export function LessonRail({ current }: { current: number }) {
   return (
     <nav aria-label="カリキュラムの現在位置" className="not-prose mb-10">
@@ -168,7 +168,7 @@ export function LessonNav({ slug }: { slug: string }) {
         <Link href={COURSE.path} className="group rounded-3xl border border-ink/10 p-6 transition hover:-translate-y-1 dark:border-paper/10">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">← カリキュラム</p>
           <p className="mt-2 text-lg font-bold tracking-tight">{COURSE.h1}</p>
-          <p className="mt-2 text-sm leading-relaxed text-mute">10レッスン全体の地図に戻る。</p>
+          <p className="mt-2 text-sm leading-relaxed text-mute">カリキュラム全体の地図に戻る。</p>
         </Link>
       )}
       {next ? (
@@ -181,7 +181,7 @@ export function LessonNav({ slug }: { slug: string }) {
         <Link href={COURSE.path} className="group rounded-3xl border border-ink/10 bg-ink p-6 text-paper transition hover:-translate-y-1 dark:bg-paper dark:text-ink">
           <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">修了 →</p>
           <p className="mt-2 text-lg font-bold tracking-tight">カリキュラムに戻る</p>
-          <p className="mt-2 text-sm leading-relaxed opacity-70">10レッスンを通した。あとは4週間ごとに数値で確認しながら回す。</p>
+          <p className="mt-2 text-sm leading-relaxed opacity-70">全レッスンを通した。あとは4週間ごとに数値で確認しながら回す。</p>
         </Link>
       )}
     </nav>
