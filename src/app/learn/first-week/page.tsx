@@ -182,6 +182,12 @@ export default function Lesson02() {
               "薄い一覧ページをnoindexにする。統合できるページはまとめる",
             ],
             [
+              "身に覚えのないURLがレポートに出る",
+              "外部サイトからの誤ったリンク／以前のCMSの残骸／存在しないパスを試す自動巡回bot",
+              "URL検査の「参照元ページ」と、自サイト内にそのURLへのリンクがあるか",
+              "自分がリンクしていないURLは404のまま残す。robots.txtのDisallowで隠さない（noindexも404も読み取れなくなる）",
+            ],
+            [
               "表示回数はあるがクリックが無い",
               "タイトルと説明文が検索意図に答えていない",
               "検索パフォーマンスのクエリ別CTR",
@@ -215,6 +221,10 @@ export default function Lesson02() {
           noindexとrobots.txtの関係についても、同時指定が効かないという点は間違えやすいので、
           <GuideRef {...REF.noindex} />
           で確認しておいてください。
+        </p>
+        <p>
+          インデックス登録レポートに出る理由ごとの対処（noindex・robots.txt・代替ページ・クロール済み未登録・ソフト404など）は、
+          <Link href={`${lessonPath("technical")}#not-indexed`}>レッスン04の「未インデックスの対処法」</Link>にまとめています。
         </p>
       </GuideSection>
 
