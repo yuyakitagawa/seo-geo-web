@@ -73,7 +73,7 @@ export default function LearnPage() {
             飛ばさずに読むのが最短です。各レッスンの末尾には到達チェックリストがあり、自分のサイトで確認できたら次へ進みます。
           </p>
           <p>
-            前提として、用語の定義は<Link href="/seo">SEO対策とは</Link>と<Link href="/geo">GEOとは</Link>の2ページにまとめています。
+            前提として、用語の定義は<Link href="/seo">SEO対策とは</Link>と<Link href="/geo">GEO対策とは</Link>の2ページにまとめています。
             「そもそもSEOとは何か」から確認したい場合は、先にそちらを読んでください。この教科書は、その定義を前提に
             「では実際に何をするか」を順番に並べたものです。
           </p>
@@ -170,7 +170,7 @@ export default function LearnPage() {
         <GuideCrossLinks
           links={[
             { href: "/seo", label: "SEO対策とは", note: "用語の定義、3領域、Googleが公式に示している基準。" },
-            { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
+            { href: "/geo", label: "GEO対策とは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: lessonPath("starter-guide"), label: "レッスン01を始める", note: "検索と生成AIがページを回答に載せるまでの経路から。" },
             { href: "/tools", label: "SEO・GEOツール", note: "ページ診断・AIクローラー確認など、教科書と一緒に使うツール。" },
           ]}

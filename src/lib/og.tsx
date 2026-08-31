@@ -111,7 +111,7 @@ export function pageOgImage(props: { category: CategoryKey; title: string; foote
   };
 }
 
-/** metaTitle（"GEOとは｜生成AI検索最適化の定義・…"）の「｜」以降をOGPの脚注に使う。 */
+/** metaTitle（"GEO対策とは｜生成AI検索最適化の定義・…"）の「｜」以降をOGPの脚注に使う。 */
 export function subtitleOf(metaTitle: string): string {
   return metaTitle.split("｜")[1] ?? "";
 }
