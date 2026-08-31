@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
-import { HAS_CONTACT, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
+import { HAS_CONTACT, POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 
 export const metadata: Metadata = {
@@ -61,6 +62,7 @@ export default function AboutPage() {
   return (
     <>
       <JsonLd data={faqPageJsonLd(`${SITE_URL}/about`, FAQ)} />
+      <PageDatesJsonLd path="/about" name="運営者情報" updated={POLICY_UPDATED} />
       <PageHeader eyebrow="About" title="運営者情報" crumbs={[{ name: "運営者情報" }]} />
       <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
       <h2>このサイトについて</h2>
@@ -116,6 +118,14 @@ export default function AboutPage() {
         当サイトは、検索とAI検索のアップデートを追う目的で個人が運営しています。実名は公開していませんが、
         記事の誤りのご指摘や権利関係のご連絡には問い合わせ窓口で対応します。
       </p>
+      {X_PROFILE_URL ? (
+        <p>
+          公式アカウントは、X（旧Twitter）の
+          <a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>
+          （{X_PROFILE_URL}）1つだけです。記事の公開と、記事にするほどでもない小さなアップデートはここで告知します。
+          これ以外に{SITE_NAME}を名乗るアカウントは運営していません。
+        </p>
+      ) : null}
       {HAS_CONTACT ? (
         <p>
           お問い合わせは<a href="/contact">お問い合わせページ</a>に記載の窓口

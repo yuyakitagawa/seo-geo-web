@@ -14,21 +14,21 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 ## ページ構成
 | パス | 内容 |
 |---|---|
-| `/` | 新着記事・解説ページ・タグ |
+| `/` | 新着記事・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
-| `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
+| `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
-| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
-| `/learn` | SEO・GEO教科書の目次。3レベル10レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
+| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
+| `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル13レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
-| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
+| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
-| `/tools/ai-crawlers` | 自作ツール: robots.txt を貼ってAI検索/AI学習クローラー14種の許可状況を判定（`src/lib/robots.ts` + `src/lib/crawlers.ts`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
-| `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / `NEXT_PUBLIC_X_SCREEN_NAME` が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
+| `/contact` | お問い合わせ窓口。`NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
-| `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（`src/lib/icon.tsx` で描画） |
+| `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（図案は `src/lib/icon.tsx` の1か所。黒地に「S」＝SEO（生成り）＋「G」＝GEO（ブランド色）） |
 
 ## 記事パイプライン
 ```
@@ -104,6 +104,8 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとの全記事リスト。
 - `/learn` = 教科書（ストック）。`/seo` `/geo` が「定義」、`/learn` が「順番のある実務手順」という役割分担で、
   ハブ（定義ページ）→ スポーク（各レッスン）の相互リンクを張る。
+  **同じ手順を両方に書かない**（着手順・Search Consoleの見方・Googlebotのレンダリングと本人確認・Core Web Vitalsの直し方は `/learn` 側だけに置く）。
+  定義ページが長くなったら、手順にあたる節を `/learn` へ移し、跡地に `NextStep` の導線を残す。
 - **旧URLは308でリダイレクト**（`next.config.ts`）: `/category/seo`→`/seo`、`/category/geo`→`/geo`、`/category/news`→`/news`、`/articles`→`/news`。
   記事詳細 `/articles/<id>` は変えない（完全一致のみリダイレクト）。
 - カテゴリのリンク先は `categoryHref()`（`src/lib/site.ts`）だけを通す。URLを変えるときはここ1か所を直す。
@@ -125,12 +127,23 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   返すのは4つ: プロンプトの語が本文にあるか（`語の一致`）、最も近いブロック（`近さ`）、そのブロックの先頭に直答があるか、
   意図（定義/手順/比較/費用/事例/判断）に合った形式（番号付きリスト・表・金額・数値）があるか。足りない場合は見出し・入れる場所・入れる語・文の型を返す。
   ページが多く語っている語のうち、どのプロンプトにも無いものは「狙いから離れている語」として並べる。
-- **AIクローラー判定 `/tools/ai-crawlers`**: robots.txt を貼ると14種のクローラーの許可状況を判定する。ブラウザ内で完結し送信しない。
-  クローラーの定義は `src/lib/crawlers.ts`（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
+- **AIクローラーの定義** `src/lib/crawlers.ts`: AI検索/AI学習/検索エンジンの14種（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
+  ページ診断の robots.txt 判定と、`/learn/geo-implementation` の一覧表・robots.txt ひな形（`src/components/RobotsPresets.tsx`）が同じ定義を見る。
+  貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
-  ページ診断とチェッカーの両方がこの1実装を使う。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
   12秒タイムアウト、2MB上限、同一インスタンス内で1分10回の簡易制限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
+- **検査されたURLの記録**（`src/lib/audit-log.ts`）: どんなページが検査されているかを記事の題材選びに使うため、
+  Supabase（stock-alert プロジェクトに相乗り）の `seogeo_audit_log` に1件ずつ残す。`SUPABASE_URL` と
+  `SUPABASE_PUBLISHABLE_KEY` があるときだけ動き、未設定なら何もしない（ローカル・プレビューは未設定でよい）。
+  - 残すもの: 検査対象の**ホスト名とパス**、HTTPステータス、指摘の件数、発火した指摘のID、取得時間、失敗時のエラー文
+  - 残さないもの: **URLのクエリ文字列**（`?` 以降。トークン付きURLを貼られても保存しないため `new URL()` で落とす）、
+    検査した人のIP・UA、対象ページのHTML
+  - **保持30日**。相乗り先が取引システムの本番DBなので、期限は Supabase 側の関数 `seogeo_log_audit` が
+    挿入のたびに古い行を削除して担保する（アプリの実装やcronに依存させない）
+  - 渡す鍵は publishable（anon）。テーブルへの直接権限は revoke 済みで、この関数の EXECUTE 以外は何もできない。
+    service_role キーは使わない（相乗り先のDB全体を触れる鍵をVercelに置かないため）
+  - 記録している事実は `/tools/page-audit` のFAQと `/privacy`（5章）に明記する。**内容を変えたら両方直す**
 
 ## デザイン
 - 黒×生成り（paper）×シアンブルー（accent, Googleブルー×ChatGPTグリーン）。カテゴリ色: seo=青 / geo=紫 / news=橙（`src/lib/categoryStyle.ts`）
@@ -155,13 +168,13 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
   | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
   | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
-  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**10レッスン全部** | 「SEO・GEO教科書」 |
+  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**13レッスン全部** | 「SEO・GEO教科書」 |
   | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
   | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
   | `src/app/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
 
   **注意**: ページ側の `metadata` に `openGraph` を自分で書くと、上位セグメントの画像は引き継がれず
-  og:image が消える。レッスン10ページがこれに当たるので、`lessonMetadata()`（`src/lib/curriculum.ts`）で
+  og:image が消える。レッスン11ページがこれに当たるので、`lessonMetadata()`（`src/lib/curriculum.ts`）で
   `openGraph.images` を明示している。`openGraph` を書き足すときは画像も一緒に指定する。
 - **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
 
@@ -183,6 +196,7 @@ actions:                  # 任意、1〜4項目
 sources:
   - title: "出典タイトル"
     url: "https://..."
+supersedes: 12            # 任意。この記事が置き換える古い記事のid（配列可）。指定された記事は noindex + sitemap除外
 draft: false
 ```
 
@@ -200,9 +214,17 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 ```
 インデントを付けて標準出力に流すだけのスクリプト（`scripts/format-html.ts`）。ビルド成果物には関与しない。
 
+アイコンをファイルとして書き出すとき（`src/lib/icon.tsx` の図案を変えたあとだけ。手で実行する）:
+```bash
+npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-1024.png を作り直す
+```
+
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
-  ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）
+  ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）、
+  WebPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`）。
+  Organization には `logo`（`/icon-512.png`）、記事の Article には `image`（`/articles/<id>/opengraph-image`）を必ず入れる
+  ——どちらもリッチリザルトの要件。
 - **BreadcrumbList は `src/components/Breadcrumbs.tsx` が可視UIとJSON-LDを同じ配列から出す**（表示と構造化データがずれない）。
   一覧・固定ページは `PageHeader` に `crumbs` を渡すだけで付く。
 - **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
@@ -218,30 +240,71 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
   「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
   語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
-- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった10レッスン。
+- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった13レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。
   出典は Google 検索セントラルの成功事例・web.dev のケーススタディ・arXiv の GEO 論文のみ。
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
-  レッスン08には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
+  レッスンの並びは 01 スターターガイド / 02 初期点検 / 03 検索意図とキーワード設計 / 04 ロングテール設計 /
+  05 テクニカル / 06 本文の書き方 / 07 サイト構造 / 08 ドメイン構造 / 09 GEO実装 / 10 計測 / 11 実例 / 12 アップデート対応 /
+  13 ブランドをAIに覚えさせる。
+  **レッスン番号は各ページの本文にも「レッスン07」の形で書かれている**ため、順番を入れ替えるときは
+  `src/lib/curriculum.ts` の `order` だけでなく `src/app/learn/**` の本文表記も直す（URLは slug 固定なので変わらない）。
+  レッスン10には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
   1項目ごとに「見る場所・合格の条件・崩れていたら」を `GuideChecklist`（`src/components/guide.tsx`）で出す。
-  レッスン04には「未インデックスの対処法」（`#not-indexed`）を置き、インデックス登録レポートの理由別に
-  「起きていること・対処・直ったかの確認」を並べる。レッスン02・08からはこのアンカーへ送る。
-  同じくレッスン04の「クローラーの訪問頻度と取得ファイル」（`#crawl-stats`）は、クロールの統計情報レポートの
+  レッスン05には「未インデックスの対処法」（`#not-indexed`）を置き、インデックス登録レポートの理由別に
+  「起きていること・対処・直ったかの確認」を並べる。レッスン02・10からはこのアンカーへ送る。
+  同じくレッスン05の「クローラーの訪問頻度と取得ファイル」（`#crawl-stats`）は、クロールの統計情報レポートの
   4つの内訳（レスポンス／ファイル形式／目的／Googlebotタイプ）と、HTMLが押し出されているときの対処を扱う。
+- **用語集 `/glossary`**: 「◯◯とは」は検索でもAI検索でも最も多い形の質問で、AI検索は**質問に直答する短い定義文**を抜き出す。
+  `/seo` `/geo` が主要語2つを深く説明するページ、`/glossary` はその周辺語を1語ずつ短く定義するページ。
+  定義は**その1文だけ読んで意味が通る**こと（前の項目や見出しに依存しない）。出典は用語ごとに1つだけ持つ
+  （複数並べると、どの記述がどの文書由来か分からなくなる）。**新しい用語を足すときは、このサイトが既に
+  一次情報として確認済みのURL**（`guides.ts` / `curriculum.ts` / `crawlers.ts` と同じもの）から選ぶ。
+  可視テキストと DefinedTerm の `description`、llms.txt が同じ文字列を使う。
 - **一覧ページの冒頭に直答段落**（件数・期間・最新記事。`src/lib/collection.ts`）。
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
-- **薄いタグページの足切り**: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは
-  `noindex, follow` にし sitemap からも外す。表示側と生成側が `src/lib/content.ts` の同じ関数を見るのでズレない。
-  ページ自体は残すので内部リンクの経路としては機能する。
-- sitemap の `lastmod` はそのページに載っている記事の最新更新日（全ページ同じ日付にしない）
-- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書10レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- **インデックス判定は `src/lib/indexability.ts` に集約する**。ページ側（robots メタ）・sitemap 側・内部リンク側で
+  条件がずれると「サイトマップに載っているのに noindex」という矛盾をGoogleに送ることになる。判定を足すときは必ずここに書く。
+  - 薄いタグページ: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは `noindex, follow` ＋ sitemap 除外。
+    ページ自体は残すので内部リンクの経路としては機能する。
+  - 同じ話題のカニバリ対策: 続報が前の記事を置き換えたときは、新しい記事の frontmatter に `supersedes: <古い記事のid>` を書く。
+    指定された記事は `noindex, follow` ＋ sitemap 除外になり、本文の冒頭から最新版へ送られる。
+    **タイトルの類似度で自動判定はしない** —— `npm run dupes` が候補を報告するだけにしてある。
+    `sameTopic()`（`src/lib/topic.ts`）はRSSの見出し重複を弾く基準で、記事タイトルに当てると別の出来事を同一視する
+    （実測: 「Google画像検索25周年」と「トップページのボタンをAI Modeに置き換えるテスト」が共有語 google/ai/mode/検索 だけで一致した）。
+- **回遊導線**: 記事は本文の**前**に `ArticleNextStep`（同じタグ／カテゴリの解説／ページ診断）を置く
+  —— 本文下の関連記事は読み切らないと到達しない。一覧・ツールページは末尾に `NextStep`＋`siblingPages()`（`src/lib/nav.ts`、
+  自分の次のページから順に拾うのでどのページも同じ顔にならない）。記事末尾には `ShareButtons`（SDKを読まずWeb Intentのリンクだけ）。
+  解説ページは本文の途中に `GuideLessonCta`（`src/components/guide.tsx`）を置いて教科書の該当レッスンへ送る
+  —— 末尾の `GuideCrossLinks` は長い解説を読み切らないと届かない。レッスンの見出し・所要時間は `curriculum.ts` から引くので文言は1か所。
+  設置は `/geo` の「AIの回答に引用されるまでの経路」の直後 → レッスン09「GEO実装」。
+- sitemap は **loc と lastmod だけ**を出す。`changefreq` と `priority` はGoogleが無視すると明言している値なので載せない。
+  `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
+  /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない
+- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書13レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
-- アイコン一式: `favicon.ico`（静的）/ `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`
+- アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
+  `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
+  **図案は `src/lib/icon.tsx` だけ**にあり、上のルートは全部そこを描画する。Xのアイコンは円形に切られるので四隅には何も置かない。
+  図案を変えたら `npm run icon` を実行して `src/app/favicon.ico`（16/32/48/64/128。ブックマーク一覧やタスクバーは
+  48より大きいサイズを使うので入れておく）と `docs/brand/icon-1024.png`（X等へアップロードする用）を作り直す。
+  manifest のアイコンは `any` と `maskable` の両方で宣言する（四隅が空の図案なので、Androidが円形に切っても欠けない）
 - E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、
   収集元の媒体一覧（`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文でも一人称の経験談は書かない。
   連絡窓口は匿名のまま用意する（メール or フォーム or 公式X。Organization contactPoint はメール > フォーム > X の順で1つ宣言）
+- 公式X（`X_SCREEN_NAME`）は**about の自己紹介で「公式アカウントはこれ1つ」と明記**し、同じURLを
+  Organization の `sameAs`・フッター/about/contact の `rel="me"`・`llms.txt` の「サイト情報」で揃える。
+  同名アカウントとの取り違えを防ぎ、AI検索がサイトと外部プロフィールを同一エンティティとして結べるようにするため
+
+## 計測
+- **GA4**: `NEXT_PUBLIC_GA_ID` があるときだけ `<GoogleAnalytics>` と `GaClickTracker` を出す。
+- **クリック計測**（`src/components/GaClickTracker.tsx`）: 全リンク・ボタンのクリックを `click` イベント
+  （`label` / `tag` / `external` / `path`）としてGA4へ送る。各ボタンに個別実装しない。
+  **PVだけでは「そのページから次へ行けたか」が分からない**ため、回遊導線（`NextStep` / `ShareButtons`）の
+  効果はこのイベントでしか確認できない。
+- Vercel Analytics / Speed Insights は常時有効。
 
 ## AdSense審査で見られる点（実装済み）
 - 固定ページ: `/about`（運営者・記事の作り方・編集方針・FAQ）/ `/privacy` / `/disclaimer` / `/contact`。全ページのフッターから到達できる
@@ -256,6 +319,11 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 - 和文Webフォント不使用（端末フォント）で初期表示を軽く保つ
 
 ## 未着手 / 将来
+- **AIクローラーのアクセスログ**（`proxy.ts` + Supabase）。AIクローラーはJSを実行しないのでGA4に載らず、
+  巡回の実態はサーバーログにしか無い。UAの定義は `src/lib/crawlers.ts` に14種そろっている。
+  コスト懸念で保留中（`docs/progress_ga_supabase_logging.md`、運営者判断）
+- 運用レポート（GSC / GA4 / AI巡回の前後比較）。kujira-watch の `tools/gsc_report.py` `ga4_clicks.py` `geo_report.py` 相当
+- サイト共通の `/faq`（カテゴリ分割が前提。1ページに全問置くとHTMLが肥大する）、用語集ページ
 - 記事内検索、英語版
 - タグURLのASCII化（現状 `/tag/店舗集客`）。308リダイレクトと衝突管理が必要なので、タグが定着してから判断する
 - 週次/月次のまとめページ。記事本数が増えて一覧が長くなってから

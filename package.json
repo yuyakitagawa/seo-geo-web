@@ -12,6 +12,8 @@
     "generate": "tsx scripts/generate.ts",
     "generate:howto": "tsx scripts/generate-howto.ts",
     "html": "tsx scripts/format-html.ts",
+    "icon": "tsx scripts/icon-export.ts",
+    "dupes": "tsx scripts/dupes.ts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

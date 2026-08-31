@@ -1,4 +1,4 @@
-// AI検索・AI学習・検索エンジンのクローラー一覧。robots.txt チェッカー（/tools/ai-crawlers）のデータ。
+// AI検索・AI学習・検索エンジンのクローラー一覧。ページ診断（src/lib/audit.ts）と /learn/geo-implementation が参照する。
 // 各行は提供元の公式ドキュメントで user-agent トークンと用途を確認したものだけを載せる（verified は確認日）。
 // 出典に書かれていない用途・効果は書かない。
 

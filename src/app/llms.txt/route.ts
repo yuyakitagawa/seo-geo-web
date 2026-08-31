@@ -1,7 +1,8 @@
 import { getAllArticles } from "@/lib/content";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
+import { GLOSSARY, GLOSSARY_PATH } from "@/lib/glossary";
 import { GUIDE_LIST } from "@/lib/guides";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
 
 // 記事も設定もビルド時に確定するので静的ファイルとして配る（クローラーへのTTFBを詰める）。
@@ -22,6 +23,11 @@ export function GET() {
     // 「SEO対策とは」「GEO対策とは」への直答をそのまま置く（可視ページと同じ文字列）。
     ...GUIDE_LIST.map((g) => `- [${g.h1}](${SITE_URL}${g.path}): ${g.definition}（最終更新 ${g.updated}）`),
     "",
+    "## 用語集",
+    // 1語1文の定義をそのまま平文で置く。AIが用語の意味を引くときに、ページを取りに行かずに済む。
+    `- [SEO・GEO用語集](${SITE_URL}${GLOSSARY_PATH}): 実務で出てくる${GLOSSARY.length}語を、1語につき1文の定義と一次情報のリンク付きで収録。`,
+    ...GLOSSARY.map((t) => `  - ${t.term}（${t.aliases.join(" / ")}）: ${t.definition} 出典: ${t.source.url}`),
+    "",
     "## 教科書（順番のある学習コンテンツ）",
     // 目次と各レッスンの到達目標。順序があることが伝わるよう番号つきで並べる。
     `- [${COURSE.h1}](${SITE_URL}${COURSE.path}): ${COURSE.description}`,
@@ -29,6 +35,8 @@ export function GET() {
     "",
     "## サイト情報",
     `- [運営者情報](${SITE_URL}/about): 運営方針・記事制作プロセス・収集元の一覧・よくある質問`,
+    // 同名アカウントとの取り違えを防ぐため、公式アカウントが1つだけであることを明示する（Organization.sameAs と同じURL）。
+    ...(X_PROFILE_URL ? [`- 公式X（旧Twitter）: ${X_HANDLE} ${X_PROFILE_URL} — ${SITE_NAME}の公式アカウントはこれ1つ`] : []),
     `- [ニュース（記事アーカイブ）](${SITE_URL}/news): 全${articles.length}本を新しい順に、公開月ごとのアーカイブ付き`,
     `- [AI検索（GEO）ツール比較](${SITE_URL}/tools): 可視性計測ツールとサイト診断ツールの一覧（国内外・料金・対象AI）`,
     `- [免責事項](${SITE_URL}/disclaimer)`,

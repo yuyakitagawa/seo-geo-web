@@ -4,7 +4,7 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = "SEO・GEOツール比較";
 
-// /tools/page-audit・/tools/ai-crawlers にもこの画像が引き継がれる。
+// /tools/page-audit にもこの画像が引き継がれる。
 export default pageOgImage({
   category: "seo",
   title: "SEO・GEOツール比較",

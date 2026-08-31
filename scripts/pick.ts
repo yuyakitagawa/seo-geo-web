@@ -4,7 +4,7 @@
 // 逆に静かな日は基本件数に満たなくてよい（コストの平均は据え置きで、重要ニュースの取りこぼしだけを無くす）。
 // 実行: npx tsx scripts/pick.ts [件数=2]
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
-import { sameTopic, tokens } from "./topic";
+import { sameTopic, tokens } from "../src/lib/topic";
 
 // これより古いニュースは今さら記事にしない
 const MAX_AGE_DAYS = 21;

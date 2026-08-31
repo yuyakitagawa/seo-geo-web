@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { COURSE, LESSONS, lessonPath, requireLesson } from "@/lib/curriculum";
 import type { FaqItem } from "@/lib/faq";
 import { jpDate, type Guide } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -204,6 +205,32 @@ export function GuideCitation({ guide }: { guide: Guide }) {
         数値・仕様は各社の公式ドキュメントを一次情報にしています。仕様は頻繁に変わるため、判断の前に上記の一次情報で最新の内容を確認してください。
       </p>
     </section>
+  );
+}
+
+/**
+ * 本文の途中に置く教科書（/learn）への導線。
+ * 解説ページは定義を読みに来た人が多く、末尾の GuideCrossLinks まで届かないことがあるため、
+ * 「読んだ内容を自分のサイトでやる番」になる位置に、該当レッスンを名指しで置く。
+ * レッスンの文言は curriculum.ts から引く（同じ文字列を2か所に書かない。slugのtypoはビルドで落ちる）。
+ */
+export function GuideLessonCta({ slug, lead }: { slug: string; lead: string }) {
+  const lesson = requireLesson(slug);
+  return (
+    <aside aria-label="教科書のレッスンへ" className="not-prose my-12">
+      <Link
+        href={lessonPath(lesson.slug)}
+        className="group block rounded-3xl border border-accent/40 bg-accent/10 p-6 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] sm:p-8"
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-mute">
+          Learn · {COURSE.h1} Lesson {String(lesson.order).padStart(2, "0")} / {LESSONS.length} · 約{lesson.minutes}分
+        </p>
+        <p className="mt-3 text-lg font-bold leading-snug tracking-tight sm:text-xl">
+          {lesson.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-mute">{lead}</p>
+      </Link>
+    </aside>
   );
 }
 

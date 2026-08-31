@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FigureCompare, FigureDoDont, FigurePipeline } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
+import RobotsPresets from "@/components/RobotsPresets";
 import { LessonShell } from "@/components/lesson";
 import { CRAWLERS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
 import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
@@ -27,7 +28,7 @@ const TOC = [
   { id: "shape", label: "引用される形に整える" },
 ];
 
-export default function Lesson07() {
+export default function Lesson09() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -58,7 +59,7 @@ export default function Lesson07() {
         />
         <p>
           つまりGEOの実装作業は、<strong>設定（クローラーを止めない）</strong>と<strong>書き方（抜き出せる形にする）</strong>の
-          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン05</Link>で扱ったので、
+          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱ったので、
           このレッスンでは設定を決めます。
         </p>
       </GuideSection>
@@ -80,12 +81,7 @@ export default function Lesson07() {
                 c.note ? `${c.role}（${c.note}）` : c.role,
                 c.ifBlocked,
               ])}
-              caption={
-                <>
-                  各行は提供元の公式ドキュメントで確認したものです。最新のボット名は
-                  <Link href="/tools/ai-crawlers">AIクローラー確認ツール</Link>で確認できます。
-                </>
-              }
+              caption="各行は提供元の公式ドキュメントで確認したものです。ボット名は変わることがあるため、出典のドキュメントで現在の名前を確認してください。"
             />
           </div>
         ))}
@@ -137,13 +133,14 @@ export default function Lesson07() {
               ],
             },
           ]}
-          caption={
-            <>
-              そのままコピーできるrobots.txtのひな形は<Link href="/tools/ai-crawlers">AIクローラー確認ツール</Link>にあります。
-              自分のサイトのrobots.txtを入力して、いまどのボットを止めているかを確認することもできます。
-            </>
-          }
+          caption="下に3方針それぞれのrobots.txtのひな形を置いています。"
         />
+        <RobotsPresets />
+        <p>
+          いま自分のサイトがどのボットを止めているかは、
+          <Link href="/tools/page-audit">ページ診断</Link>にURLを入れると
+          robots.txtを取得してAI検索クローラーの許可状況まで判定します。
+        </p>
         <p>
           書き分けができるのは、事業者が用途ごとにボット名を分けている場合だけです。OpenAIの場合、
           検索の回答に出したいなら <code>OAI-SearchBot</code> を許可し、基盤モデルの学習に使われたくないなら
@@ -199,12 +196,12 @@ export default function Lesson07() {
             [
               "AI可視性ツールでの計測",
               "ツールが投げた質問への回答を測るもので、実ユーザーが受け取った回答そのものではない",
-              "測っているものを理解したうえでなら有用（レッスン08）",
+              "測っているものを理解したうえでなら有用（レッスン10）",
             ],
             [
               "引用・統計・出典を本文に足す",
               "GEO論文が、引用の追加で最大41%、統計で約32%、出典で約28%の可視性向上を報告",
-              "優先度が高い。レッスン05の書き方に含まれる",
+              "優先度が高い。レッスン06の書き方に含まれる",
             ],
           ]}
           caption={
@@ -221,7 +218,7 @@ export default function Lesson07() {
       <GuideSection
         id="shape"
         title="引用される形に整える"
-        lead="設定が済んだら、主要ページを引用される形に整えます。作業はレッスン05の書き方と同じですが、ここでは「AIが読む単位」に注目して点検します。"
+        lead="設定が済んだら、主要ページを引用される形に整えます。作業はレッスン06の書き方と同じですが、ここでは「AIが読む単位」に注目して点検します。"
       >
         <GuideTable
           head={["点検する場所", "満たしている状態", "直し方"]}
@@ -238,7 +235,7 @@ export default function Lesson07() {
           最後に、AI検索からの流入を分けて見られるようにしておきます。Googleは、AIによる概要やAIモードに表示されたサイトも
           Search Consoleの検索タイプ「ウェブ」に含まれると説明しているため、AI機能だけを切り出したレポートはありません。
           ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。計測の詳細は
-          <Link href={lessonPath("measurement")}>レッスン08</Link>で扱います。
+          <Link href={lessonPath("measurement")}>レッスン10</Link>で扱います。
         </p>
       </GuideSection>
     </LessonShell>

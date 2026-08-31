@@ -37,9 +37,9 @@ const SEO: Guide = {
   key: "seo",
   path: "/seo",
   h1: "SEO対策とは",
-  metaTitle: "SEO対策とは｜定義・3つの領域・最初の90日でやること",
+  metaTitle: "SEO対策とは｜定義・検索Botの種類・3つの領域・Googleの基準",
   description:
-    "SEO対策（検索エンジン最適化）の定義、テクニカル・コンテンツ・外部評価の3領域、Googleが公式に示す基準（検索の基本事項・E-E-A-T・Core Web Vitals）と、最初の90日でやることを一次情報のリンク付きで整理します。",
+    "SEO対策（検索エンジン最適化）の定義、検索Botの3分類とGooglebotの動き、テクニカル・コンテンツ・外部評価の3領域、Googleが公式に示す基準（検索の基本事項・E-E-A-T・Core Web Vitals）を一次情報のリンク付きで整理します。",
   term: "SEO",
   alternateNames: ["SEO対策", "Search Engine Optimization", "検索エンジン最適化"],
   definition:
@@ -50,7 +50,7 @@ const SEO: Guide = {
     "SEOの土台はそのままAI検索にも効く。Googleは、AIによる概要やAIモードに表示されるための追加要件はなく、特別な最適化も必要ないと明記している。",
   ],
   published: "2026-08-30",
-  updated: "2026-08-30",
+  updated: "2026-08-31",
   category: "seo",
   faq: [
     {
@@ -106,11 +106,6 @@ const SEO: Guide = {
     { title: "Google クローラーとフェッチャーの概要", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/overview-google-crawlers?hl=ja" },
     { title: "Google の一般的なクローラー", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers?hl=ja" },
     { title: "robots.txt の概要", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=ja" },
-    { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
-    { title: "JavaScript の基本を理解する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja" },
-    { title: "検索パフォーマンス レポート（検索結果）", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7576553?hl=ja" },
-    { title: "ページ インデックス登録レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/7440203?hl=ja" },
-    { title: "URL 検査ツール", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9012289?hl=ja" },
   ],
 };
 

@@ -2,12 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageAudit from "@/components/PageAudit";
+import NextStep from "@/components/NextStep";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
+import { APP_TOOLS } from "@/lib/apps";
+import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const PATH = "/tools/page-audit";
 const url = `${SITE_URL}${PATH}`;
+const UPDATED = APP_TOOLS.find((t) => t.path === PATH)!.updated;
 const TITLE = "SEO/GEO ページ診断（URLを入れるだけ）";
 const DESCRIPTION =
   "URLを入力すると、title・構造化データ・見出し・robots.txt・AI検索クローラーの許可状況などを検査し、直すべき箇所を実際のコードと修正後の書き方つきで指摘します。無料・登録不要。";
@@ -69,7 +74,7 @@ const FAQ: FaqItem[] = [
   {
     question: "検査したURLは保存されますか",
     answer:
-      "保存していません。入力されたURLはその場の取得にだけ使い、結果もサーバーには残しません。連続実行を防ぐための一時的な回数制限だけを行っています。",
+      "検査対象ページのホスト名とパス（例: example.com/blog/1）と、判定結果の件数を30日間だけ記録しています。どんなページが検査されているかを把握し、扱う記事の題材を選ぶために使う目的で、公開はしません。URLのクエリ文字列（? 以降）は保存していません。また、検査を実行した方のIPアドレス・ブラウザの情報も保存していません（連続実行を防ぐための一時的な回数制限にだけ使い、記録には残しません）。30日を過ぎた記録は自動的に削除されます。",
   },
 ];
 
@@ -93,6 +98,7 @@ export default function PageAuditToolPage() {
     <>
       <JsonLd data={softwareJsonLd} />
       <JsonLd data={faqPageJsonLd(url, FAQ)} />
+      <PageDatesJsonLd path={PATH} name={TITLE} description={DESCRIPTION} updated={UPDATED} />
       <PageHeader
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
@@ -138,11 +144,11 @@ export default function PageAuditToolPage() {
             この4つが本文にあるかを見て、無ければ入れ方を出します。
           </p>
           <p className="mt-4 text-sm text-mute">
-            AI検索クローラーの設定だけを詳しく見たい場合は、
-            <Link href="/tools/ai-crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
-              AI検索クローラー robots.txt チェッカー
+            AIクローラー14種の一覧と、方針別のrobots.txtのひな形は
+            <Link href="/learn/geo-implementation#crawlers" className="underline decoration-accent decoration-2 underline-offset-4">
+              レッスン09「AI検索に拾われる設定」
             </Link>
-            を使ってください。狙った質問にページの中身が噛み合っているかは
+            にあります。狙った質問にページの中身が噛み合っているかは
             <Link href="/tools/prompt-fit" className="underline decoration-accent decoration-2 underline-offset-4">
               プロンプト適合度チェッカー
             </Link>
@@ -165,6 +171,8 @@ export default function PageAuditToolPage() {
         <p className="text-xs text-mute">
           {SITE_NAME}は診断結果の正確性・完全性を保証しません。判定は公開ドキュメントと論文に基づく一般的な指摘で、順位や引用を約束するものではありません。
         </p>
+
+        <NextStep links={siblingPages(PATH)} />
       </div>
     </>
   );

@@ -12,28 +12,33 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - **記事の事実は一次情報で裏取り**: frontmatter `sources` に必ず出典URL。元記事に無い数値・固有名詞を書かない。
 
 ## 1. File Map
-- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/updated（任意。あるときだけ「更新」表示とdateModified）/category/type/tags/impact/audience/actions/sources/original（任意）/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`original: true` は独自記事（自分で取ったログ・実測値・検証が中心）だけに付け、「独自」バッジが出る（要約記事に付けない）。`draft: true` は本番ビルドから除外。
+- `content/articles/NNNN-slug.mdx`: 記事本体。URLは frontmatter の `id`（連番）で `/articles/<id>`。ファイル名の番号は人間用で、URLには使わない。frontmatter: id/title/description/date/updated（任意。あるときだけ「更新」表示とdateModified）/category/type/tags/impact/audience/actions/sources/supersedes（任意。置き換える古い記事のid）/original（任意）/draft。`type` は news（既定・RSS起点のフロー記事）か howto（テーマ起点のストック記事）。`original: true` は独自記事（自分で取ったログ・実測値・検証が中心）だけに付け、「独自」バッジが出る（要約記事に付けない）。`draft: true` は本番ビルドから除外。
 - `content/candidates.csv`: 収集候補リスト（status 候補/採用/却下/公開、話題スコア、メモ）。collect が追記、人が採用/却下、generate が「採用」だけ記事化。コミット対象。
 - `content/howto-topics.csv`: HOW TO記事のテーマ表（status/category/title/intent/sources/articleId/note）。人が「採用」を付け、generate-howto が記事化する。出典URLはここに書いたものだけ使える。
 - `content/tools.json`: /tools のデータ。公式ページを確認したツールだけ載せる（verified 日付必須）。候補リストの「ツール検知」を確認してから追記。
 - `src/lib/site.ts`: サイト名・URL・カテゴリ定義。カテゴリのリンク先は `categoryHref()` だけを通す（`/category/*` は廃止し `/seo` `/geo` `/news` に統合。旧URLは `next.config.ts` で308）。`src/lib/content.ts`: MDX読み込み・関連記事。`src/lib/adsense.ts`: 広告設定。
-- `src/lib/toc.ts`: 記事の目次（MDXから見出しを拾い、rehype-slug と同じidを再現する）。`src/lib/og.tsx`: OGP画像の共通枠（`ogFrame` / `pageOgImage`）。`opengraph-image.tsx` はセグメントごとに置き、下位ページへ引き継がれる。ただし `openGraph` を自前で書くページには引き継がれないので `images` を明示する。
-- `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
-`src/lib/promptFit.ts`: プロンプト適合度の判定本体（見出しブロック分割・文字bigramのTF-IDF・重要語のカバレッジ・意図別の形式チェック・修正案。外部APIは使わない）。`src/lib/fetchPage.ts`: 任意URLの取得（SSRF対策・2MB上限・12秒・簡易レート制限）。診断系のAPIは全部これを通す。
+- `src/lib/indexability.ts`: **インデックス判定の集約先**（薄いタグの足切り・`supersedes` によるカニバリ対策）。ページ・sitemap・内部リンクは必ずここを見る。`src/lib/nav.ts`: ハブページ間の回遊（`siblingPages`）。`src/lib/topic.ts`: 同一話題の判定（collect/pick/dupes 共通。**インデックス判定には使わない**）。
+- `src/lib/toc.ts`: 記事の目次（MDXから見出しを拾い、rehype-slug と同じidを再現する）。`src/lib/icon.tsx`: ファビコン・アプリアイコン・Xのアイコンの図案（1か所。円形クロップ前提で四隅を空ける）。`src/lib/og.tsx`: OGP画像の共通枠（`ogFrame` / `pageOgImage`）。`opengraph-image.tsx` はセグメントごとに置き、下位ページへ引き継がれる。ただし `openGraph` を自前で書くページには引き継がれないので `images` を明示する。
+- `src/lib/glossary.ts`: 用語集（/glossary）のデータ。1語1文の定義＋出典1つ。可視テキストと DefinedTerm の description は同じ文字列。出典はサイトが既に一次情報として確認済みのURLだけ使う。
+- `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。専用ページは持たず、ページ診断の robots.txt 判定と `/learn/geo-implementation` の一覧表・ひな形（`RobotsPresets`）が共有する。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
+- `src/lib/promptFit.ts`: プロンプト適合度の判定本体（見出しブロック分割・文字bigramのTF-IDF・重要語のカバレッジ・意図別の形式チェック・修正案。外部APIは使わない）。`src/lib/fetchPage.ts`: 任意URLの取得（SSRF対策・2MB上限・12秒・簡易レート制限）。診断系のAPIは全部これを通す。
 - `src/app/api/audit/route.ts` / `src/app/api/prompt-fit/route.ts`: 診断ツールのAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査。`src/lib/fetchPage.ts`）を外さない。
-- `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `tools/ai-crawlers`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
-- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/topic.ts`: 同一話題の判定（collect/pick 共通）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
+- `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
+- `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
+- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
 - `.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）。失敗時はLINE通知（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ）。
 
 ## 2. Operations
 - 開発: `npm run dev` / 型: `npm run typecheck` / ビルド: `npm run build`
 - HTMLを読む: `npm run html -- <URL|ファイル>`
+- アイコン書き出し: `npm run icon`（`src/lib/icon.tsx` の図案を変えたときだけ。favicon.ico と docs/brand/icon-1024.png を再生成）
 - 収集: `npm run collect` / 採用: `npm run pick -- 2` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須。`--publish` で draft:false）
+- 重複話題の検知: `npm run dupes`（報告のみ。続報なら新しい記事に `supersedes: <古い記事のid>` を書く）
 - HOW TO生成: `npm run generate:howto -- 1`（`content/howto-topics.csv` の「採用」から。自動実行はしない）
 - 公開: 毎朝のActionsが自動で main に push する。止めるときは workflow を disable。手で出すときは `draft: true` → `false` にしてpush
 
 ## 3. Env
-`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）。
+`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）/ `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY`（ページ診断のURL記録。未設定なら記録しない）。
 
 ## 4. Workflow
 - 複数ステップの作業は `docs/progress_<作業名>.md` に進捗を記録し、ステップ完了ごとに `[x]` を更新。再開時は進捗ファイルを最初に読む。

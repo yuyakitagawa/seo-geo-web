@@ -77,10 +77,15 @@ GitHubのメール通知は設定が要らないぶん、LINEを設定するま�
 コード側は**すでに入っている**。`src/app/layout.tsx` が `NEXT_PUBLIC_GA_ID` があるときだけ
 `@next/third-parties` の `GoogleAnalytics` を出す。**環境変数を入れるだけで動く。**
 
-本番（https://seo-geo-lab.com）を確認したところ、現状は計測タグが1つも入っていない:
+着手時点（2026-08-30）の本番には計測タグが1つも入っていなかった:
 ```
 $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 0
+```
+→ **2026-08-31 に解消**（オーナーが `NEXT_PUBLIC_GA_ID` を設定）:
+```
+$ curl -s https://seo-geo-lab.com/ | grep -c googletagmanager
+1
 ```
 
 ### → オーナー作業A: GA4
@@ -118,17 +123,19 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 | 公開記事数 | 27本 | `/news` の表示 |
 | sitemap 掲載URL数 | 55 | `curl -s https://seo-geo-lab.com/sitemap.xml \| grep -c "<loc>"` |
 | 内訳 | 記事27 / タグ18 / ツール3 / 解説2（seo・geo）/ 固定4 / トップ1 | 同上 |
-| GA4 | 未導入（タグ0件） | `curl -s https://seo-geo-lab.com/ \| grep -c gtag` |
+| GA4 | 未導入（タグ0件）→ **2026-08-31 に導入済み** | `curl -s https://seo-geo-lab.com/ \| grep -c googletagmanager` |
 | Search Console | 未登録 | — |
 | クリック / 表示 / CTR / 平均順位 | **未計測** | GSC登録後に記入 |
 | インデックス済みURL数 | **未計測** | GSC登録後に記入 |
 
-※ このブランチをmainにマージすると `/learn` の11URL（目次1＋レッスン10）が加わり、sitemap は **66** になる。
+※ その後 PR #8 で main にマージし、`/learn` の11URL（目次1＋レッスン10）が加わって sitemap は **66** になった（2026-08-31 本番実測）。
 
 - [x] コード側の準備（`NEXT_PUBLIC_GA_ID` を入れるだけで動く状態）を確認
 - [x] 導入前ベースラインを記録
-- [ ] **オーナー作業A**: GA4 プロパティ作成 → Vercel env → 再デプロイ → リアルタイムで自分のアクセスを確認
+- [x] **オーナー作業A**: GA4 導入済み（2026-08-31 確認）。本番にタグが入っていることを実測:
+      `curl -s https://seo-geo-lab.com/ | grep -c googletagmanager` → **1**
 - [ ] **オーナー作業B**: Search Console 登録 → sitemap 送信
+      （外部からは確認できないので、済んでいればここに日付を入れる）
 - [ ] GSC のデータが溜まったら（登録から2〜3日後）下の表に記入する
 
 **GSCベースライン（記入待ち。登録から数日後の28日間で取る）**
@@ -149,32 +156,56 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
 `HAS_CONTACT`（`src/lib/site.ts`）が false の間は `notFound()` で404にし、フッターにも出さない作りで、
 窓口が1つでも設定されれば自動的に公開され、フッター・sitemap・Organization の `contactPoint` にも載る。
 
-本番の現状: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` → **404**
+本番の現状（2026-08-31 時点）: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` → **404**
 
 窓口が無いのは AdSense 審査（サイトの信頼性）でも検索評価（E-E-A-T）でも不利なので、1つ用意する。
-**実名は不要**。次のどちらか片方でよい。
+**実名は不要**。
 
-### → オーナー作業（どちらか1つ）
+### 採用した窓口: 公式X @seogeolab（2026-08-31）
 
-**案A: サイト専用のメールアドレス（おすすめ）**
-1. Gmail で新規アカウントを作る（例: `seogeolab.contact@gmail.com`）。個人用とは分ける
-2. Vercel → Settings → Environment Variables → Production
-   - `NEXT_PUBLIC_CONTACT_EMAIL` = そのアドレス
-3. Redeploy
+オーナーが https://x.com/seogeolab を問い合わせ窓口として用意した。
+`HAS_CONTACT` は **メール / フォーム / X のどれか1つ**で true になるので、Xだけで `/contact` は公開される。
 
-**案B: Googleフォーム**
-1. https://forms.google.com/ で「お問い合わせ」フォームを作る（項目: 種別 / 内容 / 返信用メール）
-   - 回答は自分のGmailに通知させる（フォーム → 設定 → 新しい回答についてのメール通知）
-2. 「送信」→ リンクのURLをコピー
-3. Vercel → Environment Variables → Production
-   - `NEXT_PUBLIC_CONTACT_FORM_URL` = そのURL
-4. Redeploy
+有効になると連動して出るもの（すべて `X_SCREEN_NAME` 由来。1か所直せば全部変わる）:
 
-どちらでも、設定して再デプロイすれば `/contact` が200になり、フッターに「お問い合わせ」が出る。
+| 出る場所 | 内容 |
+|---|---|
+| `/contact` | 404 → 200。「X（旧Twitter）：@seogeolab へのリプライまたはDM」（`rel="me"`） |
+| フッター | 「お問い合わせ」リンクが出る |
+| sitemap | `/contact` が載る（`HAS_CONTACT` で分岐） |
+| JSON-LD | Organization の `sameAs` と `contactPoint`（url = Xプロフィール） |
+| メタタグ | `twitter:site` |
+| 記事下 | `FollowCta`（フォロー導線） |
+
+### → オーナー作業（どちらか。**案Aを推奨**）
+
+**案A: Vercel の環境変数だけで出す（推奨・コード変更もデプロイ待ちも不要）**
+1. Vercel → プロジェクト → Settings → Environment Variables → **Production**
+   - `NEXT_PUBLIC_X_SCREEN_NAME` = `seogeolab`
+2. Deployments → 最新を **Redeploy**
+
+**案B: 作業ツリーの変更をコミットして出す**
+`src/lib/site.ts` は既に `process.env.NEXT_PUBLIC_X_SCREEN_NAME || "seogeolab"` と既定値を持つよう
+**未コミットで変更済み**（別作業の一部）。これをコミット＆デプロイすればenvなしでも出る。
+ただし同じ作業ツリーには未完了の別作業（`GaClickTracker.tsx` / `ShareButtons.tsx` /
+`indexability.ts` / `nav.ts` ほか）が混ざっているので、それらを一緒に本番へ出してよいか確認してから。
+
 確認: `curl -o /dev/null -w "%{http_code}" https://seo-geo-lab.com/contact` が **200** になればOK。
 
+### 注意（Xを唯一の窓口にする場合）
+- **DMの受信設定**を確認する。X の設定 → プライバシーと安全 → ダイレクトメッセージで
+  「すべてのアカウントからのメッセージリクエストを許可する」にしておかないと、
+  フォロワー以外からのDMが届かず、窓口として機能しない
+- Xアカウントを持たない人は連絡できない。AdSense審査を通したあとでよいので、
+  **サイト専用メールを1つ足しておく**とより堅い（`NEXT_PUBLIC_CONTACT_EMAIL` を足すだけで、
+  `contactPoint` もメール優先に自動で切り替わる）
+
 - [x] 何を用意すればよいかを手順化（コード変更は不要）
-- [ ] **オーナー作業**: 窓口を1つ用意して env に設定 → 再デプロイ → 200 を確認
+
+- [x] 何を用意すればよいかを手順化（コード変更は不要）
+- [x] 窓口を決めた: 公式X **@seogeolab**（2026-08-31）
+- [ ] **オーナー作業**: Vercel に `NEXT_PUBLIC_X_SCREEN_NAME=seogeolab` を設定 → Redeploy → 200 を確認
+- [ ] XのDM受信設定を「すべてのアカウントから許可」にする
 
 ---
 
@@ -226,5 +257,6 @@ $ curl -s https://seo-geo-lab.com/ | grep -c gtag
   ただし「MDXは壊れていないがビルドだけ落ちる」種類の不整合が main にあった場合は素通りする。
   Actions分数は public リポジトリなら無料なので、`npm run typecheck && npm run build` に
   広げれば穴は塞がる（1便あたり +1〜2分）。広げるかはオーナー判断。
-- **このブランチ（`feat/audit-where`）を main にマージするか。**
-  毎朝のワークフローは main を見るので、`/learn` と今回の関門を効かせるにはマージが要る。
+- ~~**このブランチ（`feat/audit-where`）を main にマージするか。**~~
+  → **PR #8 で main にマージ済み**（2026-08-31 確認）。生成前の関門・目次・OGP・`/learn` はすべて本番で有効。
+  次の定期実行（毎日 07:00 JST）が、新しい関門を通る最初の便になる。

@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import CategoryArticles from "@/components/CategoryArticles";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
 import PageHeader from "@/components/PageHeader";
-import { FigureCompare, FigureDoDont, FigureFlow, FigureGauge, FigurePipeline, FigureQuote, FigureStack, FigureTimeline } from "@/components/figures";
-import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideRef, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
-import { ScreenIndexReport, ScreenSearchPerformance, ScreenSerp, ScreenUrlInspection } from "@/components/screens";
+import { FigureCompare, FigureDoDont, FigurePipeline, FigureQuote, FigureStack } from "@/components/figures";
+import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideLessonCta, GuideRef, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
+import { ScreenSerp } from "@/components/screens";
+import { lessonNo, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
+import { hubPages } from "@/lib/nav";
 import { SITE_URL } from "@/lib/site";
 
 const guide = GUIDES.seo;
@@ -22,13 +26,10 @@ const REF = {
   vitals: { href: "https://web.dev/articles/vitals#core-web-vitals", label: "web.dev「Web Vitals」" },
   structuredData: { href: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja", label: "構造化データの仕組みについて" },
   aiFeatures: { href: "https://developers.google.com/search/docs/appearance/ai-features?hl=ja", label: "AI 機能とウェブサイト" },
-  indexReport: { href: "https://support.google.com/webmasters/answer/7440203?hl=ja", label: "ページ インデックス登録レポート" },
   crawlersOverview: { href: "https://developers.google.com/crawling/docs/crawlers-fetchers/overview-google-crawlers?hl=ja", label: "Google クローラーとフェッチャーの概要" },
   commonCrawlers: { href: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers?hl=ja", label: "Google の一般的なクローラー" },
   userTriggered: { href: "https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers?hl=ja", label: "ユーザー トリガー フェッチャー" },
-  jsBasics: { href: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja", label: "JavaScript の基本を理解する" },
   robotsIntro: { href: "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=ja", label: "robots.txt の概要" },
-  verifyGooglebot: { href: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja", label: "Google クローラーの確認" },
 } as const;
 
 export const metadata: Metadata = {
@@ -50,8 +51,6 @@ const TOC = [
   { id: "bots", label: "検索Botの種類と動き" },
   { id: "areas", label: "SEOの3領域と着手する順番" },
   { id: "google", label: "Googleが公式に示している基準" },
-  { id: "steps", label: "最初の90日でやること" },
-  { id: "gsc", label: "Search Consoleのどこを見るか" },
   { id: "dodont", label: "やること／やらなくていいこと" },
   { id: "myths", label: "よくある誤解" },
   { id: "geo", label: "SEOとGEOの関係" },
@@ -190,36 +189,22 @@ export default function SeoGuidePage() {
               </>
             }
           />
-          <h3>Googlebotの動き: クロールとレンダリングは別のタイミング</h3>
           <p>
-            GooglebotはHTMLを取得したあと、ヘッドレスChromiumでページをレンダリングしてJavaScriptを実行し、その結果をインデックスに登録します。
-            ただしレンダリングはクロールと同時ではなく順番待ちのキューに入り、ページがこのキューで数秒間、またはそれ以上待機することがあると
-            Googleは説明しています。JavaScriptでしか描画されない本文は、登録が遅れたり、失敗すれば登録されなかったりします。
-            重要な見出し・本文・内部リンクは、最初のHTMLに含めておくのが安全です。
-            <GuideRef {...REF.jsBasics} />
-          </p>
-          <h3>robots.txtで拒否しても、検索結果から消えるとは限らない</h3>
-          <p>
-            Googleは、robots.txtでブロックされているコンテンツをクロールしたりインデックスに登録したりすることはないが、
-            ブロック対象のURLが他の場所からリンクされている場合は、そのURLを検出してインデックスに登録する可能性があると説明しています。
-            robots.txtは「取得させない」設定であって「検索結果に出さない」設定ではありません。検索結果から外したいページには
-            noindexを使いますが、robots.txtで拒否しているとnoindexそのものが読まれないため、両方を同時に設定してはいけません。
+            robots.txtは「取得させない」設定であって「検索結果に出さない」設定ではありません。Googleは、ブロックされているコンテンツを
+            クロールしたりインデックスに登録したりすることはないが、そのURLが他の場所からリンクされている場合はURLを検出して
+            インデックスに登録する可能性があると説明しています。検索結果から外したいページにはnoindexを使います。
             <GuideRef {...REF.robotsIntro} />
-          </p>
-          <h3>Googlebotを名乗る偽のアクセスを見分ける</h3>
-          <p>
-            User-Agentの文字列は誰でも名乗れるため、アクセスログの「Googlebot」が本物とは限りません。Googleは確認方法として、
-            アクセス元IPアドレスの逆引きDNSでドメイン名がgooglebot.com・google.com・googleusercontent.comのいずれかであることを確認し、
-            さらにそのドメイン名を順引きして元のIPに一致するかを見る手順を示しています。クローラーごとの
-            <a href="https://developers.google.com/search/apis/ipranges/googlebot.json" target="_blank" rel="noopener">IPレンジのJSON</a>
-            も公開されているので、ログ側で突き合わせることもできます。サーバー負荷を理由にBotを遮断する前に、まず本物かどうかを確認します。
-            <GuideRef {...REF.verifyGooglebot} />
           </p>
           <p>
             ChatGPT・Perplexity・ClaudeなどのAI検索側のBotは、これとは別に用途ごとのトークンが用意されています。
             種類ごとの動きと、robots.txtで止めたときに何を失うかは<a href="/geo#bots">GEOの解説ページ</a>にまとめています。
           </p>
         </GuideSection>
+
+        <GuideLessonCta
+          slug="technical"
+          lead="ここまでが「検索Botがどう動くか」。教科書のこのレッスンでは、その動きを前提にした実装 —— JavaScriptで描画した本文がインデックスに入りにくい理由、アクセスログのGooglebotが本物かどうかの確認手順、robots.txtとnoindexの使い分け —— を、到達チェックリスト付きで扱います。"
+        />
 
         <GuideSection
           id="areas"
@@ -366,73 +351,24 @@ export default function SeoGuidePage() {
               </>
             }
           />
-          <FigureGauge
-            title="Core Web Vitalsの3段階（良好／改善が必要／不良）"
-            items={[
-              { label: "LCP", sub: "主要なコンテンツが表示されるまでの時間", good: "2.5秒", poor: "4.0秒" },
-              { label: "INP", sub: "操作してから画面が反応するまでの時間", good: "200ms", poor: "500ms" },
-              { label: "CLS", sub: "読み込み中にレイアウトがずれる量", good: "0.1", poor: "0.25" },
-            ]}
-            caption={
-              <>
-                帯の下の数値は「良好」と「改善が必要」の境界、および「不良」の始まりです。判定はモバイルとPCを分け、全体の75パーセンタイルで見ます。
-                <GuideRef {...REF.vitals} />
-              </>
-            }
-          />
+          <p>
+            しきい値そのものはこのページで足りますが、どこから直すか（フィールドデータで最も悪い1指標に絞る、
+            テンプレート単位で直す）は実装の話です。指標ごとのよくある原因と対処は、教科書の
+            <Link href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>にまとめています。
+          </p>
         </GuideSection>
 
-        <GuideSection
-          id="steps"
-          title="最初の90日でやること"
-          lead="SEO対策を始めるときは、計測環境の用意 → 技術的な土台の確認 → 既存ページの改善 → 新規ページの追加、の順に進めます。計測ができていない状態で施策だけ増やすと、順位が動いた理由を後から確認できなくなります。"
-        >
-          <FigureFlow
-            title="SEO対策の着手順（最初の90日）"
-            steps={[
-              { label: "Search Consoleとアクセス解析を入れる", desc: "所有権を確認し、表示回数・クリック数・平均掲載順位を見られる状態にする。ここが無いと施策の効果を確認できない。" },
-              { label: "インデックス状況とrobots.txtを確認する", desc: "重要なページが「登録済み」になっているか、意図せず noindex や Disallow になっていないかを確認する。" },
-              { label: "XMLサイトマップとcanonicalを整える", desc: "サイトマップを送信し、同じ内容が複数URLで見える状態（パラメータ違いなど）を canonical で1本化する。" },
-              { label: "既に表示回数のあるページを直す", desc: "検索クエリに対してタイトル・導入文・見出しが答えているかを見直す。新規作成より先に、既に見られているページを直すほうが早い。" },
-              { label: "答えの無いクエリに対して新しいページを作る", desc: "Search Consoleで表示回数はあるのに該当ページが無いクエリを探し、その質問に直答するページを追加する。" },
-              { label: "4週間おきに数値で確認する", desc: "順位の体感ではなく、表示回数・クリック数・インデックス数の推移で判断する。改善が無い施策は畳む。" },
-            ]}
-          />
-          <FigureTimeline
-            title="90日の割り振り（何を、いつ動かすか）"
-            axis={["1週目", "4週目", "8週目", "12週目"]}
-            rows={[
-              { label: "計測環境の用意", start: 0, span: 10, desc: "Search Console・アクセス解析", tone: "accent" },
-              { label: "インデックスとrobots.txtの確認", start: 6, span: 16, desc: "登録済みか、止めていないか", tone: "accent" },
-              { label: "サイトマップとcanonical", start: 14, span: 18, desc: "送信と重複URLの1本化", tone: "accent" },
-              { label: "既存ページの改善", start: 24, span: 46, desc: "表示回数のあるページから", tone: "seo" },
-              { label: "新規ページの追加", start: 52, span: 48, desc: "答えの無いクエリに対して", tone: "seo" },
-              { label: "4週おきの数値確認", start: 24, span: 76, desc: "表示回数・クリック数・登録数", tone: "geo" },
-            ]}
-            caption="割り振りは当サイトの整理です。効果が出るまでの期間はGoogleが保証しているものではありません。"
-          />
-        </GuideSection>
-
-        <GuideSection
-          id="gsc"
-          title="Search Consoleのどこを見るか"
-          lead="SEO対策の効果は、順位チェックツールの体感ではなくGoogle Search Consoleの3画面で確認します。「検索パフォーマンス」で表示回数とクリック数の推移を、「ページ」でインデックス登録の状況を、「URL 検査」で1ページずつの登録可否を見ます。"
-        >
-          <ScreenSearchPerformance />
-          <p>
-            最初に見るのは順位ではなく<strong>表示回数</strong>です。表示回数が増えているなら、まだクリックされていなくても
-            インデックスと関連性は前に進んでいます。逆に、表示回数が多いのにクリック数が伸びないページは、順位よりも
-            タイトルと説明文が検索意図に答えられていないことを疑います。
-          </p>
-          <ScreenIndexReport />
-          <p>
-            「未登録」の件数そのものは問題ではありません。タグ一覧やパラメータ違いのURLも未登録に入るためです。
-            見るのは内訳で、公開したいページが「クロール済み - インデックス未登録」や「noindex タグによって除外されました」に
-            入っていないかを確認します。
-            <GuideRef {...REF.indexReport} />
-          </p>
-          <ScreenUrlInspection />
-        </GuideSection>
+        {/* ページ途中の導線。ここから先は「定義」ではなく「順番のある手順」で、その本体は教科書（/learn）にある。
+            末尾の GuideCrossLinks まで読み切る読者は多くないので、本文の途中でも同じ行き先を出す。 */}
+        <NextStep
+          title="ここから先は手順。教科書へ"
+          className="my-16"
+          links={[
+            ...hubPages(["/learn"]),
+            { href: lessonPath("first-week"), label: `レッスン${lessonNo("first-week")} 初期点検`, note: "最初の1週間でやる7つの点検。Search Console登録からrobots.txtの確認まで1日1つずつ。" },
+            { href: lessonPath("measurement"), label: `レッスン${lessonNo("measurement")} 計測と改善`, note: "Search Consoleのどの画面を、どの順番で見るか。4週間サイクルでの判断と、施策を畳む基準。" },
+          ]}
+        />
 
         <GuideSection
           id="dodont"
@@ -561,9 +497,10 @@ export default function SeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/learn", label: "SEO・GEO教科書（13レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/geo", label: "GEO対策とは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "順位計測・クロール監査・AI可視性計測ツールを国内外で比較。" },
+            { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}
         />

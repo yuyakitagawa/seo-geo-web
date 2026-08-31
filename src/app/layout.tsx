@@ -7,8 +7,9 @@ import AdSenseScript from "@/components/AdSenseScript";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import GaClickTracker from "@/components/GaClickTracker";
 import JsonLd from "@/components/JsonLd";
-import { ORGANIZATION_CONTACT_POINT, ORGANIZATION_SAME_AS, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
+import { ORGANIZATION_CONTACT_POINT, ORGANIZATION_SAME_AS, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_LOGO, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
 import "./globals.css";
 
 // 欧文ディスプレイ書体。和文は端末フォント（CSS側のフォールバック）。
@@ -45,6 +46,8 @@ const organizationJsonLd = {
   name: SITE_NAME,
   alternateName: SITE_ALTERNATE_NAMES,
   url: SITE_URL,
+  // Article のリッチリザルトは publisher.logo を要求する。@id 参照で記事側と共有する。
+  logo: { "@type": "ImageObject", ...SITE_LOGO },
   ...(ORGANIZATION_SAME_AS.length ? { sameAs: ORGANIZATION_SAME_AS } : {}),
   ...(ORGANIZATION_CONTACT_POINT ? { contactPoint: ORGANIZATION_CONTACT_POINT } : {}),
 };
@@ -74,7 +77,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AdSenseScript />
         <Analytics />
         <SpeedInsights />
-        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        {GA_ID && (
+          <>
+            <GoogleAnalytics gaId={GA_ID} />
+            <GaClickTracker />
+          </>
+        )}
       </body>
     </html>
   );

@@ -23,3 +23,12 @@
 - [x] sitemap / Header / Footer / llms.txt / /seo / /geo の導線
 - [x] README 更新
 - [x] `npm run typecheck && npm run build`
+
+## 追加: レッスン07「ドメイン構造」（2026-08-31）
+サブドメイン／サブディレクトリの判断、ホスト名の統一、検証環境の扱い、中古ドメインと
+サイトの評判の不正使用までを1レッスンに追加し、全11レッスンにした。
+
+- [x] `src/lib/curriculum.ts` に `domain`（order 7 / Level 2）を追加し、後続4レッスンを繰り下げ
+- [x] `src/app/learn/domain/page.tsx`
+- [x] 既存レッスン・`/seo` `/geo`・README のレッスン番号と総数の表記を更新
+- [x] `npm run typecheck && npm run build`

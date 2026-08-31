@@ -13,6 +13,8 @@ const REF = {
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
+  jsBasics: { href: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja", label: "JavaScript の基本を理解する" },
+  verifyGooglebot: { href: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja", label: "Google クローラーの確認" },
   indexReport: { href: "https://support.google.com/webmasters/answer/7440203?hl=ja", label: "ページ インデックス登録レポート" },
   urlInspection: { href: "https://support.google.com/webmasters/answer/9012289?hl=ja", label: "URL 検査ツール" },
   crawlStats: { href: "https://support.google.com/webmasters/answer/9679690?hl=ja", label: "クロールの統計情報レポート" },
@@ -33,6 +35,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "control", label: "クロールとインデックスの制御" },
+  { id: "rendering", label: "Googlebotの動きを前提にする" },
   { id: "not-indexed", label: "未インデックスの対処法" },
   { id: "crawl-stats", label: "クローラーの訪問頻度と取得ファイル" },
   { id: "duplicate", label: "重複と正規URLの整理" },
@@ -41,7 +44,7 @@ const TOC = [
   { id: "cases", label: "実例：この作業で何が動いたか" },
 ];
 
-export default function Lesson04() {
+export default function Lesson05() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -95,6 +98,38 @@ export default function Lesson04() {
         <p>
           robots.txtを変更したら、Search Consoleのrobots.txtレポートで<strong>Googleが実際に読んだ内容</strong>を確認します。
           CDNやサーバーの設定によっては、ブラウザで見えている内容とクローラーが取得する内容が違うことがあります。
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="rendering"
+        title="Googlebotの動きを前提にする"
+        lead="robots.txtとnoindexを正しく設定しても、Googlebotがページの中身を読めなければインデックスには入りません。ここでは、JavaScriptで描画したコンテンツの扱いと、アクセスログのGooglebotが本物かどうかの確認方法を押さえます。"
+      >
+        <h3>クロールとレンダリングは別のタイミング</h3>
+        <p>
+          GooglebotはHTMLを取得したあと、ヘッドレスChromiumでページをレンダリングしてJavaScriptを実行し、その結果をインデックスに登録します。
+          ただしレンダリングはクロールと同時ではなく順番待ちのキューに入り、ページがこのキューで数秒間、またはそれ以上待機することがあると
+          Googleは説明しています。JavaScriptでしか描画されない本文は、登録が遅れたり、失敗すれば登録されなかったりします。
+          重要な見出し・本文・内部リンクは、最初のHTMLに含めておくのが安全です。
+          <GuideRef {...REF.jsBasics} />
+        </p>
+        <p>
+          確認は、URL検査ツールの「クロール済みのページを表示」でGoogleが取得したHTMLを見るのが確実です。
+          ブラウザの表示にはあるのに、そこに本文が無ければ、レンダリング前提のページになっています。
+        </p>
+        <h3>Googlebotを名乗る偽のアクセスを見分ける</h3>
+        <p>
+          User-Agentの文字列は誰でも名乗れるため、アクセスログの「Googlebot」が本物とは限りません。Googleは確認方法として、
+          アクセス元IPアドレスの逆引きDNSでドメイン名がgooglebot.com・google.com・googleusercontent.comのいずれかであることを確認し、
+          さらにそのドメイン名を順引きして元のIPに一致するかを見る手順を示しています。クローラーごとの
+          <a href="https://developers.google.com/search/apis/ipranges/googlebot.json" target="_blank" rel="noopener">IPレンジのJSON</a>
+          も公開されているので、ログ側で突き合わせることもできます。サーバー負荷を理由にBotを遮断する前に、まず本物かどうかを確認します。
+          <GuideRef {...REF.verifyGooglebot} />
+        </p>
+        <p>
+          Botの分類そのもの（一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャー）は
+          <Link href="/seo">SEO対策とは</Link>で、AI各社のBotは<Link href={lessonPath("geo-implementation")}>レッスン07</Link>で扱います。
         </p>
       </GuideSection>
 
@@ -206,7 +241,7 @@ export default function Lesson04() {
         <p>
           「クロール済み - インデックス未登録」が特定のページ種別に固まっている場合、個別ページの問題ではなく
           サイト構造の問題です。中身がリンク数個しかない一覧ページを大量に作っていないかを、
-          <Link href={lessonPath("structure")}>レッスン06</Link>で確認してください。なお、Googleは基本事項を満たしていても
+          <Link href={lessonPath("structure")}>レッスン07</Link>で確認してください。なお、Googleは基本事項を満たしていても
           インデックス登録や掲載を保証していないと明記しています。すべての未登録を0にすることは目標になりません。
           <GuideRef {...REF.essentials} />
         </p>
@@ -403,7 +438,7 @@ export default function Lesson04() {
         <p>
           なお、生成AI向けの特別な構造化データは存在しません。Googleは、AI機能に表示されるために
           特別なschema.orgの構造化データを追加する必要はないと明記しています。詳しくは
-          <Link href={lessonPath("geo-implementation")}>レッスン07</Link>で扱います。
+          <Link href={lessonPath("geo-implementation")}>レッスン09</Link>で扱います。
         </p>
       </GuideSection>
 
@@ -507,7 +542,7 @@ export default function Lesson04() {
           }
         />
         <p>
-          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン09</Link>にまとめています。
+          全11件の実例は<Link href={lessonPath("case-studies")}>レッスン11</Link>にまとめています。
           次のレッスンでは、技術的に読める状態になったページに、引用される本文を書いていきます。
         </p>
       </GuideSection>

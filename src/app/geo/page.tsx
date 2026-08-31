@@ -3,7 +3,7 @@ import CategoryArticles from "@/components/CategoryArticles";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
 import { FigureCompare, FigureDoDont, FigureFlow, FigurePipeline, FigureQuote } from "@/components/figures";
-import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
+import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideLessonCta, GuideSection, GuideSources, GuideTable, GuideToc } from "@/components/guide";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
@@ -141,6 +141,11 @@ export default function GeoGuidePage() {
             source="Google 検索セントラル「AI 機能とウェブサイト」"
           />
         </GuideSection>
+
+        <GuideLessonCta
+          slug="geo-implementation"
+          lead="ここまでが「どういう経路でAIの回答に載るか」。教科書のこのレッスンでは、この4段階を自分のサイトで通すために、robots.txtでAI各社のクローラーをどう書き分けるか、ブロックすると各社が公式に何が起きると言っているかまでを、到達チェックリスト付きで扱います。"
+        />
 
         <GuideSection
           id="bots"
@@ -380,9 +385,10 @@ export default function GeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（10レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
-            { href: "/seo", label: "SEO対策とは", note: "定義、3つの領域、Googleが公式に示す基準、最初の90日でやること。" },
+            { href: "/learn", label: "SEO・GEO教科書（13レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/seo", label: "SEO対策とは", note: "定義、検索Botの3分類、3つの領域、Googleが公式に示す基準。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
+            { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}
         />

@@ -5,7 +5,7 @@ import Parser from "rss-parser";
 import { FEED_SOURCES, TOOL_KEYWORDS, TOPIC_KEYWORDS } from "./sources";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 import { isGoogleNewsUrl, resolveGoogleNewsUrl } from "./googleNews";
-import { sameTopic, tokens } from "./topic";
+import { sameTopic, tokens } from "../src/lib/topic";
 
 // 収集対象の期間（日）。引数で上書き可: npx tsx scripts/collect.ts 60
 const MAX_AGE_DAYS = Number(process.argv[2] ?? 7);

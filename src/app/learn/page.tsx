@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
-import { FigureStack } from "@/components/figures";
+import { FigureFlow, FigureStack, FigureTimeline } from "@/components/figures";
 import { GuideCrossLinks, GuideTable } from "@/components/guide";
 import { CASES } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonPath, lessonsByLevel } from "@/lib/curriculum";
@@ -82,7 +82,7 @@ export default function LearnPage() {
             この教科書に載せている実例は、<strong>実施した施策と結果の数値が同じ一次情報の中で公開されているもの</strong>だけです。
             出典は、サイト運営者本人の発表か、Google（検索セントラルの成功事例・web.devのケーススタディ）、
             および査読を経た論文に限っています。数値は各社の環境での結果であり、同じ施策で同じ結果が出ることを示すものではありません。
-            すべての実例は<Link href={lessonPath("case-studies")}>レッスン09</Link>にまとめてあります。
+            すべての実例は<Link href={lessonPath("case-studies")}>レッスン11</Link>にまとめてあります。
           </p>
         </section>
 
@@ -95,9 +95,9 @@ export default function LearnPage() {
           <FigureStack
             title="レベル1から順に積む"
             layers={[
-              { label: "Level 3 運用", tone: "geo", note: "レッスン08-10", desc: "数値で効果を確認し、実例から共通パターンを取り出し、アップデートとペナルティに備える。" },
-              { label: "Level 2 実装", tone: "seo", note: "レッスン04-07", desc: "技術的な土台、本文の書き方、サイト構造、AIクローラーへの対応を順に仕上げる。" },
-              { label: "Level 1 基礎", tone: "accent", note: "レッスン01-03", desc: "検索と生成AIがページを回答に載せる仕組みを理解し、自分のサイトの初期状態を点検する。" },
+              { label: "Level 3 運用", tone: "geo", note: "レッスン10-13", desc: "数値で効果を確認し、実例から共通パターンを取り出し、アップデートとペナルティに備える。" },
+              { label: "Level 2 実装", tone: "seo", note: "レッスン05-09", desc: "技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を順に仕上げる。" },
+              { label: "Level 1 基礎", tone: "accent", note: "レッスン01-04", desc: "検索と生成AIがページを回答に載せる仕組みを理解し、自分のサイトの初期状態を点検する。" },
             ]}
             baseNote="上のレベルから手を付けると、なぜ効いたのか（効かなかったのか）を後から説明できなくなる。"
           />
@@ -146,6 +146,44 @@ export default function LearnPage() {
           })}
         </section>
 
+        <section id="plan" className="scroll-mt-24">
+          <h2>最初の90日でやること</h2>
+          <p>
+            10レッスンを実際のカレンダーに割り当てると、次の順番になります。計測環境の用意 → 技術的な土台の確認 →
+            既存ページの改善 → 新規ページの追加、の順です。計測ができていない状態で施策だけ増やすと、
+            順位が動いた理由を後から確認できなくなります。
+          </p>
+          <FigureFlow
+            title="SEO対策の着手順（最初の90日）"
+            steps={[
+              { label: "Search Consoleとアクセス解析を入れる", desc: "所有権を確認し、表示回数・クリック数・平均掲載順位を見られる状態にする。ここが無いと施策の効果を確認できない（レッスン02）。" },
+              { label: "インデックス状況とrobots.txtを確認する", desc: "重要なページが「登録済み」になっているか、意図せず noindex や Disallow になっていないかを確認する（レッスン02・04）。" },
+              { label: "XMLサイトマップとcanonicalを整える", desc: "サイトマップを送信し、同じ内容が複数URLで見える状態（パラメータ違いなど）を canonical で1本化する（レッスン04）。" },
+              { label: "既に表示回数のあるページを直す", desc: "検索クエリに対してタイトル・導入文・見出しが答えているかを見直す。新規作成より先に、既に見られているページを直すほうが早い（レッスン05）。" },
+              { label: "答えの無いクエリに対して新しいページを作る", desc: "Search Consoleで表示回数はあるのに該当ページが無いクエリを探し、その質問に直答するページを追加する（レッスン03・06）。" },
+              { label: "4週間おきに数値で確認する", desc: "順位の体感ではなく、表示回数・クリック数・インデックス数の推移で判断する。改善が無い施策は畳む（レッスン08）。" },
+            ]}
+          />
+          <FigureTimeline
+            title="90日の割り振り（何を、いつ動かすか）"
+            axis={["1週目", "4週目", "8週目", "12週目"]}
+            rows={[
+              { label: "計測環境の用意", start: 0, span: 10, desc: "Search Console・アクセス解析", tone: "accent" },
+              { label: "インデックスとrobots.txtの確認", start: 6, span: 16, desc: "登録済みか、止めていないか", tone: "accent" },
+              { label: "サイトマップとcanonical", start: 14, span: 18, desc: "送信と重複URLの1本化", tone: "accent" },
+              { label: "既存ページの改善", start: 24, span: 46, desc: "表示回数のあるページから", tone: "seo" },
+              { label: "新規ページの追加", start: 52, span: 48, desc: "答えの無いクエリに対して", tone: "seo" },
+              { label: "4週おきの数値確認", start: 24, span: 76, desc: "表示回数・クリック数・登録数", tone: "geo" },
+            ]}
+            caption="割り振りは当サイトの整理です。効果が出るまでの期間はGoogleが保証しているものではありません。"
+          />
+          <p>
+            AI検索（GEO）側の作業は、この90日の外に別枠で足すものではありません。
+            <Link href={lessonPath("geo-implementation")}>レッスン07</Link>のAIクローラーの確認は、
+            2番目のrobots.txtの確認と同じタイミングで済ませられます。
+          </p>
+        </section>
+
         <section id="who" className="scroll-mt-24">
           <h2>読む順番の目安</h2>
           <p>
@@ -156,12 +194,15 @@ export default function LearnPage() {
             head={["いまの状態", "入口", "理由"]}
             rows={[
               ["サイトを作ったばかり／Search Console未登録", "レッスン01 → 02", "計測できない状態では、以降のどの施策も効果を確認できないため"],
-              ["記事はあるが検索結果に出てこない", "レッスン02 → 04", "インデックス登録の前提が満たせていない可能性が高いため"],
-              ["インデックスはされるが順位が伸びない", "レッスン03 → 05", "検索意図と本文の対応が取れていない可能性が高いため"],
-              ["記事は増えたが評価が積み上がらない", "レッスン06", "個別記事が単発で並んでいるだけで、テーマとして束ねられていないため"],
-              ["SEOは回っているがAI検索に出てこない", "レッスン07", "AI各社のクローラー設定と、抜き出されやすい書き方が別作業のため"],
-              ["施策を続けているが効果が判断できない", "レッスン08", "見るべき指標と見る順番が決まっていないため"],
-              ["アップデートで流入が落ちた", "レッスン10", "原因の切り分け手順を先に決める必要があるため"],
+              ["記事はあるが検索結果に出てこない", "レッスン02 → 05", "インデックス登録の前提が満たせていない可能性が高いため"],
+              ["インデックスはされるが順位が伸びない", "レッスン03 → 06", "検索意図と本文の対応が取れていない可能性が高いため"],
+              ["書くテーマが尽きた／記事が単発で増えていくだけ", "レッスン04", "作るページを軸の掛け合わせで決めていないため"],
+              ["記事は増えたが評価が積み上がらない", "レッスン07", "個別記事が単発で並んでいるだけで、テーマとして束ねられていないため"],
+              ["サブドメインを増やすか、リニューアルでURLを変えるか迷っている", "レッスン08", "ドメインを分けた分だけ、設定と計測の単位が増えるため"],
+              ["SEOは回っているがAI検索に出てこない", "レッスン09", "AI各社のクローラー設定と、抜き出されやすい書き方が別作業のため"],
+              ["施策を続けているが効果が判断できない", "レッスン10", "見るべき指標と見る順番が決まっていないため"],
+              ["アップデートで流入が落ちた", "レッスン12", "原因の切り分け手順を先に決める必要があるため"],
+              ["AI検索の回答に自社名が出てこない", "レッスン13", "回答に載る候補は、ページを読まれるより前に決まっているため"],
             ]}
           />
         </section>
@@ -172,6 +213,7 @@ export default function LearnPage() {
             { href: "/geo", label: "GEO対策とは", note: "生成AI検索最適化の定義、SEOとの違い、AIクローラーの一覧。" },
             { href: lessonPath("starter-guide"), label: "レッスン01を始める", note: "検索と生成AIがページを回答に載せるまでの経路から。" },
             { href: "/tools", label: "SEO・GEOツール", note: "ページ診断・AIクローラー確認など、教科書と一緒に使うツール。" },
+            { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
           ]}
         />
       </div>

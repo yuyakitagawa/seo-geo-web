@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
+import NextStep from "@/components/NextStep";
+import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { APP_TOOLS } from "@/lib/apps";
+import { siblingPages } from "@/lib/nav";
 import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -12,39 +15,76 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
 };
 
-function ToolTable({ rows }: { rows: Tool[] }) {
+// 外部ツールはカードで見せる。押した先が外部サイトだと分かるように、遷移はカード全体ではなく明示したリンクだけにする。
+function ExternalIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3H3.8A.8.8 0 0 0 3 3.8v8.4a.8.8 0 0 0 .8.8h8.4a.8.8 0 0 0 .8-.8V10" />
+      <path d="M9.5 2.5H13.5V6.5" />
+      <path d="M13.5 2.5 7.5 8.5" />
+    </svg>
+  );
+}
+
+function ToolCard({ t }: { t: Tool }) {
+  // 海外ツールは日本語ページがあればそちらを主リンクにし、英語ページは補助リンクで残す
+  const jaPrimary = t.country === "海外" && t.jaUrl ? t.jaUrl : undefined;
+  const primary = jaPrimary ?? t.url;
+  const secondary = jaPrimary && jaPrimary !== t.url ? t.url : undefined;
+  return (
+    <article className="flex flex-col rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${TOOL_TYPE_COLOR[t.type]}`}>{TOOL_TYPE_LABEL[t.type]}</span>
+        {t.free && <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-ink">無料あり</span>}
+      </div>
+      <h3 className="mt-3 text-lg font-bold leading-snug tracking-tight">{t.name}</h3>
+      <p className="mt-0.5 text-xs text-mute">{t.vendor}</p>
+      <p className="mt-3 text-sm leading-relaxed">{t.note}</p>
+      <dl className="mt-4 space-y-2 border-t border-ink/10 pt-4 text-xs dark:border-paper/10">
+        <div className="flex gap-3">
+          <dt className="w-14 shrink-0 text-mute">料金</dt>
+          <dd className="font-semibold">{t.price}</dd>
+        </div>
+        {t.engines.length > 0 && (
+          <div className="flex gap-3">
+            <dt className="w-14 shrink-0 text-mute">対象</dt>
+            <dd className="flex flex-wrap gap-1">
+              {t.engines.map((e) => (
+                <span key={e} className="rounded-full border border-ink/15 px-2 py-0.5 dark:border-paper/15">{e}</span>
+              ))}
+            </dd>
+          </div>
+        )}
+      </dl>
+      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-5">
+        <a
+          href={primary}
+          target="_blank"
+          rel="noopener"
+          aria-label={`${t.name} の公式ページを外部サイトの新しいタブで開く`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-bold text-paper transition hover:opacity-80 dark:bg-paper dark:text-ink"
+        >
+          公式ページ{jaPrimary ? "（日本語）" : ""}を開く
+          <ExternalIcon />
+        </a>
+        {secondary && (
+          <a href={secondary} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs text-mute underline underline-offset-4">
+            英語ページ
+            <ExternalIcon />
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ToolCards({ rows }: { rows: Tool[] }) {
   if (rows.length === 0) return <p className="text-sm text-mute">確認済みのツールはまだありません。</p>;
   return (
-    <div className="overflow-x-auto rounded-3xl border border-ink/10 dark:border-paper/10">
-      <table className="w-full min-w-[900px] text-sm">
-        <thead className="bg-ink/5 text-left text-xs uppercase tracking-wider text-mute dark:bg-paper/5">
-          <tr>
-            <th className="px-4 py-3">ツール</th>
-            <th className="px-4 py-3">種別</th>
-            <th className="px-4 py-3">対象</th>
-            <th className="px-4 py-3">料金</th>
-            <th className="px-4 py-3">特徴</th>
-            <th className="px-4 py-3">確認日</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((t) => (
-            <tr key={t.name} className="border-t border-ink/10 align-top dark:border-paper/10">
-              <td className="px-4 py-4">
-                <a href={t.jaUrl ?? t.url} target="_blank" rel="noopener" className="font-semibold underline decoration-accent decoration-2 underline-offset-4">{t.name}</a>
-                <div className="mt-1 text-xs text-mute">{t.vendor}{t.jaUrl && t.country === "海外" ? " · 日本語ページあり" : ""}</div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${TOOL_TYPE_COLOR[t.type]}`}>{TOOL_TYPE_LABEL[t.type]}</span>
-              </td>
-              <td className="px-4 py-4 text-xs">{t.engines.join("、")}</td>
-              <td className="px-4 py-4 whitespace-nowrap">{t.free && <span className="mr-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-ink">無料あり</span>}{t.price}</td>
-              <td className="px-4 py-4 text-xs text-mute">{t.note}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-xs text-mute">{t.verified}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {rows.map((t) => (
+        <ToolCard key={t.name} t={t} />
+      ))}
     </div>
   );
 }
@@ -84,6 +124,8 @@ export default function ToolsPage() {
   return (
     <>
       <JsonLd data={itemListJsonLd} />
+      {/* 更新日は掲載ツールの最終確認日。掲載内容が実際に変わるのはここだけ。 */}
+      <PageDatesJsonLd path="/tools" name="SEO・GEOツール比較一覧（国内・海外）" updated={updated} />
       <PageHeader
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
         title="SEO・GEOツール比較"
@@ -124,14 +166,23 @@ export default function ToolsPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-            <p className="mb-2 inline-block rounded-full bg-geo px-2.5 py-1 text-[11px] font-bold text-white">AI可視性計測</p>
-            <p className="text-sm leading-relaxed">決めた質問をAIに定期的に投げ、回答に自社名・自社URLが出た割合と競合比較を出す。測れるのは「ツールが投げた質問への回答」で、実ユーザーの回答ではない。</p>
-          </div>
-          <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
-            <p className="mb-2 inline-block rounded-full bg-geo/70 px-2.5 py-1 text-[11px] font-bold text-white">AI対応診断</p>
-            <p className="text-sm leading-relaxed">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。AIに「出るか」ではなく「読めるか」のチェック。多くは無料で、SEOの技術監査とほぼ同じ項目。</p>
+        {/* 比較表の「種別」バッジの用語解説。表より前に置き、GEOツールが別物の2種類であることを先に伝える */}
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight">GEOツールは別物の2種類</h2>
+          <p className="mb-4 mt-1 text-sm text-mute">
+            下の比較表の「種別」列は、この2つ（と両方を持つ「計測＋診断」）で分けています。目的が違うので、どちらが要るかを決めてから表を見てください。
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <p className="mb-2 inline-block rounded-full bg-geo px-2.5 py-1 text-[11px] font-bold text-white">AI可視性計測</p>
+              <p className="text-sm font-semibold">AIの回答に自社が「出るか」を測る</p>
+              <p className="mt-2 text-sm leading-relaxed text-mute">決めた質問をAIに定期的に投げ、回答に自社名・自社URLが出た割合と競合比較を出す。測れるのは「ツールが投げた質問への回答」で、実ユーザーの回答ではない。多くは有料・継続契約。</p>
+            </div>
+            <div className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <p className="mb-2 inline-block rounded-full bg-geo/70 px-2.5 py-1 text-[11px] font-bold text-white">AI対応診断</p>
+              <p className="text-sm font-semibold">そのページをAIが「読めるか」を調べる</p>
+              <p className="mt-2 text-sm leading-relaxed text-mute">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。多くは無料で、SEOの技術監査とほぼ同じ項目。上の<Link href="/tools/page-audit" className="underline decoration-accent decoration-2 underline-offset-4">ページ診断</Link>もこの種別。</p>
+            </div>
           </div>
         </section>
 
@@ -139,18 +190,20 @@ export default function ToolsPage() {
           <section key={s.id} id={s.id} className="scroll-mt-24">
             <h2 className="text-2xl font-bold tracking-tight">{s.title}</h2>
             <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
-            <ToolTable rows={s.rows} />
+            <ToolCards rows={s.rows} />
           </section>
         ))}
 
         <section className="rounded-3xl bg-ink p-6 text-sm text-paper dark:bg-paper dark:text-ink sm:p-8">
           <h2 className="text-lg font-bold">掲載基準</h2>
           <ul className="mt-3 list-disc space-y-1 pl-5 opacity-80">
-            <li>運営者が公式ページで機能・料金を確認できたものだけを載せています（確認日を表示）。</li>
+            <li>運営者が公式ページで機能・料金を確認できたものだけを載せています（最終確認 {updated}）。</li>
             <li>新ツールの発表は{SITE_NAME}の収集システムが日次で検知し、確認後に追記します。掲載依頼・誤りの指摘は公式Xまで。</li>
             <li>掲載は推奨ではありません。料金・機能は変わるため、契約前に公式ページを確認してください。</li>
           </ul>
         </section>
+
+        <NextStep links={siblingPages("/tools")} />
       </div>
     </>
   );

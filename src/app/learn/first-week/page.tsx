@@ -135,16 +135,16 @@ export default function Lesson02() {
         <p>
           キーワードを詰め込む必要はありません。詰め込みは生成AIの回答内での可視性にもほとんど効果がないことが
           研究で報告されており、Googleのスパムポリシーでも問題として扱われています。
-          具体的な書き方は<Link href={lessonPath("writing")}>レッスン05</Link>で扱います。
+          具体的な書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱います。
         </p>
 
         <h3>6日目: AIクローラーの扱いを確認する</h3>
         <p>
           robots.txtに戻り、AI各社のクローラーを止めていないかを確認します。ChatGPTやPerplexityは、
           Googlebotとは別の自前のクローラーで巡回するため、Googlebotを許可していても、これらを拒否していれば
-          その事業者の回答には出ません。ボット名の一覧と各社の公式な説明は
-          <Link href="/tools/ai-crawlers">AIクローラー確認ツール</Link>にまとめています。
-          設定の方針は<Link href={lessonPath("geo-implementation")}>レッスン07</Link>で決めます。
+          その事業者の回答には出ません。いまの許可状況は<Link href="/tools/page-audit">ページ診断</Link>にURLを入れると分かります。
+          ボット名の一覧と各社の公式な説明、設定の方針は
+          <Link href={lessonPath("geo-implementation")}>レッスン09</Link>にまとめています。
         </p>
 
         <h3>7日目: 改善前の数値を記録する</h3>
@@ -203,7 +203,7 @@ export default function Lesson02() {
               "ChatGPTの回答に出てこない",
               "OAI-SearchBotをrobots.txtで拒否している",
               "/robots.txt のUser-agent指定",
-              "方針を決めたうえで許可する（レッスン07）",
+              "方針を決めたうえで許可する（レッスン09）",
             ],
           ]}
           caption={
@@ -224,7 +224,7 @@ export default function Lesson02() {
         </p>
         <p>
           インデックス登録レポートに出る理由ごとの対処（noindex・robots.txt・代替ページ・クロール済み未登録・ソフト404など）は、
-          <Link href={`${lessonPath("technical")}#not-indexed`}>レッスン04の「未インデックスの対処法」</Link>にまとめています。
+          <Link href={`${lessonPath("technical")}#not-indexed`}>レッスン05の「未インデックスの対処法」</Link>にまとめています。
         </p>
       </GuideSection>
 
@@ -246,7 +246,7 @@ export default function Lesson02() {
         <p>
           記録の形式は問いません。スプレッドシートでも、テキストファイルでも構いません。重要なのは、
           <strong>日付と一緒に残すこと</strong>と、<strong>施策を始めた日もメモすること</strong>です。
-          見る頻度と判断の基準は<Link href={lessonPath("measurement")}>レッスン08</Link>で決めます。
+          見る頻度と判断の基準は<Link href={lessonPath("measurement")}>レッスン10</Link>で決めます。
         </p>
       </GuideSection>
 

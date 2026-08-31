@@ -9,6 +9,11 @@ export const SITE_URL = (
   "http://localhost:3000"
 ).replace(/\/$/, "");
 
+// 構造化データ用のロゴ。OGP画像（1200x630の横長）ではなく正方形を指す
+// （Organization.logo にはOGP用の横長比率ではなく正方形〜近い比率の画像を使う）。
+// 実体は src/app/icon-512.png/route.tsx が next/og で生成するPNG。
+export const SITE_LOGO = { url: `${SITE_URL}/icon-512.png`, width: 512, height: 512 };
+
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "SEO GEO Lab";
 
 export const SITE_DESCRIPTION =
@@ -17,8 +22,8 @@ export const SITE_DESCRIPTION =
 // AI検索エンジンがブランド名の表記ゆれを別エンティティと誤認しないようOrganizationのalternateNameに束ねる。
 export const SITE_ALTERNATE_NAMES = [SITE_NAME, "SEO・GEO Lab", "SEOGEOラボ"];
 
-// 公式Xアカウント。未開設の間は空文字にしておくとフォロー導線・twitter:siteが出ない。
-export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "";
+// 公式Xアカウント。空文字にするとフォロー導線・twitter:site・rel="me" が出なくなる。
+export const X_SCREEN_NAME = process.env.NEXT_PUBLIC_X_SCREEN_NAME || "seogeolab";
 export const X_PROFILE_URL = X_SCREEN_NAME ? `https://x.com/${X_SCREEN_NAME}` : "";
 export const X_HANDLE = X_SCREEN_NAME ? `@${X_SCREEN_NAME}` : undefined;
 
@@ -42,7 +47,7 @@ export const ORGANIZATION_CONTACT_POINT = CONTACT_EMAIL
     : undefined;
 
 // ポリシー類の最終改定日。プライバシーポリシー・免責事項の表示とsitemapのlastmodに使う。
-export const POLICY_UPDATED = "2026-08-29";
+export const POLICY_UPDATED = "2026-08-31";
 export const POLICY_UPDATED_LABEL = POLICY_UPDATED.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
 
 // 記事カテゴリ。記事frontmatterの category と一致させる。

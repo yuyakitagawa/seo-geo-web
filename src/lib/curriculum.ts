@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
 import { SITE_NAME, SITE_URL } from "./site";
 
-// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル10レッスンに分け、
+// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル13レッスンに分け、
 // 前提 → 実装 → 運用の順に積めるようにしたもの。
 // 各レッスンの本文は src/app/learn/<slug>/page.tsx にあり、ここには
 // 「見出し・到達目標・チェックリスト・FAQ・出典」など、目次ページ・JSON-LD・llms.txt が
@@ -20,7 +20,7 @@ export const LEVELS: Record<LevelKey, { label: string; name: string; lead: strin
   2: {
     label: "Level 2",
     name: "実装 — 作る・直す",
-    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、サイト構造、AIクローラーへの対応を、この順番で仕上げる。",
+    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を、この順番で仕上げる。",
     tone: "seo",
   },
   3: {
@@ -35,7 +35,7 @@ export const LEVEL_KEYS: LevelKey[] = [1, 2, 3];
 
 export type Lesson = {
   slug: string;
-  /** 1〜10。目次と前後ナビの順序 */
+  /** 1〜13。目次と前後ナビの順序 */
   order: number;
   level: LevelKey;
   /** 目次・パンくず・前後ナビで使う短いタイトル */
@@ -73,6 +73,8 @@ const S = {
   canonical: { title: "重複した URL を統合する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja" },
   sitemaps: { title: "サイトマップの作成と送信", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja" },
   crawlers: { title: "Google の一般的なクローラー", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers?hl=ja" },
+  jsBasics: { title: "JavaScript の基本を理解する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja" },
+  verifyGooglebot: { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
   titleLink: { title: "Google 検索結果のタイトルリンクを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/title-link?hl=ja" },
   snippet: { title: "スニペットを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/snippet?hl=ja" },
   coreUpdates: { title: "Google 検索のランキング アップデート", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/updates/core-updates?hl=ja" },
@@ -110,12 +112,12 @@ const S = {
 export const COURSE = {
   path: "/learn",
   h1: "SEO・GEO教科書",
-  metaTitle: "SEO・GEO教科書｜10レッスンで基礎から運用まで（実例つき）",
+  metaTitle: "SEO・GEO教科書｜13レッスンで基礎から運用まで（実例つき）",
   description:
-    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル10レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
-  lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から10まで通すと、自分のサイトを検索と生成AIの両方に対応させ、数値で確認しながら運用できるようになります。",
+    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル13レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
+  lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から13まで通すと、自分のサイトを検索と生成AIの両方に対応させ、指名で想起される状態まで、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
-  updated: "2026-08-30",
+  updated: "2026-08-31",
 };
 
 export const LESSONS: Lesson[] = [
@@ -268,26 +270,78 @@ export const LESSONS: Lesson[] = [
     updated: "2026-08-30",
   },
   {
-    slug: "technical",
+    slug: "long-tail",
     order: 4,
+    level: 1,
+    title: "ロングテール設計",
+    h1: "ロングテール設計：細かい質問を面で押さえる",
+    metaTitle: "ロングテールSEOのやり方｜細かい検索を面で押さえるページ設計",
+    description:
+      "検索の大半を占める細かいクエリを、1本ずつではなく面で押さえる設計です。掛け合わせの軸の決め方、Search Consoleから拾う手順、AI検索のクエリ ファンアウトで効く理由、薄いページの量産がスパムになる線引きまで扱います。",
+    goal: "どの軸を掛け合わせて何ページ作るかを、薄い量産にならない範囲で自分で決められるようになる。",
+    objectives: [
+      "検索需要の分布（少数の太いクエリと、多数の細かいクエリ）と、どちらから取るかの判断",
+      "掛け合わせの軸（対象 × 条件 × 目的）でクエリ空間を面で埋めるページ設計",
+      "AIによる概要・AIモードの「クエリ ファンアウト」で、細かい質問に答えるページが候補になる理由",
+      "薄いページの量産がスパムポリシーに当たる線引きと、それを越えないための条件",
+    ],
+    minutes: 13,
+    checklist: [
+      "自分のサイトの主要テーマについて、掛け合わせの軸を2つ以上書き出した",
+      "その軸で作れるページを一覧にし、実際に固有の答えを持っているものだけに絞り込んだ",
+      "Search Consoleで表示回数の少ないクエリを50件抽出し、対応ページの有無を確認した",
+      "各ページについて「他のページには書けない情報」を1つずつ挙げられる",
+      "作ったページ群を束ねる一覧ページ（ハブ）と、そこへの内部リンクを決めた",
+    ],
+    faq: [
+      {
+        question: "ロングテールSEOはGoogleの公式用語ですか",
+        answer:
+          "公式用語ではありません。Googleのドキュメントに「ロングテール」という区分はなく、これは検索需要の分布を説明するために業界で使われてきた言い方です。Googleが公式に述べているのは、ユーザーの役に立つコンテンツを作ること、そしてAIによる概要とAIモードが1つの質問を複数のサブトピックに分解する「クエリ ファンアウト」という手法を使う場合があることです。ロングテール設計は、この2つに沿ってページの粒度を決めるための、当サイトの整理だと考えてください。",
+      },
+      {
+        question: "ページ数は多いほうが有利ですか",
+        answer:
+          "数そのものは評価されません。Googleはスパムに関するポリシーで「スケーリングされたコンテンツの不正使用」を挙げており、検索結果のランキング操作を主な目的として多数のページを生成する行為を対象としています。判断されるのは生成方法ではなく目的と中身なので、1ページごとに他では得られない情報があるかどうかが線引きになります。答えを持っていない軸まで機械的に掛け合わせた時点で、この線を越えます。",
+      },
+      {
+        question: "AIで大量に記事を作るのは違反になりますか",
+        answer:
+          "AIを使うこと自体は違反ではありません。Googleは、コンテンツの制作方法ではなく品質で評価すると説明しており、自動化を理由に順位を下げるとは述べていません。違反になるのは、検索順位の操作を主な目的として量産する場合です。実務上の分かれ目は、そのページに一次情報・実際の検証・固有の判断が入っているかどうかで、これは人が書いてもAIが書いても同じ基準です。",
+      },
+      {
+        question: "細かいクエリは1ページあたりの流入が少なすぎませんか",
+        answer:
+          "1本単位で見ると少ないのが正常です。ロングテールは、1本の流入ではなく群としての合計と、意図の明確さで評価します。細かいクエリほど利用者の状況が具体的なため、読了率や次の行動につながりやすくなります。ただし、単発のページが並んでいるだけでは群になりません。一覧ページで束ね、内部リンクでつなぐところまでがこのレッスンの範囲です。",
+      },
+    ],
+    sources: [S.starter, S.helpful, S.spam, S.aiContent, S.aiFeatures, S.perf, S.canonical],
+    published: "2026-08-31",
+    updated: "2026-08-31",
+  },
+  {
+    slug: "technical",
+    order: 5,
     level: 2,
     title: "テクニカルSEO実装",
     h1: "テクニカルSEO実装：クロール・インデックス・表示速度",
     metaTitle: "テクニカルSEO実装｜robots・canonical・構造化データ・Core Web Vitals",
     description:
-      "robots.txtとnoindexの使い分け、未インデックスの理由別の対処、canonicalによる重複統合、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
+      "robots.txtとnoindexの使い分け、JavaScriptのレンダリング、未インデックスの理由別の対処、canonicalによる重複統合、サイトマップ、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
     goal: "検索エンジンがページを取得し、正しく理解し、快適に表示できる状態を自分で作れるようになる。",
     objectives: [
       "robots.txt（クロールの制御）とnoindex（インデックスの制御）の使い分け",
+      "JavaScriptで描画した本文がインデックスに入りにくい理由と、偽のGooglebotの見分け方",
       "インデックス未登録の切り分けと、レポートに出る理由ごとの対処",
       "クロールの統計情報で見る訪問頻度と、取得されているファイルの内訳（HTMLが主か）",
       "canonical・301リダイレクト・サイトマップで重複と正規URLを整理する",
       "構造化データの選び方と、ページ表示との一致という条件",
       "LCP・INP・CLSそれぞれの代表的な原因と、実際に効果が報告された直し方",
     ],
-    minutes: 24,
+    minutes: 28,
     checklist: [
       "robots.txtでDisallowにしているパスと、noindexにしているページを一覧にできた",
+      "URL検査の「クロール済みのページ」で、重要な見出し・本文・内部リンクが最初のHTMLに入っていることを確認した",
       "登録されていない重要ページについて、URL検査で理由を確認し、設定由来か中身由来かを切り分けた",
       "クロールの統計情報で、レスポンス別・ファイル形式別の内訳を確認し、HTMLが上位にあるかを見た",
       "同じ内容が複数URLで見える箇所を洗い出し、canonicalか301で1本化した",
@@ -337,13 +391,13 @@ export const LESSONS: Lesson[] = [
           "必須ではありません。Googleは、Googleニュースやトップニュース枠への掲載にAMPを必須とはしておらず、通常のページでCore Web Vitalsを満たせば同じ扱いを受けられます。過去の成功事例にAMPが登場するのは、当時の実装として選ばれたためです。いまから始める場合は、通常のページの表示速度を直すほうが優先です。",
       },
     ],
-    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.crawlStats, S.crawlBudget, S.crawlResources, S.crawlCaching, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
+    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.jsBasics, S.verifyGooglebot, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe, S.indexReport, S.urlInspection, S.crawlStats, S.crawlBudget, S.crawlResources, S.crawlCaching],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
   {
     slug: "writing",
-    order: 5,
+    order: 6,
     level: 2,
     title: "引用される本文の書き方",
     h1: "引用される本文の書き方：直答・パッセージ・E-E-A-T",
@@ -393,7 +447,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "structure",
-    order: 6,
+    order: 7,
     level: 2,
     title: "サイト構造と内部リンク",
     h1: "サイト構造と内部リンク：トピッククラスタで積み上げる",
@@ -455,8 +509,65 @@ export const LESSONS: Lesson[] = [
     updated: "2026-08-31",
   },
   {
+    slug: "domain",
+    order: 8,
+    level: 2,
+    title: "ドメイン構造",
+    h1: "ドメイン構造：サブドメインとサブディレクトリ、ホスト名の統一",
+    metaTitle: "ドメイン構造｜サブドメインとサブディレクトリの選び方・www有無の統一",
+    description:
+      "コンテンツをどのドメインに置くかを決めるレッスンです。サブドメインとサブディレクトリで運用の単位がどう変わるか、www有無やhttpsで分かれたホストをどう1本に寄せるか、中古ドメインの何が禁止されているかを整理します。",
+    goal: "新しいコンテンツをサブドメインとサブディレクトリのどちらに置くかを理由つきで決め、サイトのホスト名を1つに統一できるようになる。",
+    objectives: [
+      "ドメイン・サブドメイン・サブディレクトリで、何が別の単位になるのか",
+      "ブログやヘルプを分けるかどうかの判断基準",
+      "www有無・http/httpsなど、同じ内容が複数のホストで見える状態の畳み方",
+      "検証環境やプレビューURLが検索結果に出ないようにする",
+      "中古ドメイン（期限切れドメイン）とサブディレクトリの貸し出しで禁止されていること",
+    ],
+    minutes: 13,
+    checklist: [
+      "サイトのホスト名を1つ（www有無・httpsの有無を含めて）に決め、他は301でそこへ寄せてある",
+      "canonicalが常に本番のホスト名を指している（プレビュー環境でも本番URLになる）",
+      "サブドメインを使っている場合、そのサブドメインにもrobots.txtとサイトマップを置いてある",
+      "サブドメインごとにSearch Consoleで数値を確認できる状態にした（ドメインプロパティ、または個別プロパティ）",
+      "新しいコンテンツをサブディレクトリに置くか、サブドメインに分けるかの基準を決めた",
+      "検証環境・ステージング環境が、認証かnoindexで検索結果に出ないようにしてある",
+    ],
+    faq: [
+      {
+        question: "サブドメインとサブディレクトリでは、どちらがSEOに有利ですか",
+        answer:
+          "どちらが有利かをGoogleが公式に示している説明はありません。実務で確実に違うのは、運用の単位です。robots.txtはホストごとに置く必要があり、サイトマップは原則として同じホストのURLだけを載せます。Search Consoleも、URLプレフィックスプロパティではホストごとに分かれます。分けた数だけ設定と確認の手間が増えるため、分ける理由が無ければサブディレクトリにまとめるほうが運用は軽くなります。",
+      },
+      {
+        question: "wwwありとwwwなしは、どちらにすべきですか",
+        answer:
+          "どちらでも構いません。重要なのは片方に統一することです。www有無、httpとhttps、末尾スラッシュの有無は、それぞれ別のURLとして見えるため、同じ内容が複数のURLで表示される状態になります。使うほうを1つ決め、もう一方からは301リダイレクトし、canonicalも統一したURLを指すようにします。",
+      },
+      {
+        question: "中古ドメイン（期限切れドメイン）を買ってサイトを始めてもよいですか",
+        answer:
+          "Googleはウェブ検索のスパムに関するポリシーで「期限切れドメインの不正使用」を挙げており、過去のドメインの評価を利用する目的で、以前のサイトとほぼ関係のないコンテンツを載せる使い方を禁止しています。ドメインを買うこと自体が禁止されているわけではありませんが、評価を引き継ぐ手段として買うのであれば、ポリシー違反の側に入ります。",
+      },
+      {
+        question: "自社サイトのサブディレクトリを外部の業者に貸すのは問題ありますか",
+        answer:
+          "スパムポリシーの「サイトの評判の不正使用」に該当し得ます。第三者のコンテンツを、そのサイトの評価を利用する目的で、運営者の監督がほとんど無いまま掲載する形が対象です。サブディレクトリかサブドメインかという置き場所ではなく、誰が作り、誰が責任を持つコンテンツなのかで判断されます。",
+      },
+      {
+        question: "開発中のプレビューURLが検索結果に出てしまいました",
+        answer:
+          "検証環境が本番と同じ内容で公開されていると、別ホストに同じ内容がある状態になります。対処は、Basic認証などでアクセス自体を制限するのが確実です。公開したまま止める場合はnoindexを使います。robots.txtでのブロックは、クロールを止めるだけでインデックス済みのURLを消す手段ではありません。あわせて、canonicalが常に本番のホスト名を指すようにしておきます。",
+      },
+    ],
+    sources: [S.starter, S.essentials, S.canonical, S.robots, S.noindex, S.sitemaps, S.spam, S.siteMove],
+    published: "2026-08-31",
+    updated: "2026-08-31",
+  },
+  {
     slug: "geo-implementation",
-    order: 7,
+    order: 9,
     level: 2,
     title: "GEO実装",
     h1: "GEO実装：AIクローラーの許可と、引用される形に整える",
@@ -506,7 +617,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "measurement",
-    order: 8,
+    order: 10,
     level: 3,
     title: "計測と改善サイクル",
     h1: "計測と改善サイクル：何を見て、いつ判断するか",
@@ -564,7 +675,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "case-studies",
-    order: 9,
+    order: 11,
     level: 3,
     title: "実例：強いサイトがやったこと",
     h1: "実例：検索とAIに強いサイトが実際にやったこと",
@@ -608,7 +719,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "updates-risk",
-    order: 10,
+    order: 12,
     level: 3,
     title: "アップデート対応とリスク管理",
     h1: "アップデート対応とリスク管理：落ちたときに何をするか",
@@ -655,6 +766,63 @@ export const LESSONS: Lesson[] = [
     published: "2026-08-30",
     updated: "2026-08-30",
   },
+  {
+    slug: "brand-entity",
+    order: 13,
+    level: 3,
+    title: "ブランドをAIに覚えさせる",
+    h1: "ブランドをAIに覚えさせる：エンティティを束ね、指名で想起される状態を作る",
+    metaTitle: "ブランドをAIに覚えさせる｜表記の統一と第三者言及でAIに想起させる",
+    description:
+      "AI検索はページを読む前に候補のブランドを決めています。表記を1つのエンティティに束ね、第三者の文脈で「カテゴリ名＋ブランド名」が並ぶ状態を作り、他社が引用できる独自データを出すまでを、検証できる手順にまとめます。",
+    goal: "自社がAIの回答候補に入らない原因を「表記の分裂」「第三者言及の不足」「引用材料の不足」に切り分け、それぞれの直し方を実行できるようになる。",
+    objectives: [
+      "AIにとってのブランド力とは何か。検索するクエリを決める時点でAIの知識が働くこと",
+      "表記ゆれを1つのエンティティに束ねる実装（正式表記・別表記・外部プロフィール・同じ定義文）",
+      "第三者の文脈で「カテゴリ名＋ブランド名」を並べる方法と、自称や受賞バッジが効かない理由",
+      "引用される独自データの作り方。調査日・対象件数・調べ方の3点セット",
+      "指名想起の定点観測。認知・説明の正確さ・指名なしの想起を分けて記録する",
+    ],
+    minutes: 14,
+    checklist: [
+      "自社の主要カテゴリの質問を生成AIに投げ、回答に自社名が出るかを記録した",
+      "ブランド名の正式表記を1つ決め、カタカナ・英字・略称の対応を公式ページに書いた",
+      "Organizationの構造化データに、正式表記・別表記（alternateName）・外部プロフィール（sameAs）を入れた",
+      "サイトの説明文が、トップ・OGP・運営者情報・llms.txtで同じ1文にそろっている",
+      "第三者のページで「カテゴリ名＋ブランド名」が並んでいる箇所を3件以上挙げられる",
+      "他社が引用できる独自データを1つ持ち、調査日・対象件数・調べ方を併記している",
+    ],
+    faq: [
+      {
+        question: "自社サイトに「業界No.1」と書けば、AIはブランドを覚えますか",
+        answer:
+          "自社ページに書いた自己評価は、AIから見ると裏取り先のない自称です。Googleはスパムに関するポリシーで、検索順位の操作を主な目的とした内容を対象としており、自己申告の肩書きを増やすこと自体が評価につながるとは説明していません。順序としては、第三者のページで「カテゴリ名＋ブランド名」が並ぶ状態を先に作り、自社ページはその裏付けとして整えます。",
+      },
+      {
+        question: "賞を取るとAIが認識するブランド力は上がりますか",
+        answer:
+          "効いているのは賞そのものではなく、第三者が名前を出して言及したという事実です。実在する第三者の賞は、告知や報道という形で外部の言及を生むため有効に働きます。一方、自称の肩書きや費用を払えば掲載されるバッジは、外部に裏取り先がないため自社ページの主張1件と同じ扱いになります。個人・小規模の運営であれば、賞を追うより引用される独自データを出すほうが費用対効果は高くなります。",
+      },
+      {
+        question: "ブランド名はカタカナと英字のどちらを正式表記にすべきですか",
+        answer:
+          "第三者が自然に書くほうを正式表記にします。レビューやSNSでカタカナが多いならカタカナです。公式だけが英字で、世の中がカタカナで呼んでいる状態がもっとも候補から漏れます。正式表記を決めたら、残りの表記は構造化データのalternateNameにまとめて、同じ1つの存在であることを示します。",
+      },
+      {
+        question: "llms.txtを置けばAIに覚えてもらえますか",
+        answer:
+          "いいえ。llms.txtはサイトの概要と主要URLを平文で置く提案仕様で、設置しただけで回答に出るようになるものではありません。Googleも、AI機能で表示されるために新しいファイルやマークアップを作成する必要はないと明記しています。ブランドを覚えさせる作業は、表記の統一と第三者の言及という別の軸にあります。",
+      },
+      {
+        question: "どのくらいの期間で効果が出ますか",
+        answer:
+          "期間を断定できる公開データはありません。代わりに、月1回同じ質問を投げて、ブランド名を知っているか、説明が正しいか、指名しなくても候補に挙がるかの3段階を分けて記録します。多くの場合この順に変化するため、指名なしの想起がまだ出ていなくても、前の2段階が動いていれば進んでいると判断できます。",
+      },
+    ],
+    sources: [S.geoPaper, S.structuredData, S.aiFeatures, S.helpful, S.spam],
+    published: "2026-08-31",
+    updated: "2026-08-31",
+  },
 ];
 
 const BY_SLUG = new Map(LESSONS.map((l) => [l.slug, l]));
@@ -672,6 +840,14 @@ export function requireLesson(slug: string): Lesson {
   const l = BY_SLUG.get(slug);
   if (!l) throw new Error(`curriculum.ts: unknown lesson slug "${slug}"`);
   return l;
+}
+
+/**
+ * 本文中で「レッスン05」と書くための番号。レッスンを追加・並べ替えしても文中の番号がずれないよう、
+ * 番号は必ずここから引く（手で書いた番号は order を変えた時点で嘘になる）。
+ */
+export function lessonNo(slug: string): string {
+  return String(requireLesson(slug).order).padStart(2, "0");
 }
 
 export function lessonsByLevel(level: LevelKey): Lesson[] {
@@ -759,7 +935,7 @@ const OG_PIXELS = { width: 1200, height: 630 };
  *
  * `openGraph` を自前で持つページには、上位セグメントの `opengraph-image.tsx` が
  * **自動では引き継がれない**（`/tools/page-audit` のように openGraph を書いていない
- * ページは引き継がれる）。明示しないとレッスン10ページだけ og:image が消えるので、
+ * ページは引き継がれる）。明示しないとレッスン11ページだけ og:image が消えるので、
  * `/learn` の画像を images に入れる。
  */
 export function lessonMetadata(lesson: Lesson): Metadata {
