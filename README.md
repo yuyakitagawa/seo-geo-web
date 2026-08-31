@@ -18,7 +18,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
 | `/news` | 記事アーカイブ。新着12本＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
-| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEOとは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
+| `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋手順＋FAQ＋一次情報。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/learn` | SEO・GEO教科書の目次。3レベル10レッスンのロードマップ（Article + ItemList JSON-LD）。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD） |
@@ -147,7 +147,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   |---|---|---|
   | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
   | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
-  | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEOとは」 |
+  | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
   | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**10レッスン全部** | 「SEO・GEO教科書」 |
   | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
   | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
@@ -202,7 +202,7 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
 - **JSON-LD はインデント付きで出力する**（`src/components/JsonLd.tsx`）。本文HTMLはReactが1行に詰めるため、
   ページのソースを開いた読者が手本として読めるのは構造化データだけになる。gzip後の増分は1ページあたり数十バイト。
-- **用語の解説ページ `/seo` `/geo`**: 「SEO対策とは」「GEOとは」という定義クエリの受け皿。
+- **用語の解説ページ `/seo` `/geo`**: 「SEO対策とは」「GEO対策とは」という定義クエリの受け皿。
   定義文・要点・FAQ・出典・更新日を `src/lib/guides.ts` の1か所に持ち、**可視テキスト・JSON-LD（DefinedTerm / FAQPage）・llms.txt が同じ文字列を使う**。
   記事（フロー）と違い日付で古くならないストックページなので、sitemap の priority はトップの次に高い 0.9。
   事実は各社の公式ドキュメント（Google 検索セントラル / OpenAI / Perplexity / Anthropic / arXiv / web.dev）で裏取りし、citation に入れている。
@@ -210,7 +210,7 @@ npm run html -- .next/server/app/index.html      # ファイルでも
   説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
   「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
   語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
-- **教科書 `/learn`**: 「SEO対策とは」「GEOとは」の次に読む、順番の決まった10レッスン。
+- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった10レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。

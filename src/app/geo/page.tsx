@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 const TOC = [
-  { id: "definition", label: "GEOとは（定義）" },
+  { id: "definition", label: "GEO対策とは（定義）" },
   { id: "names", label: "GEO・AIO・LLMO・AEOの違い" },
   { id: "vs-seo", label: "SEOとGEOの違い" },
   { id: "how", label: "AIの回答に引用されるまでの経路" },
@@ -51,8 +51,8 @@ export default function GeoGuidePage() {
 
         <GuideSection
           id="definition"
-          title="GEOとは（定義）"
-          lead="GEO（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。"
+          title="GEO対策とは（定義）"
+          lead="GEO対策（Generative Engine Optimization／生成AI検索最適化）とは、ChatGPT・Gemini・GoogleのAIによる概要／AIモード・Perplexityといった生成AIが組み立てる回答の中で、自社の情報が引用・言及されるようにする取り組みのことです。検索結果の順位を上げる従来のSEOと違い、AIが回答を作るときの参照元として選ばれることを目標にします。"
         >
           <p>
             用語の初出は、2023年11月にarXivで公開された論文「GEO: Generative Engine Optimization」（Aggarwalほか）です。この論文は、
