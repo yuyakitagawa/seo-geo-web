@@ -39,7 +39,7 @@ export default function Lesson11() {
           stats={[
             { value: `${CASES.length}件`, label: "収録している事例", note: "施策と数値が同じ文書で公開されているもの" },
             { value: "3件", label: "日本のサイト", note: "楽天レシピ・Yahoo! JAPANニュース・Rakuten 24" },
-            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン05・08で扱った作業に対応" },
+            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: `レッスン${lessonNo("technical")}・${lessonNo("geo-implementation")}で扱った作業に対応` },
           ]}
         />
         <GuideTable
@@ -146,17 +146,17 @@ export default function Lesson11() {
             [
               "① 土台から順に積む",
               "インデックス登録・robots.txt・canonicalの確認が済んでいるか",
-              <Link key="l2" href={lessonPath("first-week")}>レッスン02</Link>,
+              <Link key="l2" href={lessonPath("first-week")}>レッスン{lessonNo("first-week")}</Link>,
             ],
             [
               "② テンプレート単位で直す",
               "構造化データやメタ情報が、テンプレートから一括で出力されているか",
-              <Link key="l4" href={lessonPath("technical")}>レッスン05</Link>,
+              <Link key="l4" href={lessonPath("technical")}>レッスン{lessonNo("technical")}</Link>,
             ],
             [
               "③ 1つの指標に絞る",
               "いま追いかけている指標が1つに決まっているか",
-              <Link key="l8" href={lessonPath("measurement")}>レッスン10</Link>,
+              <Link key="l8" href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>,
             ],
           ]}
         />
