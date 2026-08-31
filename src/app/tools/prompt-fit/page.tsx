@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import PromptFit from "@/components/PromptFit";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
 
 const PATH = "/tools/prompt-fit";
 const url = `${SITE_URL}${PATH}`;
@@ -92,7 +93,7 @@ export default function PromptFitToolPage() {
         crumbs={[{ name: "ツール", href: "/tools" }, { name: "プロンプト適合度" }]}
       />
 
-      <div className="mx-auto max-w-4xl space-y-14 px-5 py-14 sm:py-20">
+      <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>
         <p className="leading-relaxed text-mute">
           AI検索は、ページ全体ではなく質問に答えている箇所を切り出して引用します。
           だから「良い記事を書いたのに引用されない」ときの原因は、たいてい内容の質ではなく、
@@ -103,10 +104,10 @@ export default function PromptFitToolPage() {
         <PromptFit />
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">判定の手順</h2>
+          <h2 className={HEADING.section}>判定の手順</h2>
           <ol className="mt-4 space-y-4">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <li key={s.title} className={cx(SURFACE.outline, PADDING.tight)}>
                 <p className="font-bold">
                   <span className="mr-2 font-mono text-mute">{i + 1}</span>
                   {s.title}
@@ -117,7 +118,7 @@ export default function PromptFitToolPage() {
           </ol>
           <p className="mt-4 text-sm text-mute">
             title・構造化データ・robots.txt など、ページが読める状態かどうかは
-            <Link href="/tools/page-audit" className="underline decoration-accent decoration-2 underline-offset-4">
+            <Link href="/tools/page-audit" className={LINK}>
               SEO/GEO ページ診断
             </Link>
             が担当します。こちらは「何が書かれているか」だけを見ます。
@@ -125,10 +126,10 @@ export default function PromptFitToolPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold tracking-tight">よくある質問</h2>
+          <h2 className={HEADING.section}>よくある質問</h2>
           <dl className="space-y-5">
             {FAQ.map((f) => (
-              <div key={f.question} className="rounded-3xl border border-ink/10 p-6 dark:border-paper/10">
+              <div key={f.question} className={cx(SURFACE.outline, PADDING.tight)}>
                 <dt className="font-bold leading-snug">{f.question}</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-mute">{f.answer}</dd>
               </div>

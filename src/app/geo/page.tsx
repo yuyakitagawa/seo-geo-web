@@ -7,6 +7,7 @@ import { GuideAnswer, GuideCitation, GuideCrossLinks, GuideFaq, GuideLessonCta, 
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
+import { PROSE, cx } from "@/lib/ui";
 
 const guide = GUIDES.geo;
 const url = `${SITE_URL}${guide.path}`;
@@ -45,7 +46,7 @@ export default function GeoGuidePage() {
       <JsonLd data={faqPageJsonLd(url, guide.faq)} />
       <PageHeader eyebrow={`Guide · 更新 ${jpDate(guide.updated)}`} title={guide.h1} lead={guide.description} crumbs={[{ name: guide.h1 }]} />
 
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert prose-headings:scroll-mt-24 sm:py-20">
+      <div className={cx(PROSE.page, "prose-headings:scroll-mt-24")}>
         <GuideAnswer guide={guide} />
         <GuideToc items={TOC} />
 

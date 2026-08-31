@@ -4,6 +4,7 @@ import { FigureDoDont, FigureFlow, FigureQuote } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
 import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { LINK } from "@/lib/ui";
 
 const lesson = requireLesson("updates-risk");
 
@@ -201,7 +202,7 @@ export default function Lesson12() {
         <FigureQuote
           text="コアアップデートによる変動は、必ずしもページに問題があることを示すものではありません"
           source={
-            <a href={REF.coreUpdates.href} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">
+            <a href={REF.coreUpdates.href} target="_blank" rel="noopener" className={LINK}>
               Google 検索セントラル「Google 検索のランキング アップデート」の説明にもとづく要約
             </a>
           }

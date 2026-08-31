@@ -24,6 +24,7 @@ import { supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { extractToc } from "@/lib/toc";
 import { CATEGORIES, SITE_URL, categoryHref } from "@/lib/site";
+import { CHIP, CONTAINER, EYEBROW, HEADING, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
 export const dynamicParams = false;
 
@@ -97,7 +98,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         <KeyVisual slug={article.slug} category={article.category} className="opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/55" />
         <div className="bg-grid absolute inset-0 opacity-50" />
-        <div className="relative mx-auto max-w-4xl px-5 pb-14 pt-16 sm:pb-20 sm:pt-24">
+        <div className={cx(CONTAINER.wide, "relative pb-14 pt-16 sm:pb-20 sm:pt-24")}>
           <Breadcrumbs
             items={[
               { name: CATEGORIES[article.category].label, href: categoryHref(article.category) },
@@ -117,7 +118,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-5">
+      <div className={CONTAINER.wide}>
         <KeyPoints article={article} />
 
         {superseded && (
@@ -133,7 +134,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         <Toc items={extractToc(article.body)} />
         <ArticleNextStep article={article} />
 
-        <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg">
+        <div className={cx(PROSE.body, "prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg")}>
           <MDXRemote
             source={article.body}
             components={MDX_FIGURES}
@@ -150,11 +151,11 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         </div>
 
         {article.sources.length > 0 && (
-          <section className="mt-12 rounded-3xl border border-ink/10 p-6 text-sm dark:border-paper/10">
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-mute">Sources · 一次情報</h2>
+          <section className={cx(SURFACE.outline, PADDING.tight, "mt-12 text-sm")}>
+            <h2 className={cx(EYEBROW.mute, "mb-3")}>Sources · 一次情報</h2>
             <ul className="space-y-2">
               {article.sources.map((s) => (
-                <li key={s.url}><a href={s.url} target="_blank" rel="noopener" className="underline decoration-accent decoration-2 underline-offset-4">{s.title}</a></li>
+                <li key={s.url}><a href={s.url} target="_blank" rel="noopener" className={LINK}>{s.title}</a></li>
               ))}
             </ul>
           </section>
@@ -163,7 +164,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         {article.tags.length > 0 && (
           <ul className="mt-8 flex flex-wrap gap-2 text-sm">
             {article.tags.map((t) => (
-              <li key={t}><Link href={`/tag/${encodeURIComponent(t)}`} className="inline-block rounded-full border border-ink/15 px-3 py-1.5 transition hover:bg-ink hover:text-paper dark:border-paper/15 dark:hover:bg-paper dark:hover:text-ink">#{t}</Link></li>
+              <li key={t}><Link href={`/tag/${encodeURIComponent(t)}`} className={CHIP}>#{t}</Link></li>
             ))}
           </ul>
         )}
@@ -174,8 +175,8 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       </div>
 
       {related.length > 0 && (
-        <section className="mx-auto mt-20 max-w-6xl px-5">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight">関連記事</h2>
+        <section className={cx(CONTAINER.page, "mt-20")}>
+          <h2 className={cx(HEADING.section, "mb-6")}>関連記事</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {related.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
           </div>

@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { HAS_CONTACT, POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
 import { FEED_SOURCES } from "../../../scripts/sources";
+import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "運営者情報",
@@ -64,7 +65,7 @@ export default function AboutPage() {
       <JsonLd data={faqPageJsonLd(`${SITE_URL}/about`, FAQ)} />
       <PageDatesJsonLd path="/about" name="運営者情報" updated={POLICY_UPDATED} />
       <PageHeader eyebrow="About" title="運営者情報" crumbs={[{ name: "運営者情報" }]} />
-      <div className="prose prose-neutral mx-auto max-w-3xl px-5 py-14 dark:prose-invert sm:py-20">
+      <div className={PROSE.page}>
       <h2>このサイトについて</h2>
       <p>
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の

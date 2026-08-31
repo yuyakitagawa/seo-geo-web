@@ -6,6 +6,8 @@ import { GUIDE_LIST } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
+import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
+import { Button, CardLink, Eyebrow } from "@/components/ui";
 
 export default function Home() {
   const articles = getAllArticles();
@@ -19,9 +21,9 @@ export default function Home() {
       <section className="relative overflow-hidden bg-ink text-paper">
         <div className="bg-grid absolute inset-0 opacity-50" />
         <div className="pointer-events-none absolute -right-32 -top-40 size-[28rem] rounded-full bg-accent/25 blur-[120px] animate-float" />
-        <div className="relative mx-auto max-w-6xl px-5 py-6 sm:py-10">
+        <div className={cx(CONTAINER.page, "relative py-6 sm:py-10")}>
           <div className="animate-rise">
-            <p className="mb-3 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-paper/60">
+            <p className="mb-3 inline-flex items-center gap-2 text-2xs font-medium uppercase tracking-[0.2em] text-paper/60">
               <span className="size-1.5 rounded-full bg-accent" /> 毎朝更新 · SEO &amp; GEO
             </p>
             <h1 className="text-[clamp(1.5rem,3.6vw,2.25rem)] font-bold leading-tight tracking-tight">
@@ -35,10 +37,10 @@ export default function Home() {
       </section>
 
       {/* Latest。ヒーロー直下に置き、ファーストビューで記事が見えるようにする */}
-      <section className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:pb-20 sm:pt-10">
+      <section className={cx(CONTAINER.page, "pb-16 pt-8 sm:pb-20 sm:pt-10")}>
         <div className="mb-5 flex items-end justify-between">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">新着</h2>
-          <Link href="/news" className="text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
+          <h2 className={cx(HEADING.section, "sm:text-3xl")}>新着</h2>
+          <Link href="/news" className={cx(LINK, "text-sm font-semibold")}>
             すべての記事（{articles.length}）
           </Link>
         </div>
@@ -46,21 +48,17 @@ export default function Home() {
       </section>
 
       {/* 用語の解説。定義クエリ（「SEO対策とは」「GEO対策とは」）の受け皿と、その先の教科書・ツールへトップから直接リンクする */}
-      <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-20">
-        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-mute">Guides · 解説・教科書・ツール</h2>
+      <section className={cx(CONTAINER.page, "pb-16 sm:pb-20")}>
+        <h2 className={cx(HEADING.label, "mb-6")}>Guides · 解説・教科書・ツール</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDE_LIST.map((g) => (
-            <Link
-              key={g.path}
-              href={g.path}
-              className="group rounded-3xl border border-ink/10 p-7 transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] dark:border-paper/10"
-            >
+            <CardLink key={g.path} href={g.path}>
               <span className={`mb-4 inline-block size-2.5 rounded-full ${CATEGORY_STYLE[g.category].dot}`} />
-              <p className="text-2xl font-bold tracking-tight">
+              <p className={cx(HEADING.section, "text-2xl")}>
                 {g.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
               </p>
               <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-mute">{g.definition}</p>
-            </Link>
+            </CardLink>
           ))}
         </div>
         {/* 解説を読んだ人の次の行き先。体系（教科書）と実務（ツール）へ。文言は nav.ts と共通 */}
@@ -81,15 +79,15 @@ export default function Home() {
       </section>
 
       {/* About strip */}
-      <section className="mx-auto max-w-6xl px-5 pb-8">
-        <div className="rounded-3xl bg-accent p-8 text-accent-ink sm:p-12">
-          <p className="text-xs font-bold uppercase tracking-wider opacity-70">How this is made</p>
+      <section className={cx(CONTAINER.page, "pb-8")}>
+        <div className={cx(SURFACE.accent, PADDING.hero)}>
+          <Eyebrow tone="faint">How this is made</Eyebrow>
           <p className="mt-3 max-w-3xl text-xl font-bold leading-snug sm:text-2xl">
             公式発表と一次情報をAIで毎日収集し、出典URLの記載と構成を自動検査したうえで、リンク付きで公開しています。
           </p>
-          <Link href="/about" className="mt-6 inline-block rounded-full bg-accent-ink px-5 py-2.5 text-sm font-semibold text-accent transition hover:opacity-80">
+          <Button href="/about" variant="onAccent" className="mt-6">
             {SITE_NAME}について →
-          </Link>
+          </Button>
         </div>
       </section>
     </>
