@@ -33,8 +33,14 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
   },
-  openGraph: { type: "website", locale: "ja_JP", url: SITE_URL, siteName: SITE_NAME, title: SITE_NAME, description: SITE_DESCRIPTION },
-  twitter: { card: "summary_large_image", site: X_HANDLE, creator: X_HANDLE, title: SITE_NAME, description: SITE_DESCRIPTION },
+  // ここに title / description / url を書くと、openGraph を自前で持たない全ページ（/tools/page-audit など）が
+  // サイト名とトップのURLを名乗ってしまう。全ページ共通の3つだけ置き、残りは各ページの title / description から
+  // Next に埋めさせる。トップページ分は src/app/page.tsx が持つ。
+  openGraph: { type: "website", locale: "ja_JP", siteName: SITE_NAME },
+  // title / description はここで固定しない。Next は twitter.title が無いときだけ openGraph（無ければ
+  // metadata）の値で埋める（node_modules/next/dist/lib/metadata/resolve-metadata.js の postProcessMetadata）。
+  // ここに書くと twitter オブジェクトごと全下層ページに継承され、記事ページのカードまでサイト名になる。
+  twitter: { card: "summary_large_image", site: X_HANDLE, creator: X_HANDLE },
   // AdSenseのサイト所有権確認用メタタグ。パブリッシャーID未設定なら出さない。
   ...(ADSENSE_CLIENT ? { other: { "google-adsense-account": ADSENSE_CLIENT } } : {}),
 };

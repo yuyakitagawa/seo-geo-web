@@ -11,7 +11,7 @@ import { lessonNo, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
 import { GUIDES, guideJsonLd, jpDate } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const guide = GUIDES.seo;
 const url = `${SITE_URL}${guide.path}`;
@@ -38,6 +38,8 @@ export const metadata: Metadata = {
   alternates: { canonical: guide.path },
   openGraph: {
     type: "article",
+    siteName: SITE_NAME,
+    locale: "ja_JP",
     title: guide.metaTitle,
     description: guide.description,
     url,

@@ -1,11 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import { PageDatesJsonLd } from "@/components/PageDates";
 import { getAllArticles, latestUpdated } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
-import { ARTICLES_PER_PAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { ARTICLES_PER_PAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
+
+// トップの og:url。layout の openGraph から url を外したので、ここで名乗る。
+export const metadata: Metadata = {
+  openGraph: { url: SITE_URL },
+};
 
 export default function Home() {
   const articles = getAllArticles();

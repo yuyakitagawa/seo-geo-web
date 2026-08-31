@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FigureCompare, FigureDoDont, FigureFlow, FigureStack } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { LessonShell } from "@/components/lesson";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("long-tail");
 
@@ -88,7 +88,7 @@ export default function Lesson04() {
         title="掛け合わせの軸で面を作る"
         lead={
           <>
-            <Link href={lessonPath("search-intent")}>レッスン03</Link>では、作るページを1本ずつ決めました。
+            <Link href={lessonPath("search-intent")}>レッスン{lessonNo("search-intent")}</Link>では、作るページを1本ずつ決めました。
             細かいクエリはページ数が増えるため、1本ずつ思いつくやり方では続きません。軸を決めて掛け合わせ、
             そのうえで<strong>答えを持っていないマスを消す</strong>という順番で決めます。
           </>
@@ -146,7 +146,7 @@ export default function Lesson04() {
           ここで注意が必要なのは、<strong>ファンアウトを狙って質問文だけを並べたページを作っても意味がない</strong>ことです。
           Googleは、AIによる概要やAIモードに表示されるための追加要件はなく、別途特別な最適化を行う必要もないと明記しています。
           効くのは粒度をそろえることであって、AI向けの特別な書式ではありません。抜き出されやすい本文の書き方は
-          <Link href={lessonPath("writing")}>レッスン06</Link>で扱います。
+          <Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>で扱います。
           <GuideRef {...REF.aiFeatures} />
         </p>
       </GuideSection>
@@ -219,8 +219,8 @@ export default function Lesson04() {
           最後に、<strong>面で作ったページは、束ねないと群になりません</strong>。
           個別ページが単発で並んでいるだけでは、テーマとしての評価が積み上がらず、読者も次のページに移動できません。
           一覧ページ（ハブ）を置き、そこから各ページへ、各ページから一覧へ戻す内部リンクを張るところまでが必要です。
-          その設計は<Link href={lessonPath("structure")}>レッスン07</Link>で扱います。
-          効果の確認は<Link href={lessonPath("measurement")}>レッスン10</Link>です。
+          その設計は<Link href={lessonPath("structure")}>レッスン{lessonNo("structure")}</Link>で扱います。
+          効果の確認は<Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>です。
         </p>
       </GuideSection>
     </LessonShell>

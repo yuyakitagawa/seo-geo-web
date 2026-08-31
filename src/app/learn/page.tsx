@@ -7,7 +7,7 @@ import { GuideCrossLinks, GuideTable } from "@/components/guide";
 import { CASES } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonNo, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 
 const url = `${SITE_URL}${COURSE.path}`;
 
@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   alternates: { canonical: COURSE.path },
   openGraph: {
     type: "article",
-    siteName: SITE_NAME,
-    locale: "ja_JP",
     title: COURSE.metaTitle,
     description: COURSE.description,
     url,

@@ -5,7 +5,7 @@ import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import RobotsPresets from "@/components/RobotsPresets";
 import { LessonShell } from "@/components/lesson";
 import { CRAWLERS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("geo-implementation");
 
@@ -59,7 +59,7 @@ export default function Lesson09() {
         />
         <p>
           つまりGEOの実装作業は、<strong>設定（クローラーを止めない）</strong>と<strong>書き方（抜き出せる形にする）</strong>の
-          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン06</Link>で扱ったので、
+          2つに集約されます。書き方は<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>で扱ったので、
           このレッスンでは設定を決めます。
         </p>
       </GuideSection>
@@ -235,7 +235,7 @@ export default function Lesson09() {
           最後に、AI検索からの流入を分けて見られるようにしておきます。Googleは、AIによる概要やAIモードに表示されたサイトも
           Search Consoleの検索タイプ「ウェブ」に含まれると説明しているため、AI機能だけを切り出したレポートはありません。
           ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。計測の詳細は
-          <Link href={lessonPath("measurement")}>レッスン10</Link>で扱います。
+          <Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>で扱います。
         </p>
       </GuideSection>
     </LessonShell>

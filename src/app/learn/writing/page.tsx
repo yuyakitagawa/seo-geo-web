@@ -4,7 +4,7 @@ import { FigureBars, FigureCompare, FigureDoDont, FigureFlow, FigureQuote } from
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
-import { requireLesson, lessonMetadata, lessonPath } from "@/lib/curriculum";
+import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("writing");
 
@@ -236,7 +236,7 @@ export default function Lesson06() {
         <p>
           次のレッスンでは、こうして書いたページを、テーマごとに束ねて評価が積み上がる構造に組み替えます。
           個別ページの品質だけを上げても、サイト全体としてのまとまりが無いと積み上がりません。
-          <Link href={lessonPath("structure")}>レッスン07</Link>へ進んでください。
+          <Link href={lessonPath("structure")}>レッスン{lessonNo("structure")}</Link>へ進んでください。
         </p>
       </GuideSection>
     </LessonShell>
