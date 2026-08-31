@@ -259,9 +259,8 @@ export default function Lesson12() {
           確認の手順は<Link href={lessonPath("measurement")}>レッスン10</Link>と同じです。
         </p>
         <p>
-          これで12レッスンは終わりです。ここから先は、<Link href={lessonPath("measurement")}>レッスン10</Link>の
-          4週間サイクルを回し続けることが実務になります。検索とAI検索の仕様は頻繁に変わるため、
-          <Link href="/news">ニュース</Link>で変更を追いながら、この教科書のチェックリストを定期的に見直してください。
+          ここまででサイト側の作業は一巡します。最後の<Link href={lessonPath("brand-entity")}>レッスン13</Link>では、
+          AIの回答候補にそもそも自社が入るための、ブランド側の作業を扱います。
         </p>
       </GuideSection>
     </LessonShell>
