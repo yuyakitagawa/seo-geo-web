@@ -23,7 +23,6 @@ export default function Footer() {
               <li><Link href="/privacy" className="hover:text-accent">プライバシーポリシー</Link></li>
               <li><Link href="/disclaimer" className="hover:text-accent">免責事項</Link></li>
               <li><a href="/feed.xml" className="hover:text-accent">RSS</a></li>
-              <li><a href="/llms.txt" className="hover:text-accent">llms.txt</a></li>
               {X_PROFILE_URL && <li><a href={X_PROFILE_URL} rel="me noopener" target="_blank" className="hover:text-accent">X</a></li>}
             </ul>
           </nav>
