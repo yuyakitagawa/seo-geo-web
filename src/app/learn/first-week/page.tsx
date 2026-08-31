@@ -216,6 +216,10 @@ export default function Lesson02() {
           <GuideRef {...REF.noindex} />
           で確認しておいてください。
         </p>
+        <p>
+          インデックス登録レポートに出る理由ごとの対処（noindex・robots.txt・代替ページ・クロール済み未登録・ソフト404など）は、
+          <Link href={`${lessonPath("technical")}#not-indexed`}>レッスン04の「未インデックスの対処法」</Link>にまとめています。
+        </p>
       </GuideSection>
 
       <GuideSection

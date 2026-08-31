@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FigureBars, FigureDoDont, FigureGauge, FigurePipeline } from "@/components/figures";
+import { FigureBars, FigureDoDont, FigureFlow, FigureGauge, FigurePipeline } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
@@ -13,6 +13,9 @@ const REF = {
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
+  indexReport: { href: "https://support.google.com/webmasters/answer/7440203?hl=ja", label: "ページ インデックス登録レポート" },
+  urlInspection: { href: "https://support.google.com/webmasters/answer/9012289?hl=ja", label: "URL 検査ツール" },
+  essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
   structuredData: { href: "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=ja", label: "構造化データの仕組みについて" },
   gallery: { href: "https://developers.google.com/search/docs/appearance/structured-data/search-gallery?hl=ja", label: "構造化データ マークアップの一覧" },
   vitals: { href: "https://web.dev/articles/vitals#core-web-vitals", label: "web.dev「Web Vitals」" },
@@ -26,6 +29,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "control", label: "クロールとインデックスの制御" },
+  { id: "not-indexed", label: "未インデックスの対処法" },
   { id: "duplicate", label: "重複と正規URLの整理" },
   { id: "structured", label: "構造化データの選び方" },
   { id: "vitals", label: "Core Web Vitalsの直し方" },
@@ -86,6 +90,120 @@ export default function Lesson04() {
         <p>
           robots.txtを変更したら、Search Consoleのrobots.txtレポートで<strong>Googleが実際に読んだ内容</strong>を確認します。
           CDNやサーバーの設定によっては、ブラウザで見えている内容とクローラーが取得する内容が違うことがあります。
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="not-indexed"
+        title="未インデックスの対処法"
+        lead="インデックスされない状態には2種類あります。設定のせいで登録できない状態（noindex・robots.txt・canonical・リダイレクト・エラー）と、取得はできたがGoogleが登録する価値を認めなかった状態です。前者は設定を直せば戻りますが、後者は設定を直しても戻りません。まず、どちらなのかを確定させます。"
+      >
+        <FigureFlow
+          title="未インデックスの切り分け"
+          steps={[
+            { label: "① URL検査で、いまの登録状態を確定する", desc: "「URLはGoogleに登録されていません」と出たら、その画面に表示される理由をそのまま読む。推測で直し始めない。" },
+            { label: "② 理由が設定由来かを見る", desc: "noindex・robots.txtによるブロック・canonicalによる代替扱い・リダイレクト・404/5xxは、こちらに入る。該当すればページの中身は関係ない。" },
+            { label: "③ 設定を直し、ライブテストで読み取れることを確認する", desc: "直したうえで「公開URLをテスト」を実行し、クローラーが取得できる状態になったことを確認してから登録をリクエストする。" },
+            { label: "④ 設定に問題が無ければ、中身と導線の問題として扱う", desc: "「クロール済み - インデックス未登録」「検出 - インデックス未登録」はここ。リクエストを繰り返しても状況は変わらない。" },
+            { label: "⑤ 数日〜数週間おいて再確認する", desc: "Googleは要件を満たしたページのインデックス登録を保証していない。直後に登録されなくても、それ自体は異常ではない。" },
+          ]}
+          caption={
+            <>
+              理由の一覧と各理由の意味は、ページ インデックス登録レポートのヘルプに載っています。
+              <GuideRef {...REF.indexReport} />
+            </>
+          }
+        />
+
+        <h3>理由別の対処</h3>
+        <GuideTable
+          head={["レポートに出る理由", "起きていること", "対処", "直ったかの確認"]}
+          rows={[
+            [
+              "noindex タグによって除外されました",
+              "ページ側でインデックス登録を拒否している。CMSの設定や公開前の設定が残っていることが多い",
+              "meta robots と X-Robots-Tag ヘッダーの両方を確認し、noindex を外す",
+              <>URL検査のライブテストで noindex が消えていること。<GuideRef key="r1" {...REF.noindex} /></>,
+            ],
+            [
+              "robots.txt によりブロックされました",
+              "クロールが禁止されているため、ページの中身を読めていない",
+              "該当パスの Disallow を外す。noindex を併用していた場合は、noindex も読まれていない点に注意",
+              <>robots.txt レポートでGoogleが読んだ内容が更新されていること。<GuideRef key="r2" {...REF.robots} /></>,
+            ],
+            [
+              "代替ページ（適切な canonical タグあり）",
+              "別URLを正規として扱っている。意図どおりなら正常な状態で、直す必要はない",
+              "意図と違う場合だけ、canonical の向き先を直す",
+              "URL検査の「Googleが選択した正規URL」が意図したURLになること",
+            ],
+            [
+              "重複しています。Googleが選んだ正規ページとユーザーの指定が異なります",
+              "canonicalの指定を採用せず、Googleが別のURLを正規と判断している",
+              "内容の重なりを減らすか、統合して1本にする。canonical・内部リンク・サイトマップの指す先をそろえる",
+              "URL検査で選択された正規URLが変わること（反映には時間がかかる）",
+            ],
+            [
+              "クロール済み - インデックス未登録",
+              "取得はできたが、登録する価値を認められなかった。内容の薄さ・重複・自動生成の一覧ページが典型",
+              "加筆して独自の情報を足すか、近い内容のページへ統合する。残す必要のない一覧はnoindexにする",
+              "再クロール後に登録済みへ変わること。登録リクエストの連打では変わらない",
+            ],
+            [
+              "検出 - インデックス未登録",
+              "URLは把握しているが、まだクロールされていない。導線が弱いか、サーバーが重い",
+              "内部リンクを張る（トップや一覧から1本でよい）。サイトマップに載せる。サーバーの応答速度を確認する",
+              "URL検査の「前回のクロール」に日付が入ること",
+            ],
+            [
+              "ページにリダイレクトがあります",
+              "そのURL自体は転送されている。転送先が登録されていれば正常",
+              "転送先のURLを検査する。リダイレクトが連鎖している場合は1回で着くように直す",
+              "転送先が「登録されています」になっていること",
+            ],
+            [
+              "見つかりませんでした（404）／ソフト 404",
+              "削除済み、またはエラー相当の内容が200で返っている（中身が実質空のページなど）",
+              "残すべきページなら復旧、移転済みなら301。削除で正しいなら放置してよい",
+              "URL検査のHTTPレスポンスとページの中身が一致すること",
+            ],
+            [
+              "サーバーエラー（5xx）／クロールの問題",
+              "取得しようとして失敗している。サーバー・CDN・WAFがクローラーを弾いていることもある",
+              "サーバーログでGooglebotのリクエストを確認し、レート制限やブロックを解除する",
+              "URL検査のライブテストが成功すること",
+            ],
+          ]}
+          caption={
+            <>
+              レポートの表記はGoogle側の更新で変わることがあります。最新の理由の一覧はヘルプで確認してください。
+              <GuideRef {...REF.indexReport} />
+            </>
+          }
+        />
+
+        <h3>直したあとにやること</h3>
+        <FigureDoDont
+          title="未インデックスへの対応"
+          dos={[
+            "原因を直してから、URL検査の「インデックス登録をリクエスト」を1回だけ実行する",
+            "重要なページには、トップや一覧から内部リンクを1本以上張る",
+            "サイトマップに載せ、lastmod を実際の更新日にする",
+            "直後に登録されなくても、数日〜数週間おいて再確認する",
+          ]}
+          donts={[
+            "原因を直さないまま、インデックス登録を何度もリクエストする（順番は早まらない）",
+            "noindex と robots.txt の Disallow を同時に指定する（取得できないので noindex が読まれない）",
+            "「クロール済み - インデックス未登録」に対して、中身を変えずにタイトルだけ書き換える",
+            "インデックス登録を保証するとうたう外部サービスに費用を払う",
+          ]}
+        />
+        <p>
+          「クロール済み - インデックス未登録」が特定のページ種別に固まっている場合、個別ページの問題ではなく
+          サイト構造の問題です。中身がリンク数個しかない一覧ページを大量に作っていないかを、
+          <Link href={lessonPath("structure")}>レッスン06</Link>で確認してください。なお、Googleは基本事項を満たしていても
+          インデックス登録や掲載を保証していないと明記しています。すべての未登録を0にすることは目標になりません。
+          <GuideRef {...REF.essentials} />
         </p>
       </GuideSection>
 

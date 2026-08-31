@@ -190,7 +190,7 @@ export default function Lesson08() {
               check: "先月公開したページがインデックス登録されている",
               where: "URL 検査（1本ずつ）",
               ok: "「URLはGoogleに登録されています」と表示される",
-              ng: <>noindex・robots.txt・canonicalの順に確認する。<GuideRef {...REF.urlInspection} /></>,
+              ng: <>理由別の対処は<Link href={`${lessonPath("technical")}#not-indexed`}>レッスン04の「未インデックスの対処法」</Link>。<GuideRef {...REF.urlInspection} /></>,
             },
             {
               check: "主要ページで「Googleが選択した正規URL」が意図どおり",

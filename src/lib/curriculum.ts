@@ -266,17 +266,19 @@ export const LESSONS: Lesson[] = [
     h1: "テクニカルSEO実装：クロール・インデックス・表示速度",
     metaTitle: "テクニカルSEO実装｜robots・canonical・構造化データ・Core Web Vitals",
     description:
-      "robots.txtとnoindexの使い分け、canonicalによる重複統合、サイトマップ、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
+      "robots.txtとnoindexの使い分け、未インデックスの理由別の対処、canonicalによる重複統合、構造化データ、Core Web Vitalsの直し方を実装単位で整理します。Nuvemshop・redBus・Yahoo! JAPANニュースなど、公開されている改善事例の数値も添えます。",
     goal: "検索エンジンがページを取得し、正しく理解し、快適に表示できる状態を自分で作れるようになる。",
     objectives: [
       "robots.txt（クロールの制御）とnoindex（インデックスの制御）の使い分け",
+      "インデックス未登録の切り分けと、レポートに出る理由ごとの対処",
       "canonical・301リダイレクト・サイトマップで重複と正規URLを整理する",
       "構造化データの選び方と、ページ表示との一致という条件",
       "LCP・INP・CLSそれぞれの代表的な原因と、実際に効果が報告された直し方",
     ],
-    minutes: 18,
+    minutes: 21,
     checklist: [
       "robots.txtでDisallowにしているパスと、noindexにしているページを一覧にできた",
+      "登録されていない重要ページについて、URL検査で理由を確認し、設定由来か中身由来かを切り分けた",
       "同じ内容が複数URLで見える箇所を洗い出し、canonicalか301で1本化した",
       "自分のページ種別に対応する構造化データの型を選び、リッチリザルトテストで検証した",
       "PageSpeed InsightsでLCP・INP・CLSの現状値を記録し、悪い指標を1つ特定した",
@@ -287,6 +289,16 @@ export const LESSONS: Lesson[] = [
         question: "robots.txtでDisallowにすればインデックスされませんか",
         answer:
           "されないとは限りません。Googleは、robots.txtでブロックされたページでも、他のページからリンクされていればURLがインデックスに登録されることがあると説明しています。検索結果に出したくないページには、robots.txtのDisallowではなくnoindexを使います。noindexは、クローラーがそのページを取得できて初めて読み取られるため、Disallowと同時に指定すると機能しません。",
+      },
+      {
+        question: "ページがインデックスされません。何から確認すればよいですか",
+        answer:
+          "推測で本文を書き直す前に、URL検査ツールで表示される理由を読みます。noindex、robots.txtによるブロック、代替ページ（canonical）、リダイレクト、404や5xxは設定由来なので、設定を直せば戻ります。一方「クロール済み - インデックス未登録」は取得できたうえで登録されなかった状態で、内容の薄さや重複が原因のことが多く、設定を直しても変わりません。「検出 - インデックス未登録」はまだクロールされていない状態なので、内部リンクとサイトマップで到達しやすくします。なお、Googleは基本事項を満たしていてもインデックス登録を保証していません。",
+      },
+      {
+        question: "インデックス登録のリクエストは何度も送ったほうがよいですか",
+        answer:
+          "原因を直さずに繰り返しても状況は変わりません。リクエストは登録の順番を早める手段ではなく、変更をGoogleに知らせるためのものです。noindexやrobots.txtのブロックを外す、内容を加筆または統合する、内部リンクを張るといった対処を先に行い、そのうえで1回リクエストして、数日〜数週間おいて再確認します。",
       },
       {
         question: "構造化データを入れると順位が上がりますか",
@@ -304,9 +316,9 @@ export const LESSONS: Lesson[] = [
           "必須ではありません。Googleは、Googleニュースやトップニュース枠への掲載にAMPを必須とはしておらず、通常のページでCore Web Vitalsを満たせば同じ扱いを受けられます。過去の成功事例にAMPが登場するのは、当時の実装として選ばれたためです。いまから始める場合は、通常のページの表示速度を直すほうが優先です。",
       },
     ],
-    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
+    sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "writing",
