@@ -27,7 +27,7 @@ const TOC = [
   { id: "shape", label: "引用される形に整える" },
 ];
 
-export default function Lesson07() {
+export default function Lesson08() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -199,7 +199,7 @@ export default function Lesson07() {
             [
               "AI可視性ツールでの計測",
               "ツールが投げた質問への回答を測るもので、実ユーザーが受け取った回答そのものではない",
-              "測っているものを理解したうえでなら有用（レッスン08）",
+              "測っているものを理解したうえでなら有用（レッスン09）",
             ],
             [
               "引用・統計・出典を本文に足す",
@@ -238,7 +238,7 @@ export default function Lesson07() {
           最後に、AI検索からの流入を分けて見られるようにしておきます。Googleは、AIによる概要やAIモードに表示されたサイトも
           Search Consoleの検索タイプ「ウェブ」に含まれると説明しているため、AI機能だけを切り出したレポートはありません。
           ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。計測の詳細は
-          <Link href={lessonPath("measurement")}>レッスン08</Link>で扱います。
+          <Link href={lessonPath("measurement")}>レッスン09</Link>で扱います。
         </p>
       </GuideSection>
     </LessonShell>

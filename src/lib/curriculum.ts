@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
 import { SITE_NAME, SITE_URL } from "./site";
 
-// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル10レッスンに分け、
+// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル11レッスンに分け、
 // 前提 → 実装 → 運用の順に積めるようにしたもの。
 // 各レッスンの本文は src/app/learn/<slug>/page.tsx にあり、ここには
 // 「見出し・到達目標・チェックリスト・FAQ・出典」など、目次ページ・JSON-LD・llms.txt が
@@ -20,7 +20,7 @@ export const LEVELS: Record<LevelKey, { label: string; name: string; lead: strin
   2: {
     label: "Level 2",
     name: "実装 — 作る・直す",
-    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、サイト構造、AIクローラーへの対応を、この順番で仕上げる。",
+    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を、この順番で仕上げる。",
     tone: "seo",
   },
   3: {
@@ -35,7 +35,7 @@ export const LEVEL_KEYS: LevelKey[] = [1, 2, 3];
 
 export type Lesson = {
   slug: string;
-  /** 1〜10。目次と前後ナビの順序 */
+  /** 1〜11。目次と前後ナビの順序 */
   order: number;
   level: LevelKey;
   /** 目次・パンくず・前後ナビで使う短いタイトル */
@@ -106,12 +106,12 @@ const S = {
 export const COURSE = {
   path: "/learn",
   h1: "SEO・GEO教科書",
-  metaTitle: "SEO・GEO教科書｜10レッスンで基礎から運用まで（実例つき）",
+  metaTitle: "SEO・GEO教科書｜11レッスンで基礎から運用まで（実例つき）",
   description:
-    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル10レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
+    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル11レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
   lead: "「SEO対策とは」「GEOとは」の次に読む、順番の決まった教科書です。1から10まで通すと、自分のサイトを検索と生成AIの両方に対応させ、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
-  updated: "2026-08-30",
+  updated: "2026-08-31",
 };
 
 export const LESSONS: Lesson[] = [
@@ -157,7 +157,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.aiFeatures, S.helpful, S.geoPaper, S.crawlers],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "first-week",
@@ -207,7 +207,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.perf, S.saramin],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "search-intent",
@@ -256,7 +256,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.helpful, S.titleLink, S.snippet, S.canonical, S.perf, S.saramin],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "technical",
@@ -306,7 +306,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "writing",
@@ -356,7 +356,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.helpful, S.aiFeatures, S.spam, S.aiContent, S.geoPaper, S.snippet, S.titleLink],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "structure",
@@ -406,11 +406,68 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.canonical, S.noindex, S.sitemaps, S.saramin],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
+  },
+  {
+    slug: "domain",
+    order: 7,
+    level: 2,
+    title: "ドメイン構造",
+    h1: "ドメイン構造：サブドメインとサブディレクトリ、ホスト名の統一",
+    metaTitle: "ドメイン構造｜サブドメインとサブディレクトリの選び方・www有無の統一",
+    description:
+      "コンテンツをどのドメインに置くかを決めるレッスンです。サブドメインとサブディレクトリで運用の単位がどう変わるか、www有無やhttpsで分かれたホストをどう1本に寄せるか、中古ドメインの何が禁止されているかを整理します。",
+    goal: "新しいコンテンツをサブドメインとサブディレクトリのどちらに置くかを理由つきで決め、サイトのホスト名を1つに統一できるようになる。",
+    objectives: [
+      "ドメイン・サブドメイン・サブディレクトリで、何が別の単位になるのか",
+      "ブログやヘルプを分けるかどうかの判断基準",
+      "www有無・http/httpsなど、同じ内容が複数のホストで見える状態の畳み方",
+      "検証環境やプレビューURLが検索結果に出ないようにする",
+      "中古ドメイン（期限切れドメイン）とサブディレクトリの貸し出しで禁止されていること",
+    ],
+    minutes: 13,
+    checklist: [
+      "サイトのホスト名を1つ（www有無・httpsの有無を含めて）に決め、他は301でそこへ寄せてある",
+      "canonicalが常に本番のホスト名を指している（プレビュー環境でも本番URLになる）",
+      "サブドメインを使っている場合、そのサブドメインにもrobots.txtとサイトマップを置いてある",
+      "サブドメインごとにSearch Consoleで数値を確認できる状態にした（ドメインプロパティ、または個別プロパティ）",
+      "新しいコンテンツをサブディレクトリに置くか、サブドメインに分けるかの基準を決めた",
+      "検証環境・ステージング環境が、認証かnoindexで検索結果に出ないようにしてある",
+    ],
+    faq: [
+      {
+        question: "サブドメインとサブディレクトリでは、どちらがSEOに有利ですか",
+        answer:
+          "どちらが有利かをGoogleが公式に示している説明はありません。実務で確実に違うのは、運用の単位です。robots.txtはホストごとに置く必要があり、サイトマップは原則として同じホストのURLだけを載せます。Search Consoleも、URLプレフィックスプロパティではホストごとに分かれます。分けた数だけ設定と確認の手間が増えるため、分ける理由が無ければサブディレクトリにまとめるほうが運用は軽くなります。",
+      },
+      {
+        question: "wwwありとwwwなしは、どちらにすべきですか",
+        answer:
+          "どちらでも構いません。重要なのは片方に統一することです。www有無、httpとhttps、末尾スラッシュの有無は、それぞれ別のURLとして見えるため、同じ内容が複数のURLで表示される状態になります。使うほうを1つ決め、もう一方からは301リダイレクトし、canonicalも統一したURLを指すようにします。",
+      },
+      {
+        question: "中古ドメイン（期限切れドメイン）を買ってサイトを始めてもよいですか",
+        answer:
+          "Googleはウェブ検索のスパムに関するポリシーで「期限切れドメインの不正使用」を挙げており、過去のドメインの評価を利用する目的で、以前のサイトとほぼ関係のないコンテンツを載せる使い方を禁止しています。ドメインを買うこと自体が禁止されているわけではありませんが、評価を引き継ぐ手段として買うのであれば、ポリシー違反の側に入ります。",
+      },
+      {
+        question: "自社サイトのサブディレクトリを外部の業者に貸すのは問題ありますか",
+        answer:
+          "スパムポリシーの「サイトの評判の不正使用」に該当し得ます。第三者のコンテンツを、そのサイトの評価を利用する目的で、運営者の監督がほとんど無いまま掲載する形が対象です。サブディレクトリかサブドメインかという置き場所ではなく、誰が作り、誰が責任を持つコンテンツなのかで判断されます。",
+      },
+      {
+        question: "開発中のプレビューURLが検索結果に出てしまいました",
+        answer:
+          "検証環境が本番と同じ内容で公開されていると、別ホストに同じ内容がある状態になります。対処は、Basic認証などでアクセス自体を制限するのが確実です。公開したまま止める場合はnoindexを使います。robots.txtでのブロックは、クロールを止めるだけでインデックス済みのURLを消す手段ではありません。あわせて、canonicalが常に本番のホスト名を指すようにしておきます。",
+      },
+    ],
+    sources: [S.starter, S.essentials, S.canonical, S.robots, S.noindex, S.sitemaps, S.spam, S.siteMove],
+    published: "2026-08-31",
+    updated: "2026-08-31",
   },
   {
     slug: "geo-implementation",
-    order: 7,
+    order: 8,
     level: 2,
     title: "GEO実装",
     h1: "GEO実装：AIクローラーの許可と、引用される形に整える",
@@ -456,11 +513,11 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.aiFeatures, S.crawlers, S.openaiBots, S.perplexityBots, S.anthropicBots, S.llmstxt, S.geoPaper, S.structuredData],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "measurement",
-    order: 8,
+    order: 9,
     level: 3,
     title: "計測と改善サイクル",
     h1: "計測と改善サイクル：何を見て、いつ判断するか",
@@ -506,11 +563,11 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.perf, S.indexReport, S.urlInspection, S.aiFeatures, S.trafficDrops, S.essentials],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "case-studies",
-    order: 9,
+    order: 10,
     level: 3,
     title: "実例：強いサイトがやったこと",
     h1: "実例：検索とAIに強いサイトが実際にやったこと",
@@ -550,11 +607,11 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.saramin, S.rakutenRecipe, S.eventbrite, S.mxPlayer, S.yahooNews, S.rakuten24, S.nuvemshop, S.redbus, S.vitalsBusiness, S.geoPaper],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
   {
     slug: "updates-risk",
-    order: 10,
+    order: 11,
     level: 3,
     title: "アップデート対応とリスク管理",
     h1: "アップデート対応とリスク管理：落ちたときに何をするか",
@@ -599,7 +656,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.coreUpdates, S.trafficDrops, S.spam, S.manualActions, S.siteMove, S.helpful, S.aiContent],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-08-31",
   },
 ];
 
@@ -701,11 +758,11 @@ export function lessonJsonLd(lesson: Lesson) {
 const OG_PIXELS = { width: 1200, height: 630 };
 
 /**
- * レッスンページの metadata。10ページで完全に同じ形なので1か所に置く。
+ * レッスンページの metadata。全ページで完全に同じ形なので1か所に置く。
  *
  * `openGraph` を自前で持つページには、上位セグメントの `opengraph-image.tsx` が
  * **自動では引き継がれない**（`/tools/page-audit` のように openGraph を書いていない
- * ページは引き継がれる）。明示しないとレッスン10ページだけ og:image が消えるので、
+ * ページは引き継がれる）。明示しないとレッスンのページだけ og:image が消えるので、
  * `/learn` の画像を images に入れる。
  */
 export function lessonMetadata(lesson: Lesson): Metadata {

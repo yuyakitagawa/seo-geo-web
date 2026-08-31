@@ -26,7 +26,7 @@ const TOC = [
   { id: "caution", label: "自社に当てはめるときの注意" },
 ];
 
-export default function Lesson09() {
+export default function Lesson10() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -39,7 +39,7 @@ export default function Lesson09() {
           stats={[
             { value: `${CASES.length}件`, label: "収録している事例", note: "施策と数値が同じ文書で公開されているもの" },
             { value: "3件", label: "日本のサイト", note: "楽天レシピ・Yahoo! JAPANニュース・Rakuten 24" },
-            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン04・07で扱った作業に対応" },
+            { value: "4領域", label: "テクニカル / 構造化データ / Core Web Vitals / 生成AI", note: "レッスン04・08で扱った作業に対応" },
           ]}
         />
         <GuideTable
@@ -156,7 +156,7 @@ export default function Lesson09() {
             [
               "③ 1つの指標に絞る",
               "いま追いかけている指標が1つに決まっているか",
-              <Link key="l8" href={lessonPath("measurement")}>レッスン08</Link>,
+              <Link key="l8" href={lessonPath("measurement")}>レッスン09</Link>,
             ],
           ]}
         />

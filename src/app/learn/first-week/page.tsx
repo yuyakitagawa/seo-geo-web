@@ -144,7 +144,7 @@ export default function Lesson02() {
           Googlebotとは別の自前のクローラーで巡回するため、Googlebotを許可していても、これらを拒否していれば
           その事業者の回答には出ません。ボット名の一覧と各社の公式な説明は
           <Link href="/tools/ai-crawlers">AIクローラー確認ツール</Link>にまとめています。
-          設定の方針は<Link href={lessonPath("geo-implementation")}>レッスン07</Link>で決めます。
+          設定の方針は<Link href={lessonPath("geo-implementation")}>レッスン08</Link>で決めます。
         </p>
 
         <h3>7日目: 改善前の数値を記録する</h3>
@@ -197,7 +197,7 @@ export default function Lesson02() {
               "ChatGPTの回答に出てこない",
               "OAI-SearchBotをrobots.txtで拒否している",
               "/robots.txt のUser-agent指定",
-              "方針を決めたうえで許可する（レッスン07）",
+              "方針を決めたうえで許可する（レッスン08）",
             ],
           ]}
           caption={
@@ -236,7 +236,7 @@ export default function Lesson02() {
         <p>
           記録の形式は問いません。スプレッドシートでも、テキストファイルでも構いません。重要なのは、
           <strong>日付と一緒に残すこと</strong>と、<strong>施策を始めた日もメモすること</strong>です。
-          見る頻度と判断の基準は<Link href={lessonPath("measurement")}>レッスン08</Link>で決めます。
+          見る頻度と判断の基準は<Link href={lessonPath("measurement")}>レッスン09</Link>で決めます。
         </p>
       </GuideSection>
 

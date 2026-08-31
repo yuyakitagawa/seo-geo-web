@@ -27,7 +27,7 @@ const TOC = [
   { id: "stop", label: "施策を畳む基準" },
 ];
 
-export default function Lesson08() {
+export default function Lesson09() {
   return (
     <LessonShell lesson={lesson} toc={TOC}>
       <GuideSection
@@ -208,7 +208,7 @@ export default function Lesson08() {
             [
               "表示回数が落ちた",
               "原因を切り分ける",
-              "技術的な問題 → 手動による対策 → 季節性 → アルゴリズム更新の順に確認する（レッスン10）",
+              "技術的な問題 → 手動による対策 → 季節性 → アルゴリズム更新の順に確認する（レッスン11）",
             ],
             [
               "サイト全体で急落した",
