@@ -17,6 +17,7 @@ import FollowCta from "@/components/FollowCta";
 import ShareButtons from "@/components/ShareButtons";
 import CategoryBadge from "@/components/CategoryBadge";
 import TypeBadge from "@/components/TypeBadge";
+import OriginalBadge from "@/components/OriginalBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { supersededBy } from "@/lib/indexability";
@@ -106,6 +107,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
           <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-paper/70">
             <CategoryBadge category={article.category} size="md" />
             <TypeBadge type={article.type} size="md" />
+            <OriginalBadge original={article.original} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
             <span>{article.readingMinutes} min read</span>

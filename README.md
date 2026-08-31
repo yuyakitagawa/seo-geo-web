@@ -161,6 +161,7 @@ date: "2026-08-23"
 updated: "2026-08-23"     # 任意。date と違うときだけ「更新 …」を表示し、JSON-LD の dateModified と og:article:modified_time に入る
 category: "seo"           # seo | geo | news
 type: "news"              # news（既定・省略可） | howto
+original: true            # 任意。自分で取ったログ・実測値・検証が中心の独自記事だけに付ける。一覧と記事上部に「独自」バッジが出る
 tags: ["SEO", "AI Overview"]
 impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意

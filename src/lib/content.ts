@@ -52,6 +52,8 @@ export type ArticleMeta = {
   supersedes: number[];
   /** true の記事は本番ビルドに含めない（AI生成の下書き状態） */
   draft: boolean;
+  /** 独自記事。自分で取ったログ・実測値・検証結果が本文の中心にあるものだけ true */
+  original: boolean;
   /** 読了時間（分） */
   readingMinutes: number;
 };
@@ -94,6 +96,7 @@ function parseFile(file: string): Article | null {
     // 数値1つでも配列でも書ける（続報が複数の旧記事をまとめて置き換えることがある）。
     supersedes: [data.supersedes ?? []].flat().map(Number).filter((n) => Number.isInteger(n) && n > 0),
     draft,
+    original: Boolean(data.original),
     readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
     body: content,
   };
