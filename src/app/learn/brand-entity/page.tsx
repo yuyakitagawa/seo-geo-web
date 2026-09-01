@@ -142,7 +142,7 @@ export default function Lesson13() {
         </p>
         <p>
           この2件を含め、このレッスンの各節がどの調査に支えられているのか（そして支えられていないのか）は
-          <Link href="/articles/31">「AIにブランドを覚えさせる」施策のうち、実測データがあるのはどれか</Link>で、
+          <Link href="/articles/33">「AIにブランドを覚えさせる」施策のうち、実測データがあるのはどれか</Link>で、
           調査の方法と数値ごとに整理しています。
         </p>
         <FigureDoDont

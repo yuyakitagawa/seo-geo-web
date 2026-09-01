@@ -50,10 +50,10 @@ AI検索は回答を組み立てる前に候補のブランドを決めている
 再監査で使った調査4件を、記事側にも独立した1本として出した。
 教科書は「何をやるか」、記事は「その根拠がどれだけ強いか」を担当する。
 
-- [x] `content/articles/0031-ai-brand-recall-evidence.mdx`（id 31・type howto・category geo）
+- [x] `content/articles/0033-ai-brand-recall-evidence.mdx`（id 33・type howto・category geo）
       裏付けの強さで4つの施策を並べ直す構成。数値はAhrefs 2件・Seer・arXiv 2件・Google公式のみ
-- [x] `content/howto-topics.csv` に「公開」行（articleId 31）
-- [x] `learn/brand-entity` の mentions節から記事31へのリンク
+- [x] `content/howto-topics.csv` に「公開」行（articleId 33）
+- [x] `learn/brand-entity` の mentions節から記事33へのリンク
 - [x] `npm run typecheck && npm run build`
 
 出典の一次情報は、このセッションでもプロキシが ahrefs.com / arxiv.org / seerinteractive.com を
