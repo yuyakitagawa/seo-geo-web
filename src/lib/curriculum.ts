@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
 import { SITE_NAME, SITE_URL } from "./site";
 
-// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル13レッスンに分け、
+// /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル14レッスンに分け、
 // 前提 → 実装 → 運用の順に積めるようにしたもの。
 // 各レッスンの本文は src/app/learn/<slug>/page.tsx にあり、ここには
 // 「見出し・到達目標・チェックリスト・FAQ・出典」など、目次ページ・JSON-LD・llms.txt が
@@ -20,7 +20,7 @@ export const LEVELS: Record<LevelKey, { label: string; name: string; lead: strin
   2: {
     label: "Level 2",
     name: "実装 — 作る・直す",
-    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、サイト構造、ドメインの置き場所、AIクローラーへの対応を、この順番で仕上げる。",
+    lead: "実際にサイトへ手を入れる段階。技術的な土台、本文の書き方、検索結果とAI回答での見え方、サイト構造、ドメインの置き場所、AIクローラーへの対応を、この順番で仕上げる。",
     tone: "seo",
   },
   3: {
@@ -35,7 +35,7 @@ export const LEVEL_KEYS: LevelKey[] = [1, 2, 3];
 
 export type Lesson = {
   slug: string;
-  /** 1〜13。目次と前後ナビの順序 */
+  /** 1〜14。目次と前後ナビの順序 */
   order: number;
   level: LevelKey;
   /** 目次・パンくず・前後ナビで使う短いタイトル */
@@ -77,6 +77,9 @@ const S = {
   verifyGooglebot: { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
   titleLink: { title: "Google 検索結果のタイトルリンクを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/title-link?hl=ja" },
   snippet: { title: "スニペットを管理する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/snippet?hl=ja" },
+  featuredSnippets: { title: "強調スニペットとウェブサイト", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/featured-snippets?hl=ja" },
+  robotsMeta: { title: "robots meta タグ、data-nosnippet、X-Robots-Tag の設定", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag?hl=ja" },
+  aiGuide: { title: "Google 検索の生成 AI 機能向けにウェブサイトを最適化する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide?hl=ja" },
   coreUpdates: { title: "Google 検索のランキング アップデート", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/updates/core-updates?hl=ja" },
   trafficDrops: { title: "検索トラフィックの減少をデバッグする", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/monitor-debug/debugging-search-traffic-drops?hl=ja" },
   aiContent: { title: "Google 検索における AI 生成コンテンツに対する方針", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2023/02/google-search-and-ai-content?hl=ja" },
@@ -116,12 +119,12 @@ const S = {
 export const COURSE = {
   path: "/learn",
   h1: "SEO・GEO教科書",
-  metaTitle: "SEO・GEO教科書｜13レッスンで基礎から運用まで（実例つき）",
+  metaTitle: "SEO・GEO教科書｜14レッスンで基礎から運用まで（実例つき）",
   description:
-    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル13レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
-  lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から13まで通すと、自分のサイトを検索と生成AIの両方に対応させ、指名で想起される状態まで、数値で確認しながら運用できるようになります。",
+    "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル14レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
+  lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から14まで通すと、自分のサイトを検索と生成AIの両方に対応させ、指名で想起される状態まで、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
-  updated: "2026-08-31",
+  updated: "2026-09-01",
 };
 
 export const LESSONS: Lesson[] = [
@@ -450,8 +453,60 @@ export const LESSONS: Lesson[] = [
     updated: "2026-08-30",
   },
   {
-    slug: "structure",
+    slug: "snippet",
     order: 7,
+    level: 2,
+    title: "スニペットの役割と対策",
+    h1: "スニペットの役割と対策：検索結果とAIの回答に何が出るかを決める",
+    metaTitle: "スニペットとは｜SEOとGEOでの役割・nosnippetでの制御・対策",
+    description:
+      "通常のスニペット・強調スニペット・生成AIの回答での引用を、同じ「本文から抜き出される」問題として整理します。スニペットの生成元、nosnippet・data-nosnippet・max-snippetで決まる範囲、抜き出される形への整え方、クリック率での確認までを扱います。",
+    goal: "検索結果とAIの回答に自分のページの何が出るかを、設定と本文の両方から意図して決められるようになる。",
+    objectives: [
+      "通常のスニペット・強調スニペット・AI回答での引用という、3つの抜き出され方の違い",
+      "スニペットが何から作られるか（本文とmeta descriptionの関係、タイトルリンクは別の仕組み）",
+      "meta descriptionを書く価値と、書いても使われないことがある理由",
+      "nosnippet・data-nosnippet・max-snippet・max-image-preview で決められる範囲と、決められないこと",
+      "スニペットの設定が、AIによる概要とAIモードへの掲載可否まで決めること",
+      "クリック率で「順位の問題」と「見え方の問題」を切り分ける手順",
+    ],
+    minutes: 14,
+    checklist: [
+      "本番のHTMLとHTTPレスポンスヘッダーを確認し、意図しない nosnippet や極端に短い max-snippet が入っていない",
+      "主要ページを実際に検索し、表示されたタイトルリンクとスニペットが意図した文言になっている",
+      "meta description がページごとに固有の内容になっており、全ページで同じ文言を使い回していない",
+      "本文の冒頭に、全ページ共通の注意書きやナビゲーションのテキストが挟まっていない",
+      "Search Consoleの検索パフォーマンスで、表示回数があるのにクリック率が低いページを1つ以上特定した",
+    ],
+    faq: [
+      {
+        question: "meta description は書く必要がありますか",
+        answer:
+          "書く価値はあります。検索結果に出る説明文に対して、サイト側から文言を提案できる場所はここだけだからです。ただし必須ではなく、書いたとおりに出るとも限りません。Googleは、スニペットは主にページのコンテンツから自動的に生成し、description に書かれた説明のほうがページをよく表していると判断した場合にはそれを使うことがある、と説明しています。ページごとに固有の内容にすること、全ページで同じ文言を使い回さないことが条件で、そのうえで本文側も抜き出される形に整えておく、という二段構えになります。",
+      },
+      {
+        question: "強調スニペットに表示させる方法はありますか",
+        answer:
+          "表示をリクエストする設定やマークアップはありません。Googleは、強調スニペットは自社のシステムが「そのページが検索した人にとって良い強調スニペットになる」と判断したときに選ばれるもので、マークアップやオプトインの手段は無いと説明しています。逆に確実に出したくない場合は nosnippet を使います。max-snippet を短くすると強調スニペットに出る可能性は下がりますが、Googleはそれで止まることを保証していません。",
+      },
+      {
+        question: "AIによる概要に引用されたくない場合はどうすればよいですか",
+        answer:
+          "nosnippet を使うと、AIによる概要とAIモードの直接の入力として使われなくなります。ただしこれは通常の検索結果のスニペットも消える指定です。Googleは、AIによる概要やAIモードのリンクとして表示される対象になるには、インデックスされていて、スニペット付きで検索結果に表示できる状態である必要があると説明しています。AI機能だけを止めて通常の検索結果はそのまま、という指定はGoogleには用意されていません。",
+      },
+      {
+        question: "AIに読ませるために本文を細かく分割したほうがよいですか",
+        answer:
+          "Googleは生成AI機能向けの最適化ガイドで、AIが理解しやすいようにコンテンツを細かく分割（チャンク化）する必要はなく、1ページに複数のトピックがあってもその中の該当する部分を判断して表示できる、と説明しています。見出しごとに答えを完結させるのは読者にとって読みやすいからであり、AI向けの分割作業として行うものではありません。",
+      },
+    ],
+    sources: [S.snippet, S.featuredSnippets, S.robotsMeta, S.aiFeatures, S.aiGuide, S.titleLink, S.perf, S.geoPaper],
+    published: "2026-09-01",
+    updated: "2026-09-01",
+  },
+  {
+    slug: "structure",
+    order: 8,
     level: 2,
     title: "サイト構造と内部リンク",
     h1: "サイト構造と内部リンク：トピッククラスタで積み上げる",
@@ -514,7 +569,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "domain",
-    order: 8,
+    order: 9,
     level: 2,
     title: "ドメイン構造",
     h1: "ドメイン構造：サブドメインとサブディレクトリ、ホスト名の統一",
@@ -571,7 +626,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "geo-implementation",
-    order: 9,
+    order: 10,
     level: 2,
     title: "GEO実装",
     h1: "GEO実装：AIクローラーの許可と、引用される形に整える",
@@ -621,7 +676,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "measurement",
-    order: 10,
+    order: 11,
     level: 3,
     title: "計測と改善サイクル",
     h1: "計測と改善サイクル：何を見て、いつ判断するか",
@@ -679,7 +734,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "case-studies",
-    order: 11,
+    order: 12,
     level: 3,
     title: "実例：強いサイトがやったこと",
     h1: "実例：検索とAIに強いサイトが実際にやったこと",
@@ -723,7 +778,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "updates-risk",
-    order: 12,
+    order: 13,
     level: 3,
     title: "アップデート対応とリスク管理",
     h1: "アップデート対応とリスク管理：落ちたときに何をするか",
@@ -772,7 +827,7 @@ export const LESSONS: Lesson[] = [
   },
   {
     slug: "brand-entity",
-    order: 13,
+    order: 14,
     level: 3,
     title: "ブランドをAIに覚えさせる",
     h1: "ブランドをAIに覚えさせる：エンティティを束ね、指名で想起される状態を作る",
