@@ -52,3 +52,20 @@ mentions節で文章にしていた相関係数を `GuideTable` に切り出し�
 「相関であって因果ではない」の但し書きは表のキャプションに移した。
 - [x] `src/app/learn/brand-entity/page.tsx`: mentions節にGuideTableを追加
 - [x] `npm run typecheck && npm run build`
+
+## 追記（2026-09-01）: 解説記事の追加
+
+再監査で使った調査4件を、記事側にも独立した1本として出した。
+教科書は「何をやるか」、記事は「その根拠がどれだけ強いか」を担当する。
+
+- [x] `content/articles/0033-ai-brand-recall-evidence.mdx`（id 33・type howto・category geo）
+      裏付けの強さで4つの施策を並べ直す構成。数値はAhrefs 2件・Seer・arXiv 2件・Google公式のみ
+- [x] `content/howto-topics.csv` に「公開」行（articleId 33）
+- [x] `learn/brand-entity` の mentions節から記事33へのリンク
+- [x] `npm run typecheck && npm run build`
+
+出典の一次情報は、このセッションでもプロキシが ahrefs.com / arxiv.org / seerinteractive.com を
+ブロックしており直接開けていない。数値は WebSearch 経由で Search Engine Journal・Stan Ventures・
+PR配信（Trustpilot/Seer）・論文PDFの検索結果スニペットなど複数の独立した情報源と一致することを確認した。
+記事に書いたのはその範囲の数値だけで、教科書側にある Seer の共起9.5倍・ブランド名の重なり45〜59%は、
+今回確認できなかったため記事には入れていない。

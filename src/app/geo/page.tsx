@@ -388,7 +388,7 @@ export default function GeoGuidePage() {
         <GuideCitation guide={guide} />
         <GuideCrossLinks
           links={[
-            { href: "/learn", label: "SEO・GEO教科書（13レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
+            { href: "/learn", label: "SEO・GEO教科書（14レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/seo", label: "SEO対策とは", note: "定義、検索Botの3分類、3つの領域、Googleが公式に示す基準。" },
             { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
             { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },

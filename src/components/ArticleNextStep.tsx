@@ -1,6 +1,7 @@
 import NextStep from "./NextStep";
 import type { Article } from "@/lib/content";
 import { getArticlesByTag } from "@/lib/content";
+import { LESSONS } from "@/lib/curriculum";
 import { isIndexableTag } from "@/lib/indexability";
 import type { NavLink } from "@/lib/nav";
 import { CATEGORIES, categoryHref } from "@/lib/site";
@@ -28,7 +29,7 @@ export default function ArticleNextStep({ article }: { article: Article }) {
   // 2. その記事のカテゴリの入口。ニュースは解説ページを持たないので教科書へ送る。
   links.push(
     article.category === "news"
-      ? { href: "/learn", label: "SEO・GEO教科書", note: "個別のニュースの前提になる仕組みを、10レッスンで順番に。" }
+      ? { href: "/learn", label: "SEO・GEO教科書", note: `個別のニュースの前提になる仕組みを、${LESSONS.length}レッスンで順番に。` }
       : { href: categoryHref(article.category), label: `${CATEGORIES[article.category].label}とは`, note: `${CATEGORIES[article.category].label}の定義と実務を、一次情報のリンク付きでまとめたページ。` }
   );
 
