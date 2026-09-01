@@ -1,0 +1,105 @@
+---
+title: GoogleのMuellerが検証、Markdown配信はAI検索に効かない
+description: >-
+  GoogleのJohn
+  MuellerがMarkdown版ページをAIクローラーに配信する施策を検証。実際にアクセスしていたのはSEOツールだけだったと報告した内容を解説します。
+date: '2026-08-31'
+category: geo
+type: news
+tags:
+  - Markdown
+  - John Mueller
+  - AIクローラー
+  - Cloudflare
+  - AGENTS.md
+  - AI Overviews
+impact: low
+audience: 全サイト（特にAI経由の流入を狙う制作会社・自社サイト運営者）
+actions:
+  - Markdown配信をこれから作る予定なら着手前にログで需要を確認する
+  - Acceptヘッダーをサーバーログに出力する設定を確認する
+  - 既存のHTMLキャッシュ・配信基盤への追加投資は保留する
+draft: false
+sources:
+  - title: Google’s Mueller Shares Their Experience With Markdown For AI SEO
+    url: >-
+      https://www.searchenginejournal.com/googles-mueller-shares-their-experience-with-markdown-for-ai-seo/587671/
+id: 31
+---
+## 結論
+
+GoogleのJohn Muellerは、自分のテストサイトでMarkdown版ページに実際にアクセスしていたのはSEOツールだけだったと明かしました。ChatGPTやPerplexityなどのAIクローラーが、ページの軽量なMarkdown版をわざわざ要求してくる動きは確認できなかったという内容です。Redditで「MarkdownをLLM向けに用意して効果があった人はいるか」という質問に答える形で共有された、あくまで個人の観測結果です。ただし業界で広がりつつある「AI向けMarkdown配信」施策の前提を見直す材料になります。
+
+Markdownとは、見出しや箇条書きなどの構造だけを記号で表す軽量なマークアップ形式です。HTMLからJavaScriptやCSS、装飾用のタグを取り除いた、テキストに近い状態のファイルと考えると分かりやすいです。
+
+## 何が起きたか
+
+Redditの投稿者は、HTMLページのキャッシュに加えてMarkdown版も生成・キャッシュしており、AIボットがMarkdownを要求してきたら配信する仕組みをすでに用意していました。ファイルサイズはHTMLの3分の1程度にできるとのことです。この投稿者は「AI引用が増える効果はなさそうだが害もなさそうという結論をネットで見た」とした上で、実際に大手AIボットがMarkdownを要求した例を見た人がいるか尋ねました。
+
+これに対しMuellerは「自分のテストサイトでMarkdownを受け入れると申告しているクローラーはSEOツールだけだ。人により結果は違うかもしれない」と回答しました。
+
+<FigureQuote text="On my test sites the only crawlers who claim to accept markdown are SEO tools. Ymmv." source="Google John Mueller、Redditへの投稿" />
+
+日本語にすると「自分のテストサイトでMarkdownを受け入れると申告しているクローラーは、SEOツールだけだった。人によって結果は違うかもしれない」という意味です。AI検索エンジン本体のクローラーではなく、SEO分析ツールがMarkdownを要求していたという点が要旨です。
+
+Muellerはさらに、自分のサーバー環境ではAcceptヘッダー（クライアントがどの形式のファイルを希望しているかを示すHTTPヘッダー）をログに残していないため、確認のためにわざわざログ出力の設定を追加したと述べています。まず自サイトでこのヘッダーを記録し、数値を見てから判断すべきだとしています。
+
+## 影響を受けるページ・クエリを特定する
+
+この話はページの検索順位やAI Overviewsへの表示・引用のされ方そのものには直接影響しません。影響があるとすれば、すでにMarkdown配信を実装しているサイトの「サーバー負荷対策」の判断です。
+
+具体的には、AIクローラーによる大量アクセスをCloudflareなどで一部ブロックしていて、Markdown配信で許可を検討しているケースが該当します。逆に、通常のHTMLページの検索順位やAI Overviewsでの引用状況は、Markdown配信の有無とは切り離して考えるべきだと考えられます。クエリの種類による差もありません。
+
+## Markdownは新しいkeywordsメタタグと考えられる
+
+記事はMarkdown配信の限界を、過去のkeywordsメタタグ（かつて検索エンジンにキーワードを申告するために使われたHTMLタグ）に例えています。keywordsメタタグは、サイト運営者が実際のコンテンツと関係ないキーワードを詰め込んだ結果、検索エンジンから信用されなくなり廃止された経緯があります。
+
+AI検索エンジン側も、サイト運営者が用意した「AI専用コンテンツ」を無条件に信用する動機がありません。加えてHTMLのクロール・インデックス技術はすでに30年以上かけて確立されています。ユーザーが実際に見るHTMLをそのまま読む方が、別途用意されたMarkdownを読むより合理的だという指摘です。
+
+<FigureCompare
+  title="AI向けMarkdown配信をめぐる立場の違い"
+  cols={[
+    { label: "Cloudflare", tone: "accent", sub: "推進側", points: ["MarkdownはAIエージェントの共通語と説明", "content negotiationでHTMLを自動変換して配信する機能を提供"] },
+    { label: "Google（Mueller）", tone: "seo", sub: "懐疑的", points: ["自分のテストサイトではSEOツールしか要求していない", "まずログで実態を確認すべきと助言"] },
+  ]}
+/>
+
+Cloudflareは「Markdown for Agents」という機能を紹介し、対応ゾーンでAIシステムがtext/markdown形式を希望した場合に、HTMLを自動変換して配信できるとしています。記事はこの説明について「そのRedditの議論がMarkdown成功事例で埋まっているはずだが、実際はそうなっていない」と、実態との乖離を指摘しています。
+
+## AIエージェント向けの指示ファイルとは区別する
+
+一方でMarkdownには、AI検索とは別の用途で明確な役割があります。OpenAIのコーディング支援ツールCodexは、プロジェクトの指示を書いたAGENTS.mdというMarkdownファイルを読み込む仕組みを持っています。Anthropicも同様にMarkdownをエージェント向けの指示・コンテキストの記述に使っています。
+
+これはAIエージェントに「作業手順」を伝えるための仕組みであり、検索結果やAI Overviewsでの表示順位を上げるための施策ではありません。両者を混同しないことが判断のポイントになります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="AI向けMarkdown配信への向き合い方"
+  dos={["サーバーのAcceptヘッダーをログに出す設定を確認する", "AIクローラーからのアクセス過多で困っている場合のみ検討する"]}
+  donts={["AI引用対策としてMarkdown版ページを新規に作り込む", "HTMLキャッシュ基盤に追加投資してMarkdown生成を組み込む"]}
+/>
+
+理由は単純で、Markdown配信によるAI引用増加を裏付ける事例が今のところ確認できていないためです。工数をかけて実装しても、Muellerの観測どおりであればAI検索クローラーは見に来ません。
+
+判断の分岐は次のとおりです。ECサイトやメディアで「AIボットのアクセスが多くサーバー負荷が問題になっている」場合は、Markdown配信でファイルサイズを削減する意味があります。例えば月間PV数十万規模のニュースメディアが、AIクローラーのアクセス集中でCDN費用が例えば前月比で大きく増えたようなケースです。一方、通常規模のBtoBサイトや店舗集客サイトで、AI引用対策としてゼロからMarkdown配信を組むのは、現時点では優先度が低いと考えられます。
+
+## 日本の運営者への当てはめ
+
+日本のアパレルECサイトを例にすると、商品ページのHTMLは装飾やレコメンド枠のJavaScriptが多く、ページ容量が重くなりがちです。もしAIボットのクロール頻度が上がりサーバー負荷が課題になっているなら、Markdown配信は検討材料になります。ただし「AI検索での商品名の露出を増やしたい」という目的だけなら、商品説明文そのものをHTML内で具体的に書き直す方が優先度は高いと考えられます。
+
+BtoBサイトの場合も同様です。サービス紹介ページをMarkdown化する前に、Acceptヘッダーのログを1〜2週間取り、AI検索クローラーからの要求が実際に来ているかを確認する方が、工数対効果の見合った進め方です。
+
+## よくある質問
+
+### AI向けにMarkdown版ページを用意すればAI Overviewsに引用されやすくなりますか
+
+GoogleのJohn Muellerの観測では、自分のテストサイトでMarkdownを要求していたのはSEOツールだけで、AI検索クローラーが要求してくる形跡は確認できませんでした。現時点でMarkdown配信がAI引用を増やすという根拠は示されていません。
+
+### Cloudflareの「Markdown for Agents」機能は使う意味がありませんか
+
+CloudflareはHTMLをMarkdownに自動変換して配信する機能を提供していますが、記事はAIエージェント側の需要説明について「過大に見える」と指摘しています。サーバー負荷軽減など別の目的がある場合は検討の余地がありますが、AI引用増加を目的にするなら優先度は低いです。
+
+### AGENTS.mdのようなMarkdownファイルとAI検索向けMarkdown配信は同じものですか
+
+異なるものです。AGENTS.mdはOpenAIのCodexなどAIエージェントに作業手順を伝えるための指示ファイルで、検索順位やAI Overviewsへの表示とは関係ありません。ページ内容をAI検索クローラー向けに配信するMarkdownとは目的も効果も別物です。
