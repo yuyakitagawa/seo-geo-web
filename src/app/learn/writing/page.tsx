@@ -235,9 +235,9 @@ export default function Lesson06() {
           という制約を生成の段階で課しています。
         </p>
         <p>
-          次のレッスンでは、こうして書いたページを、テーマごとに束ねて評価が積み上がる構造に組み替えます。
-          個別ページの品質だけを上げても、サイト全体としてのまとまりが無いと積み上がりません。
-          <Link href={lessonPath("structure")}>レッスン{lessonNo("structure")}</Link>へ進んでください。
+          次のレッスンでは、こうして書いた本文が、実際の検索結果とAIの回答でどう抜き出されるかを扱います。
+          文言そのものは指定できませんが、出すか出さないか、どこまで見せるかはサイト側で決められます。
+          <Link href={lessonPath("snippet")}>レッスン{lessonNo("snippet")}</Link>へ進んでください。
         </p>
       </GuideSection>
     </LessonShell>
