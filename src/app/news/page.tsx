@@ -9,8 +9,8 @@ import PageHeader from "@/components/PageHeader";
 import TypeBadge from "@/components/TypeBadge";
 import OriginalBadge from "@/components/OriginalBadge";
 import SourceBadge from "@/components/SourceBadge";
-import { collectionJsonLd, collectionSummary } from "@/lib/collection";
-import { getAllArticles, getAllTags, latestUpdated, type ArticleMeta } from "@/lib/content";
+import { articleDateRange, collectionJsonLd, collectionSummary } from "@/lib/collection";
+import { getAllArticles, getAllTags, type ArticleMeta } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_URL } from "@/lib/site";
 import { CONTAINER, HEADING, cx } from "@/lib/ui";
@@ -42,7 +42,7 @@ export default function NewsPage() {
   const months = byMonth(articles);
   const tags = getAllTags().slice(0, 16);
   const url = `${SITE_URL}/news`;
-  const dates = articles.map((a) => a.date).sort();
+  const dates = articleDateRange(articles);
 
   return (
     <>
@@ -51,15 +51,17 @@ export default function NewsPage() {
       <div className={cx(CONTAINER.page, "pb-16 pt-12")}>
         {/* 「SEO・GEOの最新動向は？」のような包括クエリに直答する段落 */}
         <p className="max-w-3xl leading-relaxed text-mute">{collectionSummary("SEO・GEO", articles)}</p>
-        <div className="mb-10 mt-3">
-          <PageDates
-            path="/news"
-            name="ニュース（記事アーカイブ）"
-            description={DESCRIPTION}
-            published={dates[0]}
-            updated={latestUpdated(articles) ?? dates.at(-1)!}
-          />
-        </div>
+        {dates && (
+          <div className="mb-10 mt-3">
+            <PageDates
+              path="/news"
+              name="ニュース（記事アーカイブ）"
+              description={DESCRIPTION}
+              published={dates.published}
+              updated={dates.updated}
+            />
+          </div>
+        )}
 
         <ArticleList articles={latest} featuredFirst />
 

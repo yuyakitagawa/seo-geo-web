@@ -102,24 +102,55 @@ function parseFile(file: string): Article | null {
   };
 }
 
-let cache: Article[] | null = null;
+type ArticleIndex = {
+  all: Article[];
+  bySlug: Map<string, Article>;
+  tags: { tag: string; count: number }[];
+};
+
+let cache: ArticleIndex | null = null;
+
+function compareArticlesByDate(a: ArticleMeta, b: ArticleMeta): number {
+  return b.date.localeCompare(a.date) || b.id - a.id;
+}
+
+function buildArticleIndex(): ArticleIndex {
+  if (!fs.existsSync(ARTICLES_DIR)) return { all: [], bySlug: new Map(), tags: [] };
+
+  const all = fs
+    .readdirSync(ARTICLES_DIR)
+    .filter((file) => /\.mdx?$/.test(file))
+    .map(parseFile)
+    .filter((article): article is Article => article !== null)
+    .sort(compareArticlesByDate);
+
+  const bySlug = new Map<string, Article>();
+  for (const article of all) {
+    if (bySlug.has(article.slug)) throw new Error(`記事 id が重複しています: ${article.id}`);
+    bySlug.set(article.slug, article);
+  }
+
+  const tagCounts = new Map<string, number>();
+  for (const article of all) {
+    for (const tag of article.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
+  const tags = [...tagCounts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+
+  return { all, bySlug, tags };
+}
+
+function articleIndex(): ArticleIndex {
+  return (cache ??= buildArticleIndex());
+}
 
 export function getAllArticles(): Article[] {
-  if (cache) return cache;
-  if (!fs.existsSync(ARTICLES_DIR)) return (cache = []);
-  cache = fs
-    .readdirSync(ARTICLES_DIR)
-    .filter((f) => /\.mdx?$/.test(f))
-    .map(parseFile)
-    .filter((a): a is Article => a !== null);
-  const dup = cache.map((a) => a.id).filter((id, i, arr) => arr.indexOf(id) !== i);
-  if (dup.length) throw new Error(`記事 id が重複しています: ${[...new Set(dup)].join(", ")}`);
-  cache = cache.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
-  return cache;
+  return articleIndex().all;
 }
 
 export function getArticle(slug: string): Article | undefined {
-  return getAllArticles().find((a) => a.slug === slug);
+  return articleIndex().bySlug.get(slug);
 }
 
 export function getArticlesByCategory(category: CategoryKey): Article[] {
@@ -135,14 +166,22 @@ export function getArticlesByTag(tag: string): Article[] {
 }
 
 export function getAllTags(): { tag: string; count: number }[] {
-  const counts = new Map<string, number>();
-  for (const a of getAllArticles()) for (const t of a.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
-  return [...counts].map(([tag, count]) => ({ tag, count })).sort((x, y) => y.count - x.count || x.tag.localeCompare(y.tag));
+  return articleIndex().tags;
+}
+
+/** 一覧内で最も古い公開日。記事一覧の構造化データ・表示日付で共用する。 */
+export function earliestPublished(articles: ArticleMeta[]): string | undefined {
+  return articles.reduce<string | undefined>((earliest, article) => (!earliest || article.date < earliest ? article.date : earliest), undefined);
+}
+
+/** 一覧内で最も新しい公開日。並び順に依存しない期間表示用。 */
+export function latestPublished(articles: ArticleMeta[]): string | undefined {
+  return articles.reduce<string | undefined>((latest, article) => (!latest || article.date > latest ? article.date : latest), undefined);
 }
 
 /** タグ内の最新記事の更新日（sitemapのlastmod用）。全ページ同じ日付にしないための値 */
 export function latestUpdated(articles: ArticleMeta[]): string | undefined {
-  return articles.map((a) => a.updated).sort().at(-1);
+  return articles.reduce<string | undefined>((latest, article) => (!latest || article.updated > latest ? article.updated : latest), undefined);
 }
 
 // 関連記事: 同カテゴリ＋タグ一致数が多い順。自分自身は除く。
@@ -157,7 +196,7 @@ export function getRelatedArticles(article: Article, limit = 4): Article[] {
         a.tags.filter((t) => article.tags.includes(t)).length,
     }))
     .filter((x) => x.score > 0)
-    .sort((x, y) => y.score - x.score || (x.a.date < y.a.date ? 1 : -1))
+    .sort((x, y) => y.score - x.score || compareArticlesByDate(x.a, y.a))
     .slice(0, limit)
     .map((x) => x.a);
 }

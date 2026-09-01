@@ -41,7 +41,7 @@ export type Tool = {
 // content/tools.json を読む。/tools ページのデータ。新ツールは収集スクリプトの「ツール検知」候補を人が確認してから追記する。
 export function getTools(): Tool[] {
   const raw = JSON.parse(fs.readFileSync(path.join(process.cwd(), "content", "tools.json"), "utf8")) as { tools: Tool[] };
-  return raw.tools.sort((a, b) => a.category.localeCompare(b.category) || (a.country === b.country ? a.name.localeCompare(b.name, "ja") : a.country === "日本" ? -1 : 1));
+  return [...raw.tools].sort((a, b) => a.category.localeCompare(b.category) || (a.country === b.country ? a.name.localeCompare(b.name, "ja") : a.country === "日本" ? -1 : 1));
 }
 
 export function latestVerified(tools: Tool[]): string {

@@ -37,8 +37,9 @@ export default function Lesson09() {
         lead={
           <>
             生成AIの回答に載る経路は2つあり、必要な作業が違います。Google検索のインデックス経由（AIによる概要・AIモード）は
-            SEOそのもので、追加の設定はありません。AI各社の独自クローラー経由（ChatGPT・Perplexityなど）は、
-            robots.txtでそのボットを許可していることが前提になります。
+            SEOそのもので、追加の設定はありません。AI各社がページを取得する経路には、検索用ボットによる巡回と、
+            ユーザーが質問したときに <code>ChatGPT-User</code> などが、その質問に応じてページへアクセス（取得）することがあります。
+            検索用ボットはrobots.txtで許可していることが前提になります。
             <GuideRef {...REF.aiFeatures} />
           </>
         }
@@ -47,7 +48,7 @@ export default function Lesson09() {
           title="経路ごとに、どこで止まるか"
           stages={[
             { label: "経路A: Googleのインデックス", desc: "Googlebotがクロールし、通常の検索インデックスに登録される。AI機能はここを参照する。", fail: "インデックスされていなければ、AIによる概要・AIモードの参照元にならない。" },
-            { label: "経路B: AI各社のクローラー", desc: "OAI-SearchBotなどが個別に巡回し、各社の回答の材料になる。", fail: "robots.txtで拒否していると、その事業者の回答に出ない。" },
+            { label: "経路B: AI各社によるページ取得", desc: "OAI-SearchBotなどは個別に巡回し、ChatGPT-Userなどはユーザーの質問に応じてページへアクセス（取得）することがある。どちらも回答の材料になり得る。", fail: "検索用ボットをrobots.txtで拒否すると、その事業者の検索結果に出にくくなる。ユーザー起点のアクセス（取得）はrobots.txtが適用されない場合がある。" },
             { label: "共通: 抜き出せる本文", desc: "見出しの直下に質問へ直答する段落があり、数値や条件が構造化されている。", fail: "取得されても、引用できるまとまりが無ければ回答に使われにくい。" },
           ]}
           caption={
@@ -87,8 +88,8 @@ export default function Lesson09() {
         ))}
         <p>
           注意点が2つあります。1つ目は、<code>ChatGPT-User</code> や <code>Perplexity-User</code> のような
-          <strong>ユーザー起点のアクセス</strong>は、自動巡回ではないためrobots.txtが適用されない場合があると
-          各社が説明していることです。2つ目は、GoogleのGoogle-ExtendedはGeminiアプリの学習・グラウンディング用のトークンで、
+          <strong>ユーザー起点のアクセス</strong>は、ユーザーの質問に応じて対象ページへアクセス（取得）することがあるもので、自動巡回ではありません。
+          そのためrobots.txtが適用されない場合があると各社が説明しています。2つ目は、GoogleのGoogle-ExtendedはGeminiアプリの学習・グラウンディング用のトークンで、
           Google検索へのサイトの登録やランキングには影響しないと明記されていることです。
           <GuideRef {...REF.googleCrawlers} />
         </p>

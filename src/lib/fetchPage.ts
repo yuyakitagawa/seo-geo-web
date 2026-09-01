@@ -41,7 +41,8 @@ async function assertPublicUrl(raw: string): Promise<URL> {
   if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error("http / https のURLだけ検査できます");
   if (u.port && u.port !== "80" && u.port !== "443") throw new Error("80 / 443 以外のポートは検査できません");
 
-  const host = u.hostname;
+  // URL.hostname のIPv6リテラルは実行環境によって [] 付きになるため、DNS/IP判定の前に外す。
+  const host = u.hostname.replace(/^\[|\]$/g, "");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".internal")) throw new Error("このホストは検査できません");
   if (net.isIP(host)) {
     if (isBlockedIp(host)) throw new Error("このIPアドレスは検査できません");
@@ -61,7 +62,7 @@ async function assertPublicUrl(raw: string): Promise<URL> {
 export async function fetchChecked(raw: string, accept: string) {
   const redirects: string[] = [];
   let current = raw;
-  for (let i = 0; i <= MAX_REDIRECTS; i++) {
+  for (let redirectCount = 0; ; redirectCount++) {
     const u = await assertPublicUrl(current);
     const res = await fetch(u, {
       redirect: "manual",
@@ -69,13 +70,13 @@ export async function fetchChecked(raw: string, accept: string) {
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
+      if (redirectCount >= MAX_REDIRECTS) throw new Error("リダイレクトが多すぎます");
       current = new URL(res.headers.get("location")!, u).toString();
       redirects.push(current);
       continue;
     }
     return { res, finalUrl: u.toString(), redirects };
   }
-  throw new Error("リダイレクトが多すぎます");
 }
 
 /** 上限バイト数までしか読まない。巨大なファイルを掴まされても落ちないようにする */
@@ -87,9 +88,13 @@ export async function readCapped(res: Response): Promise<{ text: string; bytes: 
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
-    bytes += value.byteLength;
-    chunks.push(value);
-    if (bytes > MAX_BYTES) {
+    const remaining = MAX_BYTES - bytes;
+    if (value.byteLength <= remaining) {
+      chunks.push(value);
+      bytes += value.byteLength;
+    } else {
+      chunks.push(value.subarray(0, remaining));
+      bytes = MAX_BYTES;
       await reader.cancel();
       break;
     }
@@ -97,7 +102,7 @@ export async function readCapped(res: Response): Promise<{ text: string; bytes: 
   const buf = new Uint8Array(bytes);
   let at = 0;
   for (const c of chunks) {
-    buf.set(c.subarray(0, Math.min(c.byteLength, bytes - at)), at);
+    buf.set(c, at);
     at += c.byteLength;
   }
   return { text: new TextDecoder("utf-8").decode(buf), bytes };

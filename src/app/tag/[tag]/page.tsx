@@ -5,8 +5,8 @@ import JsonLd from "@/components/JsonLd";
 import NextStep from "@/components/NextStep";
 import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import { collectionJsonLd, collectionSummary } from "@/lib/collection";
-import { getAllTags, getArticlesByTag, latestUpdated } from "@/lib/content";
+import { articleDateRange, collectionJsonLd, collectionSummary } from "@/lib/collection";
+import { getAllTags, getArticlesByTag } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
 import { isIndexableTag } from "@/lib/indexability";
 import { SITE_URL } from "@/lib/site";
@@ -35,6 +35,7 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
   const articles = getArticlesByTag(tag);
   if (articles.length === 0) notFound();
   const url = `${SITE_URL}/tag/${encodeURIComponent(tag)}`;
+  const dates = articleDateRange(articles)!;
 
   return (
     <>
@@ -47,8 +48,8 @@ export default async function TagPage({ params }: PageProps<"/tag/[tag]">) {
             path={`/tag/${encodeURIComponent(tag)}`}
             name={`#${tag} の記事`}
             description={`「${tag}」に関する記事一覧。`}
-            published={articles.map((a) => a.date).sort()[0]}
-            updated={latestUpdated(articles)!}
+            published={dates.published}
+            updated={dates.updated}
           />
         </div>
         <ArticleList articles={articles} />
