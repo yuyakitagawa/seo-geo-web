@@ -20,7 +20,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
-| `/learn` | SEO・GEO教科書の目次。3レベル13レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
@@ -185,7 +185,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
   | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
   | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
-  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**13レッスン全部** | 「SEO・GEO教科書」 |
+  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**14レッスン全部** | 「SEO・GEO教科書」 |
   | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
   | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
   | `src/app/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
@@ -265,23 +265,35 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
   説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
   「チャンク」は生成AI側が機械的に切り分けた断片を指すときだけ使い、初出で1文の説明を添える。
   語の違いそのものは `/geo` のFAQ（`src/lib/guides.ts`）で1か所だけ説明する。
-- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった13レッスン。
+- **教科書 `/learn`**: 「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった14レッスン。
   レッスン定義（到達目標・チェックリスト・FAQ・出典）は `src/lib/curriculum.ts` の1か所に持ち、
   **可視テキスト・JSON-LD（LearningResource の teaches / FAQPage / ItemList）・llms.txt が同じ文字列を使う**。
   実例は `src/lib/cases.ts` に分離し、収録条件を「①出典が一次情報 ②施策と数値が同じ文書にある ③数値を言い換えない」の3つに固定した。
   出典は Google 検索セントラルの成功事例・web.dev のケーススタディ・arXiv の GEO 論文のみ。
   数値は各社の環境での結果なので、`CaseList` が「同じ結果を保証しない」注記を必ず添える。
   レッスンの並びは 01 スターターガイド / 02 初期点検 / 03 検索意図とキーワード設計 / 04 ロングテール設計 /
-  05 テクニカル / 06 本文の書き方 / 07 サイト構造 / 08 ドメイン構造 / 09 GEO実装 / 10 計測 / 11 実例 / 12 アップデート対応 /
-  13 ブランドをAIに覚えさせる。
-  **レッスン番号は各ページの本文にも「レッスン07」の形で書かれている**ため、順番を入れ替えるときは
-  `src/lib/curriculum.ts` の `order` だけでなく `src/app/learn/**` の本文表記も直す（URLは slug 固定なので変わらない）。
-  レッスン10には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
+  05 テクニカル / 06 本文の書き方 / 07 スニペット / 08 サイト構造 / 09 ドメイン構造 / 10 GEO実装 / 11 計測 / 12 実例 /
+  13 アップデート対応 / 14 ブランドをAIに覚えさせる。
+  順番を入れ替えるときに直すのは `src/lib/curriculum.ts` の `order` だけで済む（本文の番号は `lessonNo()` 経由、URLは slug 固定）。
+  レッスン07は「抜き出され方」を1章にまとめた場所で、通常のスニペット・強調スニペット・AIによる概要の引用を
+  同じ問題として扱い、`nosnippet` / `data-nosnippet` / `max-snippet` で決まる範囲と meta description の位置づけを置く。
+  レッスン11には Search Console の点検チェックリスト（初期設定・週次・月次・変更したとき）を置き、
   1項目ごとに「見る場所・合格の条件・崩れていたら」を `GuideChecklist`（`src/components/guide.tsx`）で出す。
   レッスン05には「未インデックスの対処法」（`#not-indexed`）を置き、インデックス登録レポートの理由別に
-  「起きていること・対処・直ったかの確認」を並べる。レッスン02・10からはこのアンカーへ送る。
+  「起きていること・対処・直ったかの確認」を並べる。レッスン02・11からはこのアンカーへ送る。
   同じくレッスン05の「クローラーの訪問頻度と取得ファイル」（`#crawl-stats`）は、クロールの統計情報レポートの
   4つの内訳（レスポンス／ファイル形式／目的／Googlebotタイプ）と、HTMLが押し出されているときの対処を扱う。
+  レッスン07の「Googleの説明：ECサイトの例で読む」（`#google-ec`）は、リンク構造についてのGoogleの記述が
+  ECサイト向けドキュメント（`help-google-understand-your-ecommerce-site-structure`）にまとまっているため、
+  そこを引用したうえで「メニュー → カテゴリ → サブカテゴリ → 商品」をメディアの語彙に読み替える表と図を置く。
+  **Googleが述べているのは「到達までにたどるリンクの本数」と「そのページに向けられたリンクの本数」を
+  相対的な重要度の推測に使うことがある、という点まで**で、階層数やクリック数の上限は示していない。
+  「2〜3クリック」のような数字は当サイトの整理なので、図のキャプションで必ず切り分ける。
+  続く「「何クリック以内」はGoogleが決めているのか」（`#clicks`）が、その切り分けを1か所に集約する節。
+  Googleの3文書（2008年のブログ「Importance of link architecture」＝重要なページはトップからクリックできるように／
+  サイトマップのドキュメント＝トップからリンクをたどって重要なページをすべて見つけられること／
+  ECサイトのドキュメント＝たどる本数と集まる本数を重要度の推測に使うことがある）を出典つきで並べ、
+  **クリック数の数字はどの文書にも無い**ことを明記する。クリック数の目安を本文で使うときは、この節へ送る。
 - **用語集 `/glossary`**: 「◯◯とは」は検索でもAI検索でも最も多い形の質問で、AI検索は**質問に直答する短い定義文**を抜き出す。
   `/seo` `/geo` が主要語2つを深く説明するページ、`/glossary` はその周辺語を1語ずつ短く定義するページ。
   定義は**その1文だけ読んで意味が通る**こと（前の項目や見出しに依存しない）。出典は用語ごとに1つだけ持つ
@@ -310,7 +322,7 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
 - sitemap は **loc と lastmod だけ**を出す。`changefreq` と `priority` はGoogleが無視すると明言している値なので載せない。
   `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
   /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない
-- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書13レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書14レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
   `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
