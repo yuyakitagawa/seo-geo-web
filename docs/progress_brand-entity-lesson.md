@@ -44,3 +44,11 @@ AI検索は回答を組み立てる前に候補のブランドを決めている
 上記の数値は複数の独立した二次情報（Search Engine Journal・Search Engine Roundtable ほか）で相互確認したもの。
 - [ ] 原典5件を開いて数値・日付・調査規模を目視確認する（Ahrefs 2件、Seer 1件、arXiv:2604.07585、arXiv:2311.09735）
 - [ ] GEO論文の手法別の内訳（統計/引用/出典それぞれの%）を原典で確認し、必要なら data節を数値入りに戻す
+
+## 追記（2026-09-01・2）: Ahrefs 75,000ブランド調査を表にした
+
+mentions節で文章にしていた相関係数を `GuideTable` に切り出した（指標／相関係数／何を数えているか の3列）。
+本文は「上位3つはすべて自社サイトの外側の指標、被リンクは明確に弱い」という読み方だけを残し、
+「相関であって因果ではない」の但し書きは表のキャプションに移した。
+- [x] `src/app/learn/brand-entity/page.tsx`: mentions節にGuideTableを追加
+- [x] `npm run typecheck && npm run build`
