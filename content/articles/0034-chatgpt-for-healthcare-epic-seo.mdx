@@ -1,0 +1,92 @@
+---
+title: ChatGPT for HealthcareがEPICのカルテと連携、日本のSEOへの影響は
+description: >-
+  OpenAIがChatGPT for
+  HealthcareにEPICのEHR連携とPubMedなど9つの公式医療データ連携を追加。米国の医療機関向け機能で、日本の医療メディアへの直接的な影響は限定的です。
+date: '2026-09-01'
+category: geo
+type: news
+tags:
+  - ChatGPT
+  - ChatGPT for Healthcare
+  - OpenAI
+  - EHR連携
+  - 医療メディア
+impact: low
+audience: 医療・製薬系メディア、クリニック・病院の公式サイト運営者
+actions:
+  - 様子見で可
+sources:
+  - title: >-
+      Healthcare organizations can now connect EHR and additional industry data
+      to ChatGPT
+    url: >-
+      https://openai.com/index/chatgpt-connects-health-records-and-healthcare-sources
+draft: false
+id: 34
+---
+## 結論
+
+OpenAIは2026年9月1日、法人向け製品「ChatGPT for Healthcare」に、電子カルテ（EHR）システムのEPICと連携する機能と、PubMedなど9つの公式医療データソースに接続する「Healthcare Public Data」プラグインを追加しました。対象は米国の病院・医療機関が契約する法人向けワークスペースで、一般消費者が使うChatGPTの検索結果や回答生成の仕組みには影響しません。日本のSEO・GEO担当者が緊急対応すべき変更ではありません。
+
+ChatGPT for Healthcareとは、病院や製薬会社などが契約する、監査ログやシングルサインオンなどの企業向け管理機能を備えたChatGPTのワークスペースです。一般ユーザーが使うchatgpt.comのアプリとは別の、業務用の有料プランと考えてください。
+
+## 何が追加されたか
+
+今回追加されたのは大きく2つです。1つ目はEPIC（米国で広く使われる電子カルテシステム）との連携で、医師が診察前に「前回の来院から何が変わったか」といった質問をすると、カルテ内の検査結果や薬剤変更、専門医の所見をChatGPTが要約します。
+
+2つ目はHealthcare Public Dataプラグインです。これはClinicalTrials.gov（臨床試験登録データベース）、CMS Coverage（米メディケアの保険適用情報）、RxNorm（薬剤コード体系）、DailyMed（医薬品添付文書データベース）、PubMed（医学論文データベース）など9つの公式データソースに、構造化された形で直接アクセスする仕組みです。
+
+OpenAIは、医師によるレビュー結果として、27の臨床ユースケース・4,363件の評価で回答の99.1%が「安全」と判定されたこと、5つの接続データソースそれぞれで回答の93%以上が「良好以上の精度」と評価されたことを公表しています。
+
+<FigureQuote text="Today, we're introducing a new electronic health record integration that brings authorized patient context from Epic into ChatGPT for Healthcare, along with the Healthcare Public Data plugin for direct, structured access to official healthcare datasets like PubMed, DailyMed, and CMS Coverage." source="OpenAI公式発表、2026年9月1日" />
+
+要約すると、認証済みの患者カルテ情報をEPICからChatGPTに取り込む機能と、PubMedなど公式医療データベースに直接アクセスするプラグインを同時に発表した、という内容です。利用対象はUCSF Health、AdventHealth、Cedars-Sinaiなど米国の大手医療機関が名を連ねる法人契約者に限られます。
+
+## 影響を受けるページ・クエリ
+
+この発表が直接影響するページ・クエリは、日本国内にはほぼ存在しないと考えられます。理由は3つあります。
+
+まず対象が米国の医療機関向け法人契約に限定されている点です。EHR連携はEPIC環境を持つ病院が対象で、日本の医療機関の多くはEPIC以外の電子カルテを使っています。
+
+次に、Healthcare Public Dataプラグインが接続する9つのソースはPubMed以外いずれも米国固有の制度・データベースです。CMS Coverageは米国メディケアの保険適用情報、RxNormは米国の薬剤コード体系であり、日本の薬価情報や保険診療の仕組みとは対応しません。
+
+さらに重要な点として、この機能は一般消費者向けのchatgpt.comの検索・回答機能とは別の、企業契約者専用ワークスペースの中で動きます。AI Overviewsのような一般公開の検索結果や、通常のChatGPTの回答生成ロジックが変わるわけではないため、Webサイトへの流入経路自体に変化は起きません。
+
+<FigureCompare
+  title="今回の機能追加が動く場所／動かない場所"
+  cols={[
+    { label: "動く", tone: "accent", sub: "米国の医療機関の法人契約", points: ["EPIC連携によるカルテ要約", "PubMed等9ソースへの直接接続", "病院内の臨床ワークフロー"] },
+    { label: "動かない", tone: "seo", sub: "一般公開のChatGPT・検索結果", points: ["chatgpt.comの通常の回答", "AI Overviews等の検索結果", "日本の医療メディアへの引用有無"] },
+  ]}
+/>
+
+強いて日本の運営者に関連づけるなら、製薬会社の英語版グローバルサイトや、海外臨床試験情報を扱うページが該当し得ます。ただしこれも「ChatGPTが直接クロールして引用する」機能ではなく、公式データベースへの構造化アクセスである点に注意が必要です。
+
+## やること／やらなくていいこと
+
+医療・製薬系のメディアや病院サイトを運営している場合でも、今回の発表を受けて緊急に着手すべき作業はありません。「ChatGPTが医療データに強くなった」というニュースを見て、自社の医療コンテンツの構造化データを慌てて見直す必要はないということです。
+
+<FigureDoDont
+  title="ChatGPT for Healthcare発表を受けた対応"
+  dos={["米国向けに臨床試験・製薬情報を発信している場合は、ClinicalTrials.govなど公式データベース側の情報の正確さを確認する", "自社が医療機関向けにEPIC等のEHR連携サービスを提供している場合は、営業機会として情報収集を続ける"]}
+  donts={["日本の一般的な医療メディア・クリニックサイトが構造化データやFAQマークアップを急いで追加する", "この発表を根拠に自社のGEO対策の優先順位を組み替える"]}
+/>
+
+理由は明快です。この機能は法人契約者専用のワークスペース内で完結し、Webページのクロール・引用ロジックには一切触れていません。例えば東京都内のクリニックが運営する予約サイトや、症状別の解説記事を掲載する医療メディアの場合、今回の変更によって検索経由の流入やAI回答内での引用のされ方が変わることは想定しにくい状況です。
+
+一方で、日本国内でも今後EHRベンダーやクラウド電子カルテ事業者がChatGPTとの連携を発表する可能性はあります。そうした発表が出た段階で、自社が医療機関向けにシステムを提供している場合は個別に確認すれば十分です。
+
+## よくある質問
+
+### ChatGPT for Healthcareは一般のChatGPTと何が違いますか
+
+ChatGPT for Healthcareは、病院や製薬会社が契約する法人向けワークスペースで、監査ログやシングルサインオンなど企業向けの管理機能とEPICなどの電子カルテ連携を備えています。一般ユーザーが使うchatgpt.comとは別の有料プランであり、通常のChatGPTの検索・回答機能には変更がありません。
+
+### 日本の病院やクリニックのサイトはこの発表で何か対応が必要ですか
+
+現時点で対応が必要な作業はありません。今回の機能は米国のEPIC電子カルテ環境と米国固有の医療データベースを対象にしており、日本の医療機関のシステムやWebサイトの表示・引用のされ方には直接関係しないためです。
+
+### Healthcare Public Dataプラグインは検索結果やAI Overviewsに影響しますか
+
+影響しません。このプラグインはPubMedやClinicalTrials.govなど9つの公式データベースにChatGPT for Healthcare内で直接アクセスする機能であり、一般公開されている検索結果やAI Overviewsの生成ロジックとは別の仕組みで動いています。
