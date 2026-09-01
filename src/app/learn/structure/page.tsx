@@ -14,6 +14,10 @@ const REF = {
     href: "https://developers.google.com/search/docs/specialty/ecommerce/help-google-understand-your-ecommerce-site-structure",
     label: "Help Google understand your ecommerce website structure",
   },
+  linkArchitecture: {
+    href: "https://developers.google.com/search/blog/2008/10/importance-of-link-architecture",
+    label: "Importance of link architecture（2008年）",
+  },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
@@ -24,6 +28,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 const TOC = [
   { id: "cluster", label: "トピッククラスタ：ハブとスポーク" },
   { id: "google-ec", label: "Googleの説明：ECサイトの例で読む" },
+  { id: "clicks", label: "「何クリック以内」はGoogleが決めているのか" },
   { id: "patterns", label: "リンク構造の型：崩れ方と直し方" },
   { id: "url", label: "URL設計とパンくず" },
   { id: "links", label: "内部リンクの張り方" },
@@ -81,8 +86,9 @@ export default function Lesson07() {
           baseNote="トップから3クリック以内で全ページに到達できる状態を目安にする。階層が深くなるほど、クロールも読者も届きにくくなる。"
           caption={
             <>
-              3階層という目安は当サイトの整理です。Googleは階層数の上限を示していません。
-              示しているのは、到達までにたどるリンクの本数を重要度の推測に使うことがある、という点です（次の節）。
+              3階層という目安は当サイトの整理です。Googleが述べているのは「重要なページはトップページからクリックできるようにする」
+              ところまでで、階層数やクリック数の上限は示していません（
+              <a href="#clicks" className="underline">「何クリック以内」はGoogleが決めているのか</a>）。
             </>
           }
         />
@@ -107,15 +113,14 @@ export default function Lesson07() {
           ここに出てくるのは<strong>「たどる本数（クリック深度）」と「集まる本数（内部リンクの数）」</strong>の2つです。
           何階層までに収めるべきかという上限は書かれていません。書かれているのは、
           重要なページほど短い経路で届き、多くのページからリンクされている状態にする、という考え方のほうです。
-          この節以降で出てくる「2〜3クリック」のような具体的な数字は、当サイトが運用のために決めた目安であり、
-          Googleが示した基準ではありません。
+          クリック数の扱いは次の節で切り分けます。
         </p>
         <GuideTable
           head={["Googleの記述（ECサイトの例）", "言っていること", "メディア・ブログでの読み替え"]}
           rows={[
             [
               "メニューからカテゴリページへ、カテゴリページからサブカテゴリページへ、サブカテゴリページからすべての商品ページへリンクを追加する",
-              "入口から末端まで、リンクが1本も途切れずにつながっている状態を作る",
+              "入口から末端まで、リンクが1本も途切れずにつながっている状態を作る。インデックスさせたい商品にはすべてリンクすることが強く推奨されている",
               "メニュー → ハブ（/seo・/geo）→ 各記事。どのハブからも並べられていない記事を無くす",
             ],
             [
@@ -195,6 +200,77 @@ export default function Lesson07() {
           サイトマップについては、リンクの代わりではないことに注意します。Googleが重要度の推測に使うと書いているのはリンクの本数のほうで、
           サイトマップは「こういうURLがある」と知らせるだけです。リンクを張れる場所があるなら、先にリンクを張ります。
           <GuideRef {...REF.sitemaps} />
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="clicks"
+        title="「何クリック以内」はGoogleが決めているのか"
+        lead="決めていません。「2クリック以内」「3階層まで」といった数字は、Googleのどの文書にも書かれていません。ただし「重要なページはトップページからクリックできるようにする」「トップページからリンクをたどって重要なページをすべて見つけられる状態にする」のほうは、2008年のブログから現行のドキュメントまで繰り返し書かれています。たどれることは要件、クリック数は当サイトの目安、と分けて扱います。"
+      >
+        <GuideTable
+          head={["出典", "Googleが書いていること", "読み取れること"]}
+          rows={[
+            [
+              <>
+                リンクアーキテクチャの重要性（2008年・ブログ）
+                <GuideRef {...REF.linkArchitecture} />
+              </>,
+              "「重要なページはトップページからクリックでき、サイト全体を通じてGooglebotが見つけやすい状態にしてください」。検索エンジンのクローラーが検索ボックスに入力したりプルダウンメニューをたどったりすることはまれだ、という理由が添えられている",
+              "トップから「クリックで届く」こと自体が要件。サイト内検索や絞り込みUIの奥にしか無いページは、経路が無いのと同じ",
+            ],
+            [
+              <>
+                サイトマップについて（現行のドキュメント）
+                <GuideRef {...REF.sitemaps} />
+              </>,
+              "サイトマップが無くてもよい条件の1つとして、「サイト内が十分にリンクされている＝Googlebotがトップページからリンクをたどって、重要なページをすべて見つけられる」ことを挙げている",
+              "基準の言い方はクリック数ではなく「トップからたどって全部見つかるか」。孤立ページが1本でもあれば満たしていない",
+            ],
+            [
+              <>
+                ECサイトの構造（現行のドキュメント）
+                <GuideRef {...REF.ecommerce} />
+              </>,
+              "あるページに到達するまでにたどる必要があるリンクの本数や、そのページに向けられたリンクの本数を、サイト内の他のページと比べた相対的な重要度の推測に使うことがある",
+              "経路が短いほど重要なページとして扱われうる。ただし「短い」の具体的な値は書かれていない",
+            ],
+          ]}
+          caption="日本語はいずれも当サイト訳です。「2クリック」「3クリック」という数字は、上のどの文書にも出てきません。"
+        />
+        <FigureCompare
+          title="要件と目安を分ける"
+          cols={[
+            {
+              label: "Googleが述べていること",
+              tone: "seo",
+              sub: "満たすべき要件",
+              points: [
+                "重要なページはトップページからクリックできる",
+                "トップからリンクをたどって、重要なページをすべて見つけられる",
+                "リンクは <a href> で書く（検索ボックスやJavaScriptイベントの奥に置かない）",
+                "たどる本数と集まる本数が、相対的な重要度の推測に使われることがある",
+              ],
+            },
+            {
+              label: "当サイトが決めた目安",
+              tone: "geo",
+              sub: "運用のための数字",
+              points: [
+                "重要なページはトップから2〜3クリック以内",
+                "サイト構造は3階層に収める",
+                "どのページにも本文か一覧から最低1本のリンクを入れる",
+                "数字はGoogleの基準ではなく、要件が崩れていないかを機械的に点検するための線",
+              ],
+            },
+          ]}
+          caption="左が根拠のある要件、右がそれを運用に落とすために当サイトが決めた数字。順位のためのしきい値ではないので、右の数字を1つ超えたこと自体が問題になるわけではない。"
+        />
+        <p>
+          この切り分けが効くのは、点検するときです。「4クリックかかっているから直す」ではなく、
+          <strong>「たどれない経路になっていないか」を見て、クリック数はその兆候として使う</strong>のが順番です。
+          クリック数が伸びている場所は、たいていページ送りの奥や、絞り込みUIの先といった、
+          リンクが途切れかけている場所と一致します。次の節の型3が、その典型です。
         </p>
       </GuideSection>
 
@@ -360,6 +436,8 @@ export default function Lesson07() {
               「2クリック」「4クリック」という具体的な数字は当サイトの整理です。Googleはクリック数の上限を示していませんが、
               到達までにたどる必要があるリンクの本数を、そのページの相対的な重要度の推測に使うことがあると説明しています。
               <GuideRef {...REF.ecommerce} />
+              また、重要なページはトップページからクリックできる状態にするよう述べています。
+              <GuideRef {...REF.linkArchitecture} />
             </>
           }
         />

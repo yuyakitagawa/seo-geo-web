@@ -73,6 +73,7 @@ const S = {
   canonical: { title: "重複した URL を統合する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja" },
   sitemaps: { title: "サイトマップの作成と送信", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja" },
   ecommerceStructure: { title: "Help Google understand your ecommerce website structure", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/specialty/ecommerce/help-google-understand-your-ecommerce-site-structure" },
+  linkArchitecture: { title: "Importance of link architecture（2008年）", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2008/10/importance-of-link-architecture" },
   crawlers: { title: "Google の一般的なクローラー", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers?hl=ja" },
   jsBasics: { title: "JavaScript の基本を理解する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics?hl=ja" },
   verifyGooglebot: { title: "Google クローラーの確認", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
@@ -463,12 +464,13 @@ export const LESSONS: Lesson[] = [
     objectives: [
       "ハブ（定義・網羅ページ）とスポーク（個別トピック）の役割分担",
       "Googleがリンク構造について述べていること（ECサイトの例）と、メディアサイトへの読み替え",
+      "「重要なページは何クリック以内か」について、Googleが述べていることと、当サイトが決めた目安の切り分け",
       "リンク構造のよくある崩れ方（フラット・孤立ページ・深すぎる階層）と、その直し方",
       "URL設計とパンくずで階層を明示する",
       "内部リンクのアンカーテキストの書き方と、リンクを置く位置",
       "タグ一覧など中身の薄いページを、noindexとサイトマップからどう外すか",
     ],
-    minutes: 20,
+    minutes: 22,
     checklist: [
       "主要テーマごとにハブページを1本決め、そこから各記事へリンクがある",
       "各記事からハブページへ戻るリンクがある",
@@ -496,6 +498,11 @@ export const LESSONS: Lesson[] = [
           "Googleがまとまった説明を置いているのは、ECサイト向けのドキュメントです。そこでは、Googleがページ同士のリンクの関係を手がかりにサイト内の良いコンテンツを探しており、メニューやページ間のリンクといったナビゲーションの構造がサイト構造の理解に影響しうると説明されています。さらに、あるページに到達するまでにたどる必要があるリンクの本数や、そのページに向けられたリンクの本数といった情報を、サイト内の他のページと比べた相対的な重要度の推測に使うことがある、とも書かれています。ECの例で書かれていますが、述べているのはリンクのたどり方なので、メディアやブログにもそのまま当てはまります。",
       },
       {
+        question: "重要なページは何クリック以内に置くべきですか",
+        answer:
+          "Googleは「2クリック以内」「3階層まで」といった数字をどの文書にも書いていません。書かれているのは、重要なページはトップページからクリックでき、サイト全体を通じてGooglebotが見つけやすい状態にすること（2008年のブログ）、サイトマップが無くてもよい条件の1つとしてトップページからリンクをたどって重要なページをすべて見つけられること（サイトマップのドキュメント）、そして到達までにたどる必要があるリンクの本数や、そのページに向けられたリンクの本数を相対的な重要度の推測に使うことがあること（ECサイトのドキュメント）です。当サイトは運用の目安として2〜3クリックを使っていますが、これはGoogleの基準ではなく、リンクが途切れかけている場所を機械的に見つけるための線です。",
+      },
+      {
         question: "ECサイトの話は、商品を売っていないサイトにも当てはまりますか",
         answer:
           "当てはまります。Googleの例は「メニュー → カテゴリページ → サブカテゴリページ → すべての商品ページ」という順にリンクを張る、というものです。これはメディアであれば「メニュー → ハブページ → 各記事」に読み替えられます。記事数が少ないうちは、サブカテゴリにあたる段は要りません。段数そのものが推奨されているわけではなく、入口から末端までリンクが途切れずにつながっていることが要点です。",
@@ -521,7 +528,7 @@ export const LESSONS: Lesson[] = [
           "使えます。ただし、コピー時にパーセントエンコードされて長くなり、SNSやドキュメントに貼ったときに読みにくくなります。当サイトの記事URLは連番のIDにしており、タイトル変更でURLが変わらないようにしています。どの方式でも、後からURLを変えないことのほうが重要です。",
       },
     ],
-    sources: [S.starter, S.essentials, S.ecommerceStructure, S.canonical, S.noindex, S.sitemaps, S.saramin],
+    sources: [S.starter, S.essentials, S.ecommerceStructure, S.linkArchitecture, S.canonical, S.noindex, S.sitemaps, S.saramin],
     published: "2026-08-30",
     updated: "2026-09-01",
   },
