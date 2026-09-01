@@ -1,4 +1,4 @@
-// content/howto-topics.csv で「採用」になっているテーマをN件、Claude でHOW TO記事（ストック型）にして
+// content/howto-topics.csv で「採用」になっているテーマをN件、LLMでHOW TO記事（ストック型）にして
 // content/articles/ に保存する。記事化したテーマは「公開」にして記事idを記録する。
 // ニュース記事（generate.ts）との違いは、起点がRSSではなく人が決めたテーマで、
 // 出典が公式ドキュメントであること。記事は日付が変わっても読める形（手順・チェックリスト）で書く。
@@ -6,6 +6,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
 import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { fetchSources } from "./fetchSource";
+import { createClient, HAS_WEB_FETCH } from "./llm";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
@@ -13,7 +15,7 @@ const SYSTEM_PROMPT = `${MEDIA_INTRO}
 この記事は速報ではなく、検索とAI検索から継続的に読まれる解説記事です。半年後に読んでも成立する形で書きます。
 
 # この媒体のHOW TO記事が他と違う点（必ず守る）
-1. **公式ドキュメントに書いてあることだけ書く**: 指定された出典URLをweb_fetchですべて読み、そこに書かれている
+1. **公式ドキュメントに書いてあることだけ書く**: ${HAS_WEB_FETCH ? "指定された出典URLをweb_fetchですべて読み、そこに" : "添付された出典の本文をすべて読み、そこに"}書かれている
    事実・用語・数値だけで構成する。出典に無い手順・ツール名・数値を足さない。
 2. **手順にする**: 「## 手順」という見出しを必ず置き、上から順に実行できる形（1手順=1動作）で書く。
    FigureFlow で全体像を先に出し、各手順の詳細は本文で補う。
@@ -69,22 +71,32 @@ function checkSources(data: Record<string, unknown>, allowed: string[]) {
 }
 
 async function generateOne(client: Anthropic, t: Topic, today: string, nextId: number, publish: boolean) {
-  const userPrompt = `以下のテーマでHOW TO記事を書いてください。
-出典URLはすべてweb_fetchで取得して読んでください。1つでも取得できない場合は、
-推測で補わずに本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
-
-- テーマ（タイトル案。より良い表現があれば変えてよい）: ${t.title}
+  const meta = `- テーマ（タイトル案。より良い表現があれば変えてよい）: ${t.title}
 - 読者の検索意図: ${t.intent}
 - カテゴリ: ${t.category}（${CATEGORIES[t.category].label}）
 - 出典URL:
 ${t.sources.map((u) => `  - ${u}`).join("\n")}
 - 今日の日付: ${today}`;
+  // web_fetch が無いプロバイダでは、APIを呼ぶ前にここで全出典を取得する（1つでも取れなければ課金せずに失敗）。
+  const userPrompt = HAS_WEB_FETCH
+    ? `以下のテーマでHOW TO記事を書いてください。
+出典URLはすべてweb_fetchで取得して読んでください。1つでも取得できない場合は、
+推測で補わずに本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
+
+${meta}`
+    : `以下のテーマでHOW TO記事を書いてください。出典の本文は末尾に添付してあります。
+添付した本文に無い手順・ツール名・数値は書かないでください。
+
+${meta}
+
+# 出典の本文
+${await fetchSources(t.sources)}`;
 
   const { parsed, usage } = await generateWithReview(client, {
     system: SYSTEM_PROMPT,
     userPrompt,
     reviewPrompt: REVIEW_PROMPT,
-    tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: t.sources.length + 2 }],
+    tools: HAS_WEB_FETCH ? [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: t.sources.length + 2 }] : undefined,
     check: (p) => {
       validate(p.data, p.content, HOWTO_SHAPE);
       checkSources(p.data, t.sources);
@@ -113,7 +125,7 @@ async function main() {
     console.log("「採用」のテーマがありません（content/howto-topics.csv の status を 採用 にしてください）");
     return;
   }
-  const client = new Anthropic();
+  const client = createClient();
 
   let nextId = currentMaxId() + 1;
   for (const t of adopted) {

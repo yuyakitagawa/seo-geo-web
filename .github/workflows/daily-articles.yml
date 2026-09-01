@@ -1,4 +1,4 @@
-# 毎日 JST 7:00 にRSSを巡回し、候補を自動採用してClaudeで記事を書き、本番ビルドが通ったら main に直接pushする（=公開）。
+# 毎日 JST 7:00 にRSSを巡回し、候補を自動採用してLLM（既定はClaude）で記事を書き、本番ビルドが通ったら main に直接pushする（=公開）。
 # 人のレビューは挟まない。品質の関門は scripts/generate.ts の validate() と、この workflow の本番ビルドの2つ。
 name: daily-articles
 
@@ -36,7 +36,7 @@ jobs:
           cache: npm
       - run: npm ci
 
-      # 生成（Anthropic課金）の前に置く関門。mainが壊れていたら、1円も使わずここで終える。
+      # 生成（LLMの課金）の前に置く関門。mainが壊れていたら、1円も使わずここで終える。
       # 2026-08-28〜30の3便は、mainに src/lib/apps.ts が無いまま sitemap.ts がimportしていた
       # （PR #7 の一部が先に入った状態）ために generate の後の検証で落ち、生成済みの記事ごと捨てて
       # API代だけが残った。この不整合は tsc が TS2307 で検出できる種類のものなので、先に一度回す。
@@ -50,10 +50,16 @@ jobs:
       - name: 記事にする候補を自動採用
         run: npx tsx scripts/pick.ts ${{ inputs.count || 2 }}
 
+      # 使うLLMは Repository variables の LLM_PROVIDER で切り替える（未設定なら Claude）。
+      # moonshot にするときは MOONSHOT_API_KEY を Secrets に入れる。
       - name: 記事を生成
         run: npx tsx scripts/generate.ts ${{ inputs.count || 2 }} ${{ inputs.draft == true && '--draft' || '--publish' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+          MOONSHOT_MODEL: ${{ vars.MOONSHOT_MODEL }}
+          MOONSHOT_BASE_URL: ${{ vars.MOONSHOT_BASE_URL }}
 
       - name: 差分の有無
         id: diff

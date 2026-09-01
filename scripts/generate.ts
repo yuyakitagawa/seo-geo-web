@@ -1,11 +1,14 @@
-// content/candidates.csv で「採用」になっている候補をスコア順にN件、Claude で記事化して content/articles/ に保存する。
+// content/candidates.csv で「採用」になっている候補をスコア順にN件、LLMで記事化して content/articles/ に保存する。
 // 記事化した行は「公開」にして記事idを記録する。
-// 元記事本文は Claude の web_fetch サーバーツールで取得（HTML解析コードを自前で持たない）。
+// 元記事本文は Claude の web_fetch サーバーツールで取得する。web_fetch を持たないプロバイダ
+// （Moonshot）のときだけ scripts/fetchSource.ts で自前取得してプロンプトに添付する。
 // 実行: npx tsx scripts/generate.ts [件数=3] [--publish]
 //   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { fetchSourceText } from "./fetchSource";
+import { createClient, HAS_WEB_FETCH } from "./llm";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -60,20 +63,30 @@ const NEWS_SHAPE = {
 };
 
 async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number, publish: boolean) {
-  const userPrompt = `以下の元記事をweb_fetchで取得して読み、記事を書いてください。
-取得に失敗した場合は、タイトルと概要のみで書くのではなく、本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
-
-- 元記事タイトル: ${c.title}
+  const meta = `- 元記事タイトル: ${c.title}
 - 元記事URL: ${c.url}
 - 発信元: ${c.source}（${c.kind === "official" ? "公式発表" : "業界メディア"}）
 - 概要: ${c.summary || "(なし)"}
 - 今日の日付: ${today}`;
+  // web_fetch が無いプロバイダでは、APIを呼ぶ前にここで取得する（取れなければ課金せずに失敗させる）。
+  const userPrompt = HAS_WEB_FETCH
+    ? `以下の元記事をweb_fetchで取得して読み、記事を書いてください。
+取得に失敗した場合は、タイトルと概要のみで書くのではなく、本文の先頭に「FETCH_FAILED」とだけ書いて終了してください。
+
+${meta}`
+    : `以下の元記事を読み、記事を書いてください。元記事の本文は末尾に添付してあります。
+添付した本文に無い数値・固有名詞は書かないでください。
+
+${meta}
+
+# 元記事の本文
+${await fetchSourceText(c.url)}`;
 
   const { parsed, usage } = await generateWithReview(client, {
     system: SYSTEM_PROMPT,
     userPrompt,
     reviewPrompt: REVIEW_PROMPT,
-    tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }],
+    tools: HAS_WEB_FETCH ? [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }] : undefined,
     check: (p) => validate(p.data, p.content, NEWS_SHAPE),
   });
 
@@ -103,7 +116,7 @@ async function main() {
     console.log("「採用」の候補がありません（npm run pick を先に実行するか、content/candidates.csv の status を 採用 にしてください）");
     return;
   }
-  const client = new Anthropic();
+  const client = createClient();
 
   let nextId = currentMaxId() + 1;
   for (const c of adopted) {

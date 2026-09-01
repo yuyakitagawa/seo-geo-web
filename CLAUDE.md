@@ -27,7 +27,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/lib/contact.ts`（検証・通知文）/ `src/lib/contact-notify.ts`（転送先）/ `src/app/api/contact/route.ts`: お問い合わせフォーム。内容はDBにもログにも保存せず、LINE（`src/lib/line.ts`。記事公開の通知と同じBot）とメール（Resend）へ転送するだけ。転送先のenvが1つも無ければフォームを表示しない。実装を変えたら `/privacy` の「お問い合わせフォームについて」も同時に直す。
 - `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
-- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
+- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/generate.ts`: LLMで2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。`scripts/llm.ts`: **LLMプロバイダの切り替え（既定=Claude `claude-sonnet-5`、`LLM_PROVIDER=moonshot` で Moonshot AI/Kimi）**。モデル名・`max_tokens`・使える機能（web_fetch / effort / cache_control）の判定はここだけ。`scripts/fetchSource.ts`: web_fetch を持たないプロバイダ向けに出典本文を自前取得（診断系の `src/lib/fetchPage.ts` とは別物）。
 - `scripts/notify.ts`: 公開した記事のLINE通知（Xの投稿文をそのまま送る。自動投稿はしない）。`.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）→公開した記事をLINE通知。失敗時もLINE通知（どちらも `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ。失敗通知だけは npm ci が落ちても飛ばすためymlのcurlのまま）。
 
 ## 2. Operations
@@ -41,7 +41,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - 公開: 毎朝のActionsが自動で main に push する。止めるときは workflow を disable。手で出すときは `draft: true` → `false` にしてpush
 
 ## 3. Env
-`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）/ `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY`（ページ診断のURL記録。未設定なら記録しない）/ `LINE_CHANNEL_ACCESS_TOKEN` `LINE_USER_ID`（記事公開の通知＋お問い合わせの転送。Actions と Vercel の両方に入れる）/ `RESEND_API_KEY` `CONTACT_FROM_EMAIL` `CONTACT_TO_EMAIL`（お問い合わせのメール転送。任意）。
+`.env.example` 参照。`NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_ADSENSE_*` / `NEXT_PUBLIC_GA_ID` / `ANTHROPIC_API_KEY`（Actions Secrets）/ `LLM_PROVIDER` `MOONSHOT_API_KEY` `MOONSHOT_MODEL` `MOONSHOT_BASE_URL`（記事生成のLLMをMoonshotに切り替えるとき。未設定ならClaude）/ `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY`（ページ診断のURL記録。未設定なら記録しない）/ `LINE_CHANNEL_ACCESS_TOKEN` `LINE_USER_ID`（記事公開の通知＋お問い合わせの転送。Actions と Vercel の両方に入れる）/ `RESEND_API_KEY` `CONTACT_FROM_EMAIL` `CONTACT_TO_EMAIL`（お問い合わせのメール転送。任意）。
 
 ## 4. Workflow
 - 複数ステップの作業は `docs/progress_<作業名>.md` に進捗を記録し、ステップ完了ごとに `[x]` を更新。再開時は進捗ファイルを最初に読む。

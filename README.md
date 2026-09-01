@@ -10,6 +10,10 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - 計測: Vercel Analytics / Speed Insights / GA4（`NEXT_PUBLIC_GA_ID` 設定時）
 - 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
 - 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5`・effort medium。草稿が検査に落ちたときだけ編集長レビューで改稿。品質不足なら `claude-opus-5` へ）
+  - **LLMの切り替え**: `LLM_PROVIDER=moonshot` で Moonshot AI（Kimi）に差し替えられる（`scripts/llm.ts`）。
+    Moonshot は Anthropic互換の Messages API を出しているのでSDKは共通。ただし `web_fetch`（サーバー側ツール）・
+    `output_config.effort`・`cache_control` は無いので、その3つは能力フラグで落とし、元記事は `scripts/fetchSource.ts` で
+    自前取得してプロンプトに添付する。未設定なら従来どおり Claude。
 
 ## ページ構成
 | パス | 内容 |
@@ -37,7 +41,8 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
       ↓ npm run collect [日数]   content/candidates.csv に「候補」として追記。話題スコア付き。Google NewsのURLは元記事に復号（scripts/googleNews.ts）
       ↓ npm run pick N           「候補」からN件を自動で「採用」に（scripts/pick.ts）。人が手で status を 採用/却下 にしてもよい
       ↓ npm run generate N [--publish]
-                                「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
+                                「採用」をスコア順にN件、LLMが元記事を読んで MDX を出力 → status を「公開」に
+                                元記事の取得は Claude なら web_fetch、Moonshot なら scripts/fetchSource.ts（自前取得してプロンプトに添付）
                                 --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
       ↓ GitHub Actions           毎朝7時JST、typecheck→collect→pick→generate --publish→本番ビルド検証→main へ push
                                 （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
@@ -68,14 +73,15 @@ LINEで長押し→コピー→Xに貼る運用で、自動投稿はしない（
 content/howto-topics.csv   テーマ表。人が status を「採用」にする。1行 = 1記事
                            列: status / category / title(タイトル案) / intent(検索意図) / sources(一次情報URL、| 区切り) / articleId / note
       ↓ npm run generate:howto N [--publish]
-                           「採用」をN件、Claudeが指定URLをすべてweb_fetchで読んで MDX を出力（scripts/generate-howto.ts）
+                           「採用」をN件、LLMが指定URLをすべて読んで MDX を出力（scripts/generate-howto.ts）
                            → テーマ表の status を「公開」に
 ```
 - 出典は**テーマ表に書いたURLだけ**を許す（モデルが別URLを足したら記事ごと捨てる）。書ける事実の範囲をテーマ表で固定する。
 - 必須見出しは「## 結論 / ## 手順 / ## やること／やらなくていいこと / ## よくある質問」、本文2,000字以上、FAQ3問以上。
 - 「最近」「現在」のような時点依存の表現を禁止（半年後に読んでも成立させるため）。
 - 生成失敗したテーマは「候補」に戻してメモを残す（ニュース側と違い、テーマ自体は捨てない）。
-- プロンプトの共通部分（媒体の性格・図解・文体）は `scripts/prompt.ts`、採番・検査・書き出しは `scripts/article.ts` に集約。
+- プロンプトの共通部分（媒体の性格・図解・文体）は `scripts/prompt.ts`、採番・検査・書き出しは `scripts/article.ts`、
+  LLMプロバイダの選択は `scripts/llm.ts` に集約。
 
 ## 記事の型（他媒体との差別化）
 - frontmatter の `type` で **news（フロー）/ howto（ストック）** を区別する。カテゴリページは howto を上、news を下に分けて出す

@@ -4,12 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import matter from "gray-matter";
+import { HAS_CACHE_CONTROL, HAS_EFFORT, MAX_TOKENS, MODEL } from "./llm";
 import { isCategoryKey } from "../src/lib/site";
 
 export const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
-// コスト優先で sonnet（opus比で約4割減）。品質は下の generateWithReview（執筆→編集長レビューの2段階）で担保する。
-// それでも品質が足りなければ claude-opus-5 に戻す。
-export const MODEL = "claude-sonnet-5";
 
 /** JSTの今日 YYYY-MM-DD */
 export function today(): string {
@@ -68,9 +66,10 @@ function parseMdx(text: string) {
 }
 
 /**
- * 2段階生成: 執筆（web_fetch可）→ 検査に落ちたときだけ編集長レビューで改稿。
+ * 2段階生成: 執筆 → 検査に落ちたときだけ編集長レビューで改稿。
  * 草稿が check を通ればそのまま採用して2回目を呼ばない（コスト削減。体感6〜7割は1回で済む）。
- * effort は medium（思考トークンを抑える。出力課金の主要因）。
+ * effort は medium（思考トークンを抑える。出力課金の主要因）。プロバイダが対応しないパラメータは
+ * scripts/llm.ts の能力フラグで落とす（Moonshotに送ると400になる）。
  * 戻り値の parsed は check を通過済み。usage は合計トークン使用量。
  */
 export async function generateWithReview(
@@ -90,13 +89,17 @@ export async function generateWithReview(
     check: (parsed: ReturnType<typeof parseMdx>) => void;
   }
 ) {
-  const systemBlocks: Anthropic.Messages.TextBlockParam[] = [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
+  const common = {
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system: HAS_CACHE_CONTROL
+      ? ([{ type: "text", text: system, cache_control: { type: "ephemeral" } }] satisfies Anthropic.Messages.TextBlockParam[])
+      : system,
+    ...(HAS_EFFORT ? { output_config: { effort: "medium" as const } } : {}),
+  };
   const draft = await client.messages
     .stream({
-      model: MODEL,
-      max_tokens: 20000,
-      output_config: { effort: "medium" },
-      system: systemBlocks,
+      ...common,
       tools,
       messages: [{ role: "user", content: userPrompt }],
     })
@@ -117,10 +120,7 @@ export async function generateWithReview(
     // 草稿が型を満たさない場合だけレビューを回す。検査エラーを指示に添えて確実に直させる。
     const final = await client.messages
       .stream({
-        model: MODEL,
-        max_tokens: 20000,
-        output_config: { effort: "medium" },
-        system: systemBlocks,
+        ...common,
         messages: [
           { role: "user", content: userPrompt },
           { role: "assistant", content: draftText },
