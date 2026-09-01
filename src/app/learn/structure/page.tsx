@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FigureCompare, FigureDoDont, FigureLinkMap, FigureStack } from "@/components/figures";
+import { FigureCompare, FigureDoDont, FigureLinkMap, FigureQuote, FigureStack } from "@/components/figures";
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import { CaseList, LessonShell } from "@/components/lesson";
 import { getCases } from "@/lib/cases";
@@ -10,6 +10,10 @@ const lesson = requireLesson("structure");
 
 const REF = {
   starter: { href: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide?hl=ja", label: "SEO スターター ガイド" },
+  ecommerce: {
+    href: "https://developers.google.com/search/docs/specialty/ecommerce/help-google-understand-your-ecommerce-site-structure",
+    label: "Help Google understand your ecommerce website structure",
+  },
   canonical: { href: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls?hl=ja", label: "重複した URL を統合する" },
   noindex: { href: "https://developers.google.com/search/docs/crawling-indexing/block-indexing?hl=ja", label: "noindex でコンテンツをインデックスから除外する" },
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
@@ -19,6 +23,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 
 const TOC = [
   { id: "cluster", label: "トピッククラスタ：ハブとスポーク" },
+  { id: "google-ec", label: "Googleの説明：ECサイトの例で読む" },
   { id: "patterns", label: "リンク構造の型：崩れ方と直し方" },
   { id: "url", label: "URL設計とパンくず" },
   { id: "links", label: "内部リンクの張り方" },
@@ -74,8 +79,123 @@ export default function Lesson07() {
             { label: "トップページ", tone: "accent", note: "第1階層", desc: "サイト全体の入口。各ハブへの導線を明示する。" },
           ]}
           baseNote="トップから3クリック以内で全ページに到達できる状態を目安にする。階層が深くなるほど、クロールも読者も届きにくくなる。"
-          caption="階層の目安は当サイトの整理です。Googleが階層数の上限を示しているわけではありません。"
+          caption={
+            <>
+              3階層という目安は当サイトの整理です。Googleは階層数の上限を示していません。
+              示しているのは、到達までにたどるリンクの本数を重要度の推測に使うことがある、という点です（次の節）。
+            </>
+          }
         />
+      </GuideSection>
+
+      <GuideSection
+        id="google-ec"
+        title="Googleの説明：ECサイトの例で読む"
+        lead="Googleがリンク構造についてまとまった説明を置いているのは、ECサイト向けのドキュメントです。「メニュー → カテゴリ → サブカテゴリ → 商品」という例で書かれていますが、述べているのはリンクのたどり方なので、メディアやブログにもそのまま当てはまります。次の節で扱う型は、ここが根拠になっています。"
+      >
+        <p>
+          Googleは、ページ同士のリンクの関係を手がかりにサイトの中の良いコンテンツを探しており、
+          メニューやページ間のリンクといったナビゲーションの構造が、Googleのサイト構造の理解に影響しうると説明しています。
+          そのうえで、ページの相対的な重要度を推測するのに何を使うかを、次のように書いています。
+          <GuideRef {...REF.ecommerce} />
+        </p>
+        <FigureQuote
+          text="Google は、あるページに到達するまでにたどる必要があるリンクの本数や、そのページに向けられたリンクの本数といった情報を、サイト内の他のページと比べた相対的な重要度の推測に使うことがあります"
+          source="Google 検索セントラル「Help Google understand your ecommerce website structure」より（当サイト訳）"
+        />
+        <p>
+          ここに出てくるのは<strong>「たどる本数（クリック深度）」と「集まる本数（内部リンクの数）」</strong>の2つです。
+          何階層までに収めるべきかという上限は書かれていません。書かれているのは、
+          重要なページほど短い経路で届き、多くのページからリンクされている状態にする、という考え方のほうです。
+          この節以降で出てくる「2〜3クリック」のような具体的な数字は、当サイトが運用のために決めた目安であり、
+          Googleが示した基準ではありません。
+        </p>
+        <GuideTable
+          head={["Googleの記述（ECサイトの例）", "言っていること", "メディア・ブログでの読み替え"]}
+          rows={[
+            [
+              "メニューからカテゴリページへ、カテゴリページからサブカテゴリページへ、サブカテゴリページからすべての商品ページへリンクを追加する",
+              "入口から末端まで、リンクが1本も途切れずにつながっている状態を作る",
+              "メニュー → ハブ（/seo・/geo）→ 各記事。どのハブからも並べられていない記事を無くす",
+            ],
+            [
+              "よく売れている商品は、トップページや、ブログ記事・ニュースレターなど他のコンテンツからもリンクすることを検討する",
+              "重要なページには、通常の経路とは別にリンクを足してよい",
+              "一番読ませたいハブや記事は、トップと本文中からも直接リンクする",
+            ],
+            [
+              "他のコンテンツへのリンクを作るときは <a href> タグを使い、ナビゲーションに他のHTML要素のJavaScriptイベントを使わない",
+              "クリックで画面が変わっても、<a href> でなければリンクとして扱われないことがある",
+              "カードやボタンのクリックで遷移させている箇所を <a href> に直す",
+            ],
+            [
+              "すべてのページにリンクするのが不可能な場合は、サイトマップや Merchant Center のフィードを使う（クローラーが他の方法では見つけられないページを知らせられる）",
+              "サイトマップは、リンクだけでは見つからないURLを知らせる補助",
+              "サイトマップは出す。ただしリンクを張れる場所があるなら、先にリンクを張る",
+            ],
+            [
+              "構造化データを追加する。サイト上の各ページの目的の理解を助け、この構造を補強する",
+              "構造化データは構造を「補強」するもの",
+              `パンくずとBreadcrumbListを出す（レッスン${lessonNo("technical")}）。構造を整える前にマークアップだけ足しても補強にならない`,
+            ],
+          ]}
+          caption={
+            <>
+              出典はいずれもGoogleのECサイト向けドキュメントで、日本語は当サイト訳です。
+              <GuideRef {...REF.ecommerce} />
+            </>
+          }
+        />
+        <FigureLinkMap
+          title="Googleの例と、メディアサイトへの読み替え"
+          maps={[
+            {
+              label: "ECサイト（Googleの例）",
+              verdict: "good",
+              alt: "メニューからカテゴリページ、サブカテゴリページを経て、複数の商品ページまでリンクがつながっている図",
+              nodes: [
+                { id: "menu", label: "メニュー", layer: 0, tone: "accent" },
+                { id: "cat", label: "カテゴリ", layer: 1, tone: "seo" },
+                { id: "sub", label: "サブカテゴリ", layer: 2, tone: "seo" },
+                { id: "p1", label: "商品A", layer: 3, tone: "seo" },
+                { id: "p2", label: "商品B", layer: 3, tone: "seo" },
+              ],
+              edges: [
+                { from: "menu", to: "cat", tone: "seo" },
+                { from: "cat", to: "sub", tone: "seo" },
+                { from: "sub", to: "p1", tone: "seo" },
+                { from: "sub", to: "p2", tone: "seo" },
+              ],
+              note: "メニューから商品まで、リンクが途切れずにつながっている状態。段が1つ多いのは商品数が多いためで、Googleが階層の数を指定しているわけではない。",
+            },
+            {
+              label: "メディアサイト（同じ考え方）",
+              verdict: "good",
+              alt: "メニューからハブページへリンクし、ハブと3本の記事が双方向に結ばれ、記事どうしも横に結ばれている図",
+              nodes: [
+                { id: "menu", label: "メニュー", layer: 0, tone: "accent" },
+                { id: "hub", label: "ハブ", layer: 1, tone: "seo", sub: "/seo・/geo" },
+                { id: "a1", label: "記事A", layer: 2, tone: "seo" },
+                { id: "a2", label: "記事B", layer: 2, tone: "seo" },
+                { id: "a3", label: "記事C", layer: 2, tone: "seo" },
+              ],
+              edges: [
+                { from: "menu", to: "hub", tone: "seo" },
+                { from: "hub", to: "a1", kind: "both", tone: "seo" },
+                { from: "hub", to: "a2", kind: "both", tone: "seo" },
+                { from: "hub", to: "a3", kind: "both", tone: "seo" },
+                { from: "a1", to: "a2", kind: "side", tone: "seo" },
+              ],
+              note: "記事数が少ないうちは、サブカテゴリにあたる段は要らない。ハブ1枚に並べきれなくなった時点で、テーマを割ってハブを増やす。",
+            },
+          ]}
+          caption="Googleの例（左）は商品カタログの形、右はそれをメディアの語彙に置き換えたもの。変えていないのは「入口から末端までリンクをつなぐ」という点だけで、段数は扱う本数で決まる。"
+        />
+        <p>
+          サイトマップについては、リンクの代わりではないことに注意します。Googleが重要度の推測に使うと書いているのはリンクの本数のほうで、
+          サイトマップは「こういうURLがある」と知らせるだけです。リンクを張れる場所があるなら、先にリンクを張ります。
+          <GuideRef {...REF.sitemaps} />
+        </p>
       </GuideSection>
 
       <GuideSection
@@ -235,7 +355,13 @@ export default function Lesson07() {
               note: "ページ送りを無くす必要はない。ページ送りとは別に、ハブから直接届く経路を1本用意する。",
             },
           ]}
-          caption="クリック数の目安は当サイトの整理です。Googleが階層数やクリック数の上限を示しているわけではありません。"
+          caption={
+            <>
+              「2クリック」「4クリック」という具体的な数字は当サイトの整理です。Googleはクリック数の上限を示していませんが、
+              到達までにたどる必要があるリンクの本数を、そのページの相対的な重要度の推測に使うことがあると説明しています。
+              <GuideRef {...REF.ecommerce} />
+            </>
+          }
         />
       </GuideSection>
 
@@ -292,18 +418,26 @@ export default function Lesson07() {
         <FigureDoDont
           title="内部リンクの書き方"
           dos={[
+            "リンクは <a href> タグで書く（クリックで遷移させるだけのボタンやカードにしない）",
             "アンカーテキストにリンク先の内容を表す語を使う（「robots.txtの書き方」）",
             "本文中の、その話題に触れた位置からリンクする",
             "各ページからハブへ戻る導線を必ず置く",
             "関連ページを、なぜ関連するのかの一言つきで並べる",
           ]}
           donts={[
+            "div・button などのJavaScriptイベントでページを遷移させる",
             "「こちら」「詳しくはこちら」だけのアンカーテキスト",
             "本文と関係のないページへ機械的にリンクを張る",
             "同じページへ1ページ内から何度も繰り返しリンクする",
             "リンク集ページだけを作って、本文中からはリンクしない",
           ]}
         />
+        <p>
+          1つ目は形式の要件です。Googleは、他のコンテンツへのリンクを作るときは <code>&lt;a href&gt;</code> タグを使い、
+          ナビゲーションに他のHTML要素のJavaScriptイベントを使わないように、と書いています。
+          画面の上ではクリックで移動できていても、<code>&lt;a href&gt;</code> でなければリンクとしてたどられないことがあります。
+          <GuideRef {...REF.ecommerce} />
+        </p>
         <p>
           リンクを置く位置も効きます。ページ末尾の関連記事一覧よりも、
           <strong>その話題に触れた本文中</strong>からのリンクのほうが、読者にとってもクローラーにとっても文脈が明確です。
