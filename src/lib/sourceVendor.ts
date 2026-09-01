@@ -33,7 +33,13 @@ function match(h: string, vendor: Vendor): boolean {
 
 /**
  * その記事の一次情報の主な発信元を1つ返す。該当が無ければ undefined。
- * 出典の本数が多いベンダー優先、同数なら sources に先に出てくる方（生成時に主出典を先頭に置く）。
+ *
+ * バッジは「この記事の一次情報が当事者自身の発表である」という意味なので、
+ * 添え物として1本だけ公式ドキュメントを引いている記事では出さない。
+ * 出す条件は次のどちらか。
+ *   - 主出典（sources の先頭。生成時に主出典を先頭に置く）がそのベンダーのドメイン
+ *   - 出典の半数以上がそのベンダーのドメイン
+ * 両方を満たすベンダーが複数あれば、本数が多い方（同数なら先に出てくる方）。
  */
 export function primaryVendor(sources: Source[]): Vendor | undefined {
   const hosts = sources.map((s) => host(s.url));
@@ -41,6 +47,8 @@ export function primaryVendor(sources: Source[]): Vendor | undefined {
   for (const vendor of VENDORS) {
     const hit = hosts.map((h, i) => (match(h, vendor) ? i : -1)).filter((i) => i >= 0);
     if (hit.length === 0) continue;
+    const isMain = hit[0] === 0 || hit.length * 2 >= hosts.length;
+    if (!isMain) continue;
     const cand = { vendor, count: hit.length, first: hit[0] };
     if (!best || cand.count > best.count || (cand.count === best.count && cand.first < best.first)) best = cand;
   }

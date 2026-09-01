@@ -201,7 +201,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   （`node_modules/next/dist/lib/metadata/resolve-metadata.js` の `postProcessMetadata`）。
   トップページ分の `og:url` は `src/app/page.tsx` が持つ。
 - **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
-- **記事のバッジ（チップ）**: 軸ごとに1つまで。①何の話か＝カテゴリ（SEO/GEO/ニュース、必ず1つ）②記事の型＝`解説`（`type: howto` のときだけ。news は既定なので出さない）③根拠の強さ＝`独自`（`original: true`）か `Google公式`（出典に当事者のドメインがある。`src/lib/sourceVendor.ts` の表で判定。独自記事には出さない）。全記事に付くバッジは情報量がゼロなので増やさない。
+- **記事のバッジ（チップ）**: 軸ごとに1つまで。①何の話か＝カテゴリ（SEO/GEO/ニュース、必ず1つ）②記事の型＝`解説`（`type: howto` のときだけ。news は既定なので出さない）③根拠の強さ＝`独自`（`original: true`）か `Google公式`（**主出典＝先頭が当事者のドメイン、または出典の半数以上が当事者のドメイン**のときだけ。添え物として公式ドキュメントを1本引いただけの記事には出さない。`src/lib/sourceVendor.ts` で判定。独自記事にも出さない）。全記事に付くバッジは情報量がゼロなので増やさない。
 
 ## 記事 frontmatter
 ```yaml
@@ -218,7 +218,7 @@ impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意
 actions:                  # 任意、1〜4項目
   - "robots.txt を確認する"
-sources:                  # url が Google・OpenAI など当事者自身のドメインなら「Google公式」バッジが出る（src/lib/sourceVendor.ts）
+sources:                  # 先頭が主出典。主出典か半数以上が当事者自身のドメインなら「Google公式」バッジが出る（src/lib/sourceVendor.ts）
   - title: "出典タイトル"
     url: "https://..."
 supersedes: 12            # 任意。この記事が置き換える古い記事のid（配列可）。指定された記事は noindex + sitemap除外
