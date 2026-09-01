@@ -44,3 +44,20 @@ AI検索は回答を組み立てる前に候補のブランドを決めている
 上記の数値は複数の独立した二次情報（Search Engine Journal・Search Engine Roundtable ほか）で相互確認したもの。
 - [ ] 原典5件を開いて数値・日付・調査規模を目視確認する（Ahrefs 2件、Seer 1件、arXiv:2604.07585、arXiv:2311.09735）
 - [ ] GEO論文の手法別の内訳（統計/引用/出典それぞれの%）を原典で確認し、必要なら data節を数値入りに戻す
+
+## 追記（2026-09-01）: 解説記事の追加
+
+再監査で使った調査4件を、記事側にも独立した1本として出した。
+教科書は「何をやるか」、記事は「その根拠がどれだけ強いか」を担当する。
+
+- [x] `content/articles/0031-ai-brand-recall-evidence.mdx`（id 31・type howto・category geo）
+      裏付けの強さで4つの施策を並べ直す構成。数値はAhrefs 2件・Seer・arXiv 2件・Google公式のみ
+- [x] `content/howto-topics.csv` に「公開」行（articleId 31）
+- [x] `learn/brand-entity` の mentions節から記事31へのリンク
+- [x] `npm run typecheck && npm run build`
+
+出典の一次情報は、このセッションでもプロキシが ahrefs.com / arxiv.org / seerinteractive.com を
+ブロックしており直接開けていない。数値は WebSearch 経由で Search Engine Journal・Stan Ventures・
+PR配信（Trustpilot/Seer）・論文PDFの検索結果スニペットなど複数の独立した情報源と一致することを確認した。
+記事に書いたのはその範囲の数値だけで、教科書側にある Seer の共起9.5倍・ブランド名の重なり45〜59%は、
+今回確認できなかったため記事には入れていない。
