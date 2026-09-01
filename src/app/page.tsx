@@ -43,9 +43,12 @@ export default function Home() {
       </section>
 
       {/* Latest。ヒーロー直下に置き、ファーストビューで記事が見えるようにする */}
-      <section className={cx(CONTAINER.page, "pb-16 pt-8 sm:pb-20 sm:pt-10")}>
-        <div className="mb-5 flex items-end justify-between">
-          <h2 className={cx(HEADING.section, "sm:text-3xl")}>新着</h2>
+      <section id="latest" className={cx(CONTAINER.page, "scroll-mt-24 pb-20 pt-14 sm:pb-28 sm:pt-20")}>
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <p className={cx(HEADING.label, "mb-2 text-accent")}>Latest briefings</p>
+            <h2 className={cx(HEADING.section, "text-3xl sm:text-4xl")}>今日、読むべきこと</h2>
+          </div>
           <Link href="/news" className={cx(LINK, "text-sm font-semibold")}>
             すべての記事（{articles.length}）
           </Link>
@@ -54,12 +57,16 @@ export default function Home() {
       </section>
 
       {/* 用語の解説。定義クエリ（「SEO対策とは」「GEO対策とは」）の受け皿と、その先の教科書・ツールへトップから直接リンクする */}
-      <section className={cx(CONTAINER.page, "pb-16 sm:pb-20")}>
-        <h2 className={cx(HEADING.label, "mb-6")}>Guides · 解説・教科書・ツール</h2>
+      <section className={cx(CONTAINER.page, "pb-20 sm:pb-28")}>
+        <div className="mb-8 max-w-2xl">
+          <p className={cx(HEADING.label, "mb-2 text-accent")}>Start where you are</p>
+          <h2 className={cx(HEADING.section, "text-3xl sm:text-4xl")}>知る、試す、深める。</h2>
+          <p className="mt-3 text-sm leading-relaxed text-mute sm:text-base">気になるテーマから入っても、仕事で使えるところまで迷わず進めるように設計しています。</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDE_LIST.map((g) => (
             <CardLink key={g.path} href={g.path}>
-              <span className={`mb-4 inline-block size-2.5 rounded-full ${CATEGORY_STYLE[g.category].dot}`} />
+              <span className={`mb-5 inline-block size-2.5 rounded-full ${CATEGORY_STYLE[g.category].dot} shadow-[0_0_18px_currentColor]`} />
               <p className={cx(HEADING.section, "text-2xl")}>
                 {g.h1} <span className="inline-block transition group-hover:translate-x-1">→</span>
               </p>
@@ -85,15 +92,21 @@ export default function Home() {
       </section>
 
       {/* About strip */}
-      <section className={cx(CONTAINER.page, "pb-8")}>
-        <div className={cx(SURFACE.accent, PADDING.hero)}>
-          <Eyebrow tone="faint">How this is made</Eyebrow>
-          <p className="mt-3 max-w-3xl text-xl font-bold leading-snug sm:text-2xl">
-            公式発表と一次情報をAIで毎日収集し、出典URLの記載と構成を自動検査したうえで、リンク付きで公開しています。
-          </p>
-          <Button href="/about" variant="onAccent" className="mt-6">
-            {SITE_NAME}について →
-          </Button>
+      <section className={cx(CONTAINER.page, "pb-10")}>
+        <div className={cx(SURFACE.accent, PADDING.hero, "relative overflow-hidden")}>
+          <div className="pointer-events-none absolute -right-20 -top-28 size-72 rounded-full border-[28px] border-accent-ink/10" aria-hidden />
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <Eyebrow tone="faint">Why trust this</Eyebrow>
+              <p className="mt-3 max-w-3xl text-2xl font-bold leading-snug tracking-tight sm:text-3xl">
+                速さより、確かさ。<br />一次情報まで、ちゃんとたどれる。
+              </p>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-accent-ink/75">公式発表と海外ソースをAIで毎日収集し、出典URLと構成を検査して公開。情報の判断を、少しだけ速くします。</p>
+            </div>
+            <Button href="/about" variant="onAccent" className="w-fit">
+              編集方針を見る →
+            </Button>
+          </div>
         </div>
       </section>
     </>

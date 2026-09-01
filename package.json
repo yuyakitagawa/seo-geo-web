@@ -15,7 +15,8 @@
     "icon": "tsx scripts/icon-export.ts",
     "dupes": "tsx scripts/dupes.ts",
     "notify": "tsx scripts/notify.ts",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "tsx --test src/lib/*.test.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.3.2",

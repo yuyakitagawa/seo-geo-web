@@ -38,10 +38,63 @@ export type Tool = {
   verified: string;
 };
 
+const TOOLS_PATH = path.join(process.cwd(), "content", "tools.json");
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function requiredString(value: unknown, field: string, index: number): string {
+  if (typeof value !== "string" || value.trim() === "") throw new Error(`content/tools.json: tools[${index}].${field} は空でない文字列が必要です`);
+  return value;
+}
+
+function parseTool(value: unknown, index: number): Tool {
+  if (!isRecord(value)) throw new Error(`content/tools.json: tools[${index}] はオブジェクトが必要です`);
+  const category = requiredString(value.category, "category", index);
+  const type = requiredString(value.type, "type", index);
+  const country = requiredString(value.country, "country", index);
+  if (category !== "seo" && category !== "geo") throw new Error(`content/tools.json: tools[${index}].category が不正です`);
+  if (!(type in TOOL_TYPE_LABEL)) throw new Error(`content/tools.json: tools[${index}].type が不正です`);
+  if (country !== "日本" && country !== "海外") throw new Error(`content/tools.json: tools[${index}].country が不正です`);
+
+  const url = requiredString(value.url, "url", index);
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error();
+  } catch {
+    throw new Error(`content/tools.json: tools[${index}].url は http / https のURLが必要です`);
+  }
+  const verified = requiredString(value.verified, "verified", index);
+  const verifiedDate = new Date(`${verified}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(verified) || Number.isNaN(verifiedDate.valueOf()) || verifiedDate.toISOString().slice(0, 10) !== verified) {
+    throw new Error(`content/tools.json: tools[${index}].verified は YYYY-MM-DD 形式の有効な日付が必要です`);
+  }
+  if (!Array.isArray(value.engines) || !value.engines.every((engine) => typeof engine === "string" && engine.trim())) {
+    throw new Error(`content/tools.json: tools[${index}].engines は文字列の配列が必要です`);
+  }
+
+  return {
+    name: requiredString(value.name, "name", index),
+    vendor: requiredString(value.vendor, "vendor", index),
+    country,
+    category,
+    type: type as ToolType,
+    engines: value.engines,
+    price: requiredString(value.price, "price", index),
+    free: value.free === true,
+    url,
+    ...(typeof value.jaUrl === "string" && value.jaUrl ? { jaUrl: value.jaUrl } : {}),
+    note: requiredString(value.note, "note", index),
+    verified,
+  };
+}
+
 // content/tools.json を読む。/tools ページのデータ。新ツールは収集スクリプトの「ツール検知」候補を人が確認してから追記する。
 export function getTools(): Tool[] {
-  const raw = JSON.parse(fs.readFileSync(path.join(process.cwd(), "content", "tools.json"), "utf8")) as { tools: Tool[] };
-  return [...raw.tools].sort((a, b) => a.category.localeCompare(b.category) || (a.country === b.country ? a.name.localeCompare(b.name, "ja") : a.country === "日本" ? -1 : 1));
+  const raw: unknown = JSON.parse(fs.readFileSync(TOOLS_PATH, "utf8"));
+  if (!isRecord(raw) || !Array.isArray(raw.tools)) throw new Error("content/tools.json: tools 配列が必要です");
+  return raw.tools.map(parseTool).sort((a, b) => a.category.localeCompare(b.category) || (a.country === b.country ? a.name.localeCompare(b.name, "ja") : a.country === "日本" ? -1 : 1));
 }
 
 export function latestVerified(tools: Tool[]): string {

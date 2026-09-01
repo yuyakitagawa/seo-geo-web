@@ -60,6 +60,31 @@ export type ArticleMeta = {
 
 export type Article = ArticleMeta & { body: string };
 
+function parseDate(value: unknown, field: "date" | "updated", file: string): string {
+  const parsed = typeof value === "string" ? new Date(`${value}T00:00:00Z`) : null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !parsed || Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new Error(`content/articles/${file}: frontmatter の ${field} は YYYY-MM-DD 形式の有効な日付が必要です`);
+  }
+  return value;
+}
+
+function parseSources(value: unknown, file: string): Source[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((source, index) => {
+    if (!source || typeof source !== "object" || typeof (source as Source).url !== "string") {
+      throw new Error(`content/articles/${file}: sources[${index}] の url が必要です`);
+    }
+    const url = (source as Source).url;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error();
+    } catch {
+      throw new Error(`content/articles/${file}: sources[${index}].url は http / https のURLが必要です`);
+    }
+    return { title: typeof (source as Source).title === "string" ? (source as Source).title : url, url };
+  });
+}
+
 function parseFile(file: string): Article | null {
   const raw = fs.readFileSync(path.join(ARTICLES_DIR, file), "utf8");
   const { data, content } = matter(raw);
@@ -67,6 +92,8 @@ function parseFile(file: string): Article | null {
   if (typeof data.title !== "string" || typeof data.date !== "string") {
     throw new Error(`content/articles/${file}: frontmatter に title と date が必要です`);
   }
+  const date = parseDate(data.date, "date", file);
+  const updated = data.updated === undefined ? date : parseDate(data.updated, "updated", file);
   if (!Number.isInteger(data.id) || data.id <= 0) {
     throw new Error(`content/articles/${file}: frontmatter に正の整数の id が必要です（URLになる番号）`);
   }
@@ -82,14 +109,12 @@ function parseFile(file: string): Article | null {
     slug: String(data.id),
     title: data.title,
     description: typeof data.description === "string" ? data.description : "",
-    date: data.date,
-    updated: typeof data.updated === "string" ? data.updated : data.date,
+    date,
+    updated,
     category,
     type: parseType(data.type),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
-    sources: Array.isArray(data.sources)
-      ? data.sources.filter((s) => s && typeof s.url === "string").map((s) => ({ title: String(s.title ?? s.url), url: String(s.url) }))
-      : [],
+    sources: parseSources(data.sources, file),
     impact: parseImpact(data.impact),
     audience: typeof data.audience === "string" ? data.audience : undefined,
     actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],

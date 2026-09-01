@@ -26,7 +26,8 @@ export async function POST(request: Request) {
   const started = Date.now();
   try {
     const { res, finalUrl, redirects } = await fetchChecked(url, "text/html,application/xhtml+xml");
-    const { text: html, bytes } = await readCapped(res);
+    const { text: html, bytes, truncated } = await readCapped(res);
+    if (truncated) return Response.json({ error: "ページのHTMLが大きすぎます（上限2MB）" }, { status: 413 });
     const elapsedMs = Date.now() - started;
 
     const headers: Record<string, string> = {};

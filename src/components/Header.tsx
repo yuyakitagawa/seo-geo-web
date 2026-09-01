@@ -12,13 +12,13 @@ const NAV = [
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-canvas/80 backdrop-blur-md">
-      <div className={cx(CONTAINER.page, "flex items-center justify-between gap-4 py-4")}>
-        <Link href="/" className="group flex items-center gap-2 text-base font-bold tracking-tight">
-          <span className="inline-block size-3 rounded-full bg-accent transition group-hover:scale-125" />
-          {SITE_NAME}
+      <div className={cx(CONTAINER.page, "flex min-h-16 items-center justify-between gap-4 py-3")}>
+        <Link href="/" className="group flex shrink-0 items-center gap-2 text-base font-bold tracking-tight">
+          <span className="inline-block size-3 rounded-full bg-accent shadow-[0_0_14px_var(--color-accent)] transition group-hover:scale-125" />
+          <span className="hidden min-[380px]:inline">{SITE_NAME}</span>
         </Link>
-        <nav aria-label="サイト">
-          <ul className="flex items-center gap-0.5 rounded-full border border-line p-1 text-xs sm:gap-1 sm:text-sm">
+        <nav aria-label="サイト" className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max items-center gap-0.5 rounded-full border border-line bg-surface/60 p-1 text-xs sm:gap-1 sm:text-sm">
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link

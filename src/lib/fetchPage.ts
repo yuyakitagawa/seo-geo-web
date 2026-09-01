@@ -40,6 +40,7 @@ async function assertPublicUrl(raw: string): Promise<URL> {
   }
   if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error("http / https のURLだけ検査できます");
   if (u.port && u.port !== "80" && u.port !== "443") throw new Error("80 / 443 以外のポートは検査できません");
+  if (u.username || u.password) throw new Error("認証情報を含むURLは検査できません");
 
   // URL.hostname のIPv6リテラルは実行環境によって [] 付きになるため、DNS/IP判定の前に外す。
   const host = u.hostname.replace(/^\[|\]$/g, "");
@@ -80,11 +81,14 @@ export async function fetchChecked(raw: string, accept: string) {
 }
 
 /** 上限バイト数までしか読まない。巨大なファイルを掴まされても落ちないようにする */
-export async function readCapped(res: Response): Promise<{ text: string; bytes: number }> {
+export type CappedResponse = { text: string; bytes: number; truncated: boolean };
+
+export async function readCapped(res: Response): Promise<CappedResponse> {
   const reader = res.body?.getReader();
-  if (!reader) return { text: "", bytes: 0 };
+  if (!reader) return { text: "", bytes: 0, truncated: false };
   const chunks: Uint8Array[] = [];
   let bytes = 0;
+  let truncated = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -95,6 +99,7 @@ export async function readCapped(res: Response): Promise<{ text: string; bytes: 
     } else {
       chunks.push(value.subarray(0, remaining));
       bytes = MAX_BYTES;
+      truncated = true;
       await reader.cancel();
       break;
     }
@@ -105,5 +110,5 @@ export async function readCapped(res: Response): Promise<{ text: string; bytes: 
     buf.set(c, at);
     at += c.byteLength;
   }
-  return { text: new TextDecoder("utf-8").decode(buf), bytes };
+  return { text: new TextDecoder("utf-8").decode(buf), bytes, truncated };
 }

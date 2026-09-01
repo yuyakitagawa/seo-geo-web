@@ -56,7 +56,8 @@ export async function POST(request: Request) {
   try {
     const { res, finalUrl } = await fetchChecked(url, "text/html,application/xhtml+xml");
     if (res.status !== 200) return Response.json({ error: `ページが HTTP ${res.status} を返しました` }, { status: 400 });
-    const { text: html } = await readCapped(res);
+    const { text: html, truncated } = await readCapped(res);
+    if (truncated) return Response.json({ error: "ページのHTMLが大きすぎます（上限2MB）" }, { status: 413 });
     const { title, blocks } = blocksFromHtml(html);
     return Response.json(analyze({ source: finalUrl, title, blocks, prompts }));
   } catch (e) {
