@@ -95,6 +95,10 @@ const S = {
   crawlCaching: { title: "Crawling December: HTTP caching", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-caching" },
   manualActions: { title: "[手動による対策] レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9044175?hl=ja" },
   geoPaper: { title: "GEO: Generative Engine Optimization（arXiv:2311.09735）", publisher: "Aggarwal ほか（KDD 2024）", url: "https://arxiv.org/abs/2311.09735" },
+  ahrefsMentions: { title: "An Analysis of AI Overview Brand Visibility Factors（75,000ブランド）", publisher: "Ahrefs", url: "https://ahrefs.com/blog/ai-overview-brand-correlation/" },
+  ahrefsSchema: { title: "We Tracked 1,885 Pages Adding Schema. AI Citations Barely Moved.", publisher: "Ahrefs", url: "https://ahrefs.com/blog/schema-ai-citations/" },
+  measureOnce: { title: "Don't Measure Once: Measuring Visibility in AI Search（arXiv:2604.07585）", publisher: "Schulte ほか（ザンクトガレン大学）", url: "https://arxiv.org/abs/2604.07585" },
+  seerReviews: { title: "Study of 800K AI Responses: How Review Profiles Shape Brand Presence in AI Search", publisher: "Seer Interactive（Trustpilot 委託）", url: "https://www.seerinteractive.com/insights/study-of-800k-ai-responses-how-reviews-shape-brand-presence-in-ai-search" },
   openaiBots: { title: "Overview of OpenAI Crawlers", publisher: "OpenAI", url: "https://platform.openai.com/docs/bots" },
   perplexityBots: { title: "PerplexityBot", publisher: "Perplexity", url: "https://docs.perplexity.ai/guides/bots" },
   anthropicBots: { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.anthropic.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
@@ -778,16 +782,16 @@ export const LESSONS: Lesson[] = [
     goal: "自社がAIの回答候補に入らない原因を「表記の分裂」「第三者言及の不足」「引用材料の不足」に切り分け、それぞれの直し方を実行できるようになる。",
     objectives: [
       "AIにとってのブランド力とは何か。検索するクエリを決める時点でAIの知識が働くこと",
-      "表記ゆれを1つのエンティティに束ねる実装（正式表記・別表記・外部プロフィール・同じ定義文）",
-      "第三者の文脈で「カテゴリ名＋ブランド名」を並べる方法と、自称や受賞バッジが効かない理由",
+      "表記ゆれを1つのエンティティに束ねる実装と、構造化データに何を期待していいか（実測では引用は増えていない）",
+      "第三者の文脈で「カテゴリ名＋ブランド名」を並べる方法と、外部言及がもっとも強い相関を示している海外調査",
       "引用される独自データの作り方。調査日・対象件数・調べ方の3点セット",
-      "指名想起の定点観測。認知・説明の正確さ・指名なしの想起を分けて記録する",
+      "指名想起の定点観測。同じ質問でも回答が揺れるため、複数回・2〜4週間の窓で記録する",
     ],
     minutes: 14,
     checklist: [
-      "自社の主要カテゴリの質問を生成AIに投げ、回答に自社名が出るかを記録した",
+      "自社の主要カテゴリの質問を生成AIに複数回投げ、回答に自社名が出た割合を記録した",
       "ブランド名の正式表記を1つ決め、カタカナ・英字・略称の対応を公式ページに書いた",
-      "Organizationの構造化データに、正式表記・別表記（alternateName）・外部プロフィール（sameAs）を入れた",
+      "Organizationの構造化データに、正式表記・別表記（alternateName）・外部プロフィール（sameAs）を入れた（引用を増やす施策ではなく、表記の対応を機械可読にする前提作業として）",
       "サイトの説明文が、トップ・OGP・運営者情報・llms.txtで同じ1文にそろっている",
       "第三者のページで「カテゴリ名＋ブランド名」が並んでいる箇所を3件以上挙げられる",
       "他社が引用できる独自データを1つ持ち、調査日・対象件数・調べ方を併記している",
@@ -801,7 +805,7 @@ export const LESSONS: Lesson[] = [
       {
         question: "賞を取るとAIが認識するブランド力は上がりますか",
         answer:
-          "効いているのは賞そのものではなく、第三者が名前を出して言及したという事実です。実在する第三者の賞は、告知や報道という形で外部の言及を生むため有効に働きます。一方、自称の肩書きや費用を払えば掲載されるバッジは、外部に裏取り先がないため自社ページの主張1件と同じ扱いになります。個人・小規模の運営であれば、賞を追うより引用される独自データを出すほうが費用対効果は高くなります。",
+          "賞そのものの効果を測った公開データはありません。確認できているのは、第三者のページでのブランド言及がAI回答での露出ともっとも強く相関するというAhrefsの調査（75,000ブランド）までです。ここから当サイトは、効いているのは賞の権威ではなく第三者が名前を出して言及した事実のほうだと整理しています。実在する第三者の賞は告知や報道という形で外部の言及を生むため、その意味では働きます。判断の基準は「有料かどうか」ではなく「第三者が独立して書いているか」です。個人・小規模の運営であれば、賞を追うより引用される独自データを出すほうが同じ労力で外部言及に届きやすくなります。",
       },
       {
         question: "ブランド名はカタカナと英字のどちらを正式表記にすべきですか",
@@ -816,12 +820,12 @@ export const LESSONS: Lesson[] = [
       {
         question: "どのくらいの期間で効果が出ますか",
         answer:
-          "期間を断定できる公開データはありません。代わりに、月1回同じ質問を投げて、ブランド名を知っているか、説明が正しいか、指名しなくても候補に挙がるかの3段階を分けて記録します。多くの場合この順に変化するため、指名なしの想起がまだ出ていなくても、前の2段階が動いていれば進んでいると判断できます。",
+          "期間を断定できる公開データはありません。加えて、AI検索は同じ質問文を繰り返しても回答が揺れます。ザンクトガレン大学の調査では、同一プロンプトを再実行したときに引用元の重なりは32〜43%、ブランド名の重なりも日をまたぐと45〜59%でした。したがって1回の結果を前後で比べても判断できません。同じ質問を複数回投げ、2〜4週間をひとつの窓として「出た割合」で記録してください。記録は、ブランド名を知っているか、説明が正しいか、指名しなくても候補に挙がるかの3段階に分けます。この3段階がこの順に変化するというのは当サイトの整理で、検証したデータがあるわけではありません。",
       },
     ],
-    sources: [S.geoPaper, S.structuredData, S.aiFeatures, S.helpful, S.spam],
+    sources: [S.ahrefsMentions, S.seerReviews, S.ahrefsSchema, S.measureOnce, S.geoPaper, S.structuredData, S.aiFeatures, S.helpful, S.spam],
     published: "2026-08-31",
-    updated: "2026-08-31",
+    updated: "2026-09-01",
   },
 ];
 

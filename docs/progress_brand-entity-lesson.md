@@ -21,3 +21,26 @@ AI検索は回答を組み立てる前に候補のブランドを決めている
 - [x] `learn/updates-risk`: 締めの段落をレッスン13への引き渡しに変更
 - [x] README 更新
 - [x] `npm run typecheck && npm run build`
+
+## 追記（2026-09-01）: 根拠の再監査
+
+各節の主張を海外の調査と突き合わせ、根拠の強さに合わせて本文を書き直した。
+
+### 分かったこと
+- **外部言及（mentions節）が一番強い**。Ahrefs 75,000ブランドの相関（ブランド言及 0.664 > 指名アンカー 0.527 > 指名検索数 0.392 > 被リンク 0.218）と、Seer Interactive の80万件AI回答調査（レビュープロフィール運用群は共起9.5倍。Trustpilot委託）。どちらも相関であって因果ではない。
+- **表記統一・構造化データ（entity節）には反証がある**。Ahrefs の準実験（JSON-LDを追加した1,885ページ vs 対照約4,000ページ、追加前後30日）で AI Overviews −4.6% / AI Mode +2.4% / ChatGPT +2.2%、いずれも有意な増加なし。「効果」として売らず「土台」として書く。
+- **定点観測は月1回では足りない**。ザンクトガレン大の "Don't Measure Once"（arXiv:2604.07585）で、同一プロンプト再実行時の引用元の重なりは32〜43%、ブランド名は日をまたぐと45〜59%。揺れはモデルの確率的生成そのものに由来。→ 複数回×2〜4週間の窓で割合として記録する形に変更。
+- **33倍（記事0009）は単一アカウント1件**。教科書側にも「方向性を示す数値」の但し書きを追加。
+- **賞・バッジの効果を測ったデータは無い**。「有料か否か」ではなく「第三者が独立して書いたか」を基準に書き換え、当サイトの解釈だと明示。
+- **3段階の順序（認知→説明→指名なし想起）も検証データ無し**。当サイトの整理だと明示。
+
+### 変更
+- [x] `src/lib/curriculum.ts`: 出典4件（ahrefsMentions / ahrefsSchema / measureOnce / seerReviews）を `S` に追加、レッスン13の sources・objectives・checklist・FAQ（賞／期間）を修正、updated を 2026-09-01 に
+- [x] `src/app/learn/brand-entity/page.tsx`: recall（但し書き）・pipeline caption（根拠の強さ）・entity（表の列を「何が起きるか」に変更＋Ahrefsの準実験を追記）・mentions（Ahrefs/Seerを追記）・賞の段落・data（GEO論文の数値を「最大約40%」に統一）・measure（複数回計測へ全面改稿）
+- [x] `npm run typecheck && npm run build`
+
+### 残り（要・一次情報の確認）
+このセッションのプロキシが arxiv.org / ahrefs.com / seerinteractive.com をブロックしており、原典を直接開けなかった。
+上記の数値は複数の独立した二次情報（Search Engine Journal・Search Engine Roundtable ほか）で相互確認したもの。
+- [ ] 原典5件を開いて数値・日付・調査規模を目視確認する（Ahrefs 2件、Seer 1件、arXiv:2604.07585、arXiv:2311.09735）
+- [ ] GEO論文の手法別の内訳（統計/引用/出典それぞれの%）を原典で確認し、必要なら data節を数値入りに戻す
