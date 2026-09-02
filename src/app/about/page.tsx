@@ -59,7 +59,8 @@ const FAQ: FaqItem[] = [
 ];
 
 // E-E-A-T（経験・専門性・権威性・信頼性）のシグナルとして、収集元の一次情報源とFAQを明記する。
-// 運営者個人の経歴は載せない方針。業務委託・相談窓口も意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
+// 運営者は匿名。実名・所属・具体的な社名に繋がる経歴は書かないが、職種・運営動機・自作ツール・Xまでは書く。
+// 業務委託・相談窓口は意図的に置いていない（PVが十分に伸びた段階で検討する方針）。
 export default function AboutPage() {
   return (
     <>
@@ -117,16 +118,22 @@ export default function AboutPage() {
 
       <h2>運営者と連絡先</h2>
       <p>
-        当サイトは、検索とAI検索のアップデートを追う目的で個人が運営しています。実名は公開していませんが、
-        記事の誤りのご指摘や権利関係のご連絡には問い合わせ窓口で対応します。
+        ネット企業でプロダクトマネージャーとしてサービスの運営に関わってきました。当サイトは、検索とAI検索の
+        変化を自分で追い続けるために、勉強を兼ねて個人で運営しています。毎朝一次情報を巡回して記事にするほか、
+        自分が使いたかった診断ツール（<a href="/tools/page-audit">ページ診断</a>・
+        <a href="/tools/prompt-fit">プロンプト適合度</a>）を作って公開しています。
+        自分で試して分かったことは独自記事として書いています。
+        {X_PROFILE_URL ? (
+          <>
+            記事の公開と補足は、公式アカウントのX（旧Twitter）
+            <a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>
+            （{X_PROFILE_URL}）でも発信しています。
+          </>
+        ) : null}
       </p>
-      {X_PROFILE_URL ? (
-        <p>
-          公式アカウントは、X（旧Twitter）の
-          <a href={X_PROFILE_URL} rel="me noopener" target="_blank">{X_HANDLE}</a>
-          （{X_PROFILE_URL}）です。
-        </p>
-      ) : null}
+      <p>
+        実名は公開していませんが、記事の誤りのご指摘や権利関係のご連絡には問い合わせ窓口で対応します。
+      </p>
       {HAS_CONTACT_PAGE ? (
         <p>
           お問い合わせは<a href="/contact">お問い合わせページ</a>に記載の窓口
