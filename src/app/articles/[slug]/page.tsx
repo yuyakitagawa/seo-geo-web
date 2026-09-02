@@ -81,6 +81,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
     mainEntityOfPage: url,
     // opengraph-image.tsx が生成する実PNG。Article のリッチリザルトは image を要求する。
     image: `${url}/opengraph-image`,
+    isPartOf: { "@id": `${SITE_URL}/#website` },
     keywords: article.tags.join(", "),
     articleSection: CATEGORIES[article.category].label,
     author: { "@id": `${SITE_URL}/#organization` },
