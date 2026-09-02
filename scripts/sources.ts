@@ -12,11 +12,19 @@ export type FeedSource = {
   topic?: "tools";
   /** 媒体のトップページ。/about で「収集元の一次情報源」として読者に開示する（RSSのURLではなく人が読む方） */
   home?: string;
+  /** WordPress の `?paged=N` でフィードを遡れるソース。バックフィル（--since）のときだけページを送る */
+  paged?: boolean;
 };
 
 // Google News の検索RSS。PR TIMES・Web担当者Forum・アドタイ等を横断して日本語ニュースを拾える。
+// 検索語には Google 検索の `after:` / `before:` 演算子が使えるので、過去の日付窓を指定して遡れる（バックフィル）。
+export function googleNewsSearch(query: string, lang: "en" | "ja") {
+  const locale = lang === "ja" ? "hl=ja&gl=JP&ceid=JP:ja" : "hl=en-US&gl=US&ceid=US:en";
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&${locale}`;
+}
+
 function googleNewsJa(query: string) {
-  return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
+  return googleNewsSearch(query, "ja");
 }
 
 // ツール発表の検知語。タイトル or 概要にこのどれかを含むものだけ候補にする。
@@ -31,10 +39,10 @@ export const FEED_SOURCES: FeedSource[] = [
   { name: "Bing Webmaster Blog", alwaysInclude: true, url: "https://blogs.bing.com/webmaster/feed", home: "https://blogs.bing.com/webmaster", kind: "official", lang: "en" },
   { name: "OpenAI News", url: "https://openai.com/news/rss.xml", home: "https://openai.com/news/", kind: "official", lang: "en", keywords: ["search", "seo", "crawl", "browse", "citation", "publisher", "atlas", "shopping"] },
   // --- 業界メディア ---
-  { name: "Search Engine Land", url: "https://searchengineland.com/feed", home: "https://searchengineland.com/", kind: "media", lang: "en" },
-  { name: "Search Engine Journal", url: "https://www.searchenginejournal.com/feed/", home: "https://www.searchenginejournal.com/", kind: "media", lang: "en" },
+  { name: "Search Engine Land", url: "https://searchengineland.com/feed", home: "https://searchengineland.com/", kind: "media", paged: true, lang: "en" },
+  { name: "Search Engine Journal", url: "https://www.searchenginejournal.com/feed/", home: "https://www.searchenginejournal.com/", kind: "media", paged: true, lang: "en" },
   { name: "Search Engine Roundtable", url: "https://www.seroundtable.com/rss.xml", home: "https://www.seroundtable.com/", kind: "media", lang: "en" },
-  { name: "海外SEO情報ブログ", url: "https://www.suzukikenichi.com/blog/feed/", home: "https://www.suzukikenichi.com/blog/", kind: "media", lang: "ja" },
+  { name: "海外SEO情報ブログ", url: "https://www.suzukikenichi.com/blog/feed/", home: "https://www.suzukikenichi.com/blog/", kind: "media", paged: true, lang: "ja" },
   // --- ツール検知（Google News 日本語検索） ---
   { name: "Google News: LLMO", url: googleNewsJa("LLMO"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },
   { name: "Google News: GEO対策", url: googleNewsJa("GEO 対策"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },
@@ -50,4 +58,19 @@ export const TOPIC_KEYWORDS = [
   "ai overview", "ai mode", "geo", "generative", "llm", "chatgpt", "perplexity", "gemini",
   "crawl", "index", "schema", "structured data", "llms.txt", "robots",
   "core web vitals", "search console", "bing", "citation", "aio",
+];
+
+// バックフィル（過去記事の掘り起こし）専用の検索語。
+// 通常フィードは最新数十件しか返さないため、半年前まで遡るときは Google News 検索に
+// 日付窓（after: / before:）を付けて月ごとに掘る。`--since` を渡したときだけ使う。
+// ツール検知ソースと違い、こちらは記事化の題材（TOPIC_KEYWORDS で絞る）。
+export const BACKFILL_QUERIES: { name: string; query: string; lang: "en" | "ja" }[] = [
+  { name: "Backfill: Google コアアップデート", query: "Google コアアップデート 検索順位", lang: "ja" },
+  { name: "Backfill: AI Overviews 日本語", query: "AI Overviews 検索 流入", lang: "ja" },
+  { name: "Backfill: AIモード", query: "Google AIモード 検索", lang: "ja" },
+  { name: "Backfill: 生成AI検索とSEO", query: "生成AI 検索 SEO 対策", lang: "ja" },
+  { name: "Backfill: Google core update", query: "Google core update search ranking", lang: "en" },
+  { name: "Backfill: AI Overviews", query: "AI Overviews traffic publishers", lang: "en" },
+  { name: "Backfill: AI Mode", query: "Google AI Mode search results", lang: "en" },
+  { name: "Backfill: ChatGPT search", query: "ChatGPT search citations publishers", lang: "en" },
 ];
