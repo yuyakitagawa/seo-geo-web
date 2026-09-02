@@ -180,12 +180,12 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       </div>
 
       {related.length > 0 && (
-        <section className={cx(CONTAINER.page, "mt-20")}>
+        <aside aria-label="関連記事" className={cx(CONTAINER.page, "mt-20")}>
           <h2 className={cx(HEADING.section, "mb-6")}>関連記事</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {related.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
           </div>
-        </section>
+        </aside>
       )}
     </article>
   );

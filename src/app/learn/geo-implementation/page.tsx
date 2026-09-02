@@ -98,7 +98,7 @@ export default function Lesson09() {
       <GuideSection
         id="robots"
         title="robots.txtでの書き分け"
-        lead="設定の方針は3つに分かれます。どれを選ぶかは、AI経由の露出をどう扱いたいかで決まります。決めたら、robots.txtに書いてSearch Consoleのrobots.txtレポートで読み取り結果を確認します。"
+        lead="AI検索の回答に引用されたいなら、検索用のクローラー（OAI-SearchBot・PerplexityBotなど）は許可します。モデルの学習に使われたくない場合は、学習用のクローラー（GPTBot・Google-Extendedなど）だけを拒否します。GPTBotを拒否してもChatGPTの検索結果からは消えません（そちらはOAI-SearchBotの担当です）。設定の方針は次の3つに分かれ、どれを選ぶかはAI経由の露出をどう扱いたいかで決まります。決めたら、robots.txtに書いてSearch Consoleのrobots.txtレポートで読み取り結果を確認します。"
       >
         <FigureCompare
           title="3つの方針"

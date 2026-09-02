@@ -266,6 +266,11 @@ export function blocksFromHtml(html: string): { title: string; blocks: Block[] }
   root.querySelectorAll("script, style, noscript, template, svg, iframe").forEach((n) => n.remove());
   const title = root.querySelector("title")?.text.replace(/\s+/g, " ").trim() ?? "";
   const main = root.querySelector("main") ?? root.querySelector("article") ?? root.querySelector("body") ?? root;
+  // 目次・関連記事・広告・フッターは本文ではない。ここを残すと、関連記事のカードに載っている
+  // 別ページのタイトルで「このページは答えている」と判定されてしまう（自サイトで実測: 記事25が
+  // 関連カードの「AI引用に効くschemaとは？」で schema のプロンプトに満点で当たった）。
+  // AI検索・検索エンジンの本文抽出も nav / aside / footer は落とすので、判定もそれに合わせる。
+  main.querySelectorAll("nav, aside, footer").forEach((n) => n.remove());
   const blocks: Block[] = [emptyBlock()];
   walk(main, blocks);
   return { title, blocks: tidy(blocks) };
