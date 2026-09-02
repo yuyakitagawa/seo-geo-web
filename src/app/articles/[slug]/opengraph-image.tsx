@@ -17,7 +17,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const article = getArticle(slug);
   if (!article) return new Response("Not found", { status: 404 });
 
-  const footer = `${article.date.replaceAll("-", ".")}　·　${article.readingMinutes} min read`;
+  const footer = article.date.replaceAll("-", ".");
   const fonts = await loadOgFont(article.title + CATEGORIES[article.category].label + SITE_NAME + footer);
 
   return new ImageResponse(

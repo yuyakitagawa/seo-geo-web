@@ -117,7 +117,6 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
             <SourceBadge sources={article.sources} original={article.original} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
-            <span>{article.readingMinutes} min read</span>
           </div>
           <h1 className="text-[clamp(1.9rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-tight animate-rise">{article.title}</h1>
           {article.description && <p className="mt-6 max-w-2xl text-paper/75 sm:text-lg animate-rise [animation-delay:100ms]">{article.description}</p>}
