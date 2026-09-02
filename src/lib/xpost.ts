@@ -1,9 +1,10 @@
 // Xへの投稿文の組み立て。文面はClaudeが書く（scripts/x-post.ts）が、
 // 文字数の勘定・URL・ハッシュタグの付け方はここに集約する（Claudeに文字数を数えさせない）。
+// 外部リンクを含む投稿はリーチが落ちるので、本体ツイート（assemblePost）には本文だけを置き、
+// 記事URLは本体にぶら下げるリプライ（replyPost）に回す。1記事＝2投稿で1セット。
 
 export const X_LIMIT = 280; // Xの重み付き文字数。半角=1、日本語などの全角=2
-const URL_WEIGHT = 23; // URLは実際の長さに関わらず23として数えられる
-const MAX_TAGS = 3;
+const MAX_TAGS = 1; // ハッシュタグは今のXでは流入にほぼ効かない。付けても1つまで（多いとスパムに見える）
 
 export function weight(s: string): number {
   let w = 0;
@@ -21,16 +22,11 @@ export function hashtags(tags: unknown): string {
     .join(" ");
 }
 
-/** 本文の後ろに固定で付ける部分（URL＋ハッシュタグ） */
-export function postTail(url: string, tags: unknown): string {
-  return [url, hashtags(tags)].filter(Boolean).join("\n");
-}
-
-/** 本文に使える重み。Claudeにはこの数値を上限として渡す */
-export function bodyBudget(url: string, tags: unknown): number {
+/** 本体ツイートの本文に使える重み。Claudeにはこの数値を上限として渡す */
+export function bodyBudget(tags: unknown): number {
   const tagLine = hashtags(tags);
-  // 本文 + 空行 + URL(+改行+タグ)。URLだけ23固定で数える。
-  return X_LIMIT - URL_WEIGHT - (tagLine ? 1 + weight(tagLine) : 0) - 2;
+  // 本文 + 空行 + ハッシュタグ行。URLは本体に入れないので勘定に入らない。
+  return X_LIMIT - (tagLine ? 2 + weight(tagLine) : 0);
 }
 
 /** 重みが budget に収まるまで末尾を落とす。落としたときだけ「…」を付ける */
@@ -44,18 +40,23 @@ export function truncate(s: string, budget: number): string {
   return `${cut.trimEnd()}…`;
 }
 
-/** 本文＋URL＋ハッシュタグ。本文が枠を超えていたら詰める（枠を超えた投稿文は返さない） */
-export function assemblePost(body: string, url: string, tags: unknown): string {
-  return [truncate(body.trim(), bodyBudget(url, tags)), postTail(url, tags)].filter(Boolean).join("\n\n");
+/** 本体ツイート。本文＋ハッシュタグだけで、URLは入れない（本文が枠を超えていたら詰める） */
+export function assemblePost(body: string, tags: unknown): string {
+  return [truncate(body.trim(), bodyBudget(tags)), hashtags(tags)].filter(Boolean).join("\n\n");
+}
+
+/** 本体ツイートにぶら下げるリプライ。記事URLはここに置く */
+export function replyPost(url: string): string {
+  return `全文はこちら\n${url}`;
 }
 
 /**
- * Claudeを使えないとき（APIキーが無い・生成に失敗した）のテンプレ。
+ * Claudeを使えないとき（APIキーが無い・生成に失敗した）の本体ツイート。
  * タイトルを先に確保し、残り枠に収まるぶんだけ description を入れる。
  */
-export function templatePost(title: string, description: string, url: string, tags: unknown): string {
-  const room = bodyBudget(url, tags) - weight(title) - 2;
+export function templatePost(title: string, description: string, tags: unknown): string {
+  const room = bodyBudget(tags) - weight(title) - 2;
   let lead = truncate(description, Math.max(room, 0));
   if (weight(lead) < 20) lead = ""; // 数文字だけ載せても読めないので入れない
-  return assemblePost([title, lead].filter(Boolean).join("\n\n"), url, tags);
+  return assemblePost([title, lead].filter(Boolean).join("\n\n"), tags);
 }

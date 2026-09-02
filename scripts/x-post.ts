@@ -1,9 +1,10 @@
 // 記事のX投稿文をClaudeに書かせる。毎朝のワークフローの通知ステップ（scripts/notify.ts）から呼ぶ。
 // 自動投稿はしない。ここが作るのは「LINEに届いて、人がコピーして貼る文面」だけ。
+// 1記事につき本体ツイートとURLのリプライの2つを返す（外部リンクを本体に入れるとリーチが落ちるため）。
 // APIキーが無い／生成が検査を通らないときは、テンプレの文面（src/lib/xpost.ts の templatePost）に落とす。
 import Anthropic from "@anthropic-ai/sdk";
 import { SITE_URL } from "../src/lib/site";
-import { assemblePost, bodyBudget, templatePost, weight } from "../src/lib/xpost";
+import { assemblePost, bodyBudget, replyPost, templatePost, weight } from "../src/lib/xpost";
 import { MODEL } from "./article";
 
 const MIN_BODY_WEIGHT = 60; // これより短い本文は「タイトルを言い換えただけ」になっている
@@ -35,7 +36,7 @@ function prompt(data: Record<string, unknown>, content: string, budget: number):
 
 # 形式（守る）
 - 1行目: フック。何が起きたか、または読者が何を得るかを1文で言い切る。全角${HOOK_MAX}字以内。疑問形の煽りにしない。
-- 空行を1つ入れ、そのあとに要点を2〜3行。各行を「・」で始め、1行1トピック、全角${LINE_MAX}字以内にする。
+- 空行を1つ入れ、そのあとに要点を3〜4行。各行を「・」で始め、1行1トピック、全角${LINE_MAX}字以内にする。
 - 全体で全角${jp(budget)}字以内（半角は0.5字として数える）。字数を超えるくらいなら要点を1行減らす。
 - 記事に書いてある事実だけを使う。数値・機能名・社名を作らない。
 - URL・ハッシュタグ・@アカウント名は書かない（機械が後ろに付ける）。絵文字も使わない。
@@ -99,17 +100,23 @@ async function write(client: Anthropic, data: Record<string, unknown>, content: 
   throw new Error(`形式を満たす投稿文が得られなかった（${errors.join(" / ")}）`);
 }
 
+/** 1記事ぶんの投稿セット。post を投稿し、reply をその投稿への返信として続けて出す */
+export type XPost = { post: string; reply: string };
+
 /**
- * 記事1本ぶんのX投稿文。Claudeが本文を書き、URLとハッシュタグはこちらで付ける。
+ * 記事1本ぶんのX投稿文。Claudeが本体ツイートの本文を書き、ハッシュタグとURLのリプライはこちらで付ける。
  * 失敗しても通知そのものは止めない（テンプレの文面を返す）。
  */
-export async function xPost(data: Record<string, unknown>, content: string): Promise<string> {
-  const url = `${SITE_URL}/articles/${data.id}`;
-  const fallback = () => templatePost(String(data.title), String(data.description ?? ""), url, data.tags);
+export async function xPost(data: Record<string, unknown>, content: string): Promise<XPost> {
+  const reply = replyPost(`${SITE_URL}/articles/${data.id}`);
+  const fallback = (): XPost => ({
+    post: templatePost(String(data.title), String(data.description ?? ""), data.tags),
+    reply,
+  });
   if (!process.env.ANTHROPIC_API_KEY) return fallback();
   try {
-    const body = await write(new Anthropic(), data, content, bodyBudget(url, data.tags));
-    return assemblePost(body, url, data.tags);
+    const body = await write(new Anthropic(), data, content, bodyBudget(data.tags));
+    return { post: assemblePost(body, data.tags), reply };
   } catch (e) {
     console.error(`X投稿文の生成に失敗したためテンプレを使います（${data.title}）: ${e}`);
     return fallback();
