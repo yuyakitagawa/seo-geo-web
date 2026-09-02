@@ -83,12 +83,14 @@ jobs:
           git push origin HEAD:main
 
       # 公開できた記事をXに手で投稿するための通知。投稿文をそのまま送るので、長押しでコピーして貼るだけ。
-      # 自動投稿はしない（文面と投稿タイミングは人が決める）。
+      # 文面はClaudeが記事本文から書く（scripts/x-post.ts）。自動投稿はしない（投稿タイミングは人が決める）。
       - name: 公開をLINE通知
         if: steps.diff.outputs.changed == 'true' && steps.diff.outputs.articles != ''
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          # X投稿文の生成に使う。未設定でも通知は飛ぶ（テンプレの文面になる）。
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # 記事URLの組み立てに使う。未設定だと localhost のURLを送ってしまうのでここで固定する。
           NEXT_PUBLIC_SITE_URL: https://seo-geo-lab.com
           ARTICLES: ${{ steps.diff.outputs.articles }}

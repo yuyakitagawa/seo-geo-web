@@ -8,10 +8,26 @@ import { CASES } from "@/lib/cases";
 import type { LevelKey } from "@/lib/curriculum";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonNo, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
+import { indexableArticles } from "@/lib/indexability";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { EYEBROW, HEADING, LIFT, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
 const url = `${SITE_URL}${COURSE.path}`;
+
+// 教科書が参照している一次情報のURL（レッスンをまたいだ重複は1件と数える）。
+// 件数の表示と、同じ一次情報を扱ったサイト内記事の抽出に使う。
+const SOURCE_URLS = new Set(LESSONS.flatMap((l) => l.sources.map((s) => s.url)));
+
+/**
+ * 教科書のレッスンと同じ一次情報を出典に持つ記事。新しい順に4本まで。
+ * 「どのニュース記事を見ながら加筆したか」を、タイトルの類似ではなく出典URLの一致で示す
+ * （src/lib/indexability.ts の方針と同じく、内部リンクはインデックス対象の記事だけに張る）。
+ */
+function articlesFromLessonSources() {
+  return indexableArticles()
+    .filter((a) => a.sources.some((s) => SOURCE_URLS.has(s.url)))
+    .slice(0, 4);
+}
 
 export const metadata: Metadata = {
   title: COURSE.metaTitle,
@@ -41,6 +57,8 @@ function levelRange(level: LevelKey): string {
 }
 
 export default function LearnPage() {
+  const referenced = articlesFromLessonSources();
+
   return (
     <>
       <JsonLd data={courseArticleJsonLd()} />
@@ -94,6 +112,56 @@ export default function LearnPage() {
             および査読を経た論文に限っています。数値は各社の環境での結果であり、同じ施策で同じ結果が出ることを示すものではありません。
             すべての実例は<Link href={lessonPath("case-studies")}>レッスン{lessonNo("case-studies")}</Link>にまとめてあります。
           </p>
+        </section>
+
+        <section id="update" className="scroll-mt-24">
+          <h2>参考記事を見ながら加筆しています</h2>
+          <p>
+            この教科書は一度書いて終わりではありません。<strong>公式ドキュメントと、当サイトのニュース記事で扱った発表を読みながら、
+            該当するレッスンに加筆しています</strong>。新しい発表が出るたびに別ページを増やすのではなく、
+            すでにあるレッスンの中の該当箇所を直す形にしています。教科書全体の更新日は{jpDate(COURSE.updated)}です。
+          </p>
+          <GuideTable
+            head={["見ているもの", "中身", "サイトのどこに出るか"]}
+            rows={[
+              [
+                "公式ドキュメント・調査・論文",
+                "Google 検索セントラル、web.dev、AI各社の公式ドキュメント、公開されている調査と論文",
+                `各レッスン末尾の「Sources · 一次情報」（重複を除いて${SOURCE_URLS.size}件）`,
+              ],
+              [
+                "当サイトのニュース記事",
+                "毎日の収集で記事にした発表・調査のうち、教科書の記述に関わるもの",
+                <>
+                  <Link href="/news">ニュース一覧</Link>。反映先は該当レッスンの本文
+                </>,
+              ],
+            ]}
+            caption="出典の件数はレッスンに載せているURLの実数です（同じ文書を複数のレッスンで使っている場合は1件と数えています）。"
+          />
+          <h3>加筆するときのルール</h3>
+          <ul>
+            <li>数値・固有名詞は、参考にした記事の中にあるものだけを書く。元記事に無い数字は足さない。</li>
+            <li>出典が示していない判断（当サイトの整理・目安）は、本文かキャプションにその旨を書いて出典と区別する。</li>
+            <li>参考にしたURLは、そのレッスン末尾の「Sources · 一次情報」に必ず残す。</li>
+            <li>発表によって古くなった記述は、レッスン側を書き換える。古い記述と新しい記述を併存させない。</li>
+          </ul>
+          {referenced.length > 0 && (
+            <>
+              <h3>教科書と同じ一次情報を扱った記事</h3>
+              <p>
+                次の記事は、レッスンの出典と同じ一次情報を扱っています（タイトルの似ている記事ではなく、出典URLが一致する記事を抜き出しています）。
+                発表を先に扱うのは記事のほうなので、レッスンへの加筆はこうした記事を起点にしています。
+              </p>
+              <ul>
+                {referenced.map((a) => (
+                  <li key={a.slug}>
+                    <Link href={`/articles/${a.slug}`}>{a.title}</Link>（{jpDate(a.date)}）
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </section>
 
         <section id="levels" className="scroll-mt-24">

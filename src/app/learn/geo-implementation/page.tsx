@@ -16,6 +16,7 @@ const REF = {
   perplexity: { href: "https://docs.perplexity.ai/guides/bots", label: "PerplexityBot" },
   llmstxt: { href: "https://llmstxt.org/", label: "The /llms.txt file" },
   geoPaper: { href: "https://arxiv.org/abs/2311.09735", label: "GEO: Generative Engine Optimization" },
+  genAiReport: { href: "https://support.google.com/webmasters/answer/16984139?hl=ja", label: "生成 AI パフォーマンス レポート（検索）" },
 } as const;
 
 export const metadata: Metadata = lessonMetadata(lesson);
@@ -233,9 +234,12 @@ export default function Lesson09() {
           ]}
         />
         <p>
-          最後に、AI検索からの流入を分けて見られるようにしておきます。Googleは、AIによる概要やAIモードに表示されたサイトも
-          Search Consoleの検索タイプ「ウェブ」に含まれると説明しているため、AI機能だけを切り出したレポートはありません。
-          ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。計測の詳細は
+          最後に、AI検索での露出を分けて見られるようにしておきます。GoogleのAIによる概要とAIモードでの表示回数は、
+          Search Consoleの生成AIパフォーマンスレポートで確認できます。指標は表示回数のみで、クリック数は含まれません。
+          元のデータは検索パフォーマンスレポート（検索結果）のウェブ検索タイプに含まれるものです。
+          <GuideRef {...REF.genAiReport} />
+          ChatGPTやPerplexityからの流入は、アクセス解析の参照元ドメインで判別します。使い方は
+          <Link href="/articles/36">Search Consoleの使い方</Link>と
           <Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>で扱います。
         </p>
       </GuideSection>

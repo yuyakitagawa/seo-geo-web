@@ -20,7 +20,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
-| `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
@@ -75,9 +75,17 @@ npm run generate -- 30
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
 **失敗はLINEに飛ぶ**（Actions Secrets に `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` を入れたときだけ。未設定なら黙ってスキップ）。
 ワークフローの赤は誰も見ていない前提で運用する。
-**公開もLINEに飛ぶ**（`scripts/notify.ts`）。公開した記事のぶんだけ、**Xの投稿文（タイトル＋説明＋URL＋ハッシュタグ、280字の重み付き上限に収めたもの）**を1本1メッセージで送る。
+**公開もLINEに飛ぶ**（`scripts/notify.ts`）。公開した記事のぶんだけ、**Xの投稿文**を送る。
+**1記事につき2通**——①本体ツイート（本文＋ハッシュタグ）②その投稿にぶら下げるリプライ（記事URL）。
+外部リンクを含む投稿はリーチが落ちるので、URLは本体に入れずリプライに回す。
 LINEで長押し→コピー→Xに貼る運用で、自動投稿はしない（文面と投稿タイミングは人が決める）。
 手で作った記事を通知したいときは `npm run notify -- content/articles/0123-foo.mdx`（認証情報が無ければ文面をログに出すだけ）。
+
+投稿文は**Claudeが記事本文を読んで書く**（`scripts/x-post.ts`）。形は「フック1行＋空行＋要点3〜4行」で、
+URL・ハッシュタグ・文字数の勘定は機械側（`src/lib/xpost.ts`）が持つ（Xの重み付き280字＝半角1・全角2）。
+ハッシュタグは1つまで（今のXでは流入にほぼ効かず、多いとスパムに見える）。
+生成物は毎回検査して（URL/ハッシュタグ/@を書いていないか、行ごとと全体の字数）、外していたら違反内容を添えて最大3回まで書き直させる。
+`ANTHROPIC_API_KEY` が無いときと3回でも通らなかったときは、テンプレの文面（タイトル＋説明）に落ちる——通知そのものは止めない。
 
 ## HOW TO記事パイプライン（ストック型）
 上のパイプラインはRSS起点なので、出てくるのはニュース（フロー）だけになる。
@@ -98,6 +106,9 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 ## 記事の型（他媒体との差別化）
 - frontmatter の `type` で **news（フロー）/ howto（ストック）** を区別する。カテゴリページは howto を上、news を下に分けて出す
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
+- 記事ヘッダー・記事カード・OGP画像に出すメタ情報は カテゴリ / 型 / 独自 / 出典 / 公開日（＋更新日）だけ。
+  **読了時間（`N min read`）は表示しない**。`reading-time` はCJKを1文字＝1語・200語/分で数えるため
+  日本語では実感の2〜3倍の分数になり、当てにならないので依存ごと削除した
 - その下に **目次**（`src/components/Toc.tsx`）。本文の `##` だけを並べる（`###` は「よくある質問」配下の
   質問文が中心で、1記事に3〜10個あり目次が本文と同じ長さになるため）。見出しが3個未満の記事には出さない。
   idは `src/lib/toc.ts` が MDX から作り、本文に rehype-slug が振るidと同じものを再現する
@@ -107,7 +118,8 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける11種:
   `FigureCompare`（比較。3個なら横3列、それ以外は2列）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
   `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）/ `FigureBars`（横棒グラフ。マイナス混在で中央0の左右振り分け）/
-  `FigureQuote`（一次情報の引用パネル）/ `FigurePipeline`（横並びの処理の流れ。段ごとに「ここで落ちると」を添える）/
+  `FigureQuote`（一次情報の引用パネル。**text は出典の一文をそのまま写す**。要約・言い換え・複数文の合成は不可で、
+  写せる一文が無いときは引用パネル自体を使わない。ルールは `scripts/prompt.ts` に入っている）/ `FigurePipeline`（横並びの処理の流れ。段ごとに「ここで落ちると」を添える）/
   `FigureStack`（土台から積む階層）/ `FigureGauge`（良好／改善が必要／不良のしきい値の帯）/ `FigureTimeline`（期間の帯）/
   `FigureLinkMap`（リンク構造図。ページを箱・内部リンクを矢印で描く。`layer` で階層を指定すると座標は自動。
   `kind` は down（片方向）/ both（双方向）/ side（同じ階層どうしの曲線）、`dim` で孤立ページを破線にする。
@@ -367,8 +379,11 @@ npm run prompt-gap -- --all            # 「保留」も含める
   図案を変えたら `npm run icon` を実行して `src/app/favicon.ico`（16/32/48/64/128。ブックマーク一覧やタスクバーは
   48より大きいサイズを使うので入れておく）と `docs/brand/icon-1024.png`（X等へアップロードする用）を作り直す。
   manifest のアイコンは `any` と `maskable` の両方で宣言する（四隅が空の図案なので、Androidが円形に切っても欠けない）
-- E-E-A-T: 運営者個人の経歴は一切載せない方針。**about には記事がAI生成・自動公開であることと自動検査の内容、
-  収集元の媒体一覧（`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文でも一人称の経験談は書かない。
+- E-E-A-T: 運営者は匿名。実名・所属・社名が特定できる経歴は載せないが、**about の「運営者と連絡先」には
+  匿名のまま検証できる属性（職種＝ネット企業のPdM、運営動機＝勉強を兼ねた個人運営、自作ツール、公式X）を書く**。
+  加えて **about には記事がAI生成・自動公開であることと自動検査の内容、収集元の媒体一覧
+  （`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文では一人称の経験談は書かない
+  （書くのは自分で検証した `original: true` の独自記事だけ）。
   連絡窓口は匿名のまま用意する（メール or フォーム or 公式X。Organization contactPoint はメール > フォーム > X の順で1つ宣言）
 - 公式X（`X_SCREEN_NAME`）は**about の自己紹介で「公式アカウントはこれ1つ」と明記**し、同じURLを
   Organization の `sameAs`・フッター/about/contact の `rel="me"`・`llms.txt` の「サイト情報」で揃える。

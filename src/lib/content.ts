@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import readingTime from "reading-time";
 import { CATEGORY_KEYS, isCategoryKey, type CategoryKey } from "./site";
 
 // 記事は content/articles/<slug>.mdx に置く。AI生成パイプライン(scripts/)の出力先もここ。
@@ -54,8 +53,6 @@ export type ArticleMeta = {
   draft: boolean;
   /** 独自記事。自分で取ったログ・実測値・検証結果が本文の中心にあるものだけ true */
   original: boolean;
-  /** 読了時間（分） */
-  readingMinutes: number;
 };
 
 export type Article = ArticleMeta & { body: string };
@@ -122,7 +119,6 @@ function parseFile(file: string): Article | null {
     supersedes: [data.supersedes ?? []].flat().map(Number).filter((n) => Number.isInteger(n) && n > 0),
     draft,
     original: Boolean(data.original),
-    readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
     body: content,
   };
 }
