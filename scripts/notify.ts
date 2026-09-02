@@ -1,5 +1,6 @@
-// 公開した記事をLINEに通知する。Xへの投稿文をそのまま1メッセージで送るので、
+// 公開した記事をLINEに通知する。Xへの投稿文を1つ1メッセージで送るので、
 // LINEで長押し→コピー→Xに貼るだけで投稿できる（自動投稿はしない。文面は人が見てから出す）。
+// 1記事につき2通（本体ツイート＋URLのリプライ）。コピーの邪魔になるので、説明は先頭のメッセージにまとめる。
 // 投稿文はClaudeが記事本文を読んで書く（scripts/x-post.ts）。ANTHROPIC_API_KEY が無ければテンプレに落ちる。
 // 実行: npx tsx scripts/notify.ts content/articles/0123-foo.mdx ...
 // LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が無ければ黙って何もしない（未設定でもワークフローは壊さない）。
@@ -33,9 +34,11 @@ async function main() {
     "",
     ...articles.map((a) => `・${a.data.title}`),
     "",
-    "↓ 続くメッセージがXの投稿文です。長押しでコピーして貼り付けてください。",
+    "↓ 1記事につき2通送ります。1通目を投稿し、2通目はその投稿への返信として貼ってください。",
+    "（リンクを本体に入れるとリーチが落ちるので、URLは返信に回しています）",
   ].join("\n");
-  if (await push([headline, ...posts])) console.log(`LINEに通知しました（${articles.length}本）`);
+  const messages = [headline, ...posts.flatMap((p) => [p.post, p.reply])];
+  if (await push(messages)) console.log(`LINEに通知しました（${articles.length}本 / ${messages.length}通）`);
 }
 
 // 通知の失敗で公開済みの記事を巻き戻す意味はないので、ここで握って正常終了する。

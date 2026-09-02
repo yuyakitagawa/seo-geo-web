@@ -14,15 +14,22 @@ export async function linePush(messages: string[]): Promise<boolean> {
   const to = process.env.LINE_USER_ID;
   if (!token || !to) return false;
 
+  // 1回のpushで5通まで。超える分は続けて送る（黙って捨てると投稿文が欠ける）。
+  for (let i = 0; i < messages.length; i += MAX_MESSAGES) {
+    await pushOnce(token, to, messages.slice(i, i + MAX_MESSAGES));
+  }
+  return true;
+}
+
+async function pushOnce(token: string, to: string, messages: string[]): Promise<void> {
   const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       to,
-      messages: messages.slice(0, MAX_MESSAGES).map((text) => ({ type: "text", text: text.slice(0, MAX_CHARS) })),
+      messages: messages.map((text) => ({ type: "text", text: text.slice(0, MAX_CHARS) })),
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`LINE ${res.status} ${await res.text()}`);
-  return true;
 }
