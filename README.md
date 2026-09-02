@@ -20,7 +20,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
-| `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
+| `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
@@ -48,6 +48,24 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 すでに「公開」「採用」にした話題と語が重なるものは選ばない（別ソースが報じた同じ発表の二重記事を防ぐ）。
 **記事の日付**（`date`）は出典が公開された日に合わせる（生成日ではない）。出典日が取れない・未来日の場合だけ生成日にする。
 **重複排除**: URL、および正規化タイトル（PR TIMES転載をInfoseek/Excite等と同一視）。話題の重なり判定は `scripts/topic.ts` に共通化。
+
+### 過去記事のバックフィル（半年分を遡って埋める）
+通常フィードは最新数十件しか返さないため、`--since` を渡したときだけ収集経路を切り替える。日次の自動収集（`--since` なし）の挙動は変えない。
+```
+npm run collect -- --since=2026-03-02 --until=2026-07-14
+      ↓ (1) Google News 検索を暦月ごとの日付窓（after: / before:）で掘る。検索語は scripts/sources.ts の BACKFILL_QUERIES（日本語4・英語4）
+      ↓ (2) WordPress フィード（SEL / SEJ / 海外SEO情報ブログ = paged: true）を ?paged=N で遡る
+      ↓     ページ送りは「記事0件」「1ページ目と同じ内容が返った」「窓より古い記事に到達」のどれかで打ち切る（上限15ページ）
+      ↓     バックフィル由来の候補は note に「バックフィル」が付く
+npm run pick -- --since=2026-03-02 --until=2026-07-14 --per-month=5
+      ↓ 窓を暦月で区切り、各月からスコア上位を --per-month 件まで採用（月ごとの本数を揃える）。MAX_AGE_DAYS の21日制限は適用しない
+      ↓ スコア下限は 2→1（「3日以内+1」の加点を過去記事は誰も取れないため、下限を1つ下げて釣り合わせる）
+      ↓ 同一話題の除外は「語が重なる かつ 日付が14日以内」に限定する（3月と6月のコアアップデートを同じ話題と見なさないため）
+npm run generate -- 30
+      ↓ 「採用」を全件記事化。--publish を付けなければ draft:true なので、目視で確認してから false にする
+```
+**日次の自動公開と同時に走らせない**: 「採用」が残っていると翌朝のActionsが `pick`（`need = 件数 - 採用済み` が0以下で新規採用なし）→ `generate` でバックフィル分を先に消費し、その日のニュースが出なくなる。collect→pick→generate を一度に流し切ってからコミットする。
+**日付は過去のまま**（`date` = 出典の公開日）なので、記事一覧・RSS・`datePublished` は過去日で出る。まとめて公開する場合、初回クロールは全記事が同日になる。
 **自動公開の関門は3つ**:
 1. **生成の前**に `npm run typecheck` を1回（`.github/workflows/daily-articles.yml`）。mainが壊れているとAPI代を使ってから捨てることになるので、その前に落とす。
    2026-08-28〜30の3便は、mainに `src/lib/apps.ts` が無いまま `sitemap.ts` がimportしていたせいで生成後に落ち、記事ごと捨てて課金だけが残った。
@@ -81,6 +99,9 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 ## 記事の型（他媒体との差別化）
 - frontmatter の `type` で **news（フロー）/ howto（ストック）** を区別する。カテゴリページは howto を上、news を下に分けて出す
 - 冒頭に **Key Points パネル**（影響度 / 対象 / 今すぐやること）を固定表示
+- 記事ヘッダー・記事カード・OGP画像に出すメタ情報は カテゴリ / 型 / 独自 / 出典 / 公開日（＋更新日）だけ。
+  **読了時間（`N min read`）は表示しない**。`reading-time` はCJKを1文字＝1語・200語/分で数えるため
+  日本語では実感の2〜3倍の分数になり、当てにならないので依存ごと削除した
 - その下に **目次**（`src/components/Toc.tsx`）。本文の `##` だけを並べる（`###` は「よくある質問」配下の
   質問文が中心で、1記事に3〜10個あり目次が本文と同じ長さになるため）。見出しが3個未満の記事には出さない。
   idは `src/lib/toc.ts` が MDX から作り、本文に rehype-slug が振るidと同じものを再現する

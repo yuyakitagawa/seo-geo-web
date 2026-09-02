@@ -28,7 +28,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/lib/contact.ts`（検証・通知文）/ `src/lib/contact-notify.ts`（転送先）/ `src/app/api/contact/route.ts`: お問い合わせフォーム。内容はDBにもログにも保存せず、LINE（`src/lib/line.ts`。記事公開の通知と同じBot）とメール（Resend）へ転送するだけ。転送先のenvが1つも無ければフォームを表示しない。実装を変えたら `/privacy` の「お問い合わせフォームについて」も同時に直す。
 - `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `tools/domain-power`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
-- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
+- `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`--since=YYYY-MM-DD` を渡すとバックフィル（Google News検索を暦月の日付窓で掘る＋WordPressフィードを `?paged=N` で遡る。検索語は `sources.ts` の `BACKFILL_QUERIES`）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`--since`/`--until`/`--per-month` でバックフィル（月ごとに本数を割り当て、21日制限を外す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
 - `scripts/notify.ts`: 公開した記事のLINE通知（Xの投稿文をそのまま送る。自動投稿はしない）。`.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）→公開した記事をLINE通知。失敗時もLINE通知（どちらも `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ。失敗通知だけは npm ci が落ちても飛ばすためymlのcurlのまま）。
 
 ## 2. Operations
@@ -38,6 +38,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - 収集: `npm run collect` / 採用: `npm run pick -- 2` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須。`--publish` で draft:false）
 - 公開の通知（手動）: `npm run notify -- content/articles/0123-foo.mdx`（LINE。認証情報が無ければ文面をログに出すだけ）
 - 重複話題の検知: `npm run dupes`（報告のみ。続報なら新しい記事に `supersedes: <古い記事のid>` を書く）
+- 過去記事のバックフィル（手動のみ。自動実行はしない）: `npm run collect -- --since=2026-03-02 --until=2026-07-14` → `npm run pick -- --since=2026-03-02 --until=2026-07-14 --per-month=5` → `npm run generate -- 30`。手順と注意は `docs/progress_backfill.md`。「採用」を残したまま翌朝のActionsを走らせないこと
 - HOW TO生成: `npm run generate:howto -- 1`（`content/howto-topics.csv` の「採用」から。自動実行はしない）
 - 公開: 毎朝のActionsが自動で main に push する。止めるときは workflow を disable。手で出すときは `draft: true` → `false` にしてpush
 
