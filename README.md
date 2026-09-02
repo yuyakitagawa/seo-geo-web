@@ -25,6 +25,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
+| `/tools/domain-power` | 自作ツール: ドメイン単位の被リンク規模と登録情報を診断（`src/lib/domainPower.ts` + `POST /api/domain-power`）。点数化はしない |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ。フォーム（`POST /api/contact` → LINE・メールへ転送）＋ 窓口の一覧。フォームの転送先 / `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -130,6 +131,19 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   返すのは4つ: プロンプトの語が本文にあるか（`語の一致`）、最も近いブロック（`近さ`）、そのブロックの先頭に直答があるか、
   意図（定義/手順/比較/費用/事例/判断）に合った形式（番号付きリスト・表・金額・数値）があるか。足りない場合は見出し・入れる場所・入れる語・文の型を返す。
   ページが多く語っている語のうち、どのプロンプトにも無いものは「狙いから離れている語」として並べる。
+- **ドメインパワー診断 `/tools/domain-power`**: ドメイン（URLでも可）を `POST /api/domain-power` に投げ、`src/lib/domainPower.ts` が判定する。
+  返すのは2系統だけ。**外部からの入口の数**（被リンク元ドメイン数・Open PageRank・世界順位）と、**ドメインを失わないための状態**（登録日からの年数・有効期限・移管ロック・EPPステータス・DNSSEC）。
+  **合成スコア（0〜100の「ドメインパワー」）は作らない。** 被リンク数と登録年数をどんな重みで足すべきかの根拠が出せないため、素の数値をそのまま出す。
+  入力は `src/lib/domain.ts` で登録ドメインに揃える（`blog.example.co.jp` → `example.co.jp`）。Public Suffix List は持たず、
+  日本語圏＋主要国の複数ラベル接尾辞を手で並べてある（漏れたTLDは最後の1ラベル扱いになり、判定は壊れず粗くなるだけ）。
+  データ源は3つ:
+  - 登録情報 = **RDAP**（`src/lib/rdap.ts`。IANAのブートストラップ `https://data.iana.org/rdap/dns.json` で TLD から権威サーバーを引く。RFC 9083 / 9224。キー不要）
+  - **.jp の登録年月日・状態** = JPRS WHOIS（`src/lib/whoisJp.ts`。43/tcp、接続先は `whois.jprs.jp` に固定）。**.jp は IANA の RDAP 一覧に載っていない**ため RDAP では取れない。
+    この経路ではレジストラ・EPPステータス・DNSSEC は取れないので、移管ロックの判定は RDAP で取れたときだけ行う。
+  - 被リンク = **Open PageRank**（`src/lib/openPageRank.ts`。Common Crawl のリンクグラフ由来。`OPEN_PAGERANK_API_KEY` が要る）。
+    **キーが無ければ被リンクの欄は「未計測」**になり、登録情報だけを返す（ローカル・プレビューは未設定でよい）。
+    APIの形が変わったときに直すのは `openPageRank.ts` の `parse()` だけで済むようにしてある。
+  取得に失敗した項目は指摘ではなく `notes`（理由の説明）に出す。入力したドメインは記録しない。
 - **AIクローラーの定義** `src/lib/crawlers.ts`: AI検索/AI学習/検索エンジンの14種（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
   ページ診断の robots.txt 判定と、`/learn/geo-implementation` の一覧表・robots.txt ひな形（`src/components/RobotsPresets.tsx`）が同じ定義を見る。
   貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
