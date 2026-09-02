@@ -5,7 +5,7 @@
 //   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
-import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { currentMaxId, requireApiKey, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -93,6 +93,7 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
 }
 
 async function main() {
+  requireApiKey();
   const args = process.argv.slice(2);
   const publish = args.includes("--publish");
   const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 3);

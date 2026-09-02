@@ -5,7 +5,7 @@
 // 実行: npx tsx scripts/generate-howto.ts [件数=1] [--publish]
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
-import { currentMaxId, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { currentMaxId, requireApiKey, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
@@ -103,6 +103,7 @@ ${t.sources.map((u) => `  - ${u}`).join("\n")}
 }
 
 async function main() {
+  requireApiKey();
   const args = process.argv.slice(2);
   const publish = args.includes("--publish");
   const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 1);
