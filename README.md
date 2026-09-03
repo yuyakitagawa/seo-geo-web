@@ -235,7 +235,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 
 ## 記事 frontmatter
 ```yaml
-id: 12                    # 必須。URLになる連番。生成スクリプトが最大値+1を自動採番
+id: 12                    # 必須。URLになる連番。生成スクリプトが最大値+1を自動採番。**複数ブランチで記事を書くときは、マージ順で id が衝突しうる。マージ前に `origin/main` の最大 id を確認して振り直す**（重複すると `src/lib/content.ts` が throw してビルドが落ちる）
 title: "..."
 description: "..."        # 90〜120字
 date: "2026-08-23"
