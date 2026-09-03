@@ -11,6 +11,17 @@ export const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
 // それでも品質が足りなければ claude-opus-5 に戻す。
 export const MODEL = "claude-sonnet-5";
 
+/**
+ * APIキーが無いまま生成を始めない。キー未設定だと SDK が候補ごとに素の Error を投げ、
+ * generate 側が「内容起因の失敗」と誤判定して「採用」を全部「却下」に落としてしまうため、
+ * 1件も消費する前にここで止める。
+ */
+export function requireApiKey() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error("ANTHROPIC_API_KEY が設定されていません（ローカルは実行前に export、Actions は Secrets に登録する）");
+  }
+}
+
 /** JSTの今日 YYYY-MM-DD */
 export function today(): string {
   return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);

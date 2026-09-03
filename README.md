@@ -73,6 +73,7 @@ npm run generate -- 30
 
 どれかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
+`ANTHROPIC_API_KEY` が無いときは1件も消費せず即終了する（`scripts/article.ts` の `requireApiKey()`）。キー未設定だとSDKが候補ごとに素の Error を投げ、「採用」が全部「却下」に落ちるため。ローカルで動かすときは `.env` を読まないので実行前に `export ANTHROPIC_API_KEY=...` する。
 **失敗はLINEに飛ぶ**（Actions Secrets に `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` を入れたときだけ。未設定なら黙ってスキップ）。
 ワークフローの赤は誰も見ていない前提で運用する。
 **公開もLINEに飛ぶ**（`scripts/notify.ts`）。公開した記事のぶんだけ、**Xの投稿文**を送る。
