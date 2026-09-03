@@ -164,10 +164,16 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - **AIクローラーの定義** `src/lib/crawlers.ts`: AI検索/AI学習/検索エンジンの14種（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
   ページ診断の robots.txt 判定と、`/learn/geo-implementation` の一覧表・robots.txt ひな形（`src/components/RobotsPresets.tsx`）が同じ定義を見る。
   貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
+- **拒否する商用クローラー** `src/lib/scrapers.ts`: 自サイトの `robots.txt` で `Disallow: /` にする8種（Ahrefs/Semrush/Moz×2/Majestic/DataForSEO/Babbar/Serpstat。
+  トークンは各社の公式ページで確認。verified 日付つき）。AI検索・AI学習・検索エンジンは1つも止めない（読者に届く経路なので通す）。
+  止めるのは、読者を連れて来ないのに全ページを巡回して関数実行と帯域だけを消費する相手だけ。`src/lib/crawlers.ts` とは目的が違うので混ぜない。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
   12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
-  連打の抑制は `src/lib/rateLimit.ts`（同一インスタンス内で1分あたり、診断10回・お問い合わせ3回。IPは数えるだけで記録しない）。
+  連打の抑制は `src/lib/rateLimit.ts`（同一インスタンス内で1分あたり、診断5回・お問い合わせ3回、加えてインスタンス全体で60回。IPは数えるだけで記録しない）。
+  3つのAPIはいずれも `sameOrigin()` を通し、Origin がサイト自身と一致しない呼び出しは 403 で落とす（比較先はリクエスト自身のホストなので本番・プレビュー・localhost が同じ判定で通る）。
+  ブラウザは GET/HEAD 以外に必ず Origin を付けるので、フォームからの `fetch` は通り、curl やスクリプトからの直叩きは落ちる。
+  どちらの回数制限も**落とした回は数えない**（数えると洪水を受けている間だけ配列が伸びて1件ごとの走査が重くなる）。判定は `src/lib/rateLimit.test.ts`。
 - **お問い合わせフォーム** `/contact` → `POST /api/contact`: 入力の検証と通知文は `src/lib/contact.ts`、転送は `src/lib/contact-notify.ts`。
   転送先はLINE（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。記事公開の通知と同じBot。共通処理は `src/lib/line.ts`）と
   メール（Resendの `RESEND_API_KEY` / `CONTACT_FROM_EMAIL` / `CONTACT_TO_EMAIL`。差出人は認証済みドメイン、`reply_to` に入力されたアドレス）。
@@ -232,7 +238,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
   （`node_modules/next/dist/lib/metadata/resolve-metadata.js` の `postProcessMetadata`）。
   トップページ分の `og:url` は `src/app/page.tsx` が持つ。
 - **記事内の図解**: 上記の `figures.tsx`（10種）。本文中のビジュアルはこれだけ。
-- **記事のバッジ（チップ）**: 軸ごとに1つまで。①何の話か＝カテゴリ（SEO/GEO/ニュース、必ず1つ）②記事の型＝`解説`（`type: howto` のときだけ。news は既定なので出さない）③根拠の強さ＝`独自`（`original: true`）か `Google公式`（**主出典＝先頭が当事者のドメイン、または出典の半数以上が当事者のドメイン**のときだけ。添え物として公式ドキュメントを1本引いただけの記事には出さない。`src/lib/sourceVendor.ts` で判定。独自記事にも出さない）。全記事に付くバッジは情報量がゼロなので増やさない。
+- **記事のバッジ（チップ）**: 軸ごとに1つまで。①何の話か＝カテゴリ（SEO/GEO/ニュース、必ず1つ）②記事の型＝`解説`（`type: howto` のときだけ。news は既定なので出さない）③根拠の強さ＝`独自`（`original: true`）か `Google公式に学ぶ` / `Google公式が出典`（**主出典＝先頭が当事者のドメイン、または出典の半数以上が当事者のドメイン**のときだけ。添え物として公式ドキュメントを1本引いただけの記事には出さない。`src/lib/sourceVendor.ts` で判定。独自記事にも出さない）。文言は「出典が公式」だけを言う（記事そのものが公式発信だと読めないようにする）。`type: howto` は「〜公式に学ぶ」、news は「〜公式が出典」。全記事に付くバッジは情報量がゼロなので増やさない。
 
 ## 記事 frontmatter
 ```yaml
@@ -249,7 +255,7 @@ impact: "mid"             # high | mid | low（任意）
 audience: "店舗集客サイト"  # 任意
 actions:                  # 任意、1〜4項目
   - "robots.txt を確認する"
-sources:                  # 先頭が主出典。主出典か半数以上が当事者自身のドメインなら「Google公式」バッジが出る（src/lib/sourceVendor.ts）
+sources:                  # 先頭が主出典。主出典か半数以上が当事者自身のドメインなら「Google公式に学ぶ／が出典」バッジが出る（src/lib/sourceVendor.ts）
   - title: "出典タイトル"
     url: "https://..."
 supersedes: 12            # 任意。この記事が置き換える古い記事のid（配列可）。指定された記事は noindex + sitemap除外
@@ -380,6 +386,8 @@ npm run prompt-gap -- --all            # 「保留」も含める
   `/api/*` は診断ツールのPOST専用エンドポイントで、GETは405を返すだけの非コンテンツなのでクロールさせない。
 - RSS の `lastBuildDate` は**載せている記事の最新更新日**（sitemap の `lastmod` と同じ規律。ビルド時刻は使わない）。
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
+- `robots.txt` は全クローラーに `Allow: /`（`/api/` だけ除外）。ただし商用SEOクローラー8種は `Disallow: /`（`src/lib/scrapers.ts`）。
+  `Crawl-delay: 5` も出す。Googlebot は無視する仕様だが、Bingと小規模クローラーには効く。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
   `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
   **図案は `src/lib/icon.tsx` だけ**にあり、上のルートは全部そこを描画する。Xのアイコンは円形に切られるので四隅には何も置かない。

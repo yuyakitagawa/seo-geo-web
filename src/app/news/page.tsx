@@ -102,7 +102,7 @@ export default function NewsPage() {
                             <CategoryBadge category={a.category} asLink={false} />
                             <TypeBadge type={a.type} />
                             <OriginalBadge original={a.original} />
-                            <SourceBadge sources={a.sources} original={a.original} />
+                            <SourceBadge sources={a.sources} type={a.type} original={a.original} />
                           </span>
                           <span className="flex-1 font-medium leading-snug underline-offset-4 group-hover:underline">{a.title}</span>
                         </Link>

@@ -2,7 +2,7 @@
 // 内容はここでも記録しない（ログにも出さない）。届かなかったときだけエラーを返す。
 import { validateContact } from "@/lib/contact";
 import { CONTACT_FORM_ENABLED, deliverContact } from "@/lib/contact-notify";
-import { clientIp, rateLimited } from "@/lib/rateLimit";
+import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -12,6 +12,10 @@ const MIN_ELAPSED_MS = 3_000;
 export async function POST(request: Request) {
   if (!CONTACT_FORM_ENABLED) {
     return Response.json({ error: "フォームは現在停止しています" }, { status: 503 });
+  }
+  // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。
+  if (!sameOrigin(request)) {
+    return Response.json({ error: "お問い合わせフォームから送信してください" }, { status: 403 });
   }
   if (rateLimited(clientIp(request), 3)) {
     return Response.json({ error: "短時間に送信しすぎです。1分ほど空けてから試してください。" }, { status: 429 });

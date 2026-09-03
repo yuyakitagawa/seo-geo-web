@@ -22,9 +22,9 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/lib/indexability.ts`: **インデックス判定の集約先**（薄いタグの足切り・`supersedes` によるカニバリ対策）。ページ・sitemap・内部リンクは必ずここを見る。`src/lib/nav.ts`: ハブページ間の回遊（`siblingPages`）。`src/lib/topic.ts`: 同一話題の判定（collect/pick/dupes 共通。**インデックス判定には使わない**）。
 - `src/lib/toc.ts`: 記事の目次（MDXから見出しを拾い、rehype-slug と同じidを再現する）。`src/lib/icon.tsx`: ファビコン・アプリアイコン・Xのアイコンの図案（1か所。円形クロップ前提で四隅を空ける）。`src/lib/og.tsx`: OGP画像の共通枠（`ogFrame` / `pageOgImage`）。`opengraph-image.tsx` はセグメントごとに置き、下位ページへ引き継がれる。ただし `openGraph` を自前で書くページには引き継がれないので `images` を明示する。
 - `src/lib/glossary.ts`: 用語集（/glossary）のデータ。1語1文の定義＋出典1つ。可視テキストと DefinedTerm の description は同じ文字列。出典はサイトが既に一次情報として確認済みのURLだけ使う。
-- `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。専用ページは持たず、ページ診断の robots.txt 判定と `/learn/geo-implementation` の一覧表・ひな形（`RobotsPresets`）が共有する。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
+- `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。専用ページは持たず、ページ診断の robots.txt 判定と `/learn/geo-implementation` の一覧表・ひな形（`RobotsPresets`）が共有する。`src/lib/scrapers.ts`: **自サイトの** robots.txt で拒否する商用SEOクローラー8種（`src/app/robots.ts` だけが参照する。**crawlers.ts とは目的が違うので混ぜない**。AI検索・AI学習・検索エンジンは1つも止めない）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
 - `src/lib/promptFit.ts`: プロンプト適合度の判定本体（見出しブロック分割・文字bigramのTF-IDF・重要語のカバレッジ・意図別の形式チェック・修正案。外部APIは使わない）。`src/lib/fetchPage.ts`: 任意URLの取得（SSRF対策・2MB上限・12秒・簡易レート制限）。診断系のAPIは全部これを通す。
-- `src/app/api/audit/route.ts` / `src/app/api/prompt-fit/route.ts`: 診断ツールのAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査。`src/lib/fetchPage.ts`）を外さない。連打の抑制は `src/lib/rateLimit.ts`。
+- `src/app/api/audit/route.ts` / `src/app/api/prompt-fit/route.ts`: 診断ツールのAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査。`src/lib/fetchPage.ts`）を外さない。連打の抑制と、サイト自身のフォーム以外からの直接呼び出しの遮断（`sameOrigin()`）は `src/lib/rateLimit.ts`。**この2つを外すと関数実行がそのまま費用になる**ので外さない。
 - `src/lib/contact.ts`（検証・通知文）/ `src/lib/contact-notify.ts`（転送先）/ `src/app/api/contact/route.ts`: お問い合わせフォーム。内容はDBにもログにも保存せず、LINE（`src/lib/line.ts`。記事公開の通知と同じBot）とメール（Resend）へ転送するだけ。転送先のenvが1つも無ければフォームを表示しない。実装を変えたら `/privacy` の「お問い合わせフォームについて」も同時に直す。
 - `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
@@ -50,3 +50,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - 機能の追加・変更・削除は同一コミットで README.md を更新。
 - 実験コード・不採用コードは即削除。コメントアウトで残さない。
 - マージ前に最新mainを取り込み、`npm run typecheck && npm run build` が通ることを確認してからマージ。
+- **main への push は1日1回にまとめる**。push 1回＝Vercelのデプロイ1回で、255ページ分のISRキャッシュが全部無効になる。
+  そこへクローラーが来ると全ページがキャッシュミスになり、ISR Writes（1レンダリングにつきHTMLとRSCで2〜3回）が跳ね上がる。
+  2026-09-03、11日で157コミット（8/31だけで66）を push した結果 ISR Writes が上限の8.5倍に達し、Hobbyプランで**サイトが停止した**。
+  作業中のコミットはブランチに置き、まとまってからmainへ入れる。毎朝のActionsによる自動publishは1日1回なので問題ない。

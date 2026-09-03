@@ -2,7 +2,7 @@
 // URLを取りに行く場合の取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、判定は src/lib/promptFit.ts。
 // 外部のAIや埋め込みAPIは呼ばない。計算はすべてこのサーバー内で完結する。
 import { fetchChecked, readCapped } from "@/lib/fetchPage";
-import { clientIp, rateLimited } from "@/lib/rateLimit";
+import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
 import { analyze, blocksFromHtml, blocksFromText } from "@/lib/promptFit";
 
 export const runtime = "nodejs";
@@ -26,6 +26,10 @@ function readPrompts(raw: unknown): string[] {
 }
 
 export async function POST(request: Request) {
+  // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。
+  if (!sameOrigin(request)) {
+    return Response.json({ error: "プロンプト適合度のフォームから実行してください" }, { status: 403 });
+  }
   if (rateLimited(clientIp(request))) {
     return Response.json({ error: "短時間に検査しすぎです。1分ほど空けてから試してください。" }, { status: 429 });
   }
