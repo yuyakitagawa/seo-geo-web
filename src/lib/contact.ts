@@ -7,6 +7,7 @@ export const CONTACT_TOPICS = {
   correction: "記事の誤り・古い情報の指摘",
   rights: "権利関係のご連絡",
   request: "取り上げてほしいテーマ",
+  consult: "GEO・SEOのご相談",
   tool: "ツールの不具合",
   other: "その他",
 } as const;
