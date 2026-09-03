@@ -1,0 +1,212 @@
+---
+id: 43
+title: GeminiはYouTube動画で学習している 文字起こしも学習材料と報道、投稿者はGoogleの学習を拒否できない
+description: >-
+  GoogleはYouTube動画の一部をGeminiとVeoの学習に使うと認めています。文字起こしを学習用テキストにしたとの報道もあります。投稿者が止められるのは第三者企業の学習だけです。動画チャンネルの字幕・台本で今やることを整理します。
+date: '2026-09-03'
+category: geo
+type: howto
+tags:
+  - YouTube
+  - Gemini
+  - AI学習
+  - 動画SEO
+  - 字幕
+impact: mid
+audience: 企業YouTubeチャンネルの運用担当者、動画で集客する店舗・士業・メーカー
+actions:
+  - YouTube Studioの「第三者によるトレーニング」設定が意図どおりか確認する
+  - 自動生成字幕の社名・製品名・数値を正しい表記に直す
+  - 台本で社名・製品名・結論を口頭で言い、画面テキストだけに頼らない
+  - GeminiとAI Modeで自社名を検索し、動画の内容がどう出るか記録する
+sources:
+  - title: Google is using YouTube videos to train its Gemini, Veo 3 AI models
+    url: https://www.cnbc.com/2025/06/19/google-youtube-ai-training-veo-3.html
+  - title: How tech giants cut corners to harvest data for AI | The Seattle Times（ニューヨーク・タイムズ配信）
+    url: https://www.seattletimes.com/business/how-tech-giants-cut-corners-to-harvest-data-for-ai/
+  - title: Your content & third-party training - YouTube Help
+    url: https://support.google.com/youtube/answer/15509945
+  - title: Terms of Service - YouTube
+    url: https://www.youtube.com/static?template=terms
+  - title: Google Updates Privacy Policy To Collect Public Data For AI Training
+    url: https://www.searchenginejournal.com/google-updates-privacy-policy-to-collect-public-data-for-ai-training/490715/
+  - title: OpenAI could be in a 'clear violation' of YouTube's terms of service, CEO says
+    url: https://fortune.com/2024/04/04/openai-youtube-clear-violation-terms-service-ai-sora-training/
+  - title: Google Asserts That YouTube's Terms of Service Allow It to Train AI Models
+    url: https://variety.com/2026/digital/news/google-youtube-terms-of-service-train-ai-models-lawsuit-1236771486/
+  - title: Apple, Nvidia, Anthropic Used Thousands of Swiped YouTube Videos to Train AI
+    url: https://www.proofnews.org/apple-nvidia-anthropic-used-thousands-of-swiped-youtube-videos-to-train-ai/
+draft: false
+---
+## 結論
+
+GeminiはYouTube動画で学習しており、Googleは2025年6月にそれを認めています。
+文字起こし（音声を文字に起こしたテキスト）も学習に使ったと、2024年4月にニューヨーク・タイムズが報じました。
+根拠は関係者5人の証言で、Googleの公式発表ではありません。
+
+投稿者がYouTube Studioで止められるのは第三者企業の学習だけです。
+Google自身の学習を拒否する設定はありません。
+
+## 何が確認済みで、何が報道段階か
+
+CNBCは2025年6月19日、GoogleがYouTube動画でGeminiとVeo 3を学習させていると報じました。
+Veo 3はGoogleの動画生成AIです。
+
+Googleは同誌に対し、YouTubeの動画のうち一部（subset）を学習に使っていると認めています。
+YouTubeの動画数は200億本あり、そのうちどの動画が使われたかは公開されていません。
+
+<FigureQuote
+  text="We've always used YouTube content to make our products better, and this hasn't changed with the advent of AI."
+  source="CNBC「Google is using YouTube videos to train its Gemini, Veo 3 AI models」（2025年6月19日、YouTube広報担当者の発言）"
+/>
+
+「YouTubeのコンテンツは以前から製品改善に使っており、AIの登場でそれは変わっていない」という意味です。
+Googleが公式に認めたのは「動画を学習に使っている」ことまでで、文字起こしを使ったとは明言していません。
+
+文字起こしについての根拠は、ニューヨーク・タイムズが2024年4月6日に公開した調査報道です。
+同紙は、GoogleもYouTube動画を文字に起こしてAIモデル用のテキストを集めたと書いています。
+根拠は関係者5人の証言です。
+
+この部分は報道であり、Googleの公式発表ではない点を区別して読む必要があります。
+
+<FigureFlow
+  title="GoogleのYouTube学習が明らかになった経緯"
+  steps={[
+    { label: "2023年7月", desc: "Googleがプライバシーポリシーを改定。公開情報をAIモデルの学習に使うと明記" },
+    { label: "2024年4月", desc: "ニューヨーク・タイムズが、GoogleがYouTube動画を文字起こしして学習に使ったと報道" },
+    { label: "2024年12月", desc: "YouTube Studioに「第三者によるトレーニング」設定が追加。既定はオフ" },
+    { label: "2025年6月", desc: "GoogleがCNBCに対し、YouTube動画の一部でGeminiとVeo 3を学習させていると認める" },
+    { label: "2026年6月", desc: "Googleが著作権訴訟で、YouTube利用規約のライセンスがAI学習を許可していると主張" },
+  ]}
+/>
+
+規約面の根拠は3つあります。
+1つ目は2023年7月1日のプライバシーポリシー改定です。
+Googleは公開されている情報をAIモデルの学習に使うと明記しました。
+
+2つ目はYouTube利用規約です。
+投稿者はYouTubeに対し、複製・二次的著作物の作成を含めてコンテンツを使う世界的なライセンスを与えると定めています。
+
+3つ目は2026年6月の訴訟対応です。
+Googleは音楽生成AIのLyria 3の著作権訴訟で、この規約のライセンスが学習を許可していると主張しました。
+
+## 文字起こしが学習材料になる仕組み
+
+言語モデル（LLM）は文字列を学習するため、動画そのものより文字起こしのほうが学習に直接使えます。
+YouTubeのCEOのNeal Mohan氏は2024年4月、Bloombergの取材で利用規約の範囲を説明しました。
+外部に許しているのは動画タイトルやチャンネル名の取得までです。
+
+文字起こしや動画本体のダウンロードは許していないと述べており、これはOpenAIなど外部企業に向けた発言です。
+
+つまり構図は、外部企業には文字起こしの取得を規約で禁じ、Google自身は規約のライセンスで使う、というものです。
+
+外部への流出も実際に起きています。
+Proof Newsは2024年7月、YouTube動画173,536本の字幕が学習データ集「The Pile」に入っていたと報じました。
+このデータはApple・Nvidia・Anthropic・Salesforceが学習に使っていました。
+
+<FigureCompare
+  title="YouTube動画の文字起こしを誰が学習に使えるか"
+  caption="投稿者が設定で制御できるのは中央の列だけ"
+  cols={[
+    { label: "Google自身", tone: "geo", sub: "Gemini・Veo", points: ["利用規約のライセンスを根拠に使う", "投稿者が拒否する設定は無い", "使う動画は「一部」で、範囲は非公開"] },
+    { label: "第三者企業（許可制）", tone: "accent", sub: "YouTube Studioの設定", points: ["既定はオフ", "投稿者が企業を選んで許可できる", "Googleの学習には影響しない"] },
+    { label: "無断収集", tone: "news", sub: "規約違反", points: ["文字起こしの取得は規約で禁止", "The Pileの字幕データのように流出した例がある", "投稿者側で止める手段は事実上無い"] },
+  ]}
+/>
+
+## 影響を受けるページ・クエリ
+
+影響を受けるのは、自社のYouTubeチャンネルに公開している動画と、その内容が答えになるクエリです。
+具体的には「社名＋評判」「製品名＋使い方」「〇〇のやり方」のような質問です。
+Geminiや検索のAI Modeが動画の内容を根拠に答えられるクエリが対象になります。
+
+通常のウェブページは今回の話の対象外です。
+ウェブ側の学習拒否は `Google-Extended` の設定で扱います（[GEOの実装レッスン](/learn/geo-implementation)参照）。
+
+学習とは別に、GeminiはYouTube動画を回答時にも読みます。
+視聴ページのAsk YouTubeは映像・音声・字幕を選んで読む方式に変わる予定です（[Ask YouTubeの記事](/articles/42)）。
+学習（モデルの知識）と回答時の参照の両方で、文字起こしと字幕が入力になる点は同じです。
+
+## 手順
+
+### 1. 第三者によるトレーニング設定を確認する
+
+YouTube Studioの設定に「第三者によるトレーニング」の項目があります。
+既定はオフで、オンにする場合は許可する企業を一覧から選びます。
+この設定はGoogle自身の学習には影響しないため、Googleの学習を止める目的では使えません。
+
+### 2. 自動生成字幕を直す
+
+YouTubeの自動字幕は固有名詞を誤変換しやすく、そのままだと誤った社名・製品名がテキストとして残ります。
+YouTube Studioの字幕編集で、社名・製品名・型番・金額・日付を正しい表記に直します。
+公開済みの動画は、再生回数の多い順に直すと手戻りが少なくなります。
+
+### 3. 台本で固有名詞と結論を口頭で言う
+
+画面のテロップだけに書いた社名や数値は、文字起こしには残りません。
+台本の冒頭30秒で「誰が」「何について」「結論は何か」を声に出して言います。
+テロップと発話の内容をそろえておくと、字幕・文字起こし・映像のどれを読まれても同じ情報になります。
+
+### 4. 出力を記録する
+
+GeminiとAI Modeで「社名とは」「製品名の使い方」を月1回検索します。
+動画の内容がどう反映されるかをスプレッドシートに記録します。
+学習への反映時期はGoogleが公開していないため、変化を追える記録が判断材料になります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="GoogleのYouTube学習への対応"
+  dos={["自動生成字幕の固有名詞・数値を正しい表記に直す", "社名・製品名・結論を台本で口頭で言う", "YouTube Studioの「第三者によるトレーニング」設定を確認する"]}
+  donts={["学習を拒否する目的だけで動画を削除・非公開にする", "第三者トレーニング設定でGoogleの学習も止まると思い込む"]}
+/>
+
+字幕と台本の修正は、学習と回答時の参照の両方に効くため無駄になりません。
+一方、動画を削除・非公開にすると、Geminiや検索のAI Modeに自社の動画が引用される機会も同時に失います。
+第三者トレーニング設定はGoogle以外の企業だけが対象で、Google自身の学習には影響しません。
+
+## 日本の運営者への当てはめ
+
+例えば、相続税の解説動画を出している税理士事務所を考えます。
+自動字幕で「基礎控除」が「基礎向上」のように誤変換されていると、AIは事務所の専門分野を正しく学べません。
+字幕を直し、動画の冒頭で「〇〇税理士事務所の〇〇です。今日は基礎控除の計算方法を説明します」と言うだけで、テキストとしての情報は整います。
+
+もう1つは、掃除機の使い方動画を出しているメーカーです。
+型番を画面のテロップだけで示していると、文字起こしには「この製品」としか残りません。
+発話で型番を言い、字幕にも型番を入れておくと、「型番＋フィルター交換」の質問に自社動画が根拠として使われやすくなります。
+
+例えば公開済み動画が60本ある場合、再生回数上位10本から字幕を直せば、工数は1本あたり20〜30分程度に収まります。
+
+## 判断基準
+
+製品の使い方・専門知識の解説・比較といった「質問の答えになる動画」がある場合は、字幕と台本の見直しを進めてよい状況です。
+企業紹介やイベント記録のように質問形式で見られない動画は、今回の話を理由に工数をかける必要はありません。
+YouTubeチャンネルを持たない、または動画から集客していないサイトは対象外です。
+
+Googleの学習を止めたい場合、設定で止める手段はありません。
+動画を公開する以上はGoogleの学習対象になる前提で、公開する情報の範囲を決めるのが現実的な判断です。
+
+## よくある質問
+
+### GeminiはYouTubeの何を学習していますか
+
+Googleは、YouTube動画の一部をGeminiとVeo 3の学習に使っていると2025年6月に認めています。
+文字起こしを学習に使ったことは、2024年4月にニューヨーク・タイムズが関係者の証言として報じました。
+この部分はGoogleの公式発表ではありません。どの動画が使われたかは公開されていません。
+
+### 自分の動画をGoogleのAI学習から外せますか
+
+Google自身の学習から自分の動画を外す設定はありません。
+根拠はYouTube利用規約でGoogleに与えるライセンスです。
+Googleは2026年6月の訴訟でも、この規約を学習の根拠として主張しています。
+
+### 「第三者によるトレーニング」設定をオンにすると何が起きますか
+
+「第三者によるトレーニング」設定は、Google以外の企業に動画をAI学習に使わせるかを決めるものです。
+既定はオフで、オンにする場合は一覧から企業を選びます。
+Google自身の学習はこの設定に関係なく行われます。
+
+### Google-Extendedをブロックすれば動画も守れますか
+
+Google-Extendedはウェブサイトのrobots.txtで指定するもので、YouTube動画には効きません。
+YouTube動画の扱いは、robots.txtではなく利用規約とYouTube Studioの設定で決まります。
