@@ -1,0 +1,118 @@
+---
+title: GoogleがAI ModeにGemini 3.8 Flashを追加、影響範囲を解説
+description: >-
+  Google AI Mode向けにGemini 3.8
+  Flashがリリース当日に追加されました。対象は有料会員のみで、無料ユーザーへの影響とGEO計測時の注意点を整理します。
+date: '2026-09-02'
+category: geo
+type: news
+tags:
+  - AI Mode
+  - Gemini
+  - Google AI Pro
+  - GEO
+  - モデル切り替え
+impact: low
+audience: GEOの可視性計測を行う担当者、Google AI Pro/Ultra利用者
+actions:
+  - AI Modeでの検証結果に使用モデル名（Auto/Pro/Flashの種類）を必ず記録する
+  - 無料ユーザー向けの施策・計測方法は変更しない
+  - GoogleのAI Modeモデルメニューのサポートページを月1回程度確認する
+draft: false
+sources:
+  - title: Google Adds Gemini 3.8 Flash To AI Mode
+    url: >-
+      https://www.searchenginejournal.com/google-gemini-3-8-flash-ai-mode/588194/
+id: 41
+---
+## 結論
+
+GoogleはAI ModeのモデルメニューにGemini 3.8 Flashをリリース当日に追加し、Google AI Pro・Ultra会員が選択できるようになりました。
+
+「AI Mode」とはGoogle検索内で対話形式の回答を返す機能で、通常の検索結果とは別の画面で動きます。
+対象は有料プラン加入者のみで、無料ユーザーが使う既定モデルはこの発表では変わっていません。
+一般のサイト運営者がすぐに何かを変える必要はなく、GEOの効果測定をしている担当者だけ記録方法を見直せば十分です。
+
+## 何が変わったか
+
+Google Search担当VPのRobby Stein氏が、X（旧Twitter）でGemini 3.8 Flashの提供開始を発表しました。
+選択場所はAI Modeの「Ask anything」入力欄にある「+」アイコンで、「Gemini 3 models」の一覧に表示されます。
+表示順は「Auto」と「Pro」の間で、8月14日に追加されたGemini 3.7 Flashは同じ画面にはもう表示されません。
+
+今回の発表が過去と違う点は、GoogleのモデルリリースブログにAI Modeが最初から名前を連ねたことです。
+3.7 Flashの時はGeminiアプリとSparkのみが発表対象で、AI Modeへの反映は翌日でした。
+つまり検索側で使えるモデルが、Googleのモデル開発スケジュールとほぼ同時に切り替わる状態になっています。
+
+<FigureFlow
+  title="AI Modeの既定・選択可能モデルの推移"
+  steps={[
+    { label: "2025年11月", desc: "Gemini 3 ProがAI Modeの選択肢として登場" },
+    { label: "2025年12月", desc: "Gemini 3 Flashが既定モデルに" },
+    { label: "2026年5月", desc: "Gemini 3.5 FlashがI/Oで世界既定モデルに" },
+    { label: "2026年8月14日", desc: "Gemini 3.7 Flashがメニューに追加" },
+    { label: "2026年9月2日", desc: "Gemini 3.8 Flashがメニューに追加（今回）" },
+  ]}
+/>
+
+既定モデルは半年ごとに更新される一方、選択メニューへの追加は数週間おきに起きています。
+6週間で3回目のFlashモデル追加という頻度は、これまでのペースより明らかに速いといえます。
+
+<FigureQuote
+  text="available today in AI Mode for Google AI Pro & Ultra subs around the world"
+  source="Robby Stein（Google Search担当VP）、X投稿、2026年9月2日"
+/>
+
+「今日からGoogle AI Pro・Ultra会員向けにAI Modeで利用可能」という一文で、対象が有料会員限定であることを明言しています。
+無料ユーザー向けの言及はなく、既定モデルの変更予定についても触れられていません。
+
+## 影響を受けるページ・クエリ
+
+影響を受けるのは、ページやクエリの種類ではなく「誰がAI Modeにアクセスしているか」です。
+Google AI Pro・Ultra会員が「+」アイコンから明示的にGemini 3.8 Flashを選んだ場合のみ、回答生成に使われるモデルが変わります。
+無料ユーザーが使う既定モデルはこの発表の対象外で、検索結果への表示・引用のされ方に直接の変更はないと考えられます。
+
+一方で、AI Modeでの自社ブランドの露出やAIOverviewsの引用状況を有料アカウントでモニタリングしているサイトは影響を受けます。
+8月14日から今回の発表までの3週間にGemini 3.7 Flashで取得したテスト結果は、すでにメニューから消えたモデルによるものです。
+つまり同じ期間内で「引用が増えた・減った」と比較しても、コンテンツ側の変化とモデル交代の影響を切り分けられません。
+
+<FigureCompare
+  title="モデル追加の影響範囲"
+  cols={[
+    { label: "Google AI Pro/Ultra会員", tone: "geo", points: ["「+」アイコンからGemini 3.8 Flashを選択可能", "選んだ場合のみ回答生成モデルが変わる"] },
+    { label: "無料ユーザー", tone: "accent", points: ["既定モデルは今回変更なし", "選択メニュー自体が表示されない"] },
+  ]}
+/>
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="Gemini 3.8 Flash追加への対応"
+  dos={["AI Modeの検証ログに使用モデル名を記録する", "既定モデルへの反映有無をサポートページで確認する"]}
+  donts={["構造化データやtitleタグを慌てて書き換える", "無料ユーザー向け施策の計測方法を変更する"]}
+/>
+
+例えば、都内の飲食店集客サイトを運営する担当者が、Google AI Pro契約でAI Modeの店名引用状況を毎週チェックしているとします。
+その場合は「9月2日以降はGemini 3.8 Flashで取得」とスプレッドシートにメモを1行足すだけで十分です。
+BtoBのSaaS企業がAI Modeでの製品名の言及率を追っている場合も同様に、モデル名の記録を計測フローに1項目加える対応で足ります。
+
+対応が不要なのは、無料のGoogle検索やAI Modeを使っていない一般のECサイト・メディア・店舗サイトです。
+既定モデルが変わらない限り、無料ユーザーが目にする回答の生成方法は今回の発表では動いていません。
+サイト構造やコンテンツを今すぐ調整する理由は無く、様子見で問題ありません。
+
+GoogleのAI Modeモデルメニューのサポートページは、9月2日時点でも「Fast」と「Pro」の2択表記のままです。
+Gemini 3.7 Flashが8月14日に追加された時から表記が変わっていないため、この表記が動いた時が既定モデル変更の合図になります。
+GEO計測をしている担当者は、このサポートページをブックマークしておくと変化を見逃しません。
+
+## よくある質問
+
+### Gemini 3.8 Flashは無料版のGoogle検索でも使えますか
+
+使えません。今回追加されたのはGoogle AI Pro・Ultra加入者向けのAI Mode内メニューのみで、無料ユーザーが使う既定モデルはこの発表では変更されていません。
+
+### AI Modeでの引用状況を計測している場合、何を変えるべきですか
+
+計測ログに使用モデル名を追記するだけで十分です。8月中旬から9月頭にかけて取得した結果は複数の異なるモデルによるものなので、比較する際はモデル名をそろえてください。
+
+### Gemini 3.8 Flashは今後、無料ユーザーの既定モデルになりますか
+
+Google公式の発表では既定化の予定は示されていません。過去のFlashモデルは選択肢登場後に既定モデルへ昇格した例があるため、サポートページの表記変更が今後の判断材料になります。

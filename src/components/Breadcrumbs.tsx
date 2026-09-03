@@ -19,7 +19,11 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
       "@type": "ListItem",
       position: i + 1,
       name: i === 0 ? SITE_NAME : c.name,
-      item: `${SITE_URL}${c.href ?? ""}`,
+      // href が無いのは末尾（現在のページ）だけ。そこに `${SITE_URL}` を入れると、
+      // 現在のページのURLとしてトップページを宣言することになる（1番目と同じURLが2度出る）。
+      // BreadcrumbList の最後の要素は item を省略してよい仕様なので、出さない。
+      // ホームは canonical と同じ表記（末尾スラッシュなし）に揃える。
+      ...(c.href ? { item: c.href === "/" ? SITE_URL : `${SITE_URL}${c.href}` } : {}),
     })),
   };
 

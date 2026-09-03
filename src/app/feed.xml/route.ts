@@ -1,4 +1,4 @@
-import { getAllArticles } from "@/lib/content";
+import { getAllArticles, latestUpdated } from "@/lib/content";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 // 記事も設定もビルド時に確定するので静的ファイルとして配る（クローラーへのTTFBを詰める）。
@@ -9,7 +9,11 @@ function escape(s: string) {
 }
 
 export function GET() {
-  const items = getAllArticles()
+  const articles = getAllArticles();
+  // フィードの最終更新。ビルド時刻ではなく載せている記事の最終更新日を使う（sitemap の lastmod と同じ規律。
+  // 毎朝ビルドしても記事が増えていない日はフィードも変わっていない）。
+  const lastBuild = latestUpdated(articles);
+  const items = articles
     .slice(0, 20)
     .map(
       (a) => `<item>
@@ -30,7 +34,7 @@ export function GET() {
   <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
   <description>${escape(SITE_DESCRIPTION)}</description>
   <language>ja</language>
-${items}
+${lastBuild ? `  <lastBuildDate>${new Date(`${lastBuild}T00:00:00+09:00`).toUTCString()}</lastBuildDate>\n` : ""}${items}
 </channel>
 </rss>`;
 

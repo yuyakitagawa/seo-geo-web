@@ -12,7 +12,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // 診断APIはPOST専用で、クロールしても得るものが無い（叩かれると関数実行だけ増える）。
+        // /api/* は診断ツールのPOST専用エンドポイントで、GETすると405を返すだけの非コンテンツ。
+        // クロールされてもインデックス対象が増えず、Search Consoleに「見つかりませんでした」系の
+        // レポートを積み、関数実行だけ増えるので、クロール自体を止める。
         disallow: "/api/",
         // Googlebot は crawl-delay を無視する。効くのは Bing と、名前も知らない小規模クローラー群。
         crawlDelay: 5,

@@ -131,6 +131,7 @@ export default function ToolsPage() {
       <PageHeader
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
         title="SEO・GEOツール比較"
+        crumbs={[{ name: "ツール" }]}
         lead="従来のSEOツールと、AI検索向けのGEOツールを1か所で比較します。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
       />
       <div className={cx(CONTAINER.page, "space-y-14 pb-16")}>

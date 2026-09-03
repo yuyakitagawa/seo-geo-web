@@ -81,6 +81,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
     mainEntityOfPage: url,
     // opengraph-image.tsx が生成する実PNG。Article のリッチリザルトは image を要求する。
     image: `${url}/opengraph-image`,
+    isPartOf: { "@id": `${SITE_URL}/#website` },
     keywords: article.tags.join(", "),
     articleSection: CATEGORIES[article.category].label,
     author: { "@id": `${SITE_URL}/#organization` },
@@ -179,12 +180,12 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
       </div>
 
       {related.length > 0 && (
-        <section className={cx(CONTAINER.page, "mt-20")}>
+        <aside aria-label="関連記事" className={cx(CONTAINER.page, "mt-20")}>
           <h2 className={cx(HEADING.section, "mb-6")}>関連記事</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {related.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
           </div>
-        </section>
+        </aside>
       )}
     </article>
   );

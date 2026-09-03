@@ -960,6 +960,10 @@ export function courseJsonLd() {
   };
 }
 
+// 教科書のOGP画像。レッスンは個別のOGP画像を持たず、全ページ /learn/opengraph-image を共有する
+// （lessonMetadata の openGraph.images と同じ値）。Article のリッチリザルトは image を要求する。
+const COURSE_OG_IMAGE = `${SITE_URL}${COURSE.path}/opengraph-image`;
+
 export function courseArticleJsonLd() {
   const url = `${SITE_URL}${COURSE.path}`;
   return {
@@ -973,6 +977,7 @@ export function courseArticleJsonLd() {
     dateModified: COURSE.updated,
     inLanguage: "ja",
     mainEntityOfPage: url,
+    image: COURSE_OG_IMAGE,
     isPartOf: { "@id": `${SITE_URL}/#website` },
     author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization` },
@@ -993,6 +998,7 @@ export function lessonJsonLd(lesson: Lesson) {
     dateModified: lesson.updated,
     inLanguage: "ja",
     mainEntityOfPage: url,
+    image: COURSE_OG_IMAGE,
     isPartOf: { "@id": `${SITE_URL}${COURSE.path}#curriculum`, "@type": "ItemList", name: COURSE.h1 },
     position: lesson.order,
     learningResourceType: "レッスン",
