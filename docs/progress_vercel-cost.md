@@ -48,8 +48,12 @@ Next.js を `output: "export"` にして **ISR を使わない**。ページは�
       `articles/1.html → /articles/1` のクリーンURL（`overrides`）、`404.html` を確認。
 - [x] `vercel dev`（`.claude/launch.json` の `vercel-dev`）で実行経路を検証: `/category/seo` → 308 `/seo`、存在しないURL → 404、`GET /api/audit` → 405、
       `POST /api/audit` は Origin 無しで 403・同一オリジンで 200（example.com の診断結果が返る）、`POST /api/prompt-fit` も 200。
-- [ ] プレビューデプロイ（ブランチ `chore/static-export`。Vercel Authentication で保護されているのでログインしたブラウザで開く）で
-      `/articles/1` `/articles/1/opengraph-image` `/tools/page-audit` のフォームを目で確認してから main へマージ。マージ＝本番デプロイ。
+- [x] 2026-09-04 07:08 JST に main へ入り本番デプロイ。ページ・OGP画像・308・404 は正常。
+- [x] **本番だけ `/api/*` が 500（FUNCTION_INVOCATION_FAILED）** → hotfix。原因: Vercel のビルダー（`@vercel/node` 5.8）はルートの tsconfig
+      （`module: esnext`）で関数を変換するため、出力が `import` 文のままの ESM になり、拡張子無しの相対 import（`../src/lib/audit`）を Node が
+      読めなかった（ログ: `Failed to load the ES module`）。`vercel dev` は別経路で変換するので再現しない。
+      対処: `api/tsconfig.json` で `module: commonjs` / `moduleResolution: node` に固定（ビルダーはエントリに近い tsconfig を拾う）。
+      `vercel build` の出力を `node -e 'require(".../audit.func/api/audit.js")'` で読み込めることを確認してから本番へ。
 
 ## さらに $0 にしたい場合（別途判断）
 静的エクスポートにしておけば、商用利用可の無料ホスティング（Cloudflare Pages: 静的配信は無制限・無料）へ移せる。

@@ -1,6 +1,9 @@
 // Vercel Functions（ルート直下の api/）。Next.js は output: "export" で API ルートを持てないためここに置く。
 // URL は /api/audit のまま。実行時間の上限は vercel.json の functions に書く。tsconfig の @/ は Vercel の
 // ビルダーで解決されない可能性があるので、ここから届く範囲は相対 import にしている。
+// api/tsconfig.json（module: commonjs）は消さない。ルートの tsconfig（module: esnext）で変換されると
+// 関数が ESM として出力され、拡張子無しの相対 import を Node が読めず FUNCTION_INVOCATION_FAILED になる
+// （2026-09-04 の本番で発生。vercel build → node で .vercel/output/functions/api/audit.func/api/audit.js を require して再現できる）。
 // URLを1本取得して src/lib/audit.ts で判定するAPI。/tools/page-audit のフォームから呼ばれる。
 // 取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、回数制限は src/lib/rateLimit.ts が持つ。
 import { audit } from "../src/lib/audit";
