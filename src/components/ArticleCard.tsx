@@ -26,7 +26,7 @@ export default function ArticleCard({ article, featured = false, index = 0 }: { 
             <CategoryBadge category={article.category} asLink={false} />
             <TypeBadge type={article.type} />
             <OriginalBadge original={article.original} />
-            <SourceBadge sources={article.sources} original={article.original} />
+            <SourceBadge sources={article.sources} type={article.type} original={article.original} />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
           </div>
           <h2 className={`font-bold leading-snug tracking-tight ${featured ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl"}`}>{article.title}</h2>

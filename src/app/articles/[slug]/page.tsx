@@ -113,7 +113,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
             <CategoryBadge category={article.category} size="md" />
             <TypeBadge type={article.type} size="md" />
             <OriginalBadge original={article.original} size="md" />
-            <SourceBadge sources={article.sources} original={article.original} size="md" />
+            <SourceBadge sources={article.sources} type={article.type} original={article.original} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
           </div>

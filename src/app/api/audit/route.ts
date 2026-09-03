@@ -3,12 +3,16 @@
 import { audit } from "@/lib/audit";
 import { logAudit } from "@/lib/audit-log";
 import { fetchChecked, readCapped } from "@/lib/fetchPage";
-import { clientIp, rateLimited } from "@/lib/rateLimit";
+import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(request: Request) {
+  // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。
+  if (!sameOrigin(request)) {
+    return Response.json({ error: "ページ診断のフォームから実行してください" }, { status: 403 });
+  }
   if (rateLimited(clientIp(request))) {
     return Response.json({ error: "短時間に検査しすぎです。1分ほど空けてから試してください。" }, { status: 429 });
   }
