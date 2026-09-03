@@ -43,7 +43,13 @@ Next.js を `output: "export"` にして **ISR を使わない**。ページは�
 - [x] 手元の検証: `npm run typecheck` / `npm test`（19 件）/ `npm run build`（`out/` に 1,704 ファイル。OGP 画像は PNG、404.html あり、Vercel Analytics のスクリプトは消えている）。
 - [ ] Vercel Firewall にカスタムルールを追加（無料。deny された通信は Edge Requests にも転送量にも数えられない）: `src/lib/scrapers.ts` の 8 種の UA を deny。robots.txt は「お願い」で、実際に止めるのはこちら。AI 検索・AI 学習・検索エンジンは止めない。**ダッシュボード作業（ユーザー）**。
 - [ ] Spend Management（Pro のみ）で上限額を設定し、超えたら通知。**ダッシュボード作業（ユーザー）**。
-- [ ] プレビューデプロイで `/articles/1` `/articles/1/opengraph-image`（`image/png`）`/api/audit`（POST）`/category/seo`（308）`/存在しないURL`（404）を確認してから main へ。
+- [x] Vercel のビルダーで検証（`vercel pull` → `vercel build`。出力は `.vercel/output`）: `api/audit.func` `prompt-fit.func` `contact.func` が Node 24 で生成され、
+      相対 import した `src/lib/*` が関数に同梱される。`maxDuration: 30`、旧URLの 308（5本）、OGP・アイコンの `image/png` ヘッダ、末尾スラッシュの 308、
+      `articles/1.html → /articles/1` のクリーンURL（`overrides`）、`404.html` を確認。
+- [x] `vercel dev`（`.claude/launch.json` の `vercel-dev`）で実行経路を検証: `/category/seo` → 308 `/seo`、存在しないURL → 404、`GET /api/audit` → 405、
+      `POST /api/audit` は Origin 無しで 403・同一オリジンで 200（example.com の診断結果が返る）、`POST /api/prompt-fit` も 200。
+- [ ] プレビューデプロイ（ブランチ `chore/static-export`。Vercel Authentication で保護されているのでログインしたブラウザで開く）で
+      `/articles/1` `/articles/1/opengraph-image` `/tools/page-audit` のフォームを目で確認してから main へマージ。マージ＝本番デプロイ。
 
 ## さらに $0 にしたい場合（別途判断）
 静的エクスポートにしておけば、商用利用可の無料ホスティング（Cloudflare Pages: 静的配信は無制限・無料）へ移せる。
