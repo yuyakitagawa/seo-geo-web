@@ -291,10 +291,14 @@ npm run prompt-gap -- --all            # 「保留」も含める
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
   ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）、
   WebPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`）。
-  Organization には `logo`（`/icon-512.png`）、記事の Article には `image`（`/articles/<id>/opengraph-image`）を必ず入れる
-  ——どちらもリッチリザルトの要件。
+  Organization には `logo`（`/icon-512.png`）、**Article を名乗るページには必ず `image`** を入れる
+  ——どちらもリッチリザルトの要件。記事は `/articles/<id>/opengraph-image`、解説ページは `/seo|/geo/opengraph-image`、
+  教科書（`/learn` と14レッスン）は共有の `/learn/opengraph-image`（`lessonMetadata` の og:image と同じ値）。
 - **BreadcrumbList は `src/components/Breadcrumbs.tsx` が可視UIとJSON-LDを同じ配列から出す**（表示と構造化データがずれない）。
   一覧・固定ページは `PageHeader` に `crumbs` を渡すだけで付く。
+  **末尾の要素（現在のページ）には `item` を出さない** —— 最後の要素にURLは不要という仕様で、
+  href の無い要素にサイトURLを入れると「現在のページ＝トップページ」と宣言してしまう（1番目と同じURLが2度出る）。
+  ホームの `item` は canonical と同じ表記（末尾スラッシュなし）に揃える。
 - **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
   生成側は `validate()` でFAQ2問以上を必須にしている。
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
@@ -308,7 +312,6 @@ npm run prompt-gap -- --all            # 「保留」も含める
   ページのソースを開いた読者が手本として読めるのは構造化データだけになる。gzip後の増分は1ページあたり数十バイト。
 - **用語の解説ページ `/seo` `/geo`**: 「SEO対策とは」「GEO対策とは」という定義クエリの受け皿。
   定義文・要点・FAQ・出典・更新日を `src/lib/guides.ts` の1か所に持ち、**可視テキスト・JSON-LD（DefinedTerm / FAQPage）・llms.txt が同じ文字列を使う**。
-  記事（フロー）と違い日付で古くならないストックページなので、sitemap の priority はトップの次に高い 0.9。
   事実は各社の公式ドキュメント（Google 検索セントラル / OpenAI / Perplexity / Anthropic / arXiv / web.dev）で裏取りし、citation に入れている。
 - **用語の表記ルール（パッセージ / チャンク）**: 本文中の一部分を指す読者向けの語は「パッセージ」に統一する。
   説明を添えるときの定型は「本文中の短いまとまり（パッセージ）」、それ以外は「パッセージ」単独。
@@ -372,6 +375,9 @@ npm run prompt-gap -- --all            # 「保留」も含める
   `lastmod` は「そのページの内容が実際に変わるデータ源」から取る（記事=updated、一覧=載っている記事の最新更新日、
   /tools=掲載ツールの最終確認日、固定ページ=`POLICY_UPDATED`）。ビルド時刻は使わない
 - `llms.txt`（冒頭に「用語の定義」＝ `/seo` `/geo` の定義文をそのまま掲載・教科書14レッスンの到達目標を番号つきで掲載・サイト概要・記事の作り方・収集元の一次情報源・引用時の注意・最新50本）、RSS、sitemap、robots
+- **robots.txt は全許可＋`Disallow: /api/`**。AI検索・AI学習クローラーは止めない（GEOの前提）が、
+  `/api/*` は診断ツールのPOST専用エンドポイントで、GETは405を返すだけの非コンテンツなのでクロールさせない。
+- RSS の `lastBuildDate` は**載せている記事の最新更新日**（sitemap の `lastmod` と同じ規律。ビルド時刻は使わない）。
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
   `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
