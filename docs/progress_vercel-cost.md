@@ -32,17 +32,18 @@ Next.js を `output: "export"` にして **ISR を使わない**。ページは�
 - `POST /api/prompt-fit` を連打 → `200,200,200,429,429,429,429,429`（同一IPの残り枠ぶんだけ通って以降429）
 - 生成された `robots.txt` に8種の `Disallow: /`、`*` に `Allow: /` `Disallow: /api/` `Crawl-delay: 5` が出ている
 
-## 手順（ISRをやめる本体・未着手）
-- [ ] `next.config.ts` に `output: "export"` を追加。`redirects()` は export で効かないので `vercel.json` の `redirects` に移す（5 本）。
-- [ ] `opengraph-image.tsx`（9 本）・`icon.tsx`・`apple-icon.tsx`・`robots.ts`・`sitemap.ts`・`manifest.ts` に `export const dynamic = "force-static"` を追加（export ではこれが無いとビルドが落ちる）。
-- [ ] `src/app/api/*` を `api/audit.ts` `api/prompt-fit.ts` `api/contact.ts` に移す（Web 標準の `Request`/`Response` のまま）。`@/lib` の alias は `@vercel/node` で解決されない可能性があるので相対 import にする。`src/lib/fetchPage.ts`（`node:dns` / `node:net`）は Node ランタイムなのでそのまま使える。
-- [ ] OGP 画像・アイコンは拡張子無しのファイル（`/articles/1/opengraph-image` など）で書き出されるので、`vercel.json` の `headers` で `Content-Type: image/png` を付ける（プレビューで実際のヘッダを確認）。
-- [ ] `@vercel/analytics` を外す（Pro は Web Analytics の無料枠が無く、$0.03/1K イベントの従量課金。GA4 が既にあるので重複）。`@vercel/speed-insights` は無料 10k イベント/月で止まるだけなので任意。
-- [ ] Vercel Firewall にカスタムルールを追加（無料。deny された通信は Edge Requests にも転送量にも数えられない）: `src/lib/scrapers.ts` の 8 種の UA を deny。robots.txt は「お願い」で、実際に止めるのはこちら。AI 検索・AI 学習・検索エンジンは止めない。
-- [ ] Spend Management（Pro のみ）で上限額を設定し、超えたら通知。
-- [ ] `.github/workflows/daily-articles.yml` の本番ビルド検証はそのまま（`next build` が `out/` を作る）。
-- [ ] README.md / CLAUDE.md の「push は 1 日 1 回」を書き換える（制約は消えるが、レビューのまとまりとしては残してよい）。
-- [ ] プレビューデプロイで `/articles/1` `/articles/1/opengraph-image` `/api/audit`（POST）`/category/seo`（308）`/存在しないURL`（404）を確認してから main へ。
+## 手順（ISRをやめる本体・2026-09-04 実装、ブランチ `chore/static-export`）
+- [x] `next.config.ts` に `output: "export"` を追加。`redirects()` は export で効かないので `vercel.json` の `redirects` に移した（5 本）。
+- [x] `opengraph-image.tsx`（9 本）・`icon.tsx`・`apple-icon.tsx`・`robots.ts`・`sitemap.ts`・`manifest.ts` に `export const dynamic = "force-static"` を追加（export ではこれが無いとビルドが落ちる）。
+- [x] `src/app/api/*` を `api/audit.ts` `api/prompt-fit.ts` `api/contact.ts` に移した（Web 標準の `Request`/`Response` のまま。`runtime` / `maxDuration` の export は外し、上限は `vercel.json` の `functions`）。
+      `@/lib` の alias は `@vercel/node` で解決されない可能性があるので、API から届く範囲（`api/*.ts` と `src/lib/contact.ts` `contact-notify.ts`）は相対 import にした。
+- [x] OGP 画像・アイコンは拡張子無しのファイルで書き出されるので、`vercel.json` の `headers` で `Content-Type: image/png` を付けた。
+- [x] `@vercel/analytics` を外した（Pro は無料枠が無く従量課金。GA4 と重複）。`@vercel/speed-insights` は無料枠で止まるだけなので残した。
+- [x] README.md / CLAUDE.md を更新（ホスティング方針・API の置き場所・`vercel dev`・push の規則）。
+- [x] 手元の検証: `npm run typecheck` / `npm test`（19 件）/ `npm run build`（`out/` に 1,704 ファイル。OGP 画像は PNG、404.html あり、Vercel Analytics のスクリプトは消えている）。
+- [ ] Vercel Firewall にカスタムルールを追加（無料。deny された通信は Edge Requests にも転送量にも数えられない）: `src/lib/scrapers.ts` の 8 種の UA を deny。robots.txt は「お願い」で、実際に止めるのはこちら。AI 検索・AI 学習・検索エンジンは止めない。**ダッシュボード作業（ユーザー）**。
+- [ ] Spend Management（Pro のみ）で上限額を設定し、超えたら通知。**ダッシュボード作業（ユーザー）**。
+- [ ] プレビューデプロイで `/articles/1` `/articles/1/opengraph-image`（`image/png`）`/api/audit`（POST）`/category/seo`（308）`/存在しないURL`（404）を確認してから main へ。
 
 ## さらに $0 にしたい場合（別途判断）
 静的エクスポートにしておけば、商用利用可の無料ホスティング（Cloudflare Pages: 静的配信は無制限・無料）へ移せる。

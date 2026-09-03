@@ -1,12 +1,10 @@
+// Vercel Functions（ルート直下の api/）。置き場所の理由は api/audit.ts の先頭を参照。
 // 狙っているプロンプトにページが合っているかを判定するAPI。/tools/prompt-fit のフォームから呼ばれる。
 // URLを取りに行く場合の取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、判定は src/lib/promptFit.ts。
 // 外部のAIや埋め込みAPIは呼ばない。計算はすべてこのサーバー内で完結する。
-import { fetchChecked, readCapped } from "@/lib/fetchPage";
-import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
-import { analyze, blocksFromHtml, blocksFromText } from "@/lib/promptFit";
-
-export const runtime = "nodejs";
-export const maxDuration = 30;
+import { fetchChecked, readCapped } from "../src/lib/fetchPage";
+import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
+import { analyze, blocksFromHtml, blocksFromText } from "../src/lib/promptFit";
 
 const MAX_PROMPTS = 5;
 const MAX_PROMPT_LENGTH = 120;

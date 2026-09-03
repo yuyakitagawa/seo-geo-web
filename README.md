@@ -5,9 +5,14 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説を生成して自動公開する（GitHub Actions）。
 
 ## スタック
-- Next.js 16 (App Router, SSG) + TypeScript + Tailwind CSS v4 (+ @tailwindcss/typography)
+- Next.js 16 (App Router, `output: "export"` の静的エクスポート) + TypeScript + Tailwind CSS v4 (+ @tailwindcss/typography)
+- ホスティング: Vercel（Pro。AdSense を載せるサイトは Hobby の規約で不可）。全ページを静的ファイルとして配信し、**ISR を通さない**。
+  2026-09-03 に ISR Writes（デプロイごとにキャッシュを作り直し、8KB 単位で課金）の超過でサイトが停止したため。経緯と手順は `docs/progress_vercel-cost.md`。
+  `next.config.ts` では扱えなくなった旧URLのリダイレクト、OGP 画像の `Content-Type`、API の実行時間上限は `vercel.json` に置く。
+- API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/prompt-fit.ts` `api/contact.ts`）。URL は `/api/*` のまま。
+  `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
-- 計測: Vercel Analytics / Speed Insights / GA4（`NEXT_PUBLIC_GA_ID` 設定時）
+- 計測: GA4（`NEXT_PUBLIC_GA_ID` 設定時）/ Speed Insights（無料枠 10k イベント/30日の範囲）
 - 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
 - 記事生成: `@anthropic-ai/sdk`（`claude-sonnet-5`・effort medium。草稿が検査に落ちたときだけ編集長レビューで改稿。品質不足なら `claude-opus-5` へ）
 
@@ -385,7 +390,9 @@ npm run prompt-gap -- --all            # 「保留」も含める
 - **robots.txt は全許可＋`Disallow: /api/`**。AI検索・AI学習クローラーは止めない（GEOの前提）が、
   `/api/*` は診断ツールのPOST専用エンドポイントで、GETは405を返すだけの非コンテンツなのでクロールさせない。
 - RSS の `lastBuildDate` は**載せている記事の最新更新日**（sitemap の `lastmod` と同じ規律。ビルド時刻は使わない）。
-- テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）は `force-static`。全ページが静的生成。
+- テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）と、メタデータのルート（`opengraph-image.tsx` × 9 / `icon.tsx` / `apple-icon.tsx` /
+  `robots.ts` / `sitemap.ts` / `manifest.ts`）は `force-static`。`output: "export"` ではこれが無いとビルドが落ちる。全ページが静的生成。
+  OGP 画像とアイコンは拡張子無しのファイル（`/articles/1/opengraph-image` など）で書き出されるので、`vercel.json` の `headers` で `image/png` を付ける。
 - `robots.txt` は全クローラーに `Allow: /`（`/api/` だけ除外）。ただし商用SEOクローラー8種は `Disallow: /`（`src/lib/scrapers.ts`）。
   `Crawl-delay: 5` も出す。Googlebot は無視する仕様だが、Bingと小規模クローラーには効く。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
@@ -410,7 +417,7 @@ npm run prompt-gap -- --all            # 「保留」も含める
   （`label` / `tag` / `external` / `path`）としてGA4へ送る。各ボタンに個別実装しない。
   **PVだけでは「そのページから次へ行けたか」が分からない**ため、回遊導線（`NextStep` / `ShareButtons`）の
   効果はこのイベントでしか確認できない。
-- Vercel Analytics / Speed Insights は常時有効。
+- Speed Insights は無料枠（10k イベント/30日）で止まるだけなので置いたまま。Vercel Analytics は Pro では無料枠が無く従量課金で、GA4 と重複するので外した。
 
 ## AdSense審査で見られる点（実装済み）
 - 固定ページ: `/about`（運営者・記事の作り方・編集方針・FAQ）/ `/privacy` / `/disclaimer` / `/contact`。全ページのフッターから到達できる

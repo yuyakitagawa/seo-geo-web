@@ -2,9 +2,9 @@
 //   LINE: LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID（記事公開の通知と同じBot）
 //   メール: RESEND_API_KEY / CONTACT_FROM_EMAIL / CONTACT_TO_EMAIL（Resend。ドメイン認証が要る）
 // 両方設定されていれば両方へ送る。1つも設定されていない環境ではフォーム自体を出さない。
-import { contactMessage, contactSubject, type ContactValid } from "@/lib/contact";
-import { LINE_ENABLED, linePush } from "@/lib/line";
-import { HAS_CONTACT } from "@/lib/site";
+import { contactMessage, contactSubject, type ContactValid } from "./contact";
+import { LINE_ENABLED, linePush } from "./line";
+import { HAS_CONTACT } from "./site";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const CONTACT_FROM_EMAIL = process.env.CONTACT_FROM_EMAIL || "";

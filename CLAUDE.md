@@ -24,15 +24,16 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `src/lib/glossary.ts`: 用語集（/glossary）のデータ。1語1文の定義＋出典1つ。可視テキストと DefinedTerm の description は同じ文字列。出典はサイトが既に一次情報として確認済みのURLだけ使う。
 - `src/lib/apps.ts`: 自作ツールの一覧（/tools のカードと sitemap が参照）。`src/lib/robots.ts`: robots.txt の解析・許可判定（純関数）。`src/lib/crawlers.ts`: AI検索/AI学習クローラー14種（公式ドキュメントで確認、verified付き）。専用ページは持たず、ページ診断の robots.txt 判定と `/learn/geo-implementation` の一覧表・ひな形（`RobotsPresets`）が共有する。`src/lib/scrapers.ts`: **自サイトの** robots.txt で拒否する商用SEOクローラー8種（`src/app/robots.ts` だけが参照する。**crawlers.ts とは目的が違うので混ぜない**。AI検索・AI学習・検索エンジンは1つも止めない）。`src/lib/audit.ts`: ページ診断の判定本体（指摘＝該当コード＋修正方針＋修正後コード＋出典）。
 - `src/lib/promptFit.ts`: プロンプト適合度の判定本体（見出しブロック分割・文字bigramのTF-IDF・重要語のカバレッジ・意図別の形式チェック・修正案。外部APIは使わない）。`src/lib/fetchPage.ts`: 任意URLの取得（SSRF対策・2MB上限・12秒・簡易レート制限）。診断系のAPIは全部これを通す。
-- `src/app/api/audit/route.ts` / `src/app/api/prompt-fit/route.ts`: 診断ツールのAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査。`src/lib/fetchPage.ts`）を外さない。連打の抑制と、サイト自身のフォーム以外からの直接呼び出しの遮断（`sameOrigin()`）は `src/lib/rateLimit.ts`。**この2つを外すと関数実行がそのまま費用になる**ので外さない。
-- `src/lib/contact.ts`（検証・通知文）/ `src/lib/contact-notify.ts`（転送先）/ `src/app/api/contact/route.ts`: お問い合わせフォーム。内容はDBにもログにも保存せず、LINE（`src/lib/line.ts`。記事公開の通知と同じBot）とメール（Resend）へ転送するだけ。転送先のenvが1つも無ければフォームを表示しない。実装を変えたら `/privacy` の「お問い合わせフォームについて」も同時に直す。
+- `next.config.ts`: `output: "export"`（静的エクスポート。**Vercel の ISR を通さない**。2026-09-03 に ISR Writes 超過でサイトが停止したため。経緯は `docs/progress_vercel-cost.md`）。export では next.config の redirects が効かないので、旧URLの308・OGP画像の Content-Type・API の maxDuration は `vercel.json` に書く。メタデータのルート（opengraph-image / icon / apple-icon / robots / sitemap / manifest）には `export const dynamic = "force-static"` が必須（無いとビルドが落ちる）。
+- `api/audit.ts` / `api/prompt-fit.ts`（ルート直下。Vercel Functions。URLは `/api/*` のまま。`next dev` では動かず `vercel dev` が要る。`@/` は使わず相対 import）: 診断ツールのAPI。任意URLを取りに行くのでSSRF対策（スキーム・ポート・解決先IPをリダイレクトの各ホップで検査。`src/lib/fetchPage.ts`）を外さない。連打の抑制と、サイト自身のフォーム以外からの直接呼び出しの遮断（`sameOrigin()`）は `src/lib/rateLimit.ts`。**この2つを外すと関数実行がそのまま費用になる**ので外さない。
+- `src/lib/contact.ts`（検証・通知文）/ `src/lib/contact-notify.ts`（転送先）/ `api/contact.ts`: お問い合わせフォーム。内容はDBにもログにも保存せず、LINE（`src/lib/line.ts`。記事公開の通知と同じBot）とメール（Resend）へ転送するだけ。転送先のenvが1つも無ければフォームを表示しない。実装を変えたら `/privacy` の「お問い合わせフォームについて」も同時に直す。
 - `src/lib/audit-log.ts`: 検査されたURLの記録（Supabase `seogeo_audit_log`）。**ホスト名とパスだけ**を残し、クエリ文字列・IP・UAは残さない。保持30日はDB側の関数 `seogeo_log_audit` が担保する。記録内容を変えたら `/tools/page-audit` のFAQと `/privacy`（5章）も同時に直す（書いてある内容と実装がずれると虚偽になる）。
 - `src/app/`: ルート。`articles/[slug]`, `news`, `seo`, `geo`, `tag/[tag]`, `about`, `privacy`, `disclaimer`, `tools/page-audit`, `tools/prompt-fit`, `glossary`, `sitemap.ts`, `robots.ts`, `feed.xml`, `llms.txt`, `ads.txt`。
 - `scripts/sources.ts`: 収集元RSS一覧。`scripts/format-html.ts`: 配信HTMLを読むための整形（stdoutのみ。ビルドには関与しない）。`scripts/dupes.ts`: 同じ話題を扱う記事の候補を報告する（変更はしない）。`scripts/prompt-gap.ts`: `content/prompts.csv` のプロンプトに自サイトのビルド済みHTMLが答えられているかを報告する（`src/lib/promptFit.ts` を流用。要 `npm run build`。変更はしない）。 `scripts/collect.ts`: RSS巡回→candidates.csv（スコア・重複排除・Google News URL復号）。`--since=YYYY-MM-DD` を渡すとバックフィル（Google News検索を暦月の日付窓で掘る＋WordPressフィードを `?paged=N` で遡る。検索語は `sources.ts` の `BACKFILL_QUERIES`）。`scripts/pick.ts`: 候補の自動採用（基本2本/日、スコア6以上の大ニュースは最大4本まで。基準はここだけ直す）。`--since`/`--until`/`--per-month` でバックフィル（月ごとに本数を割り当て、21日制限を外す）。`scripts/generate.ts`: Claude(`claude-sonnet-5`)で2段階生成（執筆→編集長レビュー改稿。`article.ts` の generateWithReview）。`scripts/generate-howto.ts`: 同じくHOW TO記事（テーマ表起点）。プロンプトの共通部分は `scripts/prompt.ts`、採番・`validate()`・書き出しは `scripts/article.ts`。
 - `scripts/notify.ts`: 公開した記事のLINE通知（Xの投稿文をそのまま送る。自動投稿はしない）。**1記事＝2通**（本体ツイート＋記事URLのリプライ。外部リンクを含む投稿はリーチが落ちるのでURLは本体に入れない）。投稿文は `scripts/x-post.ts` がClaudeに書かせ（フック1行＋要点3〜4行）、ハッシュタグ（1つまで）・URLのリプライ・280字の勘定は `src/lib/xpost.ts` が持つ。APIキーが無い／検査に3回落ちたらテンプレの文面に落ちる。`.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→本番ビルド検証→main へ push（自動公開。人のレビューなし）→公開した記事をLINE通知。失敗時もLINE通知（どちらも `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ。失敗通知だけは npm ci が落ちても飛ばすためymlのcurlのまま）。
 
 ## 2. Operations
-- 開発: `npm run dev` / 型: `npm run typecheck` / ビルド: `npm run build`
+- 開発: `npm run dev`（`/api/*` は動かない。診断・お問い合わせのフォームまで試すときは `vercel dev`） / 型: `npm run typecheck` / ビルド: `npm run build`（`out/` に静的ファイルを書き出す）
 - HTMLを読む: `npm run html -- <URL|ファイル>`
 - アイコン書き出し: `npm run icon`（`src/lib/icon.tsx` の図案を変えたときだけ。favicon.ico と docs/brand/icon-1024.png を再生成）
 - 収集: `npm run collect` / 採用: `npm run pick -- 2` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須。`--publish` で draft:false）
@@ -50,7 +51,6 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - 機能の追加・変更・削除は同一コミットで README.md を更新。
 - 実験コード・不採用コードは即削除。コメントアウトで残さない。
 - マージ前に最新mainを取り込み、`npm run typecheck && npm run build` が通ることを確認してからマージ。
-- **main への push は1日1回にまとめる**。push 1回＝Vercelのデプロイ1回で、255ページ分のISRキャッシュが全部無効になる。
-  そこへクローラーが来ると全ページがキャッシュミスになり、ISR Writes（1レンダリングにつきHTMLとRSCで2〜3回）が跳ね上がる。
-  2026-09-03、11日で157コミット（8/31だけで66）を push した結果 ISR Writes が上限の8.5倍に達し、Hobbyプランで**サイトが停止した**。
-  作業中のコミットはブランチに置き、まとまってからmainへ入れる。毎朝のActionsによる自動publishは1日1回なので問題ない。
+- **main への push はまとめる**（作業中のコミットはブランチに置き、まとまってから入れる）。
+  2026-09-03、11日で157コミット（8/31だけで66）を push した結果、デプロイごとに作り直される ISR キャッシュへの書き込み（ISR Writes）が上限の8.5倍に達し、Hobbyプランで**サイトが停止した**。
+  今は `output: "export"` で ISR を通さないのでデプロイ回数は費用に効かないが、`output` を外す変更をするときはこの経緯を思い出すこと。

@@ -1,10 +1,9 @@
+// Vercel Functions（ルート直下の api/）。置き場所の理由は api/audit.ts の先頭を参照。
 // お問い合わせフォームの送信先。検証は src/lib/contact.ts、転送は src/lib/contact-notify.ts。
 // 内容はここでも記録しない（ログにも出さない）。届かなかったときだけエラーを返す。
-import { validateContact } from "@/lib/contact";
-import { CONTACT_FORM_ENABLED, deliverContact } from "@/lib/contact-notify";
-import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
-
-export const runtime = "nodejs";
+import { validateContact } from "../src/lib/contact";
+import { CONTACT_FORM_ENABLED, deliverContact } from "../src/lib/contact-notify";
+import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
 
 // 人が手で書く長さの下限。これより速い送信は自動投稿とみなす。
 const MIN_ELAPSED_MS = 3_000;

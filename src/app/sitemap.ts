@@ -8,6 +8,9 @@ import { GUIDE_LIST } from "@/lib/guides";
 import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
 import { POLICY_UPDATED, SITE_URL } from "@/lib/site";
 
+// output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
+export const dynamic = "force-static";
+
 // changefreq と priority は出さない。Googleが無視すると明言している値で、
 // 「毎日更新」と書いても実態が伴わなければ何の効果もない（kujira-watch も同じ理由で外した）。
 // 効くのは lastmod だけなので、そのページの内容が実際に変わるデータ源から厳密に取る。

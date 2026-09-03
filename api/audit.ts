@@ -1,12 +1,12 @@
+// Vercel Functions（ルート直下の api/）。Next.js は output: "export" で API ルートを持てないためここに置く。
+// URL は /api/audit のまま。実行時間の上限は vercel.json の functions に書く。tsconfig の @/ は Vercel の
+// ビルダーで解決されない可能性があるので、ここから届く範囲は相対 import にしている。
 // URLを1本取得して src/lib/audit.ts で判定するAPI。/tools/page-audit のフォームから呼ばれる。
 // 取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、回数制限は src/lib/rateLimit.ts が持つ。
-import { audit } from "@/lib/audit";
-import { logAudit } from "@/lib/audit-log";
-import { fetchChecked, readCapped } from "@/lib/fetchPage";
-import { clientIp, rateLimited, sameOrigin } from "@/lib/rateLimit";
-
-export const runtime = "nodejs";
-export const maxDuration = 30;
+import { audit } from "../src/lib/audit";
+import { logAudit } from "../src/lib/audit-log";
+import { fetchChecked, readCapped } from "../src/lib/fetchPage";
+import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
 
 export async function POST(request: Request) {
   // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。

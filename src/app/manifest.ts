@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
+// output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
+export const dynamic = "force-static";
+
 // 無いとAndroid Chromeが「ホーム画面に追加」を出さない。
 export default function manifest(): MetadataRoute.Manifest {
   return {

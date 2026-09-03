@@ -1,6 +1,6 @@
 // お問い合わせフォームの入力仕様と検証。クライアント（入力欄の上限表示）とAPIの両方が読むので、
 // ここには環境変数を持ち込まない（送信先は src/lib/contact-notify.ts）。
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME } from "./site";
 
 /** 用件。プルダウンの選択肢であり、通知の件名にもなる */
 export const CONTACT_TOPICS = {

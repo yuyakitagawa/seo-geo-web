@@ -1,6 +1,9 @@
 import { OG_CONTENT_TYPE, OG_SIZE, pageOgImage } from "@/lib/og";
 import { SITE_NAME } from "@/lib/site";
 
+// output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
+export const dynamic = "force-static";
+
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = "運営者情報";

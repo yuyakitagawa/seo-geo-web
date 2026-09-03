@@ -1,18 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 旧URLの統合。カテゴリ一覧（/category/*）は廃止し、SEO・GEOは解説ページ、ニュースは記事アーカイブに寄せた。
-  // 記事詳細（/articles/<id>）はそのまま。ここは完全一致のみリダイレクトする。
-  async redirects() {
-    return [
-      { source: "/category/seo", destination: "/seo", permanent: true },
-      { source: "/category/geo", destination: "/geo", permanent: true },
-      { source: "/category/news", destination: "/news", permanent: true },
-      { source: "/articles", destination: "/news", permanent: true },
-      // robots.txt チェッカーは判定がページ診断と重複していたため統合（2026-08-31）。
-      { source: "/tools/ai-crawlers", destination: "/tools/page-audit", permanent: true },
-    ];
-  },
+  // 静的エクスポート。ページを純粋な静的ファイルにして、Vercel の ISR（デプロイごとにキャッシュを作り直し、
+  // 8KB 単位で書き込みを課金する層）を通さない。2026-09-03、ISR Writes の超過でサイトが停止したため。
+  // 旧URLのリダイレクト（/category/* など）は export では next.config で扱えないので vercel.json に置く。
+  // 診断・お問い合わせの API はルート直下の api/（Vercel Functions）に置く。
+  output: "export",
 };
 
 export default nextConfig;

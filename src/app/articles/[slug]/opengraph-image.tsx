@@ -3,6 +3,9 @@ import { getAllArticles, getArticle } from "@/lib/content";
 import { CATEGORIES, SITE_NAME } from "@/lib/site";
 import { OG_CONTENT_TYPE, OG_SIZE, loadOgFont, ogFrame } from "@/lib/og";
 
+// output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
+export const dynamic = "force-static";
+
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = `${SITE_NAME}の記事`;
