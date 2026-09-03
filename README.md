@@ -274,6 +274,19 @@ npm run html -- .next/server/app/index.html      # ファイルでも
 npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-1024.png を作り直す
 ```
 
+狙っているプロンプトに自サイトが答えられているかを測るとき（AI検索に引用される前提条件の確認）:
+```bash
+npm run build && npm run prompt-gap    # content/prompts.csv の「対象」全部を、ビルド済みHTML173枚に当てる
+npm run prompt-gap -- --all            # 「保留」も含める
+```
+`/tools/prompt-fit` と同じ判定（`src/lib/promptFit.ts`）を、他人のURLではなく **自サイトのビルド成果物**
+（`.next/server/app/**.html`）に当てるスクリプト（`scripts/prompt-gap.ts`）。プロンプト1本につき
+「最も答えているページ1枚・その見出し・重要語のカバー率・足りない形式」を弱い順に出す。変更はしない。
+
+狙うプロンプトは `content/prompts.csv`（status / category / prompt / note）。**これは実測クエリではなく想定**で、
+実際に引用された記録が取れたら note を更新する。一覧ページ（`/news` `/tag/*`）と規約系ページは判定対象から外す
+（記事へのリンクを並べただけで、プロンプトの答えにはならないため）。
+
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
   ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）、
@@ -285,6 +298,12 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
 - **FAQPage は記事本文から抽出する**（`src/lib/faq.ts`）。可視テキストと一言一句一致させるため別データを持たない。
   生成側は `validate()` でFAQ2問以上を必須にしている。
 - 記事の出典を `citation` として構造化データに宣言、本文末尾にも一覧表示
+- **本文と回遊導線を要素で分ける**: 目次・次に読む・関連記事・カテゴリ記事一覧は `<nav>` / `<aside>`、
+  本文だけが `<main>` 直下の通常フローに残る。AI検索も検索エンジンも本文抽出でこの3要素を落とすため、
+  ここを `<section>` で置くと「このページが答えていること」がリンク先のタイトルで薄まる。
+  実測（`npm run prompt-gap`）: 対策前は記事25が、関連記事カードに載っていた別記事のタイトル
+  「AI引用に効くschemaとは？」で schema のプロンプトに満点で当たっていた。判定側（`blocksFromHtml`）も
+  `nav, aside, footer` を落とすようにそろえてある。
 - **JSON-LD はインデント付きで出力する**（`src/components/JsonLd.tsx`）。本文HTMLはReactが1行に詰めるため、
   ページのソースを開いた読者が手本として読めるのは構造化データだけになる。gzip後の増分は1ページあたり数十バイト。
 - **用語の解説ページ `/seo` `/geo`**: 「SEO対策とは」「GEO対策とは」という定義クエリの受け皿。
