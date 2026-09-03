@@ -3,7 +3,9 @@ import type { NavLink } from "@/lib/nav";
 
 /**
  * 「次に見るページ」への導線。一覧・ハブページの末尾と、記事本文の途中の両方で使う。
- * 見た目は GuideCrossLinks にそろえてあるが、こちらは見出しを持つ独立したセクション。
+ * 見た目は GuideCrossLinks にそろえてあるが、こちらは見出しを持つ独立したブロック。
+ * 中身は他ページへのリンクだけなので要素は <nav>。<section> のままだと本文抽出に混ざり、
+ * AI検索から見た「このページが答えていること」が、リンク先のタイトルで薄まる。
  */
 export default function NextStep({
   links,
@@ -16,7 +18,7 @@ export default function NextStep({
 }) {
   if (links.length === 0) return null;
   return (
-    <section aria-label={title} className={`not-prose ${className}`}>
+    <nav aria-label={title} className={`not-prose ${className}`}>
       <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-mute">Next · {title}</h2>
       <ul className="grid gap-4 sm:grid-cols-3">
         {links.map((l) => (
@@ -33,6 +35,6 @@ export default function NextStep({
           </li>
         ))}
       </ul>
-    </section>
+    </nav>
   );
 }

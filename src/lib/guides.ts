@@ -218,6 +218,8 @@ export function guideJsonLd(guide: Guide) {
     dateModified: guide.updated,
     inLanguage: "ja",
     mainEntityOfPage: url,
+    // Article のリッチリザルトは image を要求する。実体は src/app/seo|geo/opengraph-image.tsx。
+    image: `${url}/opengraph-image`,
     isPartOf: { "@id": `${SITE_URL}/#website` },
     author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization` },
