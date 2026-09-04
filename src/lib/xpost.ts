@@ -1,10 +1,9 @@
 // Xへの投稿文の組み立て。文面はClaudeが書く（scripts/x-post.ts）が、
-// 文字数の勘定・URL・ハッシュタグの付け方はここに集約する（Claudeに文字数を数えさせない）。
-// 外部リンクを含む投稿はリーチが落ちるので、本体ツイート（assemblePost）には本文だけを置き、
-// 記事URLは本体にぶら下げるリプライ（replyPost）に回す。1記事＝2投稿で1セット。
+// 文字数の勘定・ハッシュタグの付け方はここに集約する（Claudeに文字数を数えさせない）。
+// 記事URLは本文に入れない。外部リンクを含む投稿はリーチが落ちるため、URLはリプライで足す運用にする。
 
 export const X_LIMIT = 280; // Xの重み付き文字数。半角=1、日本語などの全角=2
-const MAX_TAGS = 1; // ハッシュタグは今のXでは流入にほぼ効かない。付けても1つまで（多いとスパムに見える）
+const MAX_TAGS = 1; // タグを並べるとリーチが落ちるので1つだけ
 
 export function weight(s: string): number {
   let w = 0;
@@ -12,7 +11,7 @@ export function weight(s: string): number {
   return w;
 }
 
-/** frontmatter の tags からハッシュタグ行を作る（記号を落とし、1字だけのタグは捨てる） */
+/** frontmatter の tags から先頭1つをハッシュタグにする（記号を落とし、1字だけのタグは捨てる） */
 export function hashtags(tags: unknown): string {
   if (!Array.isArray(tags)) return "";
   return tags
@@ -22,11 +21,10 @@ export function hashtags(tags: unknown): string {
     .join(" ");
 }
 
-/** 本体ツイートの本文に使える重み。Claudeにはこの数値を上限として渡す */
+/** 本文に使える重み。Claudeにはこの数値を上限として渡す */
 export function bodyBudget(tags: unknown): number {
   const tagLine = hashtags(tags);
-  // 本文 + 空行 + ハッシュタグ行。URLは本体に入れないので勘定に入らない。
-  return X_LIMIT - (tagLine ? 2 + weight(tagLine) : 0);
+  return X_LIMIT - (tagLine ? weight(tagLine) + 2 : 0); // 本文 + 空行 + タグ
 }
 
 /** 重みが budget に収まるまで末尾を落とす。落としたときだけ「…」を付ける */
@@ -40,18 +38,18 @@ export function truncate(s: string, budget: number): string {
   return `${cut.trimEnd()}…`;
 }
 
-/** 本体ツイート。本文＋ハッシュタグだけで、URLは入れない（本文が枠を超えていたら詰める） */
+/** 本文＋ハッシュタグ。本文が枠を超えていたら詰める（枠を超えた投稿文は返さない） */
 export function assemblePost(body: string, tags: unknown): string {
   return [truncate(body.trim(), bodyBudget(tags)), hashtags(tags)].filter(Boolean).join("\n\n");
 }
 
-/** 本体ツイートにぶら下げるリプライ。記事URLはここに置く */
+/** 本体ツイートに続けて送るリプライ。記事URLだけを置く */
 export function replyPost(url: string): string {
-  return `全文はこちら\n${url}`;
+  return url;
 }
 
 /**
- * Claudeを使えないとき（APIキーが無い・生成に失敗した）の本体ツイート。
+ * Claudeを使えないとき（APIキーが無い・生成に失敗した）のテンプレ。
  * タイトルを先に確保し、残り枠に収まるぶんだけ description を入れる。
  */
 export function templatePost(title: string, description: string, tags: unknown): string {

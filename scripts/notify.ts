@@ -1,7 +1,6 @@
-// 公開した記事をLINEに通知する。Xへの投稿文を1つ1メッセージで送るので、
+// 公開した記事をLINEに通知する。Xへの投稿文をそのまま送るので、
 // LINEで長押し→コピー→Xに貼るだけで投稿できる（自動投稿はしない。文面は人が見てから出す）。
-// 1記事につき2通（本体ツイート＋URLのリプライ）。コピーの邪魔になるので、説明は先頭のメッセージにまとめる。
-// 投稿文はClaudeが記事本文を読んで書く（scripts/x-post.ts）。ANTHROPIC_API_KEY が無ければテンプレに落ちる。
+// 1記事＝2通（本体ツイート＋記事URLのリプライ）。投稿文はClaudeが記事本文を読んで書く（scripts/x-post.ts）。
 // 実行: npx tsx scripts/notify.ts content/articles/0123-foo.mdx ...
 // LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が無ければ黙って何もしない（未設定でもワークフローは壊さない）。
 // ワークフローの失敗通知だけは npm ci が落ちた場合にも飛ばす必要があるため、そちらはyml側のcurlのまま。
@@ -18,6 +17,7 @@ async function push(messages: string[]): Promise<boolean> {
     console.log(messages.join("\n---\n"));
     return false;
   }
+  // 5通を超えるぶんの分割は linePush 側が持っている。
   return linePush(messages);
 }
 
@@ -34,11 +34,11 @@ async function main() {
     "",
     ...articles.map((a) => `・${a.data.title}`),
     "",
-    "↓ 1記事につき2通送ります。1通目を投稿し、2通目はその投稿への返信として貼ってください。",
-    "（リンクを本体に入れるとリーチが落ちるので、URLは返信に回しています）",
+    "↓ 1記事につき2通届きます。1通目を投稿し、2通目のURLをその投稿へのリプライに貼ってください。",
   ].join("\n");
-  const messages = [headline, ...posts.flatMap((p) => [p.post, p.reply])];
-  if (await push(messages)) console.log(`LINEに通知しました（${articles.length}本 / ${messages.length}通）`);
+  if (await push([headline, ...posts.flatMap((p) => [p.post, p.reply])])) {
+    console.log(`LINEに通知しました（${articles.length}本）`);
+  }
 }
 
 // 通知の失敗で公開済みの記事を巻き戻す意味はないので、ここで握って正常終了する。

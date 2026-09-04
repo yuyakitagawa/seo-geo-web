@@ -47,3 +47,6 @@ content/processed.json
 
 # git worktree（.claude/worktrees 配下）はコミットしない
 .claude/worktrees/
+
+# Search Console / GA のエクスポート（独自記事の材料。生データはコミットしない）
+data/
