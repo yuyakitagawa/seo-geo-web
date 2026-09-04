@@ -9,7 +9,7 @@ import { PROSE } from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
-  description: `${SITE_NAME}へのGEO・SEOについてのご相談、記事の誤りのご指摘、権利関係のご連絡、その他のお問い合わせの窓口。`,
+  description: `${SITE_NAME}へのGEO・SEOについてのご相談（無料）、記事の誤りのご指摘、権利関係のご連絡、その他のお問い合わせの窓口。`,
   alternates: { canonical: "/contact" },
 };
 
@@ -23,7 +23,7 @@ export default function ContactPage() {
       <PageHeader
         eyebrow="Contact"
         title="お問い合わせ"
-        lead="GEO・SEOについてのご相談、記事の誤りのご指摘、権利関係のご連絡、その他のお問い合わせはこちらへお願いします。"
+        lead="GEO・SEOについてのご相談（趣味で運営しているので無料です）、記事の誤りのご指摘、権利関係のご連絡、その他のお問い合わせはこちらへお願いします。"
         crumbs={[{ name: "お問い合わせ" }]}
       />
       <div className={PROSE.page}>
@@ -66,8 +66,12 @@ export default function ContactPage() {
           <li>GEO・SEOについてのご相談（自社サイトのAI検索対策、検索順位の伸び悩み、何から手を付けるべきかなど）</li>
         </ul>
         <p>
-          個人が運営しているため、すべてのお問い合わせに返信できるとは限りません。数日以内に返信がない場合は、
-          恐れ入りますが再送をお願いします。
+          GEO・SEOのご相談は無料です。当サイトは趣味で運営しているため、相談に費用を請求することはありません。
+          用件で「GEO・SEOのご相談」を選び、サイトのURLと困っていることを書いて送ってください。
+        </p>
+        <p>
+          対応は本業の時間外や土日が中心になります。個人が運営しているため、返信までに数日かかることや、
+          すべてのお問い合わせに返信できない場合があります。数日以内に返信がない場合は、恐れ入りますが再送をお願いします。
         </p>
 
         <h2>お預かりした情報の扱い</h2>

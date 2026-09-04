@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
 import { PageDatesJsonLd } from "@/components/PageDates";
+import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
 import { getAllArticles, latestUpdated } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
 import { hubPages } from "@/lib/nav";
@@ -38,6 +39,15 @@ export default function Home() {
             <p className="mt-3 line-clamp-2 max-w-2xl text-sm leading-relaxed text-paper/60 sm:line-clamp-none">
               Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎朝巡回し、SEO/GEO担当が今日おさえるべき点だけを日本語で整理します。
             </p>
+            {/* 相談の受付。趣味の運営なので無料。業務委託の導線ではない（運営者方針） */}
+            {HAS_CONTACT_PAGE && (
+              <p className="mt-4 text-sm leading-relaxed text-paper/70">
+                趣味で運営しているので、GEO・SEOのご相談は<strong className="font-semibold text-paper">無料</strong>で受け付けています。
+                <Link href="/contact" className="ml-2 font-semibold text-accent underline-offset-4 hover:underline">
+                  相談してみる →
+                </Link>
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -102,10 +112,22 @@ export default function Home() {
                 速さより、確かさ。<br />一次情報まで、ちゃんとたどれる。
               </p>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-accent-ink/75">公式発表と海外ソースをAIで毎日収集し、出典URLと構成を検査して公開。情報の判断を、少しだけ速くします。</p>
+              {HAS_CONTACT_PAGE && (
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-accent-ink/75">
+                  このサイトは趣味で運営しています。自社サイトのAI検索対策や検索順位の伸び悩みなど、GEO・SEOのご相談は無料で受け付けています。費用は一切かかりません。対応は本業の時間外や土日が中心になるため、返信までお時間をいただくことがあります。
+                </p>
+              )}
             </div>
-            <Button href="/about" variant="onAccent" className="w-fit">
-              編集方針を見る →
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              {HAS_CONTACT_PAGE && (
+                <Button href="/contact" variant="onAccent" className="w-fit">
+                  無料で相談する →
+                </Button>
+              )}
+              <Button href="/about" variant="onAccent" className="w-fit">
+                編集方針を見る →
+              </Button>
+            </div>
           </div>
         </div>
       </section>
