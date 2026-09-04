@@ -31,6 +31,59 @@ export type Finding = {
   source?: { title: string; url: string };
 };
 
+/** 検査項目。指摘（Finding）はこのどれかに属する。合否の一覧と /tools/page-audit の「検査する項目」が同じ定義を見る */
+export type CheckItem = {
+  id: string;
+  area: Area;
+  /** 項目名（合格・対象外の一覧に出す） */
+  label: string;
+  /** この項目が出しうる指摘の id */
+  findingIds: string[];
+};
+
+export const CHECKLIST: CheckItem[] = [
+  // 技術
+  { id: "status", area: "tech", label: "HTTPステータスとリダイレクトの連鎖", findingIds: ["status", "redirect"] },
+  { id: "noindex", area: "tech", label: "noindex（metaとX-Robots-Tag）", findingIds: ["noindex"] },
+  { id: "canonical", area: "tech", label: "canonical の有無・絶対URL・自己参照", findingIds: ["canonical", "canonical-relative", "canonical-other"] },
+  { id: "lang", area: "tech", label: "lang 属性", findingIds: ["lang"] },
+  { id: "charset", area: "tech", label: "文字コード（charset）", findingIds: ["charset"] },
+  { id: "viewport", area: "tech", label: "viewport", findingIds: ["viewport"] },
+  { id: "speed", area: "tech", label: "取得時間とHTMLサイズ", findingIds: ["slow"] },
+  { id: "robots", area: "tech", label: "robots.txt によるクロール可否（Googlebot）", findingIds: ["robots-missing", "robots-googlebot"] },
+  { id: "robots-sitemap", area: "tech", label: "robots.txt の Sitemap 行", findingIds: ["robots-sitemap"] },
+  { id: "sitemap", area: "tech", label: "サイトマップが取得できるか", findingIds: ["sitemap"] },
+  // SEO
+  { id: "title", area: "seo", label: "title の有無と長さ", findingIds: ["title", "title-length"] },
+  { id: "description", area: "seo", label: "meta description の有無と長さ", findingIds: ["description", "description-length"] },
+  { id: "title-description", area: "seo", label: "title と description が別の文か", findingIds: ["title-description-same"] },
+  { id: "h1", area: "seo", label: "h1 の個数", findingIds: ["h1", "h1-multiple"] },
+  { id: "heading-order", area: "seo", label: "見出しの階層の飛び", findingIds: ["heading-order"] },
+  { id: "semantic", area: "seo", label: "main / article 要素（本文の範囲）", findingIds: ["semantic"] },
+  { id: "img-alt", area: "seo", label: "alt の無い画像", findingIds: ["img-alt"] },
+  { id: "ogp", area: "seo", label: "OGP と Twitter Card", findingIds: ["ogp"] },
+  { id: "jsonld", area: "seo", label: "JSON-LD の有無・構文", findingIds: ["jsonld", "jsonld-broken"] },
+  { id: "article-props", area: "seo", label: "Article の headline / datePublished / author", findingIds: ["article-props"] },
+  { id: "breadcrumb", area: "seo", label: "BreadcrumbList（下層ページ）", findingIds: ["breadcrumb"] },
+  { id: "internal-links", area: "seo", label: "本文中の内部リンク（nav・footer を除く）", findingIds: ["internal-links"] },
+  { id: "anchor-text", area: "seo", label: "曖昧なリンク文言（「こちら」等）", findingIds: ["anchor-text"] },
+  { id: "operator-link", area: "seo", label: "運営者情報・著者・連絡先への導線", findingIds: ["operator-link"] },
+  // GEO
+  { id: "thin-html", area: "geo", label: "サーバーが返すHTMLに本文があるか（JS依存の検出）", findingIds: ["thin-html"] },
+  { id: "nosnippet", area: "geo", label: "スニペット制御（nosnippet・max-snippet:0）", findingIds: ["nosnippet"] },
+  { id: "lead", area: "geo", label: "冒頭の直答文の長さ", findingIds: ["no-lead", "lead-long"] },
+  { id: "faq", area: "geo", label: "質問と回答の形式・FAQPage", findingIds: ["faq", "faq-jsonld"] },
+  { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
+  { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%）", findingIds: ["geo-quotation"] },
+  { id: "geo-statistics", area: "geo", label: "具体的な数値（同 約32%）", findingIds: ["geo-statistics"] },
+  { id: "geo-fluency", area: "geo", label: "1文の長さ（同 約29%）", findingIds: ["geo-fluency"] },
+  { id: "geo-keyword-stuffing", area: "geo", label: "キーワードの詰め込み（同 効果なし）", findingIds: ["geo-keyword-stuffing"] },
+  { id: "date", area: "geo", label: "公開日・更新日の機械可読性", findingIds: ["date"] },
+  { id: "organization", area: "geo", label: "運営者の構造化データ（Organization / publisher）", findingIds: ["organization"] },
+  { id: "robots-ai", area: "geo", label: "AI検索クローラー（OAI-SearchBot等）の許可状況", findingIds: ["robots-ai"] },
+  { id: "llms", area: "geo", label: "/llms.txt", findingIds: ["llms"] },
+];
+
 export type AuditInput = {
   /** 入力されたURL */
   url: string;
@@ -59,6 +112,10 @@ export type AuditResult = {
   textLength: number;
   findings: Finding[];
   counts: Record<Severity, number>;
+  /** 指摘が無かった検査項目（CheckItem.id） */
+  passed: string[];
+  /** 前提が揃わず判定しなかった検査項目（CheckItem.id）。本文が短い・robots.txt が無い等。合格にも不合格にも数えない */
+  skipped: string[];
 };
 
 const G = (path: string, title: string) => ({ title, url: `https://developers.google.com/search/docs/${path}` });
@@ -74,7 +131,26 @@ const SRC = {
   ai: G("appearance/ai-features", "Google 検索セントラル: AI 機能と Google 検索"),
   helpful: G("fundamentals/creating-helpful-content", "Google 検索セントラル: 有用で信頼性の高いコンテンツの作成"),
   aiGuide: G("fundamentals/ai-optimization-guide", "Google 検索セントラル: Google 検索の生成 AI 機能向けにウェブサイトを最適化する"),
+  robotsMeta: G("crawling-indexing/robots-meta-tag", "Google 検索セントラル: robots meta タグ、data-nosnippet、X-Robots-Tag の仕様"),
+  organization: G("appearance/structured-data/organization", "Google 検索セントラル: 組織（Organization）構造化データ"),
 };
+
+const HTML_SPEC_MAIN = { title: "HTML Living Standard: the main element", url: "https://html.spec.whatwg.org/multipage/grouping-content.html#the-main-element" };
+
+/** 「こちら」だけのようなリンク文言。リンク先が何かを文言が伝えていない */
+const VAGUE_ANCHOR = /^(こちら|ここ|これ|詳しくはこちら|詳細はこちら|詳細|続きを読む|続き|もっと見る|more|read more|click here|here|link|リンク)$/i;
+
+/** canonical と実URLの比較用。末尾スラッシュ・フラグメント・ホストの大文字小文字の違いは同一とみなす */
+function normalizeUrl(raw: string): string {
+  try {
+    const u = new URL(raw);
+    u.hash = "";
+    u.hostname = u.hostname.toLowerCase();
+    return u.toString().replace(/\/$/, "");
+  } catch {
+    return raw;
+  }
+}
 
 /** GEO論文（GEO-bench）。9通りの書き換えが生成AIの回答内での可視性をどう変えるかを実測した研究 */
 const PAPER = {
@@ -116,6 +192,9 @@ function textOf(root: HTMLElement): string {
 export function audit(input: AuditInput): AuditResult {
   const findings: Finding[] = [];
   const add = (f: Finding) => findings.push(f);
+  const skipped = new Set<string>();
+  /** 前提が揃わず判定しない項目。合格にも不合格にも数えない */
+  const skip = (checkId: string) => skipped.add(checkId);
 
   const root = parse(input.html);
   const head = root.querySelector("head");
@@ -161,6 +240,23 @@ export function audit(input: AuditInput): AuditResult {
       code: metaRobots ? `<meta name="robots" content="${metaRobots}">` : `X-Robots-Tag: ${xRobots}`,
       fix: "検索に載せたいページなら noindex を外します。意図的な除外なら、このページを対策対象から外します。",
       source: SRC.starter,
+    });
+  }
+
+  // スニペット制御。nosnippet / max-snippet:0 は検索結果の抜粋だけでなく AI Overview・AI Mode での利用も止める
+  const directives = `${metaRobots} ${xRobots}`.toLowerCase();
+  const snippetLimit = directives.match(/nosnippet|max-snippet\s*:\s*0(?!\d)/g);
+  if (snippetLimit) {
+    add({
+      id: "nosnippet",
+      area: "geo",
+      severity: "mid",
+      title: `スニペットを止める指定があります（${[...new Set(snippetLimit)].join(" / ")}）`,
+      detail: "nosnippet と max-snippet:0 は、検索結果の抜粋に加えて AI Overview・AI Mode でページの内容を使うことも止めます。引用されたいページなら外します。",
+      code: metaRobots ? `<meta name="robots" content="${metaRobots}">` : `X-Robots-Tag: ${xRobots}`,
+      fix: "全体の制限を外し、守りたい箇所だけ data-nosnippet 属性で範囲を絞ります。",
+      fixCode: '<meta name="robots" content="max-snippet:-1">\n<span data-nosnippet>（引用させたくない箇所だけ）</span>',
+      source: SRC.robotsMeta,
     });
   }
 
@@ -233,6 +329,18 @@ export function audit(input: AuditInput): AuditResult {
       fix: "スキームとホストを含む絶対URLに直します。",
       fixCode: `<link rel="canonical" href="${input.finalUrl}">`,
     });
+  } else if (normalizeUrl(canonicalHref) !== normalizeUrl(input.finalUrl)) {
+    add({
+      id: "canonical-other",
+      area: "tech",
+      severity: "mid",
+      title: "canonical が別のURLを指しています",
+      detail: "このページは複製扱いになり、評価も引用も canonical 先に集約されます。パラメータ違い等を意図してまとめているなら、そのままで構いません。",
+      code: `<link rel="canonical" href="${canonicalHref}">\n（検査したURL: ${input.finalUrl}）`,
+      fix: "このURLを検索に載せたいなら、自分自身を指す canonical に直します。",
+      fixCode: `<link rel="canonical" href="${input.finalUrl}">`,
+      source: SRC.starter,
+    });
   }
 
   if (input.elapsedMs > 2000) {
@@ -301,6 +409,19 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  if (title && desc && title === desc) {
+    add({
+      id: "title-description-same",
+      area: "seo",
+      severity: "low",
+      title: "title と meta description が同じ文です",
+      detail: "検索結果の見出しと説明文が同じになり、説明文がページの内容を足せません。",
+      code: `<title>${snippet(title, 120)}</title>\n<meta name="description" content="${snippet(desc, 120)}">`,
+      fix: "title は主題の語、description はその要約と役割を分けて書きます。",
+      source: SRC.title,
+    });
+  }
+
   const firstHeadingEl = body.querySelector("h2, h3, h4, h5, h6");
   const firstHeadingSpot = firstHeadingEl ? `<!-- ここに h1 を追加 -->\n${snippet(firstHeadingEl.outerHTML, 140)}` : undefined;
   const h1s = body.querySelectorAll("h1");
@@ -349,6 +470,20 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  if (!body.querySelector("main, article")) {
+    add({
+      id: "semantic",
+      area: "seo",
+      severity: "low",
+      title: "main / article 要素がありません",
+      detail: "本文の範囲がタグで示されていないと、ナビゲーションやフッターと本文の区別を機械が付けにくく、AIが引用単位を切り出す精度が落ちます。",
+      code: snippet(`<body${body.rawAttrs ? " " + body.rawAttrs : ""}>`, 120) + "\n  （本文を囲む要素が div）",
+      fix: "本文を <main>（記事なら <article>）で囲み、ナビは <nav>、共通の下部は <footer> にします。",
+      fixCode: "<header>…</header>\n<main>\n  <article>\n    <h1>…</h1>\n    （本文）\n  </article>\n</main>\n<footer>…</footer>",
+      source: HTML_SPEC_MAIN,
+    });
+  }
+
   const imgs = body.querySelectorAll("img");
   const noAlt = imgs.filter((i) => i.getAttribute("alt") === undefined);
   if (noAlt.length > 0) {
@@ -364,19 +499,24 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
-  const ogTitle = head?.querySelector('meta[property="og:title"]');
-  const ogImage = head?.querySelector('meta[property="og:image"]');
-  if (!ogTitle || !ogImage) {
+  const og = (name: string) => head?.querySelector(`meta[property="og:${name}"]`) ?? null;
+  const ogMissing = [
+    og("title") ? null : "og:title",
+    og("description") ? null : "og:description",
+    og("image") ? null : "og:image",
+    head?.querySelector('meta[name="twitter:card"]') ? null : "twitter:card",
+  ].filter((x): x is string => x !== null);
+  if (ogMissing.length > 0) {
     add({
       id: "ogp",
       area: "seo",
       severity: "low",
-      title: "OGPの指定が不足しています",
-      detail: "SNSやチャットに貼られたときのカードが作られず、クリック率が落ちます。",
-      code: [ogTitle ? null : "og:title なし", ogImage ? null : "og:image なし"].filter(Boolean).join(" / "),
-      fix: "og:title / og:description / og:image を head に足します。",
+      title: `OGP / Twitter Card の指定が不足しています（${ogMissing.join(" / ")}）`,
+      detail: "SNSやチャットに貼られたときのカードが作られず、クリック率が落ちます。X（旧Twitter）は twitter:card が無いとカードの形式を決められません。",
+      code: `無し: ${ogMissing.join(" / ")}`,
+      fix: "og:title / og:description / og:image と twitter:card を head に足します。",
       where: { note: "head の中、既存の meta と並べて置きます。", code: headSpot(head, "<!-- ここに OGP を追加 -->") },
-      fixCode: `<meta property="og:title" content="（ページタイトル）">\n<meta property="og:image" content="https://.../ogp.png">`,
+      fixCode: `<meta property="og:title" content="（ページタイトル）">\n<meta property="og:description" content="（要約）">\n<meta property="og:image" content="https://.../ogp.png">\n<meta name="twitter:card" content="summary_large_image">`,
     });
   }
 
@@ -437,11 +577,33 @@ export function audit(input: AuditInput): AuditResult {
         source: SRC.article,
       });
     }
+  } else {
+    skip("article-props");
+  }
+
+  // 運営者。サイトの発信元が構造化データで名乗られているか（JSON-LD が1つも無いページには jsonld の指摘に含めるので重ねて出さない）
+  const ldRaw = ldNodes.map((n) => n.text).join(" ");
+  if (ldNodes.length === 0) {
+    skip("organization");
+  } else if (!types.some((t) => /Organization|Person/i.test(t)) && !/"publisher"\s*:/.test(ldRaw)) {
+    add({
+      id: "organization",
+      area: "geo",
+      severity: "low",
+      title: "運営者（Organization / publisher）が構造化データにありません",
+      detail: "誰が運営するサイトかが機械可読になっていません。AI検索は発信者が特定できるページを引用元に選びやすく、Google はナレッジパネルの材料にします。",
+      code: `検出した @type: ${types.join(", ")}`,
+      fix: "サイト共通の JSON-LD に Organization（個人運営なら Person）を置き、記事の publisher から @id で参照します。",
+      fixCode: `{"@type":"Organization","@id":"https://${new URL(input.finalUrl).host}/#organization","name":"（運営者名）","url":"https://${new URL(input.finalUrl).host}/","sameAs":["https://x.com/（公式アカウント）"]}`,
+      where: { note: "全ページ共通のレイアウト。記事の JSON-LD には \"publisher\": {\"@id\": \"…#organization\"} を書きます。" },
+      source: SRC.organization,
+    });
   }
 
   // パンくず。トップ以外のページは、サイト内での位置を機械可読にする
   const depth = path.split("/").filter(Boolean).length;
-  if (depth >= 1 && ldNodes.length > 0 && !types.some((t) => /BreadcrumbList/i.test(t))) {
+  if (depth === 0 || ldNodes.length === 0) skip("breadcrumb");
+  else if (!types.some((t) => /BreadcrumbList/i.test(t))) {
     add({
       id: "breadcrumb",
       area: "seo",
@@ -542,7 +704,8 @@ export function audit(input: AuditInput): AuditResult {
     if (!href || href.startsWith("#") || /^(javascript|mailto|tel):/i.test(href)) return false;
     return !/^https?:\/\//i.test(href) || href.includes(host);
   });
-  if (text.length >= 800 && internals.length < 3) {
+  if (text.length < 800) skip("internal-links");
+  else if (internals.length < 3) {
     add({
       id: "internal-links",
       area: "seo",
@@ -556,13 +719,32 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  // リンク文言。「こちら」だけではリンク先が何かが伝わらない
+  const namedLinks = links.filter((a) => !/^(#|javascript:|mailto:|tel:)/i.test(a.getAttribute("href") ?? ""));
+  const vague = namedLinks.filter((a) => VAGUE_ANCHOR.test(a.text.replace(/\s+/g, " ").trim()));
+  if (namedLinks.length === 0) skip("anchor-text");
+  else if (vague.length >= 2 && vague.length / namedLinks.length > 0.1) {
+    add({
+      id: "anchor-text",
+      area: "seo",
+      severity: "low",
+      title: `リンク文言が「こちら」等になっているリンクが${vague.length}本あります（全${namedLinks.length}本）`,
+      detail: "リンクの文言はリンク先が何のページかを検索エンジンとAIに伝えます。「こちら」ではその情報がゼロです。",
+      code: vague.slice(0, 3).map((a) => snippet(a.outerHTML, 140)).join("\n"),
+      fix: "リンク先のページの内容を文言にします。「詳しくはこちら」→「料金プランの比較表」のように名詞で書きます。",
+      fixCode: '<a href="/pricing">料金プランの比較表</a>を見る',
+      source: SRC.starter,
+    });
+  }
+
   // 運営者情報への導線。「誰が」書いているかを読者もクローラーも辿れるか
   const operatorLink = links.some((a) => {
     const href = (a.getAttribute("href") ?? "").toLowerCase();
     const label = a.text.replace(/\s+/g, "");
     return /about|company|profile|corporate|privacy|contact|operator|author/.test(href) || /運営者|運営会社|会社概要|会社案内|プロフィール|プライバシー|特定商取引|お問い合わせ|著者/.test(label);
   });
-  if (text.length >= 800 && !operatorLink) {
+  if (text.length < 800) skip("operator-link");
+  else if (!operatorLink) {
     add({
       id: "operator-link",
       area: "seo",
@@ -575,7 +757,8 @@ export function audit(input: AuditInput): AuditResult {
       source: SRC.helpful,
     });
   }
-  if (externals.length === 0 && text.length > 800) {
+  if (text.length <= 800) skip("citation");
+  else if (externals.length === 0) {
     add({
       id: "citation",
       area: "geo",
@@ -604,7 +787,8 @@ export function audit(input: AuditInput): AuditResult {
     .filter((x) => x.length > 0);
   const longSentences = sentences.filter((x) => x.length > 100);
 
-  if (text.length >= 1000) {
+  if (text.length < 1000) skip("geo-quotation");
+  else {
     const quoteEls = body.querySelectorAll("blockquote, q").filter((e) => e.text.trim().length >= 10);
     const quotedSpans = text.match(/[「『“"][^「」『』“”"]{15,}[」』”"]/g) ?? [];
     if (quoteEls.length === 0 && quotedSpans.length === 0) {
@@ -625,7 +809,8 @@ export function audit(input: AuditInput): AuditResult {
     }
   }
 
-  if (text.length >= 800) {
+  if (text.length < 800) skip("geo-statistics");
+  else {
     // 日付と混ざる「年・月・日」は数えない
     const stats = text.match(/\d+(?:[.,]\d+)?\s*(?:%|％|割|倍|件|人|社|回|位|点|円|ドル|万|億|ポイント|pt|秒|時間|文字|語)/g) ?? [];
     if (stats.length < 3) {
@@ -645,7 +830,8 @@ export function audit(input: AuditInput): AuditResult {
     }
   }
 
-  if (sentences.length >= 10 && longSentences.length / sentences.length >= 0.2) {
+  if (sentences.length < 10) skip("geo-fluency");
+  else if (longSentences.length / sentences.length >= 0.2) {
     add({
       id: "geo-fluency",
       area: "geo",
@@ -687,7 +873,8 @@ export function audit(input: AuditInput): AuditResult {
       }
     }
   }
-  if (occurrences >= 10 && coverage >= 0.05) {
+  if (text.length < 500) skip("geo-keyword-stuffing");
+  else if (occurrences >= 10 && coverage >= 0.05) {
     add({
       id: "geo-keyword-stuffing",
       area: "geo",
@@ -720,6 +907,8 @@ export function audit(input: AuditInput): AuditResult {
 
   // ---------- robots.txt ----------
   if (input.robotsTxt === null) {
+    skip("robots-sitemap");
+    skip("robots-ai");
     add({
       id: "robots-missing",
       area: "tech",
@@ -805,6 +994,8 @@ export function audit(input: AuditInput): AuditResult {
 
   const counts: Record<Severity, number> = { high: 0, mid: 0, low: 0, ok: 0 };
   for (const f of findings) counts[f.severity]++;
+  const failed = new Set(findings.map((f) => f.id));
+  const passed = CHECKLIST.filter((c) => !skipped.has(c.id) && !c.findingIds.some((id) => failed.has(id))).map((c) => c.id);
 
   return {
     finalUrl: input.finalUrl,
@@ -815,5 +1006,7 @@ export function audit(input: AuditInput): AuditResult {
     textLength: text.length,
     findings: findings.sort((a, b) => ({ high: 0, mid: 1, low: 2, ok: 3 })[a.severity] - ({ high: 0, mid: 1, low: 2, ok: 3 })[b.severity]),
     counts,
+    passed,
+    skipped: [...skipped],
   };
 }

@@ -19,7 +19,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 ## ページ構成
 | パス | 内容 |
 |---|---|
-| `/` | 新着記事・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
+| `/` | 新着記事・「こんなときは」（困りごと4つから該当レッスン・ツールへ。文言は `src/lib/nav.ts` の `PROBLEM_ENTRIES`）・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
 | `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
@@ -192,6 +192,10 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   2026-09-04 に webpita.com の AIO チェックツールを参考に6項目を足した: charset、サイトマップの取得可否（robots.txt の Sitemap 行を優先、無ければ /sitemap.xml。
   `api/audit.ts` が 200 かどうかだけ見る）、Article の author、下層ページの BreadcrumbList（JSON-LD が1つも無いページには重ねて出さない）、
   本文中の内部リンク（nav・header・footer のリンクは数えない）、運営者情報・著者・連絡先への導線（E-E-A-T）。判定は `src/lib/audit.test.ts`。
+  2026-09-05 に同ツールを参考にさらに8項目を足した: nosnippet / max-snippet:0（AI Overview での利用も止まる）、別URLを指す canonical、
+  title と description の同一、og:description と twitter:card、main / article 要素、運営者の構造化データ（Organization / publisher）、
+  「こちら」等の曖昧なリンク文言。あわせて検査項目の一覧を `CHECKLIST` に集約し、結果に `passed`（指摘なし）と `skipped`（本文が短い等で判定しない）を
+  返すようにした。結果画面はエリア別に「n/m 項目に指摘なし」と◎の一覧を出し、ページの「検査する項目」も `CHECKLIST` から描画する。
   同ツールの100点スコアとS〜Dランクは取り入れていない（点数を出さない方針のため）。
 - **プロンプト適合度 `/tools/prompt-fit`**: 狙っているプロンプト（最大5本）とページを比べ、どの見出しブロックがその質問を担当しているかを出す。
   判定は `src/lib/promptFit.ts`。URLは `POST /api/prompt-fit` で取得するが、原稿を貼り付ければ公開前でも判定できる。

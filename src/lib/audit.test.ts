@@ -72,3 +72,70 @@ test("operator-link: 運営者情報・連絡先に辿れるリンクが無け�
   // 短いページには出さない
   assert.ok(!ids(input({ body: "<p>短い本文です。</p>" })).includes("operator-link"));
 });
+
+test("passed / skipped: 指摘の無い項目は passed、前提が揃わない項目は skipped に入る", () => {
+  const r = audit(input({ body: "<main><h1>見出し</h1><p>短い本文です。</p></main>" }));
+  assert.ok(r.passed.includes("title"));
+  assert.ok(r.passed.includes("h1"));
+  assert.ok(r.passed.includes("semantic"));
+  // 本文が短いので内部リンク・出典・引用は判定しない
+  for (const id of ["internal-links", "citation", "geo-quotation", "geo-statistics", "operator-link"]) {
+    assert.ok(r.skipped.includes(id), id);
+    assert.ok(!r.passed.includes(id), id);
+  }
+  // thin-html は指摘に出るので passed に入らない
+  assert.ok(r.findings.some((f) => f.id === "thin-html"));
+  assert.ok(!r.passed.includes("thin-html"));
+});
+
+test("nosnippet: meta robots か X-Robots-Tag に nosnippet / max-snippet:0 があれば指摘する", () => {
+  assert.ok(ids(input({ head: HEAD + '<meta name="robots" content="nosnippet">' })).includes("nosnippet"));
+  assert.ok(ids(input({ headers: { "x-robots-tag": "max-snippet:0" } })).includes("nosnippet"));
+  assert.ok(!ids(input({ head: HEAD + '<meta name="robots" content="max-snippet:160, max-image-preview:large">' })).includes("nosnippet"));
+});
+
+test("canonical-other: 別URLを指す canonical を指摘し、末尾スラッシュ違いは同一とみなす", () => {
+  const other = HEAD.replace('href="https://example.com/blog/1"', 'href="https://example.com/blog/2"');
+  assert.ok(ids(input({ head: other })).includes("canonical-other"));
+  const slash = HEAD.replace('href="https://example.com/blog/1"', 'href="https://example.com/blog/1/"');
+  assert.ok(!ids(input({ head: slash })).includes("canonical-other"));
+});
+
+test("title-description-same: title と description が同一文なら指摘する", () => {
+  const same = HEAD.replace('content="説明"', 'content="テスト記事のタイトル｜サイト名"');
+  assert.ok(ids(input({ head: same })).includes("title-description-same"));
+  assert.ok(!ids(input()).includes("title-description-same"));
+});
+
+test("ogp: 足りない項目名を列挙し、4つ揃えば出さない", () => {
+  const f = audit(input()).findings.find((x) => x.id === "ogp");
+  assert.ok(f);
+  assert.match(f.title, /og:title/);
+  assert.match(f.title, /twitter:card/);
+  const full =
+    HEAD +
+    '<meta property="og:title" content="t"><meta property="og:description" content="d"><meta property="og:image" content="https://example.com/i.png"><meta name="twitter:card" content="summary_large_image">';
+  assert.ok(!ids(input({ head: full })).includes("ogp"));
+});
+
+test("semantic: main / article が無ければ指摘する", () => {
+  assert.ok(ids(input({ body: "<div><p>本文</p></div>" })).includes("semantic"));
+  assert.ok(!ids(input({ body: "<article><p>本文</p></article>" })).includes("semantic"));
+});
+
+test("organization: JSON-LD に Organization / Person / publisher が無ければ指摘し、JSON-LD 自体が無ければ判定しない", () => {
+  const article = '<script type="application/ld+json">{"@type":"Article","headline":"h","datePublished":"2026-01-01","author":{"name":"a"}}</script>';
+  assert.ok(ids(input({ head: HEAD + article })).includes("organization"));
+  const withPublisher = article.replace('"author"', '"publisher":{"@id":"https://example.com/#organization"},"author"');
+  assert.ok(!ids(input({ head: HEAD + withPublisher })).includes("organization"));
+  const r = audit(input());
+  assert.ok(!ids(input()).includes("organization"));
+  assert.ok(r.skipped.includes("organization"));
+});
+
+test("anchor-text: 「こちら」等が全リンクの1割を超えれば指摘する", () => {
+  const vague = '<p><a href="/a">こちら</a><a href="/b">詳しくはこちら</a><a href="/c">料金プランの比較表</a></p>';
+  assert.ok(ids(input({ body: LONG + vague })).includes("anchor-text"));
+  const named = '<p><a href="/a">料金</a><a href="/b">導入手順</a><a href="/c">こちら</a>' + '<a href="/d">x</a>'.repeat(10) + "</p>";
+  assert.ok(!ids(input({ body: LONG + named })).includes("anchor-text"));
+});

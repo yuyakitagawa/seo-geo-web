@@ -5,7 +5,7 @@ import { PageDatesJsonLd } from "@/components/PageDates";
 import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
 import { getAllArticles, latestUpdated } from "@/lib/content";
 import { GUIDE_LIST } from "@/lib/guides";
-import { hubPages } from "@/lib/nav";
+import { PROBLEM_ENTRIES, hubPages } from "@/lib/nav";
 import { ARTICLES_PER_PAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { CATEGORY_STYLE } from "@/lib/categoryStyle";
 import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
@@ -64,6 +64,25 @@ export default function Home() {
           </Link>
         </div>
         <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
+      </section>
+
+      {/* こんなときは。困りごとから入る導線（用語から入る下のセクションと役割を分ける）。文言は nav.ts */}
+      <section className={cx(CONTAINER.page, "pb-20 sm:pb-28")}>
+        <div className="mb-8 max-w-2xl">
+          <p className={cx(HEADING.label, "mb-2 text-accent")}>Start from your problem</p>
+          <h2 className={cx(HEADING.section, "text-3xl sm:text-4xl")}>こんなときは</h2>
+          <p className="mt-3 text-sm leading-relaxed text-mute sm:text-base">困っていることから、手順のあるページへ直接進めます。</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PROBLEM_ENTRIES.map((p) => (
+            <CardLink key={p.href} href={p.href} padding="tight">
+              <p className="font-bold leading-snug tracking-tight">
+                {p.label} <span className="inline-block transition group-hover:translate-x-1">→</span>
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-mute">{p.note}</p>
+            </CardLink>
+          ))}
+        </div>
       </section>
 
       {/* 用語の解説。定義クエリ（「SEO対策とは」「GEO対策とは」）の受け皿と、その先の教科書・ツールへトップから直接リンクする */}

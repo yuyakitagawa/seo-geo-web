@@ -8,6 +8,7 @@ import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { APP_TOOLS } from "@/lib/apps";
+import { AREA_LABEL, CHECKLIST } from "@/lib/audit";
 import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
@@ -25,43 +26,11 @@ export const metadata: Metadata = {
   alternates: { canonical: PATH },
 };
 
-const CHECKS = [
-  {
-    area: "技術",
-    items: ["HTTPステータスとリダイレクトの連鎖", "noindex（metaとX-Robots-Tag）", "canonical の有無と絶対URL", "lang / charset / viewport", "robots.txt によるクロール可否と Sitemap 行", "サイトマップが取得できるか", "取得時間とHTMLサイズ"],
-  },
-  {
-    area: "SEO",
-    items: [
-      "title の有無と長さ",
-      "meta description の有無と長さ",
-      "h1 の個数",
-      "見出しの階層の飛び",
-      "alt の無い画像",
-      "OGP",
-      "JSON-LD の有無・構文・Article の headline / datePublished / author",
-      "BreadcrumbList（下層ページ）",
-      "本文中の内部リンク（nav・footer を除く）",
-      "運営者情報・著者・連絡先への導線",
-    ],
-  },
-  {
-    area: "GEO（AI検索）",
-    items: [
-      "サーバーが返すHTMLに本文があるか（JS依存の検出）",
-      "冒頭の直答文の長さ",
-      "質問と回答の形式・FAQPage",
-      "原文の引用（GEO論文で最大41%）",
-      "具体的な数値（同 約32%）",
-      "1文の長さ（同 約29%）",
-      "外部の出典リンク（同 約28%）",
-      "キーワードの詰め込み（同 効果なし）",
-      "公開日・更新日の機械可読性",
-      "AI検索クローラー（OAI-SearchBot等）の許可状況",
-      "/llms.txt",
-    ],
-  },
-];
+/** 検査する項目。判定本体の CHECKLIST と同じ定義（ずれると「検査する」と書いた項目が検査されない） */
+const CHECKS = (["tech", "seo", "geo"] as const).map((area) => ({
+  area: AREA_LABEL[area],
+  items: CHECKLIST.filter((c) => c.area === area).map((c) => c.label),
+}));
 
 const FAQ: FaqItem[] = [
   {
@@ -123,7 +92,7 @@ export default function PageAuditToolPage() {
         <p className="leading-relaxed text-mute">
           このツールは、URLのページをサーバー側で1回取得し、クローラーが最初に受け取るHTMLだけを見て判定します。
           指摘は「該当箇所の実際のコード」「なぜ直すか」「修正後の書き方」の3点で返します。
-          点数は出しません。直す順番が分かることを目的にしています。
+          指摘の無かった項目も一覧で返しますが、100点満点のような点数は出しません。直す順番が分かることを目的にしています。
         </p>
 
         <PageAudit />
