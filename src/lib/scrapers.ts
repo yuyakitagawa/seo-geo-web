@@ -6,6 +6,11 @@
 //
 // 各行の token は提供元の公式ページに書かれている表記をそのまま使う（robots.txt の user-agent 照合は
 // RFC 9309 で大文字小文字を区別しないため、表記ゆれは問題にならない）。
+//
+// robots.txt は「お願い」なので、実際に止めているのは Vercel Firewall のカスタムルール
+// 「Deny commercial SEO crawlers」（User-Agent の部分一致で 403。2026-09-04 に CLI で作成）。
+// この一覧を変えたら `vercel firewall rules edit "Deny commercial SEO crawlers"` で同期する。
+// 経緯は docs/progress_vercel-cost.md。
 
 export type BlockedScraper = {
   /** robots.txt に書く user-agent トークン */

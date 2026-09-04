@@ -41,7 +41,11 @@ Next.js を `output: "export"` にして **ISR を使わない**。ページは�
 - [x] `@vercel/analytics` を外した（Pro は無料枠が無く従量課金。GA4 と重複）。`@vercel/speed-insights` は無料枠で止まるだけなので残した。
 - [x] README.md / CLAUDE.md を更新（ホスティング方針・API の置き場所・`vercel dev`・push の規則）。
 - [x] 手元の検証: `npm run typecheck` / `npm test`（19 件）/ `npm run build`（`out/` に 1,704 ファイル。OGP 画像は PNG、404.html あり、Vercel Analytics のスクリプトは消えている）。
-- [ ] Vercel Firewall にカスタムルールを追加（無料。deny された通信は Edge Requests にも転送量にも数えられない）: `src/lib/scrapers.ts` の 8 種の UA を deny。robots.txt は「お願い」で、実際に止めるのはこちら。AI 検索・AI 学習・検索エンジンは止めない。**ダッシュボード作業（ユーザー）**。
+- [x] Vercel Firewall にカスタムルール **「Deny commercial SEO crawlers」** を追加（2026-09-04。無料。deny された通信は Edge Requests にも転送量にも数えられない）。
+      `src/lib/scrapers.ts` の 8 種を User-Agent の部分一致で deny。CLI で入れた（`vercel firewall rules add ... --action deny` → `vercel firewall publish`）。
+      `vercel.json` の `routes` に書く方法もあるが、`redirects` / `headers` と併用できないので使わない。
+      検証: AhrefsBot / SemrushBot / MJ12bot の UA → 403、Googlebot / GPTBot / ブラウザ → 200。
+      **scrapers.ts を変えたら `vercel firewall rules edit "Deny commercial SEO crawlers"` で同期する**（`vercel firewall rules list --expand` で現状を見る）。
 - [ ] Spend Management（Pro のみ）で上限額を設定し、超えたら通知。**ダッシュボード作業（ユーザー）**。
 - [x] Vercel のビルダーで検証（`vercel pull` → `vercel build`。出力は `.vercel/output`）: `api/audit.func` `prompt-fit.func` `contact.func` が Node 24 で生成され、
       相対 import した `src/lib/*` が関数に同梱される。`maxDuration: 30`、旧URLの 308（5本）、OGP・アイコンの `image/png` ヘッダ、末尾スラッシュの 308、
