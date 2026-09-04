@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AREA_LABEL, SEVERITY_LABEL, type AuditResult, type Finding, type Severity } from "@/lib/audit";
+import { AREA_LABEL, CHECKLIST, SEVERITY_LABEL, type Area, type AuditResult, type Finding, type Severity } from "@/lib/audit";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const SEVERITY_STYLE: Record<Severity, string> = {
@@ -17,6 +17,60 @@ function Code({ label, value }: { label: string; value: string }) {
       <p className={cx(EYEBROW.mute, "mb-1.5 text-2xs")}>{label}</p>
       <pre className={CODE}>{value}</pre>
     </div>
+  );
+}
+
+const AREAS: Area[] = ["tech", "seo", "geo"];
+
+/** エリアごとの「指摘なし n / 判定した m 項目」。対象外（skipped）は分母に入れない */
+function areaSummary(result: AuditResult) {
+  const passed = new Set(result.passed);
+  const skipped = new Set(result.skipped);
+  return AREAS.map((area) => {
+    const items = CHECKLIST.filter((c) => c.area === area && !skipped.has(c.id));
+    return { area, ok: items.filter((c) => passed.has(c.id)).length, total: items.length };
+  });
+}
+
+function PassedList({ result }: { result: AuditResult }) {
+  const passed = new Set(result.passed);
+  const skipped = new Set(result.skipped);
+  const groups = AREAS.map((area) => ({
+    area,
+    items: CHECKLIST.filter((c) => c.area === area && passed.has(c.id)),
+  })).filter((g) => g.items.length > 0);
+  const skippedItems = CHECKLIST.filter((c) => skipped.has(c.id));
+  if (groups.length === 0 && skippedItems.length === 0) return null;
+  return (
+    <details className={cx(SURFACE.outline, "p-6 sm:p-7")}>
+      <summary className="cursor-pointer font-bold">
+        指摘の無かった項目（{result.passed.length}）
+        {skippedItems.length > 0 && <span className="ml-2 text-sm font-normal text-mute">／ 判定対象外 {skippedItems.length}</span>}
+      </summary>
+      <div className="mt-5 grid gap-6 sm:grid-cols-3">
+        {groups.map((g) => (
+          <div key={g.area}>
+            <p className={cx(EYEBROW.mute, "text-2xs")}>{AREA_LABEL[g.area]}</p>
+            <ul className="mt-2 space-y-1.5 text-sm">
+              {g.items.map((c) => (
+                <li key={c.id} className="flex gap-2">
+                  <span className="shrink-0 font-bold text-accent" aria-hidden>
+                    ◎
+                  </span>
+                  <span>{c.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      {skippedItems.length > 0 && (
+        <div className="mt-6 border-t border-line pt-4">
+          <p className={cx(EYEBROW.mute, "text-2xs")}>判定対象外（前提が揃わないため合格にも不合格にも数えていません）</p>
+          <p className="mt-2 text-sm text-mute">{skippedItems.map((c) => c.label).join(" ／ ")}</p>
+        </div>
+      )}
+    </details>
   );
 }
 
@@ -125,9 +179,20 @@ export default function PageAudit() {
             <p className={EYEBROW.faint}>検査結果</p>
             <p className="mt-2 text-xl font-bold leading-snug sm:text-2xl">
               {result.findings.length === 0
-                ? "指摘はありません。主要な項目はすべて満たしています。"
+                ? "指摘はありません。判定した項目はすべて満たしています。"
                 : `要修正 ${result.counts.high} 件 / 直したい ${result.counts.mid} 件 / 検討 ${result.counts.low} 件`}
             </p>
+            <ul className="mt-4 flex flex-wrap gap-2 text-sm">
+              {areaSummary(result).map((a) => (
+                <li key={a.area} className="rounded-full border border-current/30 px-3 py-1">
+                  {AREA_LABEL[a.area]}{" "}
+                  <span className="font-mono font-bold">
+                    {a.ok}/{a.total}
+                  </span>{" "}
+                  <span className="opacity-70">項目に指摘なし</span>
+                </li>
+              ))}
+            </ul>
             <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 text-sm opacity-80 sm:grid-cols-4">
               <div>
                 <dt className="text-xs opacity-70">HTTP</dt>
@@ -154,6 +219,8 @@ export default function PageAudit() {
               <FindingCard key={f.id} f={f} />
             ))}
           </div>
+
+          <PassedList result={result} />
         </>
       )}
     </div>
