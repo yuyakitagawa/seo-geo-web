@@ -28,11 +28,22 @@ export const metadata: Metadata = {
 const CHECKS = [
   {
     area: "技術",
-    items: ["HTTPステータスとリダイレクトの連鎖", "noindex（metaとX-Robots-Tag）", "canonical の有無と絶対URL", "lang / viewport", "robots.txt によるクロール可否", "取得時間とHTMLサイズ"],
+    items: ["HTTPステータスとリダイレクトの連鎖", "noindex（metaとX-Robots-Tag）", "canonical の有無と絶対URL", "lang / charset / viewport", "robots.txt によるクロール可否と Sitemap 行", "サイトマップが取得できるか", "取得時間とHTMLサイズ"],
   },
   {
     area: "SEO",
-    items: ["title の有無と長さ", "meta description の有無と長さ", "h1 の個数", "見出しの階層の飛び", "alt の無い画像", "OGP", "JSON-LD の有無・構文・必須プロパティ"],
+    items: [
+      "title の有無と長さ",
+      "meta description の有無と長さ",
+      "h1 の個数",
+      "見出しの階層の飛び",
+      "alt の無い画像",
+      "OGP",
+      "JSON-LD の有無・構文・Article の headline / datePublished / author",
+      "BreadcrumbList（下層ページ）",
+      "本文中の内部リンク（nav・footer を除く）",
+      "運営者情報・著者・連絡先への導線",
+    ],
   },
   {
     area: "GEO（AI検索）",
@@ -56,7 +67,7 @@ const FAQ: FaqItem[] = [
   {
     question: "この診断は何を見ていますか",
     answer:
-      "入力されたURLをサーバー側で1回取得し、返ってきたHTMLとレスポンスヘッダー、同じドメインの robots.txt と llms.txt を読んで判定します。ブラウザでJavaScriptを実行した後の状態ではなく、クローラーが最初に受け取る状態を見ています。",
+      "入力されたURLをサーバー側で1回取得し、返ってきたHTMLとレスポンスヘッダー、同じドメインの robots.txt・llms.txt・サイトマップ（取得できるかだけ）を読んで判定します。ブラウザでJavaScriptを実行した後の状態ではなく、クローラーが最初に受け取る状態を見ています。",
   },
   {
     question: "JavaScriptで本文を描画しているページはどう判定されますか",

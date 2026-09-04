@@ -32,9 +32,13 @@ export type Crawler = {
   verified: string;
   /** 補足（robots.txt が効かない場合など） */
   note?: string;
+  /** 提供元が公開しているIPアドレス帯の一覧（JSON）。UAを名乗るだけのなりすましをログで見分けるのに使う。無い提供元は載せない */
+  ipList?: { url: string; note?: string };
 };
 
 const V = "2026-08-30";
+/** ipList のURLを実際に取得して 200 と中身（prefixes）を確認した日 */
+export const IP_LIST_VERIFIED = "2026-09-04";
 const OPENAI = { title: "OpenAI Bots", url: "https://developers.openai.com/api/docs/bots" };
 const PERPLEXITY = { title: "Perplexity Bots", url: "https://docs.perplexity.ai/guides/bots" };
 const ANTHROPIC = {
@@ -56,6 +60,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "ChatGPTの検索結果に表示されなくなる。",
     source: OPENAI,
     verified: V,
+    ipList: { url: "https://openai.com/searchbot.json" },
   },
   {
     token: "ChatGPT-User",
@@ -66,6 +71,7 @@ export const CRAWLERS: Crawler[] = [
     note: "ユーザー起点のアクセスのため、robots.txt が適用されない場合があると公式に書かれている。",
     source: OPENAI,
     verified: V,
+    ipList: { url: "https://openai.com/chatgpt-user.json" },
   },
   {
     token: "PerplexityBot",
@@ -75,6 +81,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "Perplexityの検索結果に表示されなくなる。",
     source: PERPLEXITY,
     verified: V,
+    ipList: { url: "https://www.perplexity.com/perplexitybot.json" },
   },
   {
     token: "Perplexity-User",
@@ -84,6 +91,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "Perplexityがページを取得できず、回答にそのページの内容が使われなくなる。",
     source: PERPLEXITY,
     verified: V,
+    ipList: { url: "https://www.perplexity.com/perplexity-user.json" },
   },
   {
     token: "Claude-SearchBot",
@@ -112,6 +120,7 @@ export const CRAWLERS: Crawler[] = [
     note: "検索には載せたうえで引用文だけ抑えたい場合は nosnippet / data-nosnippet / max-snippet を使う。",
     source: GOOGLE_AI,
     verified: V,
+    ipList: { url: "https://developers.google.com/static/crawling/ipranges/common-crawlers.json", note: "逆引きDNSで googlebot.com / google.com / googleusercontent.com のいずれかになることでも確認できる" },
   },
   {
     token: "Bingbot",
@@ -121,6 +130,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "Bing検索に載らなくなる。",
     source: { title: "Bing Webmaster: Which crawlers does Bing use?", url: "https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0" },
     verified: V,
+    ipList: { url: "https://www.bing.com/toolbox/bingbot.json" },
   },
   {
     token: "GPTBot",
@@ -130,6 +140,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "OpenAIのモデル学習に使われなくなる。ChatGPTの検索結果への表示（OAI-SearchBot）とは別。",
     source: OPENAI,
     verified: V,
+    ipList: { url: "https://openai.com/gptbot.json" },
   },
   {
     token: "ClaudeBot",
@@ -158,6 +169,7 @@ export const CRAWLERS: Crawler[] = [
     ifBlocked: "Appleの生成AIモデルの学習に使われなくなる。Applebotによる検索用のクロールは続く。",
     source: { title: "Apple: About Applebot", url: "https://support.apple.com/en-us/119829" },
     verified: V,
+    ipList: { url: "https://search.developer.apple.com/applebot.json", note: "Applebot-Extended は単独のクローラーではなく、Applebot と同じIP帯から来る" },
   },
   {
     token: "meta-externalagent",

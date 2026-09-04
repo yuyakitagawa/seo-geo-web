@@ -43,6 +43,8 @@ export type AuditInput = {
   robotsTxt: string | null;
   /** 同じホストの /llms.txt が 200 で返ったか */
   hasLlmsTxt: boolean;
+  /** サイトマップ（robots.txt の Sitemap 行、無ければ /sitemap.xml）が 200 で返ったか。確認したURLを添える */
+  sitemap: { url: string; ok: boolean };
   bytes: number;
   elapsedMs: number;
   redirects: string[];
@@ -66,6 +68,8 @@ const SRC = {
   structured: G("appearance/structured-data/intro-structured-data", "Google 検索セントラル: 構造化データの仕組み"),
   article: G("appearance/structured-data/article", "Google 検索セントラル: Article 構造化データ"),
   faq: G("appearance/structured-data/faqpage", "Google 検索セントラル: FAQ 構造化データ"),
+  breadcrumb: G("appearance/structured-data/breadcrumb", "Google 検索セントラル: パンくずリスト構造化データ"),
+  sitemap: G("crawling-indexing/sitemaps/overview", "Google 検索セントラル: サイトマップについて"),
   robots: G("crawling-indexing/robots/intro", "Google 検索セントラル: robots.txt の概要"),
   ai: G("appearance/ai-features", "Google 検索セントラル: AI 機能と Google 検索"),
   helpful: G("fundamentals/creating-helpful-content", "Google 検索セントラル: 有用で信頼性の高いコンテンツの作成"),
@@ -172,6 +176,22 @@ export function audit(input: AuditInput): AuditResult {
       code: snippet(html ? `<html${html.rawAttrs ? " " + html.rawAttrs : ""}>` : "<html>"),
       fix: "日本語ページなら lang=\"ja\" を指定します。",
       fixCode: '<html lang="ja">',
+    });
+  }
+
+  const charsetMeta = head?.querySelector("meta[charset]") ?? head?.querySelector('meta[http-equiv="Content-Type" i]');
+  const charsetHeader = /charset=/i.test(input.headers["content-type"] ?? "");
+  if (!charsetMeta && !charsetHeader) {
+    add({
+      id: "charset",
+      area: "tech",
+      severity: "low",
+      title: "文字コードが宣言されていません",
+      detail: "HTMLにもレスポンスヘッダーにも charset が無いと、クローラーの推定に任せることになり、日本語が文字化けして読まれる場合があります。",
+      code: `Content-Type: ${input.headers["content-type"] ?? "（ヘッダーなし）"}`,
+      fix: "head の先頭で文字コードを宣言します。",
+      fixCode: '<meta charset="utf-8">',
+      where: { note: "head の一番上。title より前に置きます。", code: headSpot(head, "<!-- ここに charset を追加 -->") },
     });
   }
 
@@ -404,18 +424,35 @@ export function audit(input: AuditInput): AuditResult {
   const isArticleLike = types.some((t) => /Article|BlogPosting|NewsArticle/i.test(t));
   if (isArticleLike) {
     const raw = ldNodes.map((n) => n.text).join(" ");
-    const missing = ["datePublished", "headline"].filter((k) => !raw.includes(k));
+    const missing = ["headline", "datePublished", "author"].filter((k) => !raw.includes(k));
     if (missing.length > 0) {
       add({
         id: "article-props",
         area: "seo",
         severity: "low",
         title: `Article 構造化データに ${missing.join(" / ")} がありません`,
-        detail: "見出しと公開日が無いと、記事としての基本情報が機械可読になりません。",
-        fix: "headline と datePublished（更新があれば dateModified）を追加します。",
+        detail: "見出し・公開日・著者が無いと、記事としての基本情報と「誰が書いたか」が機械可読になりません。Googleは Article の推奨プロパティとして author（名前とプロフィールURL）を挙げています。",
+        fix: "headline と datePublished（更新があれば dateModified）、author（name と url）を追加します。",
+        fixCode: '"author": [{"@type": "Person", "name": "（著者名）", "url": "https://example.com/about"}]',
         source: SRC.article,
       });
     }
+  }
+
+  // パンくず。トップ以外のページは、サイト内での位置を機械可読にする
+  const depth = path.split("/").filter(Boolean).length;
+  if (depth >= 1 && ldNodes.length > 0 && !types.some((t) => /BreadcrumbList/i.test(t))) {
+    add({
+      id: "breadcrumb",
+      area: "seo",
+      severity: "low",
+      title: "BreadcrumbList 構造化データがありません",
+      detail: "サイト内でのページの位置が機械可読になりません。検索結果のURL表示がパンくずに置き換わる対象にもなりません。",
+      code: `検出した @type: ${types.join(", ")}`,
+      fix: "画面に出しているパンくずと同じ階層を BreadcrumbList で宣言します（表示していない階層は書かない）。",
+      fixCode: `<script type="application/ld+json">\n{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[\n  {"@type":"ListItem","position":1,"name":"ホーム","item":"https://${new URL(input.finalUrl).host}/"},\n  {"@type":"ListItem","position":2,"name":"（このページ）"}\n]}\n</script>`,
+      source: SRC.breadcrumb,
+    });
   }
 
   // ---------- GEO（AI検索） ----------
@@ -496,6 +533,48 @@ export function audit(input: AuditInput): AuditResult {
     const href = a.getAttribute("href") ?? "";
     return /^https?:\/\//i.test(href) && !href.includes(host);
   });
+
+  // 内部リンク。ナビ・ヘッダー・フッターの定型リンクは除き、本文から他ページへ渡しているかを見る
+  const chrome = new Set(body.querySelectorAll("nav, header, footer").flatMap((el) => el.querySelectorAll("a[href]")));
+  const internals = links.filter((a) => {
+    if (chrome.has(a)) return false;
+    const href = a.getAttribute("href") ?? "";
+    if (!href || href.startsWith("#") || /^(javascript|mailto|tel):/i.test(href)) return false;
+    return !/^https?:\/\//i.test(href) || href.includes(host);
+  });
+  if (text.length >= 800 && internals.length < 3) {
+    add({
+      id: "internal-links",
+      area: "seo",
+      severity: "low",
+      title: `本文から自サイトの他ページへのリンクが${internals.length}本しかありません`,
+      detail: "本文中のリンクは、関連ページの存在と文脈をクローラーに伝える手段です。ナビだけだと、どのページが関連するかが伝わりません。",
+      code: `本文 ${text.length}文字 / 本文中の内部リンク ${internals.length}本（nav・header・footer を除く）`,
+      fix: "本文の中で関連する自サイトのページに、内容が分かるアンカーテキストでリンクします。",
+      fixCode: '<p>設定手順は<a href="/guide/robots">robots.txtの書き方</a>にまとめています。</p>',
+      source: SRC.starter,
+    });
+  }
+
+  // 運営者情報への導線。「誰が」書いているかを読者もクローラーも辿れるか
+  const operatorLink = links.some((a) => {
+    const href = (a.getAttribute("href") ?? "").toLowerCase();
+    const label = a.text.replace(/\s+/g, "");
+    return /about|company|profile|corporate|privacy|contact|operator|author/.test(href) || /運営者|運営会社|会社概要|会社案内|プロフィール|プライバシー|特定商取引|お問い合わせ|著者/.test(label);
+  });
+  if (text.length >= 800 && !operatorLink) {
+    add({
+      id: "operator-link",
+      area: "seo",
+      severity: "low",
+      title: "運営者情報・著者・連絡先へのリンクがページ内にありません",
+      detail: "Googleは有用なコンテンツの条件として「誰が作ったか」が分かることを挙げています。運営者ページや著者プロフィールへ辿れないページは、情報の責任元を確認できません。",
+      code: `リンク ${links.length}本 / 運営者情報・会社概要・著者・プライバシー・お問い合わせに該当するリンク 0本`,
+      fix: "フッターか記事末尾に、運営者情報（または会社概要）・お問い合わせ・プライバシーポリシーへのリンクを置きます。記事なら著者名からプロフィールへリンクします。",
+      fixCode: '<footer>\n  <a href="/about">運営者情報</a> / <a href="/contact">お問い合わせ</a> / <a href="/privacy">プライバシーポリシー</a>\n</footer>',
+      source: SRC.helpful,
+    });
+  }
   if (externals.length === 0 && text.length > 800) {
     add({
       id: "citation",
@@ -693,6 +772,21 @@ export function audit(input: AuditInput): AuditResult {
         source: SRC.robots,
       });
     }
+  }
+
+  if (!input.sitemap.ok) {
+    add({
+      id: "sitemap",
+      area: "tech",
+      severity: "low",
+      title: "サイトマップを取得できませんでした",
+      detail: "無くてもクロールはされますが、新しいページや更新日を検索エンジンに直接伝える手段が無くなります。ページ数が多いサイトほど影響が出ます。",
+      code: `${input.sitemap.url} → 取得できず`,
+      fix: "sitemap.xml を生成してルートに置き、robots.txt の Sitemap 行と Search Console の「サイトマップ」から送信します。",
+      fixCode: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${input.finalUrl}</loc><lastmod>2026-09-04</lastmod></url>\n</urlset>`,
+      where: { note: `ドメイン直下: https://${host}/sitemap.xml（robots.txt の Sitemap 行で別の場所も指定できます）` },
+      source: SRC.sitemap,
+    });
   }
 
   if (!input.hasLlmsTxt) {

@@ -4,7 +4,7 @@ import { FigureCompare, FigureDoDont, FigurePipeline } from "@/components/figure
 import { GuideRef, GuideSection, GuideTable } from "@/components/guide";
 import RobotsPresets from "@/components/RobotsPresets";
 import { LessonShell } from "@/components/lesson";
-import { CRAWLERS, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
+import { CRAWLERS, IP_LIST_VERIFIED, PURPOSE, PURPOSE_ORDER } from "@/lib/crawlers";
 import { requireLesson, lessonMetadata, lessonNo, lessonPath } from "@/lib/curriculum";
 
 const lesson = requireLesson("geo-implementation");
@@ -17,6 +17,7 @@ const REF = {
   llmstxt: { href: "https://llmstxt.org/", label: "The /llms.txt file" },
   geoPaper: { href: "https://arxiv.org/abs/2311.09735", label: "GEO: Generative Engine Optimization" },
   genAiReport: { href: "https://support.google.com/webmasters/answer/16984139?hl=ja", label: "生成 AI パフォーマンス レポート（検索）" },
+  verifyGooglebot: { href: "https://developers.google.com/crawling/docs/crawlers-fetchers/verifying-googlebot?hl=ja", label: "Googlebot などの Google クローラーの確認" },
 } as const;
 
 export const metadata: Metadata = lessonMetadata(lesson);
@@ -24,6 +25,7 @@ export const metadata: Metadata = lessonMetadata(lesson);
 const TOC = [
   { id: "routes", label: "2つの経路と必要な設定" },
   { id: "crawlers", label: "AIクローラーの一覧と役割" },
+  { id: "verify", label: "なりすましをログで見分ける" },
   { id: "robots", label: "robots.txtでの書き分け" },
   { id: "notneeded", label: "やらなくていいこと" },
   { id: "shape", label: "引用される形に整える" },
@@ -93,6 +95,35 @@ export default function Lesson09() {
           そのためrobots.txtが適用されない場合があると各社が説明しています。2つ目は、GoogleのGoogle-ExtendedはGeminiアプリの学習・グラウンディング用のトークンで、
           Google検索へのサイトの登録やランキングには影響しないと明記されていることです。
           <GuideRef {...REF.googleCrawlers} />
+        </p>
+      </GuideSection>
+
+      <GuideSection
+        id="verify"
+        title="なりすましをログで見分ける（公式IP一覧）"
+        lead="アクセスログのUser-agentは自己申告です。GPTBotやGooglebotを名乗るだけの偽装アクセスが混ざるため、AIクローラーの巡回状況を数えるときは、提供元が公開しているIPアドレス帯と照合してから数えます。ここには、IP一覧のURLを当サイトで実際に取得して確認できた提供元だけを載せます。"
+      >
+        <GuideTable
+          head={["User-agent", "提供元", "IPアドレス帯の一覧（JSON）", "補足"]}
+          rows={CRAWLERS.filter((c) => c.ipList).map((c) => [
+            <code key={c.token}>{c.token}</code>,
+            c.vendor,
+            <a key={`${c.token}-ip`} href={c.ipList!.url} target="_blank" rel="noopener" className="break-all">
+              {c.ipList!.url.replace(/^https?:\/\//, "")}
+            </a>,
+            c.ipList!.note ?? "",
+          ])}
+          caption={`一覧のURLは ${IP_LIST_VERIFIED} に取得し、CIDR（prefixes）が返ることを確認しました。各社とも予告なく更新されるため、照合は保存した古い一覧ではなく最新のJSONで行います。`}
+        />
+        <p>
+          照合の手順は3段階です。①ログをUser-agentで絞る、②送信元IPが一覧のCIDRに含まれるかを見る、③含まれなければ「名乗っているだけ」として集計から外す。
+          Googleは、IP一覧との照合のほかに、送信元IPを逆引きして <code>googlebot.com</code>・<code>google.com</code>・<code>googleusercontent.com</code> のいずれかになり、
+          さらにその名前を正引きすると元のIPに戻ることを確認する方法を案内しています。
+          <GuideRef {...REF.verifyGooglebot} />
+        </p>
+        <p>
+          この照合を通さずにUser-agentだけで数えると、AIクローラーの訪問数が実際より多く出ます。巡回の有無を記事や報告に書くときは、照合後の数だけを使います。
+          流入側（人がAIの回答からクリックして来た分）の見分け方は<Link href={`${lessonPath("measurement")}#ai`}>レッスン{lessonNo("measurement")}の「AI検索からの流入を測る」</Link>にあります。
         </p>
       </GuideSection>
 

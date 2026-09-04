@@ -47,7 +47,7 @@ export const ORGANIZATION_CONTACT_POINT = CONTACT_EMAIL
     : undefined;
 
 // ポリシー類の最終改定日。プライバシーポリシー・免責事項の表示とsitemapのlastmodに使う。
-export const POLICY_UPDATED = "2026-08-31";
+export const POLICY_UPDATED = "2026-09-04";
 export const POLICY_UPDATED_LABEL = POLICY_UPDATED.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
 
 // 記事カテゴリ。記事frontmatterの category と一致させる。

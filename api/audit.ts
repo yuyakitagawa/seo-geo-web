@@ -10,6 +10,7 @@ import { audit } from "../src/lib/audit";
 import { logAudit } from "../src/lib/audit-log";
 import { fetchChecked, readCapped } from "../src/lib/fetchPage";
 import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
+import { parseRobots } from "../src/lib/robots";
 
 export async function POST(request: Request) {
   // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。
@@ -50,7 +51,25 @@ export async function POST(request: Request) {
         .catch(() => false),
     ]);
 
-    const result = audit({ url, finalUrl, status: res.status, headers, html, robotsTxt, hasLlmsTxt, bytes, elapsedMs, redirects });
+    // サイトマップは robots.txt の Sitemap 行を優先し、無ければ /sitemap.xml を見る（本文は読まず、200かどうかだけ）
+    const sitemapUrl = (robotsTxt ? parseRobots(robotsTxt).sitemaps[0] : undefined) ?? `${origin}/sitemap.xml`;
+    const sitemapOk = await fetchChecked(sitemapUrl, "application/xml,text/xml,text/plain")
+      .then(({ res: r }) => r.ok)
+      .catch(() => false);
+
+    const result = audit({
+      url,
+      finalUrl,
+      status: res.status,
+      headers,
+      html,
+      robotsTxt,
+      hasLlmsTxt,
+      sitemap: { url: sitemapUrl, ok: sitemapOk },
+      bytes,
+      elapsedMs,
+      redirects,
+    });
 
     await logAudit({
       url: finalUrl,

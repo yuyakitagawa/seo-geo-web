@@ -642,7 +642,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.starter, S.essentials, S.canonical, S.robots, S.noindex, S.sitemaps, S.spam, S.siteMove],
     published: "2026-08-31",
-    updated: "2026-08-31",
+    updated: "2026-09-04",
   },
   {
     slug: "geo-implementation",
@@ -692,7 +692,7 @@ export const LESSONS: Lesson[] = [
     ],
     sources: [S.aiFeatures, S.crawlers, S.openaiBots, S.perplexityBots, S.anthropicBots, S.llmstxt, S.geoPaper, S.structuredData],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-09-04",
   },
   {
     slug: "measurement",

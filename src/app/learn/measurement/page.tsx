@@ -18,6 +18,7 @@ const REF = {
   sitemaps: { href: "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview?hl=ja", label: "サイトマップの作成と送信" },
   robots: { href: "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=ja", label: "robots.txt の書き方、設定と送信" },
   essentials: { href: "https://developers.google.com/search/docs/essentials?hl=ja", label: "Google 検索の基本事項" },
+  openaiPublishers: { href: "https://help.openai.com/en/articles/12627856-publishers-and-developers-faq", label: "OpenAI: Publishers and Developers - FAQ" },
 } as const;
 
 export const metadata: Metadata = lessonMetadata(lesson);
@@ -287,6 +288,41 @@ export default function Lesson10() {
             ],
           ]}
         />
+        <h3>参照元の見分け方</h3>
+        <p>
+          アクセス解析でAI検索からの流入を分けるときの目印です。公式に文書化されているのはOpenAIの分だけで、
+          他はブラウザが送る通常のリファラ（サービスのドメイン）で見分けます。リファラを送らない経路（アプリ内ブラウザや一部の設定）では
+          「参照元なし（direct）」に落ちるため、ここで数えられるのは下限です。
+        </p>
+        <GuideTable
+          head={["流入元", "アクセス解析での見え方", "注意"]}
+          rows={[
+            [
+              "ChatGPT",
+              <>参照元 <code>chatgpt.com</code>。回答内の引用リンクには <code>utm_source=chatgpt.com</code> が付く</>,
+              <>
+                OpenAIは、OAI-SearchBotを許可しているサイトはGoogle Analyticsなどで参照元 chatgpt.com を追えると案内しています。
+                <GuideRef {...REF.openaiPublishers} />
+              </>,
+            ],
+            ["Perplexity", <>参照元 <code>perplexity.ai</code></>, "公式の記載は無く、通常のリファラで見分ける"],
+            ["Gemini", <>参照元 <code>gemini.google.com</code></>, "Google検索（google.com）とは別の参照元として出る"],
+            [
+              "GoogleのAIによる概要・AIモード",
+              <>参照元 <code>google.com</code>（通常の検索と同じ）</>,
+              <>
+                参照元では通常の検索と区別できない。Search Consoleでも検索タイプ「ウェブ」に合算される。
+                <GuideRef {...REF.aiFeatures} />
+              </>,
+            ],
+          ]}
+          caption="GA4なら「レポート → 集客 → トラフィック獲得」で、セッションの参照元にサービスのドメインが出ます。utm_source が付いた流入は参照元ではなくキャンペーンの列に寄るので、両方を足して数えます。"
+        />
+        <p>
+          サーバーログでAIクローラーの訪問を数える場合は別の注意があります。User-agentは自己申告なので、名乗るだけの偽装が混ざります。
+          提供元が公開しているIP一覧との照合は
+          <Link href={`${lessonPath("geo-implementation")}#verify`}>レッスン{lessonNo("geo-implementation")}の「なりすましをログで見分ける」</Link>にまとめています。
+        </p>
         <p>
           AI可視性ツールを契約する場合、確認すべきなのは<strong>自分で決めた質問を追跡できるか</strong>（カスタムプロンプトに対応しているか）です。
           ツールが用意した汎用の質問だけでは、自社が本当に出たい場面での可視性は測れません。
