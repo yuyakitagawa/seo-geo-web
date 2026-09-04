@@ -5,7 +5,7 @@
 // 実行: npx tsx scripts/generate-howto.ts [件数=1] [--publish]
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
-import { currentMaxId, requireApiKey, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
@@ -131,7 +131,9 @@ async function main() {
       }
       console.error(`failed ${t.title}: ${(e as Error).message}`);
       t.status = "候補";
-      t.note = `生成失敗: ${(e as Error).message}`;
+      // 生出力の先頭を残す。検査結果だけでは原因（取得失敗・途中終了・形式崩れ）を切り分けられない。
+      const raw = e instanceof GenerationError && e.raw ? ` / 生出力: ${e.raw}` : "";
+      t.note = `生成失敗: ${(e as Error).message}${raw}`;
     }
   }
   saveTopics(list);

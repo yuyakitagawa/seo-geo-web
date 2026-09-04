@@ -54,29 +54,52 @@ export function slugify(title: string, date: string) {
   return ascii.length >= 8 ? ascii : `${date}-${Math.abs(hash(title)).toString(36)}`;
 }
 
+/**
+ * 生成の失敗。raw に生出力の先頭を持たせ、candidates.csv のメモから原因を追えるようにする。
+ * 2026-09-05、web_fetch が url_not_allowed を返した回の生出力が残っておらず、
+ * 「本文13字」という検査結果だけを頼りに再現実行するはめになった。
+ */
+export class GenerationError extends Error {
+  readonly raw: string;
+  constructor(message: string, raw = "") {
+    super(message);
+    this.raw = raw.replace(/\s+/g, " ").trim().slice(0, 200);
+  }
+}
+
+/**
+ * 元記事を取得できなかった合図。プロンプトは「本文の先頭にFETCH_FAILEDとだけ書いて終了」と指示しているが、
+ * モデルは frontmatter を先に出してから本文に書くことがある。先頭一致で見ると素通りして、
+ * 本文13字の記事として検査まで流れてしまう（2026-09-05に発生）ので、単独行として全体から探す。
+ */
+function isFetchFailed(text: string): boolean {
+  return /^FETCH_FAILED\b/m.test(text);
+}
+
 /** 応答から記事MDXを取り出す。最後のtextブロックが本文（途中のtextはツール呼び出し前の前置き） */
 function extractText(response: Anthropic.Message): string {
   if (response.stop_reason === "refusal") {
-    throw new Error(`refusal: ${response.stop_details?.explanation ?? ""}`);
+    throw new GenerationError(`refusal: ${response.stop_details?.explanation ?? ""}`);
   }
   // 最後のtextブロックが記事本文（途中のtextはツール呼び出し前の前置きの可能性がある）
   const texts = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
   const text = texts.at(-1)?.text.trim() ?? "";
-  if (!text || text.startsWith("FETCH_FAILED")) throw new Error("fetch failed");
+  if (!text) throw new GenerationError("空の応答");
+  if (isFetchFailed(text)) throw new GenerationError("fetch failed（元記事を取得できなかった）", text);
   return text;
-}
-
-export function extractMdx(response: Anthropic.Message) {
-  const parsed = matter(extractText(response).replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
-  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
-  return parsed;
 }
 
 function parseMdx(text: string) {
   const parsed = matter(text.replace(/^```(?:mdx|md)?\n([\s\S]*?)\n```$/m, "$1"));
-  if (!parsed.data.title || !parsed.data.date) throw new Error("frontmatter missing title/date");
+  if (!parsed.data.title || !parsed.data.date) throw new GenerationError("frontmatter missing title/date", text);
   return parsed;
 }
+
+/**
+ * 改稿に回してよい草稿の最低文字数。これを下回る草稿は直す材料が無く、
+ * レビューが推測で埋めるだけになるので、その場で捨てる。
+ */
+const REVIEWABLE_MIN_CHARS = 400;
 
 /**
  * 2段階生成: 執筆（web_fetch可）→ 検査に落ちたときだけ編集長レビューで改稿。
@@ -120,11 +143,19 @@ export async function generateWithReview(
     reviewed: false,
   };
 
+  let draftParsed: ReturnType<typeof parseMdx> | null = null;
   try {
-    const parsed = parseMdx(draftText);
-    check(parsed);
-    return { parsed, usage };
+    draftParsed = parseMdx(draftText);
+    check(draftParsed);
+    return { parsed: draftParsed, usage };
   } catch (e) {
+    // レビューは「形を整える」ための工程で、事実を足す手段が無い（改稿にはweb_fetchを渡していない）。
+    // 中身の無い草稿を渡して「検査を通せ」と指示すると、元記事を読まないまま推測で本文を埋める。
+    // 2026-09-05、取得に失敗した候補がこの経路で2,000字超の記事になり、検査を通ってしまった。
+    const draftBody = draftParsed?.content.trim() ?? "";
+    if (draftBody.length < REVIEWABLE_MIN_CHARS) {
+      throw new GenerationError(`草稿の本文が${draftBody.length}字で改稿できない: ${(e as Error).message}`, draftText);
+    }
     // 草稿が型を満たさない場合だけレビューを回す。検査エラーを指示に添えて確実に直させる。
     const final = await client.messages
       .stream({
@@ -139,8 +170,13 @@ export async function generateWithReview(
         ],
       })
       .finalMessage();
-    const parsed = parseMdx(extractText(final));
-    check(parsed);
+    const finalText = extractText(final);
+    const parsed = parseMdx(finalText);
+    try {
+      check(parsed);
+    } catch (err) {
+      throw new GenerationError((err as Error).message, finalText);
+    }
     usage.input += final.usage.input_tokens ?? 0;
     usage.cached += final.usage.cache_read_input_tokens ?? 0;
     usage.output += final.usage.output_tokens ?? 0;

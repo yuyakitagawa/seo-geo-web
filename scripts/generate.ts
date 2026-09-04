@@ -5,7 +5,7 @@
 //   --publish: draft:false で書き出す（GitHub Actions の自動公開用。人のレビューを挟まない）
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
-import { currentMaxId, requireApiKey, generateWithReview, today as jstToday, validate, writeArticle } from "./article";
+import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
 import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -122,7 +122,9 @@ async function main() {
       }
       console.error(`failed ${c.url}: ${(e as Error).message}`);
       c.status = "却下";
-      c.note = `生成失敗: ${(e as Error).message}`;
+      // 生出力の先頭を残す。検査結果だけでは原因（取得失敗・途中終了・形式崩れ）を切り分けられない。
+      const raw = e instanceof GenerationError && e.raw ? ` / 生出力: ${e.raw}` : "";
+      c.note = `生成失敗: ${(e as Error).message}${raw}`;
     }
   }
   saveCandidates(list);
