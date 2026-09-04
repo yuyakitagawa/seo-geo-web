@@ -30,6 +30,19 @@ export function siblingPages(currentHref: string, limit = 3): NavLink[] {
  * ハブページを名指しで取り出す。並び順で回す `siblingPages` と違い、
  * トップから教科書・ツールへ送るような固定の導線で使う。文言をここ1か所に保つのが目的。
  */
+/**
+ * トップの「こんなときは」。読者の困りごとから入る導線で、定義ページ（/seo /geo）の
+ * 「用語から入る」入口と役割を分ける。国内のSEO会社のトップは「こんなお悩みは？」の課題別入口を
+ * 持つのが通例で、当サイトは相談ではなく該当するレッスン・ツールへ送る。
+ * label は読者が口にする言葉、note は行き先で何ができるか。行き先は手順のあるページ（/learn 配下・ツール）に限る。
+ */
+export const PROBLEM_ENTRIES: NavLink[] = [
+  { href: "/learn/geo-implementation", label: "ChatGPT・AI Overviewに自社が出てこない", note: "AI検索クローラーの許可、引用されやすい構造、robots.txtのひな形。" },
+  { href: "/learn/updates-risk", label: "順位が急に落ちた", note: "コアアップデートか手動対策かの切り分けと、やってはいけない対処。" },
+  { href: "/learn/first-week", label: "何から始めればいいか分からない", note: "最初の1週間でやる点検を日ごとに。Search Consoleの見方から。" },
+  { href: "/tools/page-audit", label: "自分のページがどう読まれているか知りたい", note: "URLを入れると、検索エンジンとAI検索の読み方を検査。無料・登録不要。" },
+];
+
 export function hubPages(hrefs: string[]): NavLink[] {
   return hrefs.map((href) => {
     const page = HUB_PAGES.find((p) => p.href === href);

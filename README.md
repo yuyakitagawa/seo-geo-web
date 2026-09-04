@@ -19,7 +19,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 ## ページ構成
 | パス | 内容 |
 |---|---|
-| `/` | 新着記事・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
+| `/` | 新着記事・「こんなときは」（困りごと4つから該当レッスン・ツールへ。文言は `src/lib/nav.ts` の `PROBLEM_ENTRIES`）・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
 | `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
