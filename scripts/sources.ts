@@ -42,7 +42,9 @@ export const FEED_SOURCES: FeedSource[] = [
   { name: "Search Engine Land", url: "https://searchengineland.com/feed", home: "https://searchengineland.com/", kind: "media", paged: true, lang: "en" },
   { name: "Search Engine Journal", url: "https://www.searchenginejournal.com/feed/", home: "https://www.searchenginejournal.com/", kind: "media", paged: true, lang: "en" },
   { name: "Search Engine Roundtable", url: "https://www.seroundtable.com/rss.xml", home: "https://www.seroundtable.com/", kind: "media", lang: "en" },
-  { name: "海外SEO情報ブログ", url: "https://www.suzukikenichi.com/blog/feed/", home: "https://www.suzukikenichi.com/blog/", kind: "media", paged: true, lang: "ja" },
+  // 海外SEO情報ブログ（suzukikenichi.com）は外した。記事化に使う web_fetch が url_not_allowed を返し、
+  // 元記事を読めない（2026-09-05に3回再現。robots.txt は /blog/ を許可しているのでAPI側の判定）。
+  // 候補には挙がるのに1本も書けないので、収集の時点で拾わない。取得できるようになったら戻す。
   // --- ツール検知（Google News 日本語検索） ---
   { name: "Google News: LLMO", url: googleNewsJa("LLMO"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },
   { name: "Google News: GEO対策", url: googleNewsJa("GEO 対策"), kind: "media", lang: "ja", topic: "tools", keywords: TOOL_KEYWORDS },

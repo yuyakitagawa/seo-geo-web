@@ -37,7 +37,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 
 ## 記事パイプライン
 ```
-scripts/sources.ts  収集元（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable / 海外SEO情報ブログ、
+scripts/sources.ts  収集元（公式: Search Central / Search Status / The Keyword / Bing / OpenAI、メディア: SEL / SEJ / SERoundtable、
                     ツール検知: Google News 日本語検索RSS「LLMO」「GEO対策」「AIO対策」「AI検索ツール」「AI visibility」）
       ↓ npm run collect [日数]   content/candidates.csv に「候補」として追記。話題スコア付き。Google NewsのURLは元記事に復号（scripts/googleNews.ts）
       ↓ npm run pick N           「候補」からN件を自動で「採用」に（scripts/pick.ts）。人が手で status を 採用/却下 にしてもよい
@@ -58,7 +58,7 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
 ```
 npm run collect -- --since=2026-03-02 --until=2026-07-14
       ↓ (1) Google News 検索を暦月ごとの日付窓（after: / before:）で掘る。検索語は scripts/sources.ts の BACKFILL_QUERIES（日本語4・英語4）
-      ↓ (2) WordPress フィード（SEL / SEJ / 海外SEO情報ブログ = paged: true）を ?paged=N で遡る
+      ↓ (2) WordPress フィード（SEL / SEJ = paged: true）を ?paged=N で遡る
       ↓     ページ送りは「記事0件」「1ページ目と同じ内容が返った」「窓より古い記事に到達」のどれかで打ち切る（上限15ページ）
       ↓     バックフィル由来の候補は note に「バックフィル」が付く
 npm run pick -- --since=2026-03-02 --until=2026-07-14 --per-month=5
@@ -78,6 +78,9 @@ npm run generate -- 30
 
 どれかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
+**web_fetch が取得できない収集元は `scripts/sources.ts` から外す**。候補には挙がるのに1本も書けず、その日の生成枠だけを消費するため。
+2026-09-05、海外SEO情報ブログ（suzukikenichi.com）を除外した（`url_not_allowed`。robots.txt は許可しているのでAPI側の判定）。残っていた候補47件は「却下」にした。
+
 **元記事を取得できなかった草稿はレビューに回さず、その場で捨てる**（`scripts/article.ts` の `generateWithReview`）。
 改稿にはweb_fetchを渡していないので、中身の無い草稿に「検査を通せ」と指示すると、元記事を読まないまま推測で本文を埋める。
 2026-09-05、`web_fetch` が `url_not_allowed` を返した候補がこの経路で2,000字超の記事になり、`validate()` を通ってしまった（公開前に破棄）。
