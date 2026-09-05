@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
 import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
+import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -27,6 +27,8 @@ const SYSTEM_PROMPT = `${MEDIA_INTRO}
 ${FIGURE_RULES}
 
 ${DEPTH_RULES}
+
+${CREDIBILITY_RULES}
 
 ${AUTHOR_RULES}
 

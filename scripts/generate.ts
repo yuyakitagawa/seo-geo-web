@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
+import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
 追いきれない量の公式発表と海外ソースの中から、担当者が読むべき変更だけを日本語で整理します。
@@ -24,6 +24,8 @@ const SYSTEM_PROMPT = `${MEDIA_INTRO}
 ${FIGURE_RULES}
 
 ${DEPTH_RULES}
+
+${CREDIBILITY_RULES}
 
 ${AUTHOR_RULES}
 
