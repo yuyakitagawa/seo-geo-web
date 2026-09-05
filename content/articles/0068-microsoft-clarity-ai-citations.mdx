@@ -1,0 +1,184 @@
+---
+id: 68
+title: "Microsoft ClarityでAI引用を測ろう。無料で見る5つの指標と使い方"
+description: "Microsoft ClarityのCitationsダッシュボードでは、AI回答で引用されたページ、grounding query、Share of Authority、AI経由流入を確認できます。導入から指名・非指名、トピック分析、データの限界まで解説します。"
+date: "2026-09-05"
+category: geo
+type: howto
+tags: ["GEO", "Microsoft Clarity", "AI引用", "効果測定", "Copilot"]
+impact: "high"
+audience: "AI検索で自社ページが引用されているかを無料で確認したいサイト運営者"
+actions:
+  - "Clarityを導入し、AI VisibilityのCitationsを開く"
+  - "引用数だけでなく、引用ページとgrounding queryを組み合わせて見る"
+  - "指名・非指名を分け、非指名クエリで見つかるテーマを確認する"
+  - "Microsoft系AIを中心としたデータであり、全AIの合計ではないと注記する"
+sources:
+  - title: "Understand Your Influence in AI Answers: Citations Now Generally Available（Microsoft Clarity）"
+    url: "https://clarity.microsoft.com/blog/?p=10305"
+  - title: "Analyze AI Citation Queries by Topic（Microsoft Clarity）"
+    url: "https://clarity.microsoft.com/blog/analyze-ai-citation-queries-by-topic/"
+  - title: "See Branded and Non-Branded AI Queries in the Clarity Citations Dashboard（Microsoft Clarity）"
+    url: "https://clarity.microsoft.com/blog/branded-non-branded-queries/"
+  - title: "Microsoft Clarity Documentation（Microsoft Learn）"
+    url: "https://learn.microsoft.com/en-us/clarity/"
+  - title: "Microsoft Clarity Now Shows Grounding Queries Behind AI Citations（Search Engine Journal）"
+    url: "https://www.searchenginejournal.com/microsoft-clarity-now-shows-grounding-queries-behind-ai-citations/575279/"
+draft: false
+---
+
+## 結論
+
+Microsoft Clarityの**Citations**を使うと、自社ページが対応するAI回答で何回引用されたか、どのページが使われたか、AIが検索に使った語句は何かを無料で確認できます。場所は「Dashboards → AI Visibility → Citations」です。
+
+最初に見るのは総引用数ではありません。**引用されたページとgrounding queryの組み合わせ**です。ここを見ると、「どの質問で出たか」ではなく、「AIが答えを作るために、自社ページをどんな語句で探したか」が分かります。
+
+ただし、これはウェブ上の全AIサービスを横断した完全な数字ではありません。Microsoft系の対応AI体験を中心としたデータとして使い、ChatGPT、Gemini、Perplexity全体の引用数だと説明しないでください。
+
+<FigureCompare
+  title="アクセス解析とCitationsで見える場所"
+  cols={[
+    { label: "従来のアクセス解析", tone: "news", points: ["AIから人が訪問したセッション", "訪問後の行動やコンバージョン", "クリックが無い引用は見えない"] },
+    { label: "Clarity Citations", tone: "accent", points: ["AI回答でページが引用された回数", "引用されたURLとgrounding query", "クリックされなかった引用も対象"] },
+  ]}
+/>
+
+## ClarityのCitationsとは
+
+Microsoftは2026年5月13日、ClarityのCitationsを一般提供しました。AIが回答を作る前にウェブから情報を取得する**grounding**の段階を集計し、サイト運営者に引用状況を表示する機能です。
+
+プロンプト監視ツールの多くは、運営会社が用意した質問をAIへ投げ、その回答を観測します。Citationsは、対応するAI体験の検索・grounding側から得た集計を表示する点が異なります。したがって、自分で登録した数十問だけを測るサンプル調査と、同じ数字ではありません。
+
+一方、利用者が入力した会話全文を見られる機能でもありません。表示されるgrounding queryは、AIが情報を取り出すために使った検索語句です。この違いを押さえておくと、顧客の生の質問だと誤解せずに済みます。
+
+<FigurePipeline
+  title="質問からClarityの引用データになるまで"
+  stages={[
+    { label: "利用者の質問", fail: "会話全文は表示されない" },
+    { label: "AIが検索語句へ分解", fail: "これがgrounding query" },
+    { label: "ウェブからページを取得", fail: "取得されても引用されるとは限らない" },
+    { label: "回答に出典を表示", fail: "引用ページと回数が集計される" },
+    { label: "人がサイトを訪問", fail: "訪問しない引用もある" },
+  ]}
+/>
+
+## 導入手順
+
+### 1. Clarityのプロジェクトを作る
+
+Microsoft Clarityでサイトを登録し、対象ドメインのプロジェクトを作成します。すでにヒートマップやセッション録画で使っている場合は、新しいプロジェクトを増やす必要はありません。
+
+### 2. 計測コードを設置する
+
+Clarityの案内に従って計測コードを全ページへ設置し、動作を確認します。CMS向けの連携方法も公式ドキュメントに用意されています。導入時は自社のプライバシーポリシーと同意管理も確認してください。
+
+### 3. Citationsを開く
+
+管理画面の「Dashboards → AI Visibility → Citations」を開きます。Microsoftの案内では、必要に応じてBing Webmaster ToolsまたはGoogle Search Consoleとの接続によるドメイン所有確認が求められます。
+
+複数ドメインを持つプロジェクトでは、Citations用に1ドメインを選びます。Microsoftは一般提供時点で、設定後に対象ドメインを変更する機能は未対応と説明しています。選択前に本番ドメインを確認してください。
+
+## 最初に見る5つの指標
+
+| 指標 | 意味 | 実務で確認すること |
+| --- | --- | --- |
+| Page citations | 選択期間中に自社ページが引用された総回数 | 増減より、どのページに集中しているか |
+| My cited pages | 引用されたURLと引用回数 | 想定外の古いページが使われていないか |
+| Queries | AIが取得時に使ったgrounding query | ページがどんな意図と結びついているか |
+| Share of Authority | 自社が出たクエリ群で、全引用に占める自社ドメインの割合 | 同じテーマで他ドメインに引用が偏っていないか |
+| AI referral traffic | 全セッションに占めるAIアシスタント経由の割合 | 引用が訪問につながっているか |
+
+Page citationsには、同じ回答内で自社ページが複数回引用された場合も含まれます。また、引用回数は回答内の順位、ページの重要度、AIからの推薦を意味しません。大きな数字だけをKPIにせず、ページとクエリまで掘り下げます。
+
+<FigureFlow
+  title="Citationsを改善判断につなげる順番"
+  steps={[
+    { label: "引用されたページを確認する", desc: "総数ではなくURLから入る" },
+    { label: "紐づくgrounding queryを見る", desc: "AIが認識したテーマを確認する" },
+    { label: "指名・非指名に分ける", desc: "既知のブランド需要と新規発見を分離する" },
+    { label: "トピック単位で競合と比べる", desc: "Share of Authorityが弱い領域を探す" },
+    { label: "AI経由流入と成果を確認する", desc: "引用増加だけをゴールにしない" },
+  ]}
+/>
+
+## 指名・非指名を分けて読む
+
+2026年8月、Clarityはgrounding queryを**branded（指名）とnon-branded（非指名）**に分ける機能を追加しました。
+
+指名クエリの引用が多い場合、AIはすでに自社を探す必要がある場面で公式情報を取得できています。ただし、これは新しい顧客に発見されたことと同じではありません。会社名を含まない非指名クエリでも引用されているかを別に見ます。
+
+日本の勤怠管理サービスなら、次のように分けます。
+
+- 指名：「製品A 料金」「製品A 打刻方法」
+- 非指名：「建設業 勤怠管理 スマホ」「30人規模 勤怠管理 比較」
+
+非指名のShare of Authorityが低ければ、カテゴリの選択肢としてまだ発見されにくい状態です。指名と非指名を合算した総引用数だけでは、この違いを見落とします。
+
+## Query Topicsでテーマ単位にまとめる
+
+grounding queryが増えると、1件ずつ読むだけでは傾向が分かりません。ClarityのQuery Topicsは、関連する引用クエリを自動で細かなテーマにまとめ、テーマごとの引用数とShare of Authorityを表示します。トピック単位のデータはエクスポートもできます。
+
+見る順番は次の通りです。
+
+1. 引用数が多いトピックを見つける
+2. そのトピックで引用されている自社ページを開く
+3. Share of Authorityが低いトピックでは、同時に引用される他ドメインを確認する
+4. 自社ページに欠けている対象条件、比較軸、一次データを調べる
+5. 更新後も同じトピックで期間比較する
+
+トピック名をそのまま見出しへ追加する作業ではありません。該当ページが質問に直接答えているか、古い情報が残っていないか、主張の根拠があるかを確認してください。
+
+## 影響を受けるページ・クエリ
+
+Citationsで優先して確認するのは、比較記事、調査記事、用語解説、料金・仕様、サポート文書です。AIが回答の根拠として取り出しやすく、引用ページとgrounding queryの関係を判断しやすいからです。
+
+ECサイトなら、商品一覧の引用数だけでなく、選び方、サイズ表、素材、返品条件のページを確認します。BtoBサイトなら、導入事例、料金、機能比較、業界別ページを分けます。トップページだけが指名クエリで引用されていても、比較検討中の非指名クエリを取れているとは限りません。
+
+## ClarityだけでGEO全体を測れない理由
+
+Microsoftの公式ページは対象を「supported AI experiences」と表現しており、全AIサービスを横断した集計とは説明していません。Search Engine Journalの検証記事も、データは主にCopilotやBingの生成AI検索などMicrosoft側のAI体験を反映し、ChatGPT独自検索、Gemini、Perplexityの内部groundingログを直接見せるものではないと指摘しています。
+
+そのため、Clarityの引用数を「全AIで今月100回引用された」と報告するのは誤りです。次の3層を分けてください。
+
+1. Clarity：対応するAI体験での引用とgrounding query
+2. プロンプト反復計測：ChatGPT、Gemini、Perplexityなど個別サービスでの出現率
+3. GA4など：AIサービスから実際に来た訪問とコンバージョン
+
+この3つは一致しなくて正常です。引用されてもクリックされないことがあり、名前だけ出てURLが引用されないこともあります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="ClarityのAI引用データを正しく使う"
+  dos={[
+    "引用ページとgrounding queryを組み合わせて確認する",
+    "指名・非指名を分け、非指名の発見力を見る",
+    "Query TopicsとShare of Authorityで改善対象を絞る",
+    "AI経由流入・問い合わせなど下流の成果と並べる",
+  ]}
+  donts={[
+    "総引用数だけをGEOの成果にする",
+    "grounding queryを利用者が入力した会話全文だと説明する",
+    "Clarityの数字をChatGPT・Geminiを含む全AIの合計と呼ぶ",
+    "引用回数を回答内の順位や推薦回数として扱う",
+  ]}
+/>
+
+## よくある質問
+
+### Microsoft ClarityのCitationsは無料ですか
+
+Clarityは無料で提供されており、CitationsはClarityプロジェクトで一般提供されています。利用開始にはプロジェクト作成と計測コードの設置が必要です。ドメイン所有確認を求められる場合があります。
+
+### ChatGPTで引用された回数も分かりますか
+
+ChatGPT全体の引用回数を直接確認する機能ではありません。Clarityは対応するAI体験の引用データを表示しますが、ChatGPT独自検索、Gemini、Perplexityの内部ログを横断して取得するものではありません。各サービスでの露出は[反復計測の方法](/articles/67)と組み合わせてください。
+
+### grounding queryは利用者が入力したプロンプトですか
+
+同じものではありません。grounding queryは、AIが回答に使う情報を探すために生成した検索語句です。利用者の質問が複数の短い検索語句に分解されることもあります。
+
+### 引用数が増えたらGEO施策は成功ですか
+
+引用されたテーマが事業に関係し、情報が正しく使われ、必要な人の訪問や問い合わせにつながっているかまで確認してください。引用数だけ増えても、古いページや関係の薄いクエリに偏っていれば成功とは判断できません。
+
