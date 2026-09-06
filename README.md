@@ -88,12 +88,16 @@ APIエラー時は「採用」のまま次回に回し、内容起因の失敗�
 (2) 草稿の本文が400字未満なら改稿しない。落ちたときは**生出力の先頭200字**を候補のメモに残す（検査結果だけでは取得失敗・途中終了・形式崩れを切り分けられないため）。
 `ANTHROPIC_API_KEY` が無いときは1件も消費せず即終了する（`scripts/article.ts` の `requireApiKey()`）。キー未設定だとSDKが候補ごとに素の Error を投げ、「採用」が全部「却下」に落ちるため。ローカルで動かすときは `.env` を読まないので実行前に `export ANTHROPIC_API_KEY=...` する。
 **失敗はLINEに飛ぶ**（Actions Secrets に `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` を入れたときだけ。未設定なら黙ってスキップ）。
-ワークフローの赤は誰も見ていない前提で運用する。
-**公開もLINEに飛ぶ**（`scripts/notify.ts`）。公開した記事のぶんだけ、**Xの投稿文**を送る。
-**1記事につき2通**——①本体ツイート（本文＋ハッシュタグ）②その投稿にぶら下げるリプライ（記事URL）。
+ワークフローの赤は誰も見ていない前提で運用する。LINEを使わないなら、GitHubの通知設定
+（Settings > Notifications > Actions）で失敗をメールで受けること。**通知経路が1つも無いと失敗に気づけない**
+（2026-08-28〜29 に3回失敗していたが、Secrets未設定で誰にも届いていなかった）。
+
+**公開すると、その日のXの投稿文が実行ページのサマリに出る**（`scripts/notify.ts`）。
+**1記事につき2つ**——①本体ツイート（本文＋ハッシュタグ）②その投稿にぶら下げるリプライ（記事URL）。
 外部リンクを含む投稿はリーチが落ちるので、URLは本体に入れずリプライに回す。
-LINEで長押し→コピー→Xに貼る運用で、自動投稿はしない（文面と投稿タイミングは人が決める）。
-手で作った記事を通知したいときは `npm run notify -- content/articles/0123-foo.mdx`（認証情報が無ければ文面をログに出すだけ）。
+サマリはコードブロックなのでコピーボタンから貼れる。自動投稿はしない（文面と投稿タイミングは人が決める）。
+LINEのSecretsを入れれば同じものがLINEにも届く（スマホで受け取りたいときだけ。無くてもサマリには出る）。
+手で作った記事の文面が欲しいときは `npm run notify -- content/articles/0123-foo.mdx`（Actionsの外では標準出力に出る）。
 
 投稿文は**Claudeが記事本文を読んで書く**（`scripts/x-post.ts`）。形は「フック1行＋空行＋要点2〜3行」で、
 ハッシュタグと文字数の勘定は機械側（`src/lib/xpost.ts`）が持つ（Xの重み付き280字＝半角1・全角2）。
@@ -463,7 +467,9 @@ npm run prompt-gap -- --all            # 「保留」も含める
   `robots.ts` / `sitemap.ts` / `manifest.ts`）は `force-static`。`output: "export"` ではこれが無いとビルドが落ちる。全ページが静的生成。
   OGP 画像とアイコンは拡張子無しのファイル（`/articles/1/opengraph-image` など）で書き出されるので、`vercel.json` の `headers` で `image/png` を付ける。
 - `robots.txt` は全クローラーに `Allow: /`（`/api/` だけ除外）。ただし商用SEOクローラー8種は `Disallow: /`（`src/lib/scrapers.ts`）。
-  `Crawl-delay: 5` も出す。Googlebot は無視する仕様だが、Bingと小規模クローラーには効く。
+  `Crawl-delay: 5` は `User-agent: *` にだけ出す。**AI検索（`ai-search`）と検索エンジン（`search`）は専用グループにして待たせない**
+  ——記事が出た日のうちに取りに来てほしい経路だから。待たせるのはAI学習用（GPTBot / ClaudeBot / CCBot など）と、
+  名前も知らない小規模クローラー。Googlebot は Crawl-delay を無視する仕様なので、実際に効くのは Bingbot 以降。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
   `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
   **図案は `src/lib/icon.tsx` だけ**にあり、上のルートは全部そこを描画する。Xのアイコンは円形に切られるので四隅には何も置かない。
@@ -487,6 +493,33 @@ npm run prompt-gap -- --all            # 「保留」も含める
   **PVだけでは「そのページから次へ行けたか」が分からない**ため、回遊導線（`NextStep` / `ShareButtons`）の
   効果はこのイベントでしか確認できない。
 - Speed Insights は無料枠（10k イベント/30日）で止まるだけなので置いたまま。Vercel Analytics は Pro では無料枠が無く従量課金で、GA4 と重複するので外した。
+
+### 自分以外のアクセスが来ているかの見方
+静的エクスポート（`output: "export"`）なので、**ページ表示のリクエストはサーバーログに残らない**
+（Vercel の Runtime Logs に出るのは `/api/*` の関数呼び出しだけ）。読める場所は3つしかない。
+
+1. **GA4** … 人の訪問。JSを実行しないAIクローラーは1件も載らない。自分のアクセスは内部トラフィック除外を設定して落とす
+2. **Search Console** … 検索での表示・クリック。CSVを `data/gsc/` に置いて `npm run gsc`
+3. **`seogeo_audit_log`** … `/tools/page-audit` が検査したホストとパス（保持30日）。自分が検査したホストを除けば外部利用が分かる
+
+AIクローラーの巡回だけはどこにも残らない（「未着手 / 将来」の項）。
+
+### 環境変数と、その欠落に気づく方法
+envで入り切りする機能は**例外を出さずに静かに無効化される**ので、入れ忘れても本番は普通に動いてしまう。
+`npm run build`（本番ビルド）のたびに有効・無効の一覧をログへ出す（`next.config.ts` の `logFeatureFlags`）。
+Vercelのデプロイログでも同じものが読める。判定は各機能の実装から import していて、条件を書き写していない。
+
+| 機能 | Vercel（本番）に要るenv | 無いとどうなるか |
+|---|---|---|
+| ページ診断の利用ログ | `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` | 診断は動くが記録が1件も残らない |
+| お問い合わせフォーム | `LINE_CHANNEL_ACCESS_TOKEN`+`LINE_USER_ID`、または `RESEND_API_KEY`+`CONTACT_FROM_EMAIL`+`CONTACT_TO_EMAIL` | `/contact` にフォームが出ず、窓口は `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X だけになる |
+| GA4 | `NEXT_PUBLIC_GA_ID` | 訪問が一切測れない |
+| AdSense | `NEXT_PUBLIC_ADSENSE_CLIENT` ほか | 広告・`ads.txt`・所有権確認metaが出ない |
+
+**Vercelのenv と GitHub Actions の Secrets は別物**で、必要なものが違う。
+Actions側は `ANTHROPIC_API_KEY`（無いと記事が1本も作られない）と、任意で `LINE_*`（失敗通知。無いならGitHubのメール通知で受ける）。
+
+2026-09-06 時点で `SUPABASE_*` がVercelに入っておらず、`/tools/page-audit` の利用ログが0件だった。この表と上のビルドログはその再発防止。
 
 ## AdSense審査で見られる点（実装済み）
 - 固定ページ: `/about`（運営者・記事の作り方・編集方針・FAQ）/ `/privacy` / `/disclaimer` / `/contact`。全ページのフッターから到達できる
