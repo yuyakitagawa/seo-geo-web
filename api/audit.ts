@@ -42,14 +42,9 @@ export async function POST(request: Request) {
     res.headers.forEach((v, k) => (headers[k.toLowerCase()] = v));
 
     const origin = new URL(finalUrl).origin;
-    const [robotsTxt, hasLlmsTxt] = await Promise.all([
-      fetchChecked(`${origin}/robots.txt`, "text/plain")
-        .then(async ({ res: r }) => (r.ok ? (await readCapped(r)).text : null))
-        .catch(() => null),
-      fetchChecked(`${origin}/llms.txt`, "text/plain")
-        .then(({ res: r }) => r.ok)
-        .catch(() => false),
-    ]);
+    const robotsTxt = await fetchChecked(`${origin}/robots.txt`, "text/plain")
+      .then(async ({ res: r }) => (r.ok ? (await readCapped(r)).text : null))
+      .catch(() => null);
 
     // サイトマップは robots.txt の Sitemap 行を優先し、無ければ /sitemap.xml を見る（本文は読まず、200かどうかだけ）
     const sitemapUrl = (robotsTxt ? parseRobots(robotsTxt).sitemaps[0] : undefined) ?? `${origin}/sitemap.xml`;
@@ -64,7 +59,6 @@ export async function POST(request: Request) {
       headers,
       html,
       robotsTxt,
-      hasLlmsTxt,
       sitemap: { url: sitemapUrl, ok: sitemapOk },
       bytes,
       elapsedMs,

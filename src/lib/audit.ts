@@ -3,6 +3,7 @@
 // 指摘は「該当コード（実物）＋修正方針＋入れる場所＋修正後のコード」で返す。根拠がある項目には公式ドキュメントを添える。
 // 「無い」ものの指摘は該当コードが取れないので、実物のheadや見出しを並べて追加位置に印を入れる（headSpot）。
 import { parse, type HTMLElement } from "node-html-parser";
+import { aiView, type AiView } from "./aiView";
 import { CRAWLERS } from "./crawlers";
 import { check, parseRobots } from "./robots";
 
@@ -49,6 +50,7 @@ export const CHECKLIST: CheckItem[] = [
   { id: "lang", area: "tech", label: "lang 属性", findingIds: ["lang"] },
   { id: "charset", area: "tech", label: "文字コード（charset）", findingIds: ["charset"] },
   { id: "viewport", area: "tech", label: "viewport", findingIds: ["viewport"] },
+  { id: "heading-order", area: "tech", label: "見出しの階層の飛び（アクセシビリティ）", findingIds: ["heading-order"] },
   { id: "speed", area: "tech", label: "取得時間とHTMLサイズ", findingIds: ["slow"] },
   { id: "robots", area: "tech", label: "robots.txt によるクロール可否（Googlebot）", findingIds: ["robots-missing", "robots-googlebot"] },
   { id: "robots-sitemap", area: "tech", label: "robots.txt の Sitemap 行", findingIds: ["robots-sitemap"] },
@@ -58,7 +60,6 @@ export const CHECKLIST: CheckItem[] = [
   { id: "description", area: "seo", label: "meta description の有無と長さ", findingIds: ["description", "description-length"] },
   { id: "title-description", area: "seo", label: "title と description が別の文か", findingIds: ["title-description-same"] },
   { id: "h1", area: "seo", label: "h1 の個数", findingIds: ["h1", "h1-multiple"] },
-  { id: "heading-order", area: "seo", label: "見出しの階層の飛び", findingIds: ["heading-order"] },
   { id: "semantic", area: "seo", label: "main / article 要素（本文の範囲）", findingIds: ["semantic"] },
   { id: "img-alt", area: "seo", label: "alt の無い画像", findingIds: ["img-alt"] },
   { id: "ogp", area: "seo", label: "OGP と Twitter Card", findingIds: ["ogp"] },
@@ -73,16 +74,15 @@ export const CHECKLIST: CheckItem[] = [
   { id: "nosnippet", area: "geo", label: "スニペット制御（nosnippet・max-snippet:0）", findingIds: ["nosnippet"] },
   { id: "lead", area: "geo", label: "冒頭の直答文の長さ", findingIds: ["no-lead", "lead-long"] },
   { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-late"] },
-  { id: "faq", area: "geo", label: "質問と回答の形式・FAQPage", findingIds: ["faq", "faq-jsonld"] },
+  { id: "faq", area: "geo", label: "質問と回答の形式（解説ページのみ）", findingIds: ["faq"] },
   { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
-  { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%）", findingIds: ["geo-quotation"] },
+  { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%。出典のあるページのみ）", findingIds: ["geo-quotation"] },
   { id: "geo-statistics", area: "geo", label: "具体的な数値（同 約32%）", findingIds: ["geo-statistics"] },
   { id: "geo-fluency", area: "geo", label: "1文の長さ（同 約29%）", findingIds: ["geo-fluency"] },
   { id: "geo-keyword-stuffing", area: "geo", label: "キーワードの詰め込み（同 効果なし）", findingIds: ["geo-keyword-stuffing"] },
-  { id: "date", area: "geo", label: "公開日・更新日の機械可読性", findingIds: ["date"] },
-  { id: "organization", area: "geo", label: "運営者の構造化データ（Organization / publisher）", findingIds: ["organization"] },
+  { id: "date", area: "geo", label: "公開日・更新日の機械可読性（記事ページのみ）", findingIds: ["date"] },
+  { id: "organization", area: "geo", label: "運営者の構造化データ（トップ・運営者紹介ページのみ）", findingIds: ["organization"] },
   { id: "robots-ai", area: "geo", label: "AI検索クローラー（OAI-SearchBot等）の許可状況", findingIds: ["robots-ai"] },
-  { id: "llms", area: "geo", label: "/llms.txt", findingIds: ["llms"] },
 ];
 
 export type AuditInput = {
@@ -95,8 +95,6 @@ export type AuditInput = {
   html: string;
   /** 同じホストの /robots.txt（取得できなければ null） */
   robotsTxt: string | null;
-  /** 同じホストの /llms.txt が 200 で返ったか */
-  hasLlmsTxt: boolean;
   /** サイトマップ（robots.txt の Sitemap 行、無ければ /sitemap.xml）が 200 で返ったか。確認したURLを添える */
   sitemap: { url: string; ok: boolean };
   bytes: number;
@@ -113,6 +111,8 @@ export type AuditResult = {
   textLength: number;
   /** ヘッダー・ナビ・フッターを除いた本文テキストの先頭200字。AI検索のスニペットはこの範囲から作られる */
   head200: string;
+  /** 人が見る画面とAIクローラーが受け取るHTMLの差 */
+  aiView: AiView;
   /** head200 のうち、最初の見出しに到達するまでの文字数。範囲内に見出しが無ければ null */
   h1Offset: number | null;
   findings: Finding[];
@@ -129,7 +129,6 @@ const SRC = {
   starter: G("fundamentals/seo-starter-guide", "Google 検索セントラル: SEO スターター ガイド"),
   structured: G("appearance/structured-data/intro-structured-data", "Google 検索セントラル: 構造化データの仕組み"),
   article: G("appearance/structured-data/article", "Google 検索セントラル: Article 構造化データ"),
-  faq: G("appearance/structured-data/faqpage", "Google 検索セントラル: FAQ 構造化データ"),
   breadcrumb: G("appearance/structured-data/breadcrumb", "Google 検索セントラル: パンくずリスト構造化データ"),
   sitemap: G("crawling-indexing/sitemaps/overview", "Google 検索セントラル: サイトマップについて"),
   robots: G("crawling-indexing/robots/intro", "Google 検索セントラル: robots.txt の概要"),
@@ -138,12 +137,55 @@ const SRC = {
   aiGuide: G("fundamentals/ai-optimization-guide", "Google 検索セントラル: Google 検索の生成 AI 機能向けにウェブサイトを最適化する"),
   robotsMeta: G("crawling-indexing/robots-meta-tag", "Google 検索セントラル: robots meta タグ、data-nosnippet、X-Robots-Tag の仕様"),
   organization: G("appearance/structured-data/organization", "Google 検索セントラル: 組織（Organization）構造化データ"),
+  dates: G("appearance/publication-dates", "Google 検索セントラル: 検索結果にバイライン日付を表示する"),
 };
 
 const HTML_SPEC_MAIN = { title: "HTML Living Standard: the main element", url: "https://html.spec.whatwg.org/multipage/grouping-content.html#the-main-element" };
+const WAI_HEADINGS = { title: "W3C WAI: Page Structure Tutorial – Headings", url: "https://www.w3.org/WAI/tutorials/page-structure/headings/" };
 
 /** 「こちら」だけのようなリンク文言。リンク先が何かを文言が伝えていない */
 const VAGUE_ANCHOR = /^(こちら|ここ|これ|詳しくはこちら|詳細はこちら|詳細|続きを読む|続き|もっと見る|more|read more|click here|here|link|リンク)$/i;
+
+/**
+ * ページの種類。質問と回答・原文の引用・公開日のように「そもそも入れるべきでないページ」がある指摘を、
+ * 種類で出し分けるために使う。誤判定を避けるため、URLのパス区切りと完全一致する語・JSON-LDの @type・
+ * 本文の量だけを見る（本文中に「プライバシー」と書いてあるだけの記事を規約ページ扱いしない）。
+ */
+export type PageKind = "article" | "list" | "legal" | "form" | "about" | "home" | "other";
+
+/** 規約・ポリシー系。他人の原文を引用する場所でも、質問と回答を並べる場所でもない */
+const LEGAL_SEG = /^(privacy|privacy-?policy|policy|policies|terms|terms-?of-?(service|use)|tos|legal|disclaimer|copyright|kiyaku|tokushoho|tokutei|sctl)(\.html?|\.php)?$/;
+/** 入力フォームが主役のページ */
+const FORM_SEG = /^(contact|contacts|contact-?us|inquiry|inquiries|otoiawase|form|forms|entry|apply|application|estimate|mitsumori|reserve|reservation|booking|signup|sign-?up|register|login|signin|sign-?in|cart|checkout|mypage|thanks|thankyou)(\.html?|\.php)?$/;
+/** 記事の一覧・検索結果 */
+const LIST_SEG = /^(tag|tags|category|categories|archive|archives|search|page|list)(\.html?|\.php)?$/;
+/** 運営者の紹介。Organization 構造化データの置き場所 */
+const ABOUT_SEG = /^(about|about-?us|company|corporate|profile|who-?we-?are|kaisha|gaiyou|unei)(\.html?|\.php)?$/;
+
+export function classifyPage(a: {
+  path: string;
+  ldTypes: string[];
+  hasArticleEl: boolean;
+  /** 段落（p）から数えた本文の文字数 */
+  proseLength: number;
+  linkCount: number;
+}): PageKind {
+  const segs = a.path.toLowerCase().split("/").filter(Boolean);
+  const ld = (re: RegExp) => a.ldTypes.some((t) => re.test(t));
+  if (ld(/^(TermsOfService|PrivacyPolicy)$/i) || segs.some((x) => LEGAL_SEG.test(x))) return "legal";
+  if (ld(/^(ContactPage|CheckoutPage)$/i) || segs.some((x) => FORM_SEG.test(x))) return "form";
+  if (ld(/^(CollectionPage|SearchResultsPage|ItemList)$/i) || segs.some((x) => LIST_SEG.test(x))) return "list";
+  if (ld(/(Article|BlogPosting|NewsArticle|HowTo|Recipe|Report)/i)) return "article";
+  if (ld(/^AboutPage$/i) || segs.some((x) => ABOUT_SEG.test(x))) return "about";
+  if (segs.length === 0) return "home";
+  // 宣言が無いページは中身で見る。リンクばかりで段落が少なければ一覧、まとまった本文があれば記事
+  if (a.linkCount >= 20 && a.proseLength < 600) return "list";
+  if (a.hasArticleEl || a.proseLength >= 1000) return "article";
+  return "other";
+}
+
+/** 解説として読ませるページ。質問と回答を置く意味があるのはここだけ（一覧・規約・フォームには置かない） */
+const READS_AS_DOC = new Set<PageKind>(["article", "about", "home", "other"]);
 
 /** canonical と実URLの比較用。末尾スラッシュ・フラグメント・ホストの大文字小文字の違いは同一とみなす */
 function normalizeUrl(raw: string): string {
@@ -209,7 +251,15 @@ export function audit(input: AuditInput): AuditResult {
   const head = root.querySelector("head");
   const body = root.querySelector("body") ?? root;
   const text = textOf(body);
+  const host = new URL(input.finalUrl).host;
   const path = new URL(input.finalUrl).pathname;
+  const depth = path.split("/").filter(Boolean).length;
+  const links = body.querySelectorAll("a[href]");
+  /** 段落（p）だけを連結した本文。ナビや一覧の文言を混ぜない */
+  const paragraphText = body
+    .querySelectorAll("p")
+    .map((x) => x.text.replace(/\s+/g, " ").trim())
+    .join(" ");
 
   // ---------- 技術 ----------
   if (input.status !== 200) {
@@ -470,12 +520,14 @@ export function audit(input: AuditInput): AuditResult {
   if (jumps.length > 0) {
     add({
       id: "heading-order",
-      area: "seo",
+      area: "tech",
       severity: "low",
       title: `見出しの階層が${jumps.length}か所で飛んでいます`,
-      detail: "階層が飛ぶと、どのセクションに属する話かが機械的に読めません。AIが本文を切り出すときの単位もずれます。",
+      detail:
+        "スクリーンリーダーは見出しの階層でページを移動するため、h2 の次に h4 が来ると節の入れ子が読み取れません。ただし検索順位の話ではありません。GoogleはSEOスターターガイドで、見出しが順番どおりでなくても検索の観点では問題にしないと明記しています。",
       code: jumps.slice(0, 5).join("\n"),
-      fix: "見た目の大きさではなく、話の入れ子で h2 → h3 の順に振り直します。",
+      fix: "見た目の大きさではなく、話の入れ子で h2 → h3 の順に振り直します。文字の大きさはCSSで決めます。急ぐ指摘ではありません。",
+      source: WAI_HEADINGS,
     });
   }
 
@@ -590,27 +642,36 @@ export function audit(input: AuditInput): AuditResult {
     skip("article-props");
   }
 
-  // 運営者。サイトの発信元が構造化データで名乗られているか（JSON-LD が1つも無いページには jsonld の指摘に含めるので重ねて出さない）
+  const kind = classifyPage({
+    path,
+    ldTypes: types,
+    hasArticleEl: body.querySelector("article") !== null,
+    proseLength: paragraphText.length,
+    linkCount: links.length,
+  });
+
+  // 運営者。Googleは「ホームページか、組織を説明するページ1枚に置けばよく、全ページに入れる必要はない」と書いているので、
+  // トップと運営者紹介ページだけで判定する。JSON-LD が1つも無いページは jsonld の指摘に含めるので重ねて出さない
   const ldRaw = ldNodes.map((n) => n.text).join(" ");
-  if (ldNodes.length === 0) {
+  if (ldNodes.length === 0 || (kind !== "home" && kind !== "about")) {
     skip("organization");
   } else if (!types.some((t) => /Organization|Person/i.test(t)) && !/"publisher"\s*:/.test(ldRaw)) {
     add({
       id: "organization",
       area: "geo",
       severity: "low",
-      title: "運営者（Organization / publisher）が構造化データにありません",
-      detail: "誰が運営するサイトかが機械可読になっていません。AI検索は発信者が特定できるページを引用元に選びやすく、Google はナレッジパネルの材料にします。",
+      title: "運営者（Organization）が構造化データにありません",
+      detail:
+        "誰が運営するサイトかが機械可読になっていません。Googleは Organization 構造化データについて「ホームページか、about us のように組織を説明するページに置くことを推奨する。サイトの全ページに入れる必要はない」と書いており、このページはその置き場所にあたります。",
       code: `検出した @type: ${types.join(", ")}`,
-      fix: "サイト共通の JSON-LD に Organization（個人運営なら Person）を置き、記事の publisher から @id で参照します。",
+      fix: "このページの JSON-LD に Organization（個人運営なら Person）を追加します。他のページに重ねて置く必要はありません。",
       fixCode: `{"@type":"Organization","@id":"https://${new URL(input.finalUrl).host}/#organization","name":"（運営者名）","url":"https://${new URL(input.finalUrl).host}/","sameAs":["https://x.com/（公式アカウント）"]}`,
-      where: { note: "全ページ共通のレイアウト。記事の JSON-LD には \"publisher\": {\"@id\": \"…#organization\"} を書きます。" },
+      where: { note: "このページ（トップまたは運営者紹介ページ）の JSON-LD。@id を振っておくと、他のページから参照できます。" },
       source: SRC.organization,
     });
   }
 
   // パンくず。トップ以外のページは、サイト内での位置を機械可読にする
-  const depth = path.split("/").filter(Boolean).length;
   if (depth === 0 || ldNodes.length === 0) skip("breadcrumb");
   else if (!types.some((t) => /BreadcrumbList/i.test(t))) {
     add({
@@ -722,34 +783,25 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  // 質問と回答は、読者の疑問に答えるページに置くもの。一覧・規約・フォームのページには置く場所が無いので判定しない
   const hasFaqJsonLd = types.some((t) => /FAQPage/i.test(t));
   const hasFaqHeading = headings.some((h) => /よくある質問|FAQ|Q&A/i.test(h.text));
-  if (!hasFaqJsonLd && !hasFaqHeading) {
+  if (!READS_AS_DOC.has(kind) || text.length < 800) skip("faq");
+  else if (!hasFaqJsonLd && !hasFaqHeading) {
     add({
       id: "faq",
       area: "geo",
       severity: "low",
       title: "質問と回答の形式がありません",
-      detail: "AI検索は質問文に対応する短い回答を探します。見出しを質問文にした節があると、そのまま引用の単位になります。",
-      fix: "「よくある質問」の見出しを作り、質問文の見出しの直下に、単体で意味が通る2〜3文の回答を書きます。",
+      detail:
+        "読者が打つ質問と同じ文を見出しにして直下で答えると、その節だけで意味が通る単位になります。ただしGoogleは、AIのために本文を細かく分割する必要は無いとも書いています。無理に増やす項目ではありません。",
+      fix: "実際に来る質問を、質問文のままの見出しにして、直下に単体で意味が通る2〜3文の回答を書きます。FAQPage 構造化データのリッチリザルトは2026年5月7日にGoogle検索から廃止されたので、マークアップを足す必要はありません。",
       fixCode: "## よくある質問\n### （質問文）\n（質問を読まなくても意味が通る回答）",
       where: { note: "本文の末尾。まとめの前後に節として置きます。" },
-      source: SRC.faq,
-    });
-  } else if (hasFaqHeading && !hasFaqJsonLd) {
-    add({
-      id: "faq-jsonld",
-      area: "geo",
-      severity: "low",
-      title: "FAQの見出しはありますが FAQPage 構造化データがありません",
-      detail: "本文のFAQを機械可読にできていません。可視テキストと同じ文言で宣言します。",
-      fix: "本文のQ&Aと一言一句同じ内容で FAQPage を出力します（別の文言を書かない）。",
-      source: SRC.faq,
+      source: SRC.aiGuide,
     });
   }
 
-  const host = new URL(input.finalUrl).host;
-  const links = body.querySelectorAll("a[href]");
   const externals = links.filter((a) => {
     const href = a.getAttribute("href") ?? "";
     return /^https?:\/\//i.test(href) && !href.includes(host);
@@ -836,17 +888,14 @@ export function audit(input: AuditInput): AuditResult {
   // ---------- GEO（論文 GEO-bench の実測に基づく観点） ----------
   // 引用・統計・読みやすさ・出典が可視性を上げ、キーワードの詰め込みは効かない、という測定結果を
   // 「ページにその要素があるか」に落として見る。数値は論文の測定値をそのまま使う。
-  // 文の長さはナビや一覧の文言を混ぜないよう、段落（p）だけから数える
-  const sentences = body
-    .querySelectorAll("p")
-    .map((x) => x.text.replace(/\s+/g, " ").trim())
-    .join(" ")
+  const sentences = paragraphText
     .split(/(?<=[。！？])/)
     .map((x) => x.trim())
     .filter((x) => x.length > 0);
   const longSentences = sentences.filter((x) => x.length > 100);
 
-  if (text.length < 1000) skip("geo-quotation");
+  // 引用は「他所の一次情報を根拠に説明するページ」で効く。出典が1本も無いページは citation で指摘済みなので重ねない
+  if (text.length < 1000 || kind !== "article" || externals.length === 0) skip("geo-quotation");
   else {
     const quoteEls = body.querySelectorAll("blockquote, q").filter((e) => e.text.trim().length >= 10);
     const quotedSpans = text.match(/[「『“"][^「」『』“”"]{15,}[」』”"]/g) ?? [];
@@ -947,20 +996,23 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  // 日付。Googleの案内は Article などの CreativeWork を対象にしたものなので、記事系のページだけで判定する
   const hasDate =
     body.querySelector("time") !== null ||
     ldNodes.some((n) => /datePublished|dateModified/.test(n.text));
-  if (!hasDate) {
+  if (kind !== "article") skip("date");
+  else if (!hasDate) {
     add({
       id: "date",
       area: "geo",
-      severity: "mid",
+      severity: types.some((t) => /(Article|BlogPosting|NewsArticle)/i.test(t)) ? "mid" : "low",
       title: "公開日・更新日が機械可読になっていません",
-      detail: "AI検索は情報の新しさを判断材料にします。日付が読めないページは古い情報として扱われる可能性があります。",
-      fix: "本文に日付を表示し、time要素か構造化データで宣言します。",
+      detail:
+        "Googleは、記事の日付を検索結果に出すために「読者が見える日付をページに目立つように置く」ことと「Article などの構造化データで datePublished / dateModified を指定する」ことを勧めています。どちらも無いと、いつの情報かを機械が判断できません。",
+      fix: "本文に日付を表示し、time要素か構造化データで宣言します。表示している日付と構造化データの日付は一致させます。",
       fixCode: '<time datetime="2026-08-30">2026年8月30日</time>',
       where: { note: "h1 の直下（本文の日付表示）。JSON-LD の datePublished でも構いません。" },
-      source: SRC.article,
+      source: SRC.dates,
     });
   }
 
@@ -1037,20 +1089,6 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
-  if (!input.hasLlmsTxt) {
-    add({
-      id: "llms",
-      area: "geo",
-      severity: "low",
-      title: "/llms.txt はありません（Google 検索には不要）",
-      detail:
-        "Google は公式ドキュメントで、Google 検索は llms.txt を使わないと明言しています。置いても順位・可視性は上がりも下がりもしません。ただし同じドキュメントは Google 以外のサービス向けに置くこと自体は問題ないとしており、対応するAIサービスが増えれば意味を持つ可能性はあります。",
-      fix: "Google 検索のために置く必要はありません。Google 以外のAIサービスへの備えとして置くなら、主要ページと方針を llmstxt.org の提案仕様に沿ってMarkdownで書き、参照されているかをアクセスログで確認します。",
-      where: { note: `置く場合はドメイン直下: https://${host}/llms.txt` },
-      source: SRC.aiGuide,
-    });
-  }
-
   const counts: Record<Severity, number> = { high: 0, mid: 0, low: 0, ok: 0 };
   for (const f of findings) counts[f.severity]++;
   const failed = new Set(findings.map((f) => f.id));
@@ -1064,6 +1102,7 @@ export function audit(input: AuditInput): AuditResult {
     redirects: input.redirects,
     textLength: text.length,
     head200,
+    aiView: aiView({ body, text, ldTypes: types, metaDescription: desc }),
     h1Offset,
     findings: findings.sort((a, b) => ({ high: 0, mid: 1, low: 2, ok: 3 })[a.severity] - ({ high: 0, mid: 1, low: 2, ok: 3 })[b.severity]),
     counts,

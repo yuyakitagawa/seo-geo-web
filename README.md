@@ -203,6 +203,23 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   2026-09-04 に webpita.com の AIO チェックツールを参考に6項目を足した: charset、サイトマップの取得可否（robots.txt の Sitemap 行を優先、無ければ /sitemap.xml。
   `api/audit.ts` が 200 かどうかだけ見る）、Article の author、下層ページの BreadcrumbList（JSON-LD が1つも無いページには重ねて出さない）、
   本文中の内部リンク（nav・header・footer のリンクは数えない）、運営者情報・著者・連絡先への導線（E-E-A-T）。判定は `src/lib/audit.test.ts`。
+  2026-09-06 に「そのページに入れるべきでない指摘」を出さないよう、ページの種類（`classifyPage()`: article / list / legal / form / about / home / other）で出し分けた。
+  種類はURLのパス区切りと完全一致する語・JSON-LDの `@type`・段落の量だけで決める（本文中の語には反応させない）。
+  - 質問と回答（`faq`）: 一覧・規約・フォームのページと本文800字未満では判定しない。FAQリッチリザルトは 2026-05-07 にGoogle検索から廃止されたので、`FAQPage` を促す指摘（`faq-jsonld`）は削除した。
+  - 原文の引用（`geo-quotation`）: 記事系ページで、かつ外部の出典リンクが1本以上あるときだけ判定する（出典ゼロは `citation` で指摘済みなので重ねない）。
+  - 公開日・更新日（`date`）: 記事系ページだけ。根拠は Article ではなく「検索結果にバイライン日付を表示する」ドキュメント。
+  - 運営者（`organization`）: Googleが「ホームページか組織を説明するページに置けばよく、全ページに入れる必要はない」と書いているので、トップと運営者紹介ページだけで判定する。
+  - 見出しの階層の飛び（`heading-order`）: GoogleはSEOスターターガイドで「順番どおりでなくても検索の観点では問題ない」と明記しているためSEOの指摘から外し、アクセシビリティ（W3C WAI）の項目として技術エリアに移した。
+  - `/llms.txt`（`llms`）: 検査から削除した。Google検索は llms.txt を使わないとGoogle自身が明言しており、サイトとしても記事で「不要」という立場を取っているため、
+    診断で無い状態を指摘するのは筋が通らない。あわせて `api/audit.ts` の `/llms.txt` への取得もやめた（1回の診断あたりの外向き通信が1本減る）。
+  結果の最上部に全項目のチェックリストを○（指摘なし）／×（指摘あり）／−（判定対象外）で出し、×は該当の指摘へアンカーで飛ぶ（`src/components/PageAudit.tsx`）。
+  結果には **AI可読性の左右比較**（`src/lib/aiView.ts`）も出す。Adobe の AI Content Visibility Checker と同じ狙いで、
+  「ブラウザで人が見るもの」と「JavaScriptを実行しないAIクローラーが受け取るもの」を項目ごとに左右に並べる。
+  **取得は今までどおり1回だけ**（AIクローラーのUAで取り直したりはしない。関数の実行時間がそのまま費用になるため）。
+  差として出すのは、同じHTMLから確実に分かるものに限る:
+  空のコンテナだけを返すページ（`#root` などが空＝JS実行後に描画）／alt の無い画像（`alt=""` の装飾は差に数えない）／
+  iframe・動画・canvas／`data-nosnippet`／逆に画面に出ないのにAIには届くもの（hidden・sr-only のテキスト、aria-label・title、
+  中身のある noscript、JSON-LD、meta description）。レンダリングはしないので、人が見る側は推測で埋めない。判定は `src/lib/aiView.test.ts`。
   2026-09-05 に同ツールを参考にさらに8項目を足した: nosnippet / max-snippet:0（AI Overview での利用も止まる）、別URLを指す canonical、
   title と description の同一、og:description と twitter:card、main / article 要素、運営者の構造化データ（Organization / publisher）、
   「こちら」等の曖昧なリンク文言。あわせて検査項目の一覧を `CHECKLIST` に集約し、結果に `passed`（指摘なし）と `skipped`（本文が短い等で判定しない）を

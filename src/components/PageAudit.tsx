@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { AiView, AiViewRow } from "@/lib/aiView";
 import { AREA_LABEL, CHECKLIST, SEVERITY_LABEL, type Area, type AuditResult, type Finding, type Severity } from "@/lib/audit";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
@@ -32,51 +33,114 @@ function areaSummary(result: AuditResult) {
   });
 }
 
-function PassedList({ result }: { result: AuditResult }) {
+/** 検査項目の合否。○=指摘なし ×=指摘あり −=判定対象外 */
+type Mark = "ok" | "ng" | "na";
+
+const MARK_SIGN: Record<Mark, string> = { ok: "○", ng: "×", na: "−" };
+const MARK_STYLE: Record<Mark, string> = { ok: "text-accent", ng: "text-news", na: "text-mute opacity-60" };
+const MARK_LABEL: Record<Mark, string> = { ok: "指摘なし", ng: "指摘あり", na: "判定対象外" };
+
+function Checklist({ result }: { result: AuditResult }) {
   const passed = new Set(result.passed);
   const skipped = new Set(result.skipped);
-  const groups = AREAS.map((area) => ({
-    area,
-    items: CHECKLIST.filter((c) => c.area === area && passed.has(c.id)),
-  })).filter((g) => g.items.length > 0);
-  const skippedItems = CHECKLIST.filter((c) => skipped.has(c.id));
-  if (groups.length === 0 && skippedItems.length === 0) return null;
+  const found = new Set(result.findings.map((f) => f.id));
+  const naCount = CHECKLIST.filter((c) => skipped.has(c.id)).length;
+  const ngCount = CHECKLIST.filter((c) => !skipped.has(c.id) && !passed.has(c.id)).length;
   return (
-    <details className={cx(SURFACE.outline, "p-6 sm:p-7")}>
-      <summary className="cursor-pointer font-bold">
-        指摘の無かった項目（{result.passed.length}）
-        {skippedItems.length > 0 && <span className="ml-2 text-sm font-normal text-mute">／ 判定対象外 {skippedItems.length}</span>}
-      </summary>
+    <div className={cx(SURFACE.card, PADDING.card)}>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h2 className={HEADING.card}>検査した項目</h2>
+        <p className="text-sm text-mute">
+          <span className="font-bold text-accent">○</span> 指摘なし {result.passed.length}
+          <span className="mx-2 opacity-40">/</span>
+          <span className="font-bold text-news">×</span> 指摘あり {ngCount}
+          <span className="mx-2 opacity-40">/</span>
+          <span className="font-bold opacity-60">−</span> 判定対象外 {naCount}
+        </p>
+      </div>
       <div className="mt-5 grid gap-6 sm:grid-cols-3">
-        {groups.map((g) => (
-          <div key={g.area}>
-            <p className={cx(EYEBROW.mute, "text-2xs")}>{AREA_LABEL[g.area]}</p>
+        {AREAS.map((area) => (
+          <div key={area}>
+            <p className={cx(EYEBROW.mute, "text-2xs")}>{AREA_LABEL[area]}</p>
             <ul className="mt-2 space-y-1.5 text-sm">
-              {g.items.map((c) => (
-                <li key={c.id} className="flex gap-2">
-                  <span className="shrink-0 font-bold text-accent" aria-hidden>
-                    ◎
-                  </span>
-                  <span>{c.label}</span>
-                </li>
-              ))}
+              {CHECKLIST.filter((c) => c.area === area).map((c) => {
+                const mark: Mark = skipped.has(c.id) ? "na" : passed.has(c.id) ? "ok" : "ng";
+                const target = c.findingIds.find((id) => found.has(id));
+                return (
+                  <li key={c.id} className="flex gap-2">
+                    <span className={cx("shrink-0 font-bold", MARK_STYLE[mark])} aria-hidden>
+                      {MARK_SIGN[mark]}
+                    </span>
+                    <span className="sr-only">{MARK_LABEL[mark]}:</span>
+                    {mark === "ng" && target ? (
+                      <a href={`#f-${target}`} className={cx(LINK, "font-medium")}>
+                        {c.label}
+                      </a>
+                    ) : (
+                      <span className={mark === "na" ? "text-mute" : undefined}>{c.label}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
       </div>
-      {skippedItems.length > 0 && (
-        <div className="mt-6 border-t border-line pt-4">
-          <p className={cx(EYEBROW.mute, "text-2xs")}>判定対象外（前提が揃わないため合格にも不合格にも数えていません）</p>
-          <p className="mt-2 text-sm text-mute">{skippedItems.map((c) => c.label).join(" ／ ")}</p>
-        </div>
+      {naCount > 0 && (
+        <p className="mt-5 border-t border-line pt-4 text-sm text-mute">
+          −（判定対象外）は、前提が揃わないため合格にも不合格にも数えていない項目です。本文が短いページ、robots.txt が取れないサイトのほか、
+          一覧・規約・フォームのように「そもそも入れるべきでない」ページでは、質問と回答・原文の引用・公開日を判定しません。
+        </p>
       )}
-    </details>
+    </div>
+  );
+}
+
+const KIND_CHIP: Record<AiViewRow["kind"], { style: string; label: string }> = {
+  gap: { style: "bg-news text-white", label: "AIには届かない" },
+  extra: { style: "bg-accent text-accent-ink", label: "画面に出ないがAIには届く" },
+  same: { style: "bg-fill-strong text-fg", label: "同じものが届く" },
+};
+
+/** 人が見る画面とAIクローラーが受け取るHTMLの差。同じURLでも中身が違うことを左右で見せる */
+function AiViewPanel({ view }: { view: AiView }) {
+  const gaps = view.rows.filter((r) => r.kind === "gap").length;
+  return (
+    <div className={cx(SURFACE.card, PADDING.card)}>
+      <h2 className={HEADING.card}>人が見るページと、AIが受け取るページ</h2>
+      <p className="mt-2 text-sm leading-relaxed text-mute">
+        AI検索のクローラーの多くはJavaScriptを実行せず、画面も見ません。サーバーが返したHTMLの文字だけを読みます。
+        同じURLでも、人が見ているものとAIが受け取るものはこれだけ違います
+        {gaps > 0 ? `（AIに届いていないもの ${gaps}件）` : "（AIに届いていないものはありません）"}。
+      </p>
+      <ul className="mt-5 space-y-3">
+        {view.rows.map((r) => (
+          <li key={r.label} className={cx("rounded-panel border p-4", r.kind === "gap" ? "border-news/40 bg-news/5" : "border-line")}>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold">{r.label}</p>
+              <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", KIND_CHIP[r.kind].style)}>{KIND_CHIP[r.kind].label}</span>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-panel bg-fill p-3">
+                <p className={cx(EYEBROW.mute, "text-2xs")}>ブラウザ（人が見るもの）</p>
+                <p className="mt-1 text-sm leading-relaxed">{r.human}</p>
+              </div>
+              <div className="rounded-panel bg-fill p-3">
+                <p className={cx(EYEBROW.mute, "text-2xs")}>AIクローラー（受け取るもの）</p>
+                <p className="mt-1 text-sm leading-relaxed">{r.ai}</p>
+              </div>
+            </div>
+            {r.code && <pre className={cx(CODE, "mt-3")}>{r.code}</pre>}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
 function FindingCard({ f }: { f: Finding }) {
   return (
-    <article className={cx(SURFACE.outline, "p-6 sm:p-7")}>
+    <article id={`f-${f.id}`} className={cx(SURFACE.outline, "scroll-mt-24 p-6 sm:p-7")}>
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2.5 py-1 font-bold ${SEVERITY_STYLE[f.severity]}`}>{SEVERITY_LABEL[f.severity]}</span>
         <span className="rounded-full border border-line-strong px-2.5 py-1 font-medium text-mute">{AREA_LABEL[f.area]}</span>
@@ -214,6 +278,10 @@ export default function PageAudit() {
             <p className="mt-4 break-all font-mono text-xs opacity-60">{result.finalUrl}</p>
           </div>
 
+          <Checklist result={result} />
+
+          <AiViewPanel view={result.aiView} />
+
           {result.head200 && (
             <div className={cx(SURFACE.outline, PADDING.tight)}>
               <p className={cx(EYEBROW.mute, "text-2xs")}>AI検索に渡る先頭200字</p>
@@ -235,8 +303,6 @@ export default function PageAudit() {
               <FindingCard key={f.id} f={f} />
             ))}
           </div>
-
-          <PassedList result={result} />
         </>
       )}
     </div>

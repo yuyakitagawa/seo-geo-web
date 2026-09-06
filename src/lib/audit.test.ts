@@ -13,7 +13,6 @@ function input(over: Partial<AuditInput> & { body?: string; head?: string } = {}
     headers: { "content-type": "text/html; charset=utf-8" },
     html: `<!doctype html><html lang="ja"><head>${head}</head><body>${body}</body></html>`,
     robotsTxt: "User-agent: *\nDisallow:\n\nSitemap: https://example.com/sitemap.xml",
-    hasLlmsTxt: true,
     sitemap: { url: "https://example.com/sitemap.xml", ok: true },
     bytes: 1000,
     elapsedMs: 300,
@@ -123,14 +122,58 @@ test("semantic: main / article が無ければ指摘する", () => {
   assert.ok(!ids(input({ body: "<article><p>本文</p></article>" })).includes("semantic"));
 });
 
-test("organization: JSON-LD に Organization / Person / publisher が無ければ指摘し、JSON-LD 自体が無ければ判定しない", () => {
+const HOME = { url: "https://example.com/", finalUrl: "https://example.com/" };
+
+test("organization: トップと運営者紹介ページだけで判定する（Googleは全ページに入れる必要は無いと書いている）", () => {
+  const ld = '<script type="application/ld+json">{"@type":"WebPage","name":"n"}</script>';
+  assert.ok(ids(input({ head: HEAD + ld, ...HOME })).includes("organization"));
+  const aboutUrl = { url: "https://example.com/company/about", finalUrl: "https://example.com/company/about" };
+  assert.ok(ids(input({ head: HEAD + ld, ...aboutUrl })).includes("organization"));
+  const withOrg = '<script type="application/ld+json">{"@type":"Organization","name":"n"}</script>';
+  assert.ok(!ids(input({ head: HEAD + withOrg, ...HOME })).includes("organization"));
+  // 記事ページでは判定しない
   const article = '<script type="application/ld+json">{"@type":"Article","headline":"h","datePublished":"2026-01-01","author":{"name":"a"}}</script>';
-  assert.ok(ids(input({ head: HEAD + article })).includes("organization"));
-  const withPublisher = article.replace('"author"', '"publisher":{"@id":"https://example.com/#organization"},"author"');
-  assert.ok(!ids(input({ head: HEAD + withPublisher })).includes("organization"));
-  const r = audit(input());
-  assert.ok(!ids(input()).includes("organization"));
+  const r = audit(input({ head: HEAD + article }));
+  assert.ok(!ids(input({ head: HEAD + article })).includes("organization"));
   assert.ok(r.skipped.includes("organization"));
+  // JSON-LD 自体が無いページも判定しない
+  assert.ok(audit(input(HOME)).skipped.includes("organization"));
+});
+
+test("faq: 一覧・規約・フォームのページでは質問と回答を求めない", () => {
+  const body = LONG + LONG;
+  assert.ok(ids(input({ body })).includes("faq"));
+  for (const path of ["/privacy", "/contact", "/tag/seo"]) {
+    const url = `https://example.com${path}`;
+    const r = audit(input({ body, url, finalUrl: url }));
+    assert.ok(r.skipped.includes("faq"), path);
+    assert.ok(!r.findings.some((f) => f.id === "faq"), path);
+  }
+  // 見出しが質問の節を持つページには出さない
+  assert.ok(!ids(input({ body: body + "<h2>よくある質問</h2>" })).includes("faq"));
+});
+
+test("geo-quotation: 外部の出典が1本も無いページでは求めない（citation で指摘済み）", () => {
+  const body = LONG + LONG;
+  assert.ok(audit(input({ body })).skipped.includes("geo-quotation"));
+  const withSource = body + '<p><a href="https://other.example/doc">出典</a></p>';
+  assert.ok(ids(input({ body: withSource })).includes("geo-quotation"));
+  assert.ok(!ids(input({ body: withSource + "<blockquote>原文をそのまま引用した一文です。</blockquote>" })).includes("geo-quotation"));
+});
+
+test("date: 記事系ページだけで判定する", () => {
+  const body = LONG + LONG;
+  assert.ok(ids(input({ body })).includes("date"));
+  const contact = "https://example.com/contact";
+  assert.ok(audit(input({ body, url: contact, finalUrl: contact })).skipped.includes("date"));
+  assert.ok(!ids(input({ body: body + '<time datetime="2026-01-01">2026年1月1日</time>' })).includes("date"));
+});
+
+test("heading-order: 検索の指摘ではなくアクセシビリティの指摘として出す", () => {
+  const f = audit(input({ body: "<h2>節</h2><h4>孫の節</h4>" })).findings.find((x) => x.id === "heading-order");
+  assert.ok(f);
+  assert.equal(f.area, "tech");
+  assert.match(f.source?.url ?? "", /w3\.org\/WAI/);
 });
 
 test("anchor-text: 「こちら」等が全リンクの1割を超えれば指摘する", () => {
