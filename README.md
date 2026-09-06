@@ -467,9 +467,9 @@ npm run prompt-gap -- --all            # 「保留」も含める
   `robots.ts` / `sitemap.ts` / `manifest.ts`）は `force-static`。`output: "export"` ではこれが無いとビルドが落ちる。全ページが静的生成。
   OGP 画像とアイコンは拡張子無しのファイル（`/articles/1/opengraph-image` など）で書き出されるので、`vercel.json` の `headers` で `image/png` を付ける。
 - `robots.txt` は全クローラーに `Allow: /`（`/api/` だけ除外）。ただし商用SEOクローラー8種は `Disallow: /`（`src/lib/scrapers.ts`）。
-  `Crawl-delay: 5` は `User-agent: *` にだけ出す。**AI検索（`ai-search`）と検索エンジン（`search`）は専用グループにして待たせない**
-  ——記事が出た日のうちに取りに来てほしい経路だから。待たせるのはAI学習用（GPTBot / ClaudeBot / CCBot など）と、
-  名前も知らない小規模クローラー。Googlebot は Crawl-delay を無視する仕様なので、実際に効くのは Bingbot 以降。
+  `Crawl-delay: 5` は `User-agent: *` にだけ出す。**`src/lib/crawlers.ts` の14種（AI検索・AI学習・検索エンジン）は
+  専用グループにして待たせない**——AIと検索に読まれること自体がこのサイトの目的で、名前の分かっている相手を
+  遅らせる理由がないから。待たせるのは名乗りもしない小規模クローラーだけ。
 - アイコン一式: `favicon.ico`（実ファイル。`/favicon.ico` は `icon.tsx` より優先されるので生成物をコミットする）/
   `icon.tsx`(32) / `apple-icon.tsx`(180) / `icon-192.png` `icon-512.png`（manifest参照用の固定URL）/ `manifest.ts`。
   **図案は `src/lib/icon.tsx` だけ**にあり、上のルートは全部そこを描画する。Xのアイコンは円形に切られるので四隅には何も置かない。

@@ -3,10 +3,10 @@ import { SITE_URL } from "@/lib/site";
 import { CRAWLERS } from "@/lib/crawlers";
 import { BLOCKED_SCRAPERS } from "@/lib/scrapers";
 
-// crawl-delay を掛けないクローラー。AI検索（回答に載る経路）と検索エンジンは、記事が出た日のうちに
-// 取りに来てほしいので待たせない。AI学習用（GPTBot / ClaudeBot / CCBot など）は待たせたままにする
-// ——読者を連れて来るのは前者で、帯域を食うのは後者だから。
-const NO_DELAY = CRAWLERS.filter((c) => c.purpose === "ai-search" || c.purpose === "search").map((c) => c.token);
+// crawl-delay を掛けないクローラー。src/lib/crawlers.ts の14種すべて（AI検索・AI学習・検索エンジン）。
+// AIと検索に読まれること自体がこのサイトの目的なので、名前の分かっている相手を待たせる理由がない。
+// 待たせるのは `*`、つまり名乗りもしない小規模クローラーだけ。
+const NO_DELAY = CRAWLERS.map((c) => c.token);
 
 // output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
 export const dynamic = "force-static";
@@ -26,8 +26,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         disallow: "/api/",
-        // Googlebot は crawl-delay を無視する。効くのは名前も知らない小規模クローラー群と、
-        // AI学習用のクローラー（Bingbot と AI検索の各種は上のグループで待たせない）。
+        // 名前の分かっているクローラーは上のグループで受けるので、ここに残るのは名乗らない相手だけ。
         crawlDelay: 5,
       },
     ],
