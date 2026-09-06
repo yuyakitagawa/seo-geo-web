@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { AiView, AiViewRow } from "@/lib/aiView";
 import { AREA_LABEL, CHECKLIST, SEVERITY_LABEL, type Area, type AuditResult, type Finding, type Severity } from "@/lib/audit";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
@@ -91,6 +92,48 @@ function Checklist({ result }: { result: AuditResult }) {
           一覧・規約・フォームのように「そもそも入れるべきでない」ページでは、質問と回答・原文の引用・公開日を判定しません。
         </p>
       )}
+    </div>
+  );
+}
+
+const KIND_CHIP: Record<AiViewRow["kind"], { style: string; label: string }> = {
+  gap: { style: "bg-news text-white", label: "AIには届かない" },
+  extra: { style: "bg-accent text-accent-ink", label: "画面に出ないがAIには届く" },
+  same: { style: "bg-fill-strong text-fg", label: "同じものが届く" },
+};
+
+/** 人が見る画面とAIクローラーが受け取るHTMLの差。同じURLでも中身が違うことを左右で見せる */
+function AiViewPanel({ view }: { view: AiView }) {
+  const gaps = view.rows.filter((r) => r.kind === "gap").length;
+  return (
+    <div className={cx(SURFACE.card, PADDING.card)}>
+      <h2 className={HEADING.card}>人が見るページと、AIが受け取るページ</h2>
+      <p className="mt-2 text-sm leading-relaxed text-mute">
+        AI検索のクローラーの多くはJavaScriptを実行せず、画面も見ません。サーバーが返したHTMLの文字だけを読みます。
+        同じURLでも、人が見ているものとAIが受け取るものはこれだけ違います
+        {gaps > 0 ? `（AIに届いていないもの ${gaps}件）` : "（AIに届いていないものはありません）"}。
+      </p>
+      <ul className="mt-5 space-y-3">
+        {view.rows.map((r) => (
+          <li key={r.label} className={cx("rounded-panel border p-4", r.kind === "gap" ? "border-news/40 bg-news/5" : "border-line")}>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold">{r.label}</p>
+              <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", KIND_CHIP[r.kind].style)}>{KIND_CHIP[r.kind].label}</span>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-panel bg-fill p-3">
+                <p className={cx(EYEBROW.mute, "text-2xs")}>ブラウザ（人が見るもの）</p>
+                <p className="mt-1 text-sm leading-relaxed">{r.human}</p>
+              </div>
+              <div className="rounded-panel bg-fill p-3">
+                <p className={cx(EYEBROW.mute, "text-2xs")}>AIクローラー（受け取るもの）</p>
+                <p className="mt-1 text-sm leading-relaxed">{r.ai}</p>
+              </div>
+            </div>
+            {r.code && <pre className={cx(CODE, "mt-3")}>{r.code}</pre>}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -236,6 +279,8 @@ export default function PageAudit() {
           </div>
 
           <Checklist result={result} />
+
+          <AiViewPanel view={result.aiView} />
 
           {result.head200 && (
             <div className={cx(SURFACE.outline, PADDING.tight)}>

@@ -211,6 +211,13 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   - 運営者（`organization`）: Googleが「ホームページか組織を説明するページに置けばよく、全ページに入れる必要はない」と書いているので、トップと運営者紹介ページだけで判定する。
   - 見出しの階層の飛び（`heading-order`）: GoogleはSEOスターターガイドで「順番どおりでなくても検索の観点では問題ない」と明記しているためSEOの指摘から外し、アクセシビリティ（W3C WAI）の項目として技術エリアに移した。
   結果の最上部に全項目のチェックリストを○（指摘なし）／×（指摘あり）／−（判定対象外）で出し、×は該当の指摘へアンカーで飛ぶ（`src/components/PageAudit.tsx`）。
+  結果には **AI可読性の左右比較**（`src/lib/aiView.ts`）も出す。Adobe の AI Content Visibility Checker と同じ狙いで、
+  「ブラウザで人が見るもの」と「JavaScriptを実行しないAIクローラーが受け取るもの」を項目ごとに左右に並べる。
+  **取得は今までどおり1回だけ**（AIクローラーのUAで取り直したりはしない。関数の実行時間がそのまま費用になるため）。
+  差として出すのは、同じHTMLから確実に分かるものに限る:
+  空のコンテナだけを返すページ（`#root` などが空＝JS実行後に描画）／alt の無い画像（`alt=""` の装飾は差に数えない）／
+  iframe・動画・canvas／`data-nosnippet`／逆に画面に出ないのにAIには届くもの（hidden・sr-only のテキスト、aria-label・title、
+  中身のある noscript、JSON-LD、meta description）。レンダリングはしないので、人が見る側は推測で埋めない。判定は `src/lib/aiView.test.ts`。
   2026-09-05 に同ツールを参考にさらに8項目を足した: nosnippet / max-snippet:0（AI Overview での利用も止まる）、別URLを指す canonical、
   title と description の同一、og:description と twitter:card、main / article 要素、運営者の構造化データ（Organization / publisher）、
   「こちら」等の曖昧なリンク文言。あわせて検査項目の一覧を `CHECKLIST` に集約し、結果に `passed`（指摘なし）と `skipped`（本文が短い等で判定しない）を

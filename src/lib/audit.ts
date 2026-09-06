@@ -3,6 +3,7 @@
 // 指摘は「該当コード（実物）＋修正方針＋入れる場所＋修正後のコード」で返す。根拠がある項目には公式ドキュメントを添える。
 // 「無い」ものの指摘は該当コードが取れないので、実物のheadや見出しを並べて追加位置に印を入れる（headSpot）。
 import { parse, type HTMLElement } from "node-html-parser";
+import { aiView, type AiView } from "./aiView";
 import { CRAWLERS } from "./crawlers";
 import { check, parseRobots } from "./robots";
 
@@ -113,6 +114,8 @@ export type AuditResult = {
   textLength: number;
   /** ヘッダー・ナビ・フッターを除いた本文テキストの先頭200字。AI検索のスニペットはこの範囲から作られる */
   head200: string;
+  /** 人が見る画面とAIクローラーが受け取るHTMLの差 */
+  aiView: AiView;
   /** head200 のうち、最初の見出しに到達するまでの文字数。範囲内に見出しが無ければ null */
   h1Offset: number | null;
   findings: Finding[];
@@ -1116,6 +1119,7 @@ export function audit(input: AuditInput): AuditResult {
     redirects: input.redirects,
     textLength: text.length,
     head200,
+    aiView: aiView({ body, text, ldTypes: types, metaDescription: desc }),
     h1Offset,
     findings: findings.sort((a, b) => ({ high: 0, mid: 1, low: 2, ok: 3 })[a.severity] - ({ high: 0, mid: 1, low: 2, ok: 3 })[b.severity]),
     counts,
