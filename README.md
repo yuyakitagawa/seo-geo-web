@@ -203,6 +203,14 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   2026-09-04 に webpita.com の AIO チェックツールを参考に6項目を足した: charset、サイトマップの取得可否（robots.txt の Sitemap 行を優先、無ければ /sitemap.xml。
   `api/audit.ts` が 200 かどうかだけ見る）、Article の author、下層ページの BreadcrumbList（JSON-LD が1つも無いページには重ねて出さない）、
   本文中の内部リンク（nav・header・footer のリンクは数えない）、運営者情報・著者・連絡先への導線（E-E-A-T）。判定は `src/lib/audit.test.ts`。
+  2026-09-06 に「そのページに入れるべきでない指摘」を出さないよう、ページの種類（`classifyPage()`: article / list / legal / form / about / home / other）で出し分けた。
+  種類はURLのパス区切りと完全一致する語・JSON-LDの `@type`・段落の量だけで決める（本文中の語には反応させない）。
+  - 質問と回答（`faq`）: 一覧・規約・フォームのページと本文800字未満では判定しない。FAQリッチリザルトは 2026-05-07 にGoogle検索から廃止されたので、`FAQPage` を促す指摘（`faq-jsonld`）は削除した。
+  - 原文の引用（`geo-quotation`）: 記事系ページで、かつ外部の出典リンクが1本以上あるときだけ判定する（出典ゼロは `citation` で指摘済みなので重ねない）。
+  - 公開日・更新日（`date`）: 記事系ページだけ。根拠は Article ではなく「検索結果にバイライン日付を表示する」ドキュメント。
+  - 運営者（`organization`）: Googleが「ホームページか組織を説明するページに置けばよく、全ページに入れる必要はない」と書いているので、トップと運営者紹介ページだけで判定する。
+  - 見出しの階層の飛び（`heading-order`）: GoogleはSEOスターターガイドで「順番どおりでなくても検索の観点では問題ない」と明記しているためSEOの指摘から外し、アクセシビリティ（W3C WAI）の項目として技術エリアに移した。
+  結果の最上部に全項目のチェックリストを○（指摘なし）／×（指摘あり）／−（判定対象外）で出し、×は該当の指摘へアンカーで飛ぶ（`src/components/PageAudit.tsx`）。
   2026-09-05 に同ツールを参考にさらに8項目を足した: nosnippet / max-snippet:0（AI Overview での利用も止まる）、別URLを指す canonical、
   title と description の同一、og:description と twitter:card、main / article 要素、運営者の構造化データ（Organization / publisher）、
   「こちら」等の曖昧なリンク文言。あわせて検査項目の一覧を `CHECKLIST` に集約し、結果に `passed`（指摘なし）と `skipped`（本文が短い等で判定しない）を
