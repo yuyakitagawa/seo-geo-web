@@ -13,7 +13,6 @@ function input(over: Partial<AuditInput> & { body?: string; head?: string } = {}
     headers: { "content-type": "text/html; charset=utf-8" },
     html: `<!doctype html><html lang="ja"><head>${head}</head><body>${body}</body></html>`,
     robotsTxt: "User-agent: *\nDisallow:\n\nSitemap: https://example.com/sitemap.xml",
-    hasLlmsTxt: true,
     sitemap: { url: "https://example.com/sitemap.xml", ok: true },
     bytes: 1000,
     elapsedMs: 300,

@@ -83,7 +83,6 @@ export const CHECKLIST: CheckItem[] = [
   { id: "date", area: "geo", label: "公開日・更新日の機械可読性（記事ページのみ）", findingIds: ["date"] },
   { id: "organization", area: "geo", label: "運営者の構造化データ（トップ・運営者紹介ページのみ）", findingIds: ["organization"] },
   { id: "robots-ai", area: "geo", label: "AI検索クローラー（OAI-SearchBot等）の許可状況", findingIds: ["robots-ai"] },
-  { id: "llms", area: "geo", label: "/llms.txt", findingIds: ["llms"] },
 ];
 
 export type AuditInput = {
@@ -96,8 +95,6 @@ export type AuditInput = {
   html: string;
   /** 同じホストの /robots.txt（取得できなければ null） */
   robotsTxt: string | null;
-  /** 同じホストの /llms.txt が 200 で返ったか */
-  hasLlmsTxt: boolean;
   /** サイトマップ（robots.txt の Sitemap 行、無ければ /sitemap.xml）が 200 で返ったか。確認したURLを添える */
   sitemap: { url: string; ok: boolean };
   bytes: number;
@@ -1089,20 +1086,6 @@ export function audit(input: AuditInput): AuditResult {
       fixCode: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${input.finalUrl}</loc><lastmod>2026-09-04</lastmod></url>\n</urlset>`,
       where: { note: `ドメイン直下: https://${host}/sitemap.xml（robots.txt の Sitemap 行で別の場所も指定できます）` },
       source: SRC.sitemap,
-    });
-  }
-
-  if (!input.hasLlmsTxt) {
-    add({
-      id: "llms",
-      area: "geo",
-      severity: "low",
-      title: "/llms.txt はありません（Google 検索には不要）",
-      detail:
-        "Google は公式ドキュメントで、Google 検索は llms.txt を使わないと明言しています。置いても順位・可視性は上がりも下がりもしません。ただし同じドキュメントは Google 以外のサービス向けに置くこと自体は問題ないとしており、対応するAIサービスが増えれば意味を持つ可能性はあります。",
-      fix: "Google 検索のために置く必要はありません。Google 以外のAIサービスへの備えとして置くなら、主要ページと方針を llmstxt.org の提案仕様に沿ってMarkdownで書き、参照されているかをアクセスログで確認します。",
-      where: { note: `置く場合はドメイン直下: https://${host}/llms.txt` },
-      source: SRC.aiGuide,
     });
   }
 
