@@ -72,6 +72,7 @@ export const CHECKLIST: CheckItem[] = [
   { id: "thin-html", area: "geo", label: "サーバーが返すHTMLに本文があるか（JS依存の検出）", findingIds: ["thin-html"] },
   { id: "nosnippet", area: "geo", label: "スニペット制御（nosnippet・max-snippet:0）", findingIds: ["nosnippet"] },
   { id: "lead", area: "geo", label: "冒頭の直答文の長さ", findingIds: ["no-lead", "lead-long"] },
+  { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-late"] },
   { id: "faq", area: "geo", label: "質問と回答の形式・FAQPage", findingIds: ["faq", "faq-jsonld"] },
   { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
   { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%）", findingIds: ["geo-quotation"] },
@@ -110,6 +111,10 @@ export type AuditResult = {
   elapsedMs: number;
   redirects: string[];
   textLength: number;
+  /** ヘッダー・ナビ・フッターを除いた本文テキストの先頭200字。AI検索のスニペットはこの範囲から作られる */
+  head200: string;
+  /** head200 のうち、最初の見出しに到達するまでの文字数。範囲内に見出しが無ければ null */
+  h1Offset: number | null;
   findings: Finding[];
   counts: Record<Severity, number>;
   /** 指摘が無かった検査項目（CheckItem.id） */
@@ -186,7 +191,11 @@ function headSpot(head: HTMLElement | null | undefined, marker: string): string 
 function textOf(root: HTMLElement): string {
   const clone = parse(root.toString());
   clone.querySelectorAll("script, style, noscript, template, svg").forEach((n) => n.remove());
-  return clone.text.replace(/\s+/g, " ").trim();
+  // body 要素を持たないHTMLでは root ごと渡るため、doctype 宣言がテキストとして混ざる
+  return clone.text
+    .replace(/<!doctype[^>]*>/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function audit(input: AuditInput): AuditResult {
@@ -663,6 +672,56 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
+  // 検索結果のスニペットは本文として抽出されたテキストの先頭から一定字数で切られる。
+  // 当サイトの実測（ChatGPTの会話ログ383件）では全件が200〜206字で末尾切断されており、
+  // 照合できた12ページすべてでヘッダー・ナビ・スキップリンクが除去されていた。
+  // ただし除去に失敗してナビが枠を占める例があり、失敗した2ページはいずれも main / article を持っていなかった。
+  const mainEl = body.querySelector("main") ?? body.querySelector("article");
+  const bodyScope = mainEl ?? body;
+  const contentText = (() => {
+    const clone = parse(bodyScope.toString());
+    clone.querySelectorAll("script, style, noscript, template, svg, header, nav, footer, aside").forEach((n) => n.remove());
+    return clone.text
+      .replace(/<!doctype[^>]*>/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  })();
+  const head200 = contentText.slice(0, 200);
+  const firstHeading = bodyScope.querySelectorAll("h1, h2").find((h) => textOf(h).length > 0);
+  const headingText = firstHeading ? textOf(firstHeading) : "";
+  const headingIndex = headingText ? contentText.indexOf(headingText) : -1;
+  const h1Offset = headingIndex >= 0 && headingIndex < 200 ? headingIndex : null;
+
+  const chromeLength = text.length - contentText.length;
+  if (text.length < 200 || !headingText) skip("snippet-head");
+  else if (!mainEl && chromeLength >= 150) {
+    add({
+      id: "snippet-head-boilerplate",
+      area: "geo",
+      severity: "mid",
+      title: "本文の範囲が宣言されておらず、スニペットがナビゲーションに置き換わるおそれがあります",
+      detail:
+        "AI検索のスニペットは本文を抽出したうえで先頭から一定字数で切られます。当サイトの実測では通常ナビゲーションは除去されますが、本文の範囲が宣言されていないページでは除去に失敗し、枠がナビゲーションで埋まっていました。",
+      code: `ヘッダー・ナビ・フッターのテキスト ${chromeLength}字 / main・article 要素なし`,
+      fix: "本文を <main> か <article> で囲み、ヘッダー・ナビ・フッターを header / nav / footer 要素にします。抽出の手がかりが増え、除去に失敗しにくくなります。",
+      fixCode: "<header><nav>…</nav></header>\n<main>\n  <h1>ページの主題</h1>\n  <p>このページが何かを一文で説明する。</p>\n</main>\n<footer>…</footer>",
+    });
+  } else if (h1Offset === null || h1Offset > 80) {
+    add({
+      id: "snippet-head-late",
+      area: "geo",
+      severity: "low",
+      title:
+        h1Offset === null
+          ? "本文の先頭200字に最初の見出しが入っていません"
+          : `本文の先頭200字のうち${h1Offset}字を見出し以外が使っています`,
+      detail:
+        "スニペットの枠の多くを本文以外が占めています。残った枠に製品やサービスの説明が入らないと、AI検索が書く紹介文の材料になりません。",
+      code: snippet(head200, 220),
+      fix: "本文の先頭にバナーやパンくずを置かず、見出しとその直後にページを一文で説明する文を置きます。",
+    });
+  }
+
   const hasFaqJsonLd = types.some((t) => /FAQPage/i.test(t));
   const hasFaqHeading = headings.some((h) => /よくある質問|FAQ|Q&A/i.test(h.text));
   if (!hasFaqJsonLd && !hasFaqHeading) {
@@ -1004,6 +1063,8 @@ export function audit(input: AuditInput): AuditResult {
     elapsedMs: input.elapsedMs,
     redirects: input.redirects,
     textLength: text.length,
+    head200,
+    h1Offset,
     findings: findings.sort((a, b) => ({ high: 0, mid: 1, low: 2, ok: 3 })[a.severity] - ({ high: 0, mid: 1, low: 2, ok: 3 })[b.severity]),
     counts,
     passed,

@@ -139,3 +139,30 @@ test("anchor-text: 「こちら」等が全リンクの1割を超えれば指摘
   const named = '<p><a href="/a">料金</a><a href="/b">導入手順</a><a href="/c">こちら</a>' + '<a href="/d">x</a>'.repeat(10) + "</p>";
   assert.ok(!ids(input({ body: LONG + named })).includes("anchor-text"));
 });
+
+test("snippet-head: 本文の範囲が無くヘッダーが大きいページを指摘し、head200 を返す", () => {
+  const chrome = "<header><nav>" + '<a href="/a">ご利用プラン</a><a href="/b">計測プラン</a><a href="/c">機能</a><a href="/d">使い方</a><a href="/e">お知らせ</a><a href="/f">資料請求</a>'.repeat(8) + "</nav></header>";
+  const noMain = audit(input({ body: chrome + "<div><h1>見出し</h1>" + LONG + "</div>" }));
+  assert.ok(noMain.findings.map((f) => f.id).includes("snippet-head-boilerplate"));
+  // 本文抽出後の先頭200字なので、ナビは head200 に入らない
+  assert.ok(!noMain.head200.includes("ご利用プラン"));
+  assert.equal(noMain.head200.length, 200);
+
+  // main があればボイラープレートの指摘は出さない
+  const withMain = audit(input({ body: chrome + "<main><h1>見出し</h1>" + LONG + "</main>" }));
+  assert.ok(!withMain.findings.map((f) => f.id).includes("snippet-head-boilerplate"));
+  assert.equal(withMain.h1Offset, 0);
+  assert.ok(withMain.passed.includes("snippet-head"));
+});
+
+test("snippet-head-late: 本文の先頭でバナーが枠を使っていれば指摘する", () => {
+  const banner = "<p>" + "期間限定キャンペーン実施中です。".repeat(8) + "</p>";
+  const r = audit(input({ body: "<main>" + banner + "<h1>見出し</h1>" + LONG + "</main>" }));
+  assert.ok(r.findings.map((f) => f.id).includes("snippet-head-late"));
+  assert.ok((r.h1Offset ?? 0) > 80 || r.h1Offset === null);
+});
+
+test("snippet-head: 本文が200字未満、または見出しが無ければ判定しない", () => {
+  assert.ok(audit(input({ body: "<main><h1>短い</h1><p>本文</p></main>" })).skipped.includes("snippet-head"));
+  assert.ok(audit(input({ body: "<main>" + LONG + "</main>" })).skipped.includes("snippet-head"));
+});
