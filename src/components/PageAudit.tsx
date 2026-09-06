@@ -214,6 +214,22 @@ export default function PageAudit() {
             <p className="mt-4 break-all font-mono text-xs opacity-60">{result.finalUrl}</p>
           </div>
 
+          {result.head200 && (
+            <div className={cx(SURFACE.outline, PADDING.tight)}>
+              <p className={cx(EYEBROW.mute, "text-2xs")}>AI検索に渡る先頭200字</p>
+              <p className="mt-2 text-sm leading-relaxed opacity-80">
+                AI検索のスニペットは、本文を抽出したうえでその先頭を一定字数で切ったものです。ここに何が入っているかで、AIが書く紹介文が変わります。ヘッダー・ナビ・フッターを除いて先頭200字を切り出しています。
+                {result.h1Offset === null
+                  ? "このページは、最初の見出しがこの範囲に入っていません。"
+                  : `このページは、最初の見出しまでに ${result.h1Offset} 字使っています。`}
+              </p>
+              <p className={cx(CODE, "mt-3 whitespace-pre-wrap break-words")}>
+                {result.head200}
+                <span className="opacity-40">…</span>
+              </p>
+            </div>
+          )}
+
           <div className="space-y-4">
             {result.findings.map((f) => (
               <FindingCard key={f.id} f={f} />
