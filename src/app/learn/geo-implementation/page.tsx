@@ -122,7 +122,11 @@ export default function Lesson09() {
           <GuideRef {...REF.verifyGooglebot} />
         </p>
         <p>
-          この照合を通さずにUser-agentだけで数えると、AIクローラーの訪問数が実際より多く出ます。巡回の有無を記事や報告に書くときは、照合後の数だけを使います。
+          この照合を通さずにUser-agentだけで数えると、AIクローラーの訪問数が実際より多く出ます。
+          当サイトのアクセスログ29日分でこの手順を通したところ、<strong>Googlebotを名乗るリクエストの27.5%がGoogle公開のIP範囲の外</strong>にあり、
+          同じ期間にGoogleOtherがGooglebotの15倍（10万9,551件と1万856件）来ていました。手順と集計の内訳は
+          <Link href="/articles/39">IPまで照合したクローラーログ29日分</Link>に置いてあります。
+          巡回の有無を記事や報告に書くときは、照合後の数だけを使います。
           流入側（人がAIの回答からクリックして来た分）の見分け方は<Link href={`${lessonPath("measurement")}#ai`}>レッスン{lessonNo("measurement")}の「AI検索からの流入を測る」</Link>にあります。
         </p>
       </GuideSection>
@@ -175,6 +179,12 @@ export default function Lesson09() {
           robots.txtを取得してAI検索クローラーの許可状況まで判定します。
         </p>
         <p>
+          書き換えても結果はすぐには変わりません。OpenAIはrobots.txtの変更が検索側の挙動に反映されるまでおよそ24時間かかると説明し、
+          Perplexityも設定の反映に最大24時間かかるとしています。変更した直後に結果が変わらないことをもって「効果がない」と判断しないでください。
+          <GuideRef {...REF.openai} />
+          <GuideRef {...REF.perplexity} />
+        </p>
+        <p>
           書き分けができるのは、事業者が用途ごとにボット名を分けている場合だけです。OpenAIの場合、
           検索の回答に出したいなら <code>OAI-SearchBot</code> を許可し、基盤モデルの学習に使われたくないなら
           <code>GPTBot</code> を拒否する、という指定ができます。
@@ -218,7 +228,10 @@ export default function Lesson09() {
           rows={[
             [
               "llms.txt の設置",
-              "コミュニティが提案している任意の仕様。設置すれば引用されるという検索・AI事業者の公式な説明は無い",
+              <>
+                コミュニティが提案している任意の仕様。設置すれば引用されるという検索・AI事業者の公式な説明は無い。当サイトのログでは、AI系クローラーのリクエスト1万9,347件のうち
+                <Link href="/articles/38">llms.txtを取りに来たものが29日間で0件</Link>だった（同じ場所のrobots.txtは取得されている）
+              </>,
               "本文やサイト構造の代わりではなく、補助として置くなら可",
             ],
             [

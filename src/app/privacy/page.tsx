@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageDatesJsonLd } from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
+import { AUDIT_LOG_RETENTION_DAYS } from "@/lib/audit-log";
 import { CONTACT_FORM_ENABLED, CONTACT_LINE_ENABLED, CONTACT_MAIL_ENABLED, HAS_CONTACT_PAGE } from "@/lib/contact-notify";
 import { POLICY_UPDATED, POLICY_UPDATED_LABEL, SITE_NAME, SITE_URL } from "@/lib/site";
 import { PROSE } from "@/lib/ui";
@@ -66,8 +67,8 @@ export default function PrivacyPage() {
           をご確認ください。
         </p>
         <p>
-          また、表示速度と閲覧数の計測のためにVercel Analytics および Vercel Speed Insights を利用しています。
-          いずれも個人を特定するCookieを使用せず、匿名の集計値のみを取得します。
+          また、表示速度の計測のためにVercel Speed Insightsを利用しています。個人を特定するCookieは使用せず、
+          匿名の集計値のみを取得します。
         </p>
 
         <h2>{sec()}. 広告配信について</h2>
@@ -131,7 +132,7 @@ export default function PrivacyPage() {
           <li>検査対象ページの本文・HTMLそのもの</li>
         </ul>
         <p>
-          記録は<strong>30日間</strong>を過ぎたものから自動的に削除されます。保管には
+          記録は<strong>{AUDIT_LOG_RETENTION_DAYS}日間</strong>を過ぎたものから自動的に削除されます。保管には
           <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase</a>
           のデータベース（シンガポールリージョン）を利用しています。
         </p>

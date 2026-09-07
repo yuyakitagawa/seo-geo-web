@@ -50,3 +50,6 @@ content/processed.json
 
 # Search Console / GA のエクスポート（独自記事の材料。生データはコミットしない）
 data/
+
+# scripts/verify-api.ts の出力
+.api-verify/

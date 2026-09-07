@@ -312,7 +312,7 @@ export default function Lesson07() {
           <code>nosnippet</code> はAIによる概要とAIモードの入力を止めますが、同時に通常の検索結果の説明文も消します。
           AI検索への露出を減らしたいという理由でこれを入れると、検索からの流入も一緒に減ります。
           Google以外のAIサービスについては、robots.txtでクローラーごとに書き分ける別の作業になります
-          （<Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>）。
+          （<Link href={lessonPath("geo-implementation")}>AIクローラーごとのrobots.txtの書き分け</Link>）。
         </p>
         <p>
           逆に「AIに出るための追加の作業」も、Googleは求めていません。生成AI機能向けの最適化ガイドは、

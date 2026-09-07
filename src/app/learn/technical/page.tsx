@@ -129,7 +129,7 @@ export default function Lesson05() {
         </p>
         <p>
           Botの分類そのもの（一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャー）は
-          <Link href="/seo">SEO対策とは</Link>で、AI各社のBotは<Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>で扱います。
+          <Link href="/seo">SEO対策とは</Link>で、AI各社のBotは<Link href={lessonPath("geo-implementation")}>AIクローラーの一覧とrobots.txt</Link>で扱います。
         </p>
       </GuideSection>
 
@@ -438,7 +438,7 @@ export default function Lesson05() {
         <p>
           なお、生成AI向けの特別な構造化データは存在しません。Googleは、AI機能に表示されるために
           特別なschema.orgの構造化データを追加する必要はないと明記しています。詳しくは
-          <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>で扱います。
+          <Link href={lessonPath("geo-implementation")}>GEOでやらなくていいこと</Link>で扱います。
         </p>
       </GuideSection>
 

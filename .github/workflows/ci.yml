@@ -1,0 +1,45 @@
+# PR と main への push で、壊れていないことを確認する。
+#
+# 2026-09-07 に追加。それまで CI は daily-articles.yml しか無く、そこで走るのは typecheck と build だけだった。
+# src/lib/*.test.ts は 44 件あるのに一度も CI で走っておらず、回帰の検知が「人が手元で思い出したら叩く」に
+# 依存していた。関門をここへ集約し、記事生成のジョブに品質検査を兼務させない。
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# 同じブランチに続けて push したら、古い実行は打ち切る
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: 型
+        run: npm run typecheck
+
+      - name: テスト
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      # 本番の /api/* は Vercel のビルダーが api/tsconfig.json で変換する。ここを取り違えると
+      # 出力が ESM のままになり、拡張子無しの相対 import を Node が読めず FUNCTION_INVOCATION_FAILED になる
+      # （2026-09-04 に発生。`vercel dev` は別経路で変換するので再現しない）。同じ経路で出力して読み込む。
+      - name: Functions の出力を検査
+        run: npm run verify:api
+
+      - name: 本番ビルド
+        run: npm run build

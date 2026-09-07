@@ -8,22 +8,47 @@ import { CONTACT_FORM_ENABLED } from "./src/lib/contact-notify";
 // 2026-09-06、Vercel に SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY を入れないまま /tools/page-audit を
 // 公開していて、利用ログが1件も残っていなかった。この手の無効化はどれも例外を出さずに静かに起こるため、
 // 「何が無効のまま本番に出たか」をログで気づけるようにする。判定は各機能の実装から import して、
-// ここに条件を書き写さない（書き写すと実装とずれて、また気づけなくなる）。
-// 欠けていてもビルドは止めない（Xだけで問い合わせを受けるなど、意図的に無効な構成があるため）。
-function logFeatureFlags(): void {
-  const flags: [string, boolean, string][] = [
-    ["GA4", Boolean(process.env.NEXT_PUBLIC_GA_ID), "NEXT_PUBLIC_GA_ID"],
-    ["AdSense", Boolean(ADSENSE_CLIENT), "NEXT_PUBLIC_ADSENSE_CLIENT"],
-    ["ページ診断の利用ログ", AUDIT_LOG_ENABLED, "SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY"],
-    ["お問い合わせフォーム", CONTACT_FORM_ENABLED, "LINE_* または RESEND_* 一式"],
+// ここに配線の条件を書き写さない（書き写すと実装とずれて、また気づけなくなる）。
+//
+// さらに required の機能は、Vercel の本番デプロイ（VERCEL_ENV=production）に限りビルドを落とす。
+// ログは誰も読まないので、「気づける」だけでは同じことが起きる。プレビュー・ローカル・CI では落とさない
+// （env を持たないのが普通のため）。required に入れてよいのは、本番の env が実際に入っていて、
+// 欠けたら機能が壊れると言い切れるものだけ:
+//   - GA4         : 計測が止まると運用の判断材料が消える（本番設定済み: G-YD43872M17）
+//   - 利用ログ     : /tools/page-audit の記録。上の事故の再発防止（本番設定済み。2026-09-06 に記録あり）
+// AdSense（審査前）と お問い合わせフォーム（Xだけで受ける運用）は意図的に無効なので required にしない。
+type FeatureFlag = { label: string; on: boolean; env: string; required: boolean };
+
+function featureFlags(): FeatureFlag[] {
+  return [
+    { label: "GA4", on: Boolean(process.env.NEXT_PUBLIC_GA_ID), env: "NEXT_PUBLIC_GA_ID", required: true },
+    { label: "AdSense", on: Boolean(ADSENSE_CLIENT), env: "NEXT_PUBLIC_ADSENSE_CLIENT", required: false },
+    { label: "ページ診断の利用ログ", on: AUDIT_LOG_ENABLED, env: "SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY", required: true },
+    { label: "お問い合わせフォーム", on: CONTACT_FORM_ENABLED, env: "LINE_* または RESEND_* 一式", required: false },
   ];
+}
+
+function logFeatureFlags(): void {
+  const flags = featureFlags();
   // 等幅で桁を揃えるため、和文を2桁として数える
   const width = (s: string) => [...s].reduce((n, c) => n + (c.charCodeAt(0) < 0x100 ? 1 : 2), 0);
-  const max = Math.max(...flags.map(([label]) => width(label)));
+  const max = Math.max(...flags.map((f) => width(f.label)));
   console.log("[seo-geo-web] 環境変数で入り切りする機能");
-  for (const [label, on, env] of flags) {
+  for (const { label, on, env, required } of flags) {
     const pad = " ".repeat(max - width(label));
-    console.log(`  ${label}${pad} : ${on ? "有効" : `無効（${env} が未設定）`}`);
+    const state = on ? "有効" : `無効（${env} が未設定）`;
+    console.log(`  ${label}${pad} : ${state}${required ? "  ※本番では必須" : ""}`);
+  }
+
+  // Vercel の本番デプロイでだけ落とす。ここで止めれば、機能が欠けたまま公開されることはない
+  if (process.env.VERCEL_ENV === "production") {
+    const missing = flags.filter((f) => f.required && !f.on);
+    if (missing.length) {
+      throw new Error(
+        `本番に必須の環境変数が未設定です: ${missing.map((f) => `${f.label}（${f.env}）`).join(" / ")}\n` +
+          "Vercel の Environment Variables（Production）に登録してから再デプロイしてください。"
+      );
+    }
   }
 }
 

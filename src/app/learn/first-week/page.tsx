@@ -143,8 +143,8 @@ export default function Lesson02() {
           robots.txtに戻り、AI各社のクローラーを止めていないかを確認します。ChatGPTやPerplexityは、
           Googlebotとは別の自前のクローラーで巡回するため、Googlebotを許可していても、これらを拒否していれば
           その事業者の回答には出ません。いまの許可状況は<Link href="/tools/page-audit">ページ診断</Link>にURLを入れると分かります。
-          ボット名の一覧と各社の公式な説明、設定の方針は
-          <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>にまとめています。
+          <Link href={lessonPath("geo-implementation")}>AIクローラー14種のボット名と、各社の公式な説明、設定の方針</Link>は
+          レッスン{lessonNo("geo-implementation")}にまとめています。
         </p>
 
         <h3>7日目: 改善前の数値を記録する</h3>
