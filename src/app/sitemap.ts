@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getArticlesByCategory, getArticlesByTag, latestUpdated } from "@/lib/content";
 import { indexableArticles, indexableTags } from "@/lib/indexability";
+import { aboutFacts } from "@/lib/about";
 import { APP_TOOLS } from "@/lib/apps";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
 import { GLOSSARY_PATH, GLOSSARY_UPDATED } from "@/lib/glossary";
@@ -34,7 +35,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}${COURSE.path}`, lastModified: COURSE.updated },
     ...LESSONS.map((l) => ({ url: `${SITE_URL}${lessonPath(l.slug)}`, lastModified: l.updated })),
     // 固定ページ。/contact は窓口（env）が未設定のときビルドで404になるので載せない。
-    ...["about", "privacy", "disclaimer", ...(HAS_CONTACT_PAGE ? ["contact"] : [])].map((p) => ({
+    // /about は公開本数などサイトの現況を載せているので、方針の改定日ではなく記事側の更新に追従させる。
+    { url: `${SITE_URL}/about`, lastModified: aboutFacts().updated },
+    ...["privacy", "disclaimer", ...(HAS_CONTACT_PAGE ? ["contact"] : [])].map((p) => ({
       url: `${SITE_URL}/${p}`,
       lastModified: POLICY_UPDATED,
     })),

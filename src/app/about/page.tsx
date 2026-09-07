@@ -1,84 +1,97 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
-import { PageDatesJsonLd } from "@/components/PageDates";
+import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
+import { ABOUT_FAQ, ABOUT_FEEDS, aboutFacts } from "@/lib/about";
+import { faqPageJsonLd } from "@/lib/faq";
 import { HAS_CONTACT_PAGE } from "@/lib/contact-notify";
-import { POLICY_UPDATED, SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
-import { FEED_SOURCES } from "../../../scripts/sources";
-import { PROSE } from "@/lib/ui";
+import { SITE_NAME, SITE_URL, X_HANDLE, X_PROFILE_URL } from "@/lib/site";
+import { cx, PROSE, TABLE } from "@/lib/ui";
+
+const facts = aboutFacts();
 
 export const metadata: Metadata = {
   title: "運営者情報",
-  description: `${SITE_NAME}の運営方針と、収集元にしている一次情報源の一覧。`,
+  // 「運営方針」だけの一般的な説明文にしない。このページにしか無い中身（巡回している媒体の数、
+  // 記事の作り方、公開している本数）をそのまま書く。
+  description: `${SITE_NAME}の運営者・記事の作り方・訂正の方針と、毎日巡回している一次情報源${facts.feeds}媒体の一覧。記事${facts.articles}本の内訳とよくある質問も掲載。`,
   alternates: { canonical: "/about" },
 };
 
-// 収集元の開示。RSSのURLではなく人が読めるトップページを出す。
-// Google News検索の枠（topic: "tools"）は媒体ではないので出さない。
-const FEEDS = FEED_SOURCES.filter((s) => s.home && !s.topic);
-
-// FAQ。可視テキストとFAQPage JSON-LDを同じ配列から出すので不一致が起きない。
-// 回答は質問文を読まなくても意味が通る形にする（AI検索は回答だけを抜き出す）。
-const FAQ: FaqItem[] = [
-  {
-    question: "GEO（生成AI検索最適化）とは何ですか",
-    answer:
-      "GEOはGenerative Engine Optimizationの略で、ChatGPT・Perplexity・Google AI Overview/AI Modeなどの生成AIの回答に、自社の情報が引用・言及されるようにする取り組みです。順位を上げる従来のSEOと違い、AIが回答を組み立てるときの参照元に選ばれることを目標にします。",
-  },
-  {
-    question: "AIOやLLMOはGEOと違うものですか",
-    answer:
-      "AIO（AI Optimization）とLLMO（Large Language Model Optimization）は、生成AI検索で引用されるための取り組みを指す別の呼び名です。実務上の中身はほぼ同じなので、当サイトでは用語をGEOに統一して表記します。",
-  },
-  {
-    question: "SEOの施策はGEOでも通用しますか",
-    answer:
-      "クロールとインデックスの土台、構造化データ、一次情報の明示といった技術的な基盤は共通で、そのまま効きます。一方で、質問にそのまま答える短い段落を置く、数値を定義リストで構造化するといった「抜き出されやすい書き方」はGEO特有の追加作業になります。",
-  },
-  {
-    question: "記事は毎日更新されますか",
-    answer:
-      "毎朝7時（日本時間）に自動生成のバッチが動きます。その日に基準を満たす話題が無かった場合や、自動検査で落ちた場合は公開されないため、更新が無い日もあります。",
-  },
-  {
-    question: "記事は誰が書いていますか。AIが生成しているのですか",
-    answer:
-      "記事の下書きは、公式発表や業界メディアの一次情報をAIに読ませて作成し、公開前に自動検査を通しています。検査では、出典URLの記載、一次情報に無い数値や固有名詞が入っていないこと、記事の構成が基準を満たすことを確認し、外れた原稿は公開せず破棄します。公開後に誤りのご指摘を受けた記事は、一次情報と突き合わせて確認し、訂正または削除します。",
-  },
-  {
-    question: "記事の誤りを見つけたときはどうすればよいですか",
-    answer:
-      "お問い合わせの窓口からご指摘ください。内容を一次情報と突き合わせて確認し、誤りがあった場合は該当箇所を訂正するか、記事を削除します。訂正した記事には更新日を表示します。",
-  },
-  {
-    question: "記事の内容を引用できますか",
-    answer:
-      "出典として当サイトのURLを明記すれば、引用は自由です。記事内の数値や仕様は各社の公式ドキュメントを一次情報としているため、重要な判断の前には記事末尾に記載した一次情報のリンク先で最新の内容を確認してください。",
-  },
-];
+const jp = (d: string) => d.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
 
 // E-E-A-T（経験・専門性・権威性・信頼性）のシグナルとして、収集元の一次情報源とFAQを明記する。
 // 運営者は匿名。実名・所属・具体的な社名に繋がる経歴は書かないが、職種・運営動機・自作ツール・Xまでは書く。
 // 業務委託・相談窓口の導線は意図的に置いていない（PVが十分に伸びた段階で検討する方針）。相談を受け付ける旨もサイトには書かない。
+//
+// 用語の定義（GEO・AIO・LLMO・SEO）はここで説明せず /geo /seo /glossary に送る。
+// 同じ問いに二重に答えると、専用ページの劣化コピーになる。理由は src/lib/about.ts の冒頭に書いた。
 export default function AboutPage() {
   return (
     <>
-      <JsonLd data={faqPageJsonLd(`${SITE_URL}/about`, FAQ)} />
-      <PageDatesJsonLd path="/about" name="運営者情報" updated={POLICY_UPDATED} />
-      <PageHeader eyebrow="About" title="運営者情報" crumbs={[{ name: "運営者情報" }]} />
+      <JsonLd data={faqPageJsonLd(`${SITE_URL}/about`, ABOUT_FAQ)} />
+      <PageHeader
+        eyebrow="About"
+        title="運営者情報"
+        lead={`${SITE_NAME}は、検索とAI検索の最新アップデートを個人で毎日追って記事にしているメディアです。誰が、どの情報源から、どんな手順で記事を作り、誤りをどう直すかを公開しています。`}
+        crumbs={[{ name: "運営者情報" }]}
+      />
       <div className={PROSE.page}>
+      <PageDates
+        path="/about"
+        name="運営者情報"
+        type="AboutPage"
+        mainEntityId={`${SITE_URL}/#organization`}
+        updated={facts.updated}
+      />
+
       <h2>このサイトについて</h2>
       <p>
         {SITE_NAME}は、Google検索とAI検索（ChatGPT Search・Perplexity・Gemini・Google AI Overview/AI Mode）の
-        最新アップデートを追い、SEOとGEO（Generative Engine Optimization、生成AI検索最適化）の実務ノウハウとして
-        解説するメディアです。本サイトでは「AIO」「LLMO」と呼ばれる領域もまとめてGEOと表記します。
+        最新アップデートを追い、SEOとGEOの実務ノウハウとして解説するメディアです。運営者が検索とAI検索の変化を
+        自分で追い続けるために、勉強を兼ねて個人で運営しています。
+      </p>
+      <p>
+        用語の説明はこのページでは繰り返しません。GEO（AIO・LLMOを含む）の定義とSEOとの違いは
+        <a href="/geo">GEO対策とは</a>、検索エンジン側の話は<a href="/seo">SEO対策とは</a>、
+        個別の用語は<a href="/glossary">用語集</a>にまとめています。
       </p>
 
+      <h2>公開している内容</h2>
+      <p>
+        {/* 過去の話題を遡って記事化した分があるので「最初の記事を公開した日」とは書かない（記事の日付＝話題の日付）。 */}
+        {facts.since ? `扱っている話題は${jp(facts.since)}以降の分です（公開前の話題を遡って記事にしたものを含みます）。` : ""}
+        現在の内訳は次のとおりです（{jp(facts.updated)}時点。数値はサイトのデータから自動で算出しています）。
+      </p>
+      {/* 2列の対応表。見出し行は無く各行が項目名なので GuideTable（見出し行＋横スクロール）は使わず、
+          同じ TABLE トークンで組む。列を固定幅にしないので狭い画面では折り返す。 */}
+      <div className={cx("not-prose my-8", TABLE.frame)}>
+        <table className={TABLE.table}>
+          <tbody>
+            {[
+              ["公開記事数", `${facts.articles}本（ニュース${facts.news}本 / 解説${facts.howto}本）`],
+              ["うち独自記事", `${facts.original}本（運営者が自分で取ったログ・計測値・検証が中心の記事）`],
+              ["巡回している情報源", `${facts.feeds}媒体（うち検索・AI各社の公式は${facts.official}媒体）`],
+              ["公開している自作ツール", `${facts.tools}種類（ページ診断・プロンプト適合度。無料・登録不要）`],
+              [
+                "更新の頻度",
+                `毎朝7時（日本時間）に自動生成。${facts.latest ? `直近の公開は${jp(facts.latest)}` : "基準を満たす話題が無い日は公開なし"}`,
+              ],
+            ].map(([label, value], i) => (
+              // 先頭行は枠線と二重になるので区切り線を出さない
+              <tr key={label} className={i === 0 ? "align-top" : TABLE.row}>
+                <th scope="row" className={cx(TABLE.cell, "whitespace-nowrap text-left font-semibold")}>{label}</th>
+                <td className={cx(TABLE.cell, "leading-relaxed text-mute")}>{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <h2>収集元にしている情報源</h2>
-      <p>次の媒体を毎日巡回しています。記事の一次情報として優先するのは公式発表です。</p>
+      <p>次の{facts.feeds}媒体を毎日巡回しています。記事の一次情報として優先するのは公式発表です。</p>
       <ul>
-        {FEEDS.map((s) => (
+        {ABOUT_FEEDS.map((s) => (
           <li key={s.name}>
             <a href={s.home} target="_blank" rel="noopener">{s.name}</a>
             {s.kind === "official" ? "（公式）" : "（業界メディア）"}
@@ -102,7 +115,7 @@ export default function AboutPage() {
         <li>公開後に誤りや古くなった記述が見つかった場合は、本文を訂正して更新日を表示するか、記事を取り下げます。</li>
       </ol>
       <p>
-        自分で試した結果を書く独自記事（一覧で「独自」と表示している記事）は、これとは別の基準で書いています。
+        自分で試した結果を書く独自記事（一覧で「独自」と表示している{facts.original}本）は、これとは別の基準で書いています。
         取得したログや計測値には、期間・対象・除外したものといった取得条件を必ず添えます。
         観測した事実と運営者の解釈は段落を分け、観測から言えない一般化はしません。
         アクセス数のような実数は公開せず、率と傾向だけを載せます。
@@ -114,18 +127,9 @@ export default function AboutPage() {
         対価を受け取っていません。
       </p>
 
-      <h2>よくある質問</h2>
-      {FAQ.map((f) => (
-        <div key={f.question}>
-          <h3>{f.question}</h3>
-          <p>{f.answer}</p>
-        </div>
-      ))}
-
       <h2>運営者と連絡先</h2>
       <p>
-        ネット企業でプロダクトマネージャーとしてサービスの運営に関わってきました。当サイトは、検索とAI検索の
-        変化を自分で追い続けるために、勉強を兼ねて個人で運営しています。毎朝一次情報を巡回して記事にするほか、
+        ネット企業でプロダクトマネージャーとしてサービスの運営に関わってきました。毎朝一次情報を巡回して記事にするほか、
         自分が使いたかった診断ツール（<a href="/tools/page-audit">ページ診断</a>・
         <a href="/tools/prompt-fit">プロンプト適合度</a>）を作って公開しています。
         自分で試して分かったことは独自記事として書いています。
@@ -150,9 +154,18 @@ export default function AboutPage() {
 
       <h2>広告について</h2>
       <p>
-        当サイトは広告（Google AdSense）を掲載する場合があります。詳しくは
+        当サイトの収益源は広告（Google AdSense）だけです。対価を受け取って特定の製品を取り上げる記事広告は
+        掲載していません。広告の仕組みと取得される情報については
         <a href="/privacy">プライバシーポリシー</a>と<a href="/disclaimer">免責事項</a>をご覧ください。
       </p>
+
+      <h2>よくある質問</h2>
+      {ABOUT_FAQ.map((f) => (
+        <div key={f.question}>
+          <h3>{f.question}</h3>
+          <p>{f.answer}</p>
+        </div>
+      ))}
       </div>
     </>
   );

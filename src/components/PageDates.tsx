@@ -18,23 +18,28 @@ export type PageDatesProps = {
   published?: string;
   /** そのページが反映しているデータの最終日 YYYY-MM-DD */
   updated: string;
+  /** WebPage のサブタイプ。運営者情報は AboutPage、問い合わせは ContactPage を名乗る（既定は WebPage） */
+  type?: "WebPage" | "AboutPage" | "ContactPage";
+  /** このページが説明している対象の @id（AboutPage から Organization を指す等） */
+  mainEntityId?: string;
 };
 
 const jp = (d: string) => d.replaceAll("-", ".");
 
 /** JSON-LD だけ（可視の日付を自前で出しているページ用） */
-export function PageDatesJsonLd({ path, name, description, published, updated }: PageDatesProps) {
+export function PageDatesJsonLd({ path, name, description, published, updated, type = "WebPage", mainEntityId }: PageDatesProps) {
   const url = `${SITE_URL}${path}`;
   return (
     <JsonLd
       data={{
         "@context": "https://schema.org",
-        "@type": "WebPage",
+        "@type": type,
         "@id": `${url}#webpage`,
         url,
         name,
         ...(description ? { description } : {}),
         inLanguage: "ja",
+        ...(mainEntityId ? { mainEntity: { "@id": mainEntityId }, about: { "@id": mainEntityId } } : {}),
         datePublished: published ?? updated,
         dateModified: updated,
         isPartOf: { "@id": `${SITE_URL}/#website` },
