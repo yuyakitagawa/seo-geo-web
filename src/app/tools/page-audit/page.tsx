@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { APP_TOOLS } from "@/lib/apps";
 import { AREA_LABEL, CHECKLIST } from "@/lib/audit";
+import { AUDIT_LOG_RETENTION_DAYS } from "@/lib/audit-log";
 import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { CONTAINER, HEADING, LINK, PADDING, SURFACE, cx } from "@/lib/ui";
@@ -66,7 +67,7 @@ const FAQ: FaqItem[] = [
   {
     question: "検査したURLは保存されますか",
     answer:
-      "検査対象ページのホスト名とパス（例: example.com/blog/1）と、判定結果の件数を30日間だけ記録しています。どんなページが検査されているかを把握し、扱う記事の題材を選ぶために使う目的で、公開はしません。URLのクエリ文字列（? 以降）は保存していません。また、検査を実行した方のIPアドレス・ブラウザの情報も保存していません（連続実行を防ぐための一時的な回数制限にだけ使い、記録には残しません）。30日を過ぎた記録は自動的に削除されます。",
+      `検査対象ページのホスト名とパス（例: example.com/blog/1）と、判定結果の件数を${AUDIT_LOG_RETENTION_DAYS}日間だけ記録しています。どんなページが検査されているかを把握し、扱う記事の題材を選ぶために使う目的で、公開はしません。URLのクエリ文字列（? 以降）は保存していません。また、検査を実行した方のIPアドレス・ブラウザの情報も保存していません（連続実行を防ぐための一時的な回数制限にだけ使い、記録には残しません）。${AUDIT_LOG_RETENTION_DAYS}日を過ぎた記録は自動的に削除されます。`,
   },
 ];
 

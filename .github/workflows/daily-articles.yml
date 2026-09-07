@@ -42,7 +42,7 @@ jobs:
       # API代だけが残った。この不整合は tsc が TS2307 で検出できる種類のものなので、先に一度回す。
       # Actions分数は public リポジトリでは無料。有限なのはAPI代だけ、という前提で順番を決めている。
       - name: 生成前にmainの健全性を検査
-        run: npm run typecheck
+        run: npm run typecheck && npm test
 
       - name: 候補を収集
         run: npx tsx scripts/collect.ts
@@ -68,10 +68,12 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # 壊れたMDX・存在しない図解コンポーネントを本番に出さないための関門。
+      # npm test には記事の不変条件（id の重複・ファイル名と id の一致・sources の有無）が入っている。
+      # 2026-08 に id 43 が3本できて本番ビルドが落ちた事故は、ここで公開前に止まる。
       # ここで落ちたら以降のステップを実行しないので、その日は何も公開されず、候補の状態変更も残らない。
       - name: 本番ビルドで検証
         if: steps.diff.outputs.changed == 'true'
-        run: npm run typecheck && npm run build
+        run: npm run typecheck && npm test && npm run build
 
       - name: 公開（main へ反映）
         if: steps.diff.outputs.changed == 'true'

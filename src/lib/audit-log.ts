@@ -3,8 +3,16 @@
 // 記録するのは「検査対象のホスト名とパス」と判定結果の要約だけ。次の2つは意図的に残さない:
 //   - URLのクエリ文字列（トークンを含むURLを貼られても保存しないため）
 //   - 検査を実行した人のIPアドレス・UA
-// 保持期間30日は Supabase 側の関数 seogeo_log_audit が挿入のたびに古い行を削除して担保する。
+// 保持期間は Supabase 側の関数 seogeo_log_audit が挿入のたびに古い行を削除して担保する
+// （AUDIT_LOG_RETENTION_DAYS と同じ日数で作ってある）。
 // アプリに渡す鍵は publishable（anon）で、この関数の EXECUTE 以外は何もできない権限にしてある。
+
+/**
+ * 記録の保持日数。DB 側の seogeo_log_audit が実際の削除を担保し、この定数は
+ * /privacy と /tools/page-audit の説明文が参照する。説明と実装がずれると書いてある内容が虚偽になるので、
+ * 日数は本数値だけを直し、各ページには数字を書かない（src/lib/audit-log.test.ts が見張っている）。
+ */
+export const AUDIT_LOG_RETENTION_DAYS = 30;
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "";

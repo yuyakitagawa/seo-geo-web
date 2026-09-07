@@ -71,10 +71,12 @@ npm run generate -- 30
 **日次の自動公開と同時に走らせない**: 「採用」が残っていると翌朝のActionsが `pick`（`need = 件数 - 採用済み` が0以下で新規採用なし）→ `generate` でバックフィル分を先に消費し、その日のニュースが出なくなる。collect→pick→generate を一度に流し切ってからコミットする。
 **日付は過去のまま**（`date` = 出典の公開日）なので、記事一覧・RSS・`datePublished` は過去日で出る。まとめて公開する場合、初回クロールは全記事が同日になる。
 **自動公開の関門は3つ**:
-1. **生成の前**に `npm run typecheck` を1回（`.github/workflows/daily-articles.yml`）。mainが壊れているとAPI代を使ってから捨てることになるので、その前に落とす。
+1. **生成の前**に `npm run typecheck && npm test` を1回（`.github/workflows/daily-articles.yml`）。mainが壊れているとAPI代を使ってから捨てることになるので、その前に落とす。
    2026-08-28〜30の3便は、mainに `src/lib/apps.ts` が無いまま `sitemap.ts` がimportしていたせいで生成後に落ち、記事ごと捨てて課金だけが残った。
 2. `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,200字以上・必須見出し4種・図解2個以上・FAQ2問以上）
-3. **生成の後**に `npm run typecheck && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）
+3. **生成の後**に `npm run typecheck && npm test && npm run build`（本番ビルド＝MDXが実際にレンダリングできるか）。
+   `npm test` には記事の不変条件（`src/lib/content.test.ts`: id の重複・ファイル名の番号と id の一致・`sources` の有無・`supersedes` の参照先）が入っていて、
+   採番が衝突した記事は公開前にここで止まる（2026-08 に id 43 が3本できて本番ビルドが落ちた事故の再発防止）。
 
 どれかで落ちたらpushしないので、その日は何も公開されない。
 APIエラー時は「採用」のまま次回に回し、内容起因の失敗・検査落ちは「却下」にしてメモを残す。
@@ -346,6 +348,25 @@ npm ci
 cp .env.example .env.local   # 値を設定
 npm run dev
 ```
+
+## 検査（CI）
+PR と main への push で `.github/workflows/ci.yml` が回す。手元でも同じものを実行できる。
+```bash
+npm run typecheck      # 型（next typegen + tsc --noEmit）
+npm test               # src/lib/*.test.ts（node:test）
+npm run lint           # eslint
+npm run verify:api     # Vercel Functions が CommonJS で読み込めるか
+npm run build          # 本番ビルド（out/ に静的ファイル）
+```
+`npm run verify:api`（`scripts/verify-api.ts`）は `api/tsconfig.json` で実際に出力して `require()` する。
+本番の `/api/*` は Vercel のビルダーがこの tsconfig で変換するので、ここが ESM に落ちると拡張子無しの
+相対 import を Node が読めず FUNCTION_INVOCATION_FAILED になる（2026-09-04 に発生。`vercel dev` は別経路で
+変換するため再現せず、型検査もビルドも通ってしまう）。同じ壊れ方を CI で捕まえるための検査。
+
+env の欠落は例外を出さずに機能が静かに消えるので、`next.config.ts` が本番ビルドのログに一覧を出し、
+**Vercel の本番デプロイ（`VERCEL_ENV=production`）でだけ、必須の env が欠けていたらビルドを落とす**。
+必須は GA4（`NEXT_PUBLIC_GA_ID`）と ページ診断の利用ログ（`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`）。
+AdSense と お問い合わせフォームは意図的に無効な構成があるので、ログに出すだけで落とさない。
 
 配信されるHTMLを読むとき（Reactが要素間に空白を出さないので、ソースは1行に詰まっている）:
 ```bash
