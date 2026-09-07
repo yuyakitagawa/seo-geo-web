@@ -166,6 +166,13 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
           </section>
         )}
 
+        {/* 記事の作り方の開示。読者向けの透明性であり、/about（運営方針）への本文中の内部リンクでもある
+            （フッターのリンクだけでは /about が「クロール済み - インデックス未登録」から抜けなかった）。 */}
+        <p className="mt-6 text-sm text-mute">
+          この記事は一次情報をもとに作成し、公開前に自動検査を通しています。作成の手順と訂正の方針は
+          <Link href="/about" className={LINK}>運営者情報</Link>に記載しています。
+        </p>
+
         {article.tags.length > 0 && (
           <ul className="mt-8 flex flex-wrap gap-2 text-sm">
             {article.tags.map((t) => (

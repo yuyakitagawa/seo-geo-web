@@ -53,6 +53,8 @@ const organizationJsonLd = {
   url: SITE_URL,
   // Article のリッチリザルトは publisher.logo を要求する。@id 参照で記事側と共有する。
   logo: { "@type": "ImageObject", ...SITE_LOGO },
+  // 運営方針・記事の作り方を書いたページ。エンティティ（Organization）と /about を結び付ける。
+  publishingPrinciples: `${SITE_URL}/about`,
   ...(ORGANIZATION_SAME_AS.length ? { sameAs: ORGANIZATION_SAME_AS } : {}),
   ...(ORGANIZATION_CONTACT_POINT ? { contactPoint: ORGANIZATION_CONTACT_POINT } : {}),
 };

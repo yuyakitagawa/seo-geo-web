@@ -20,7 +20,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | パス | 内容 |
 |---|---|
 | `/` | 新着記事・「こんなときは」（困りごと4つから該当レッスン・ツールへ。文言は `src/lib/nav.ts` の `PROBLEM_ENTRIES`）・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
-| `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、関連記事、広告） |
+| `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、記事の作り方の開示1行（`/about` への本文内リンク）、関連記事、広告） |
 | `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
@@ -30,7 +30,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
-| `/about` `/privacy` `/disclaimer` | 運営者情報（運営方針・記事の作り方・収集元・FAQ）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
+| `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ。フォーム（`POST /api/contact` → LINE・メールへ転送）＋ 窓口の一覧。フォームの転送先 / `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
 | `/manifest.webmanifest` `/icon-192.png` `/icon-512.png` | PWAマニフェストとアイコン（図案は `src/lib/icon.tsx` の1か所。黒地に「S」＝SEO（生成り）＋「G」＝GEO（ブランド色）） |
@@ -396,7 +396,8 @@ npm run prompt-gap -- --all            # 「保留」も含める
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
   ItemList（/tools）、BreadcrumbList（全ページ）、FAQPage（記事の「## よくある質問」と /about）、
-  WebPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`）。
+  WebPage / AboutPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`。`type` で
+  サブタイプを、`mainEntityId` でそのページが説明している対象の `@id` を指定できる）。
   Organization には `logo`（`/icon-512.png`）、**Article を名乗るページには必ず `image`** を入れる
   ——どちらもリッチリザルトの要件。記事は `/articles/<id>/opengraph-image`、解説ページは `/seo|/geo/opengraph-image`、
   教科書（`/learn` と14レッスン）は共有の `/learn/opengraph-image`（`lessonMetadata` の og:image と同じ値）。
@@ -500,7 +501,13 @@ npm run prompt-gap -- --all            # 「保留」も含める
 - E-E-A-T: 運営者は匿名。実名・所属・社名が特定できる経歴は載せないが、**about の「運営者と連絡先」には
   匿名のまま検証できる属性（職種＝ネット企業のPdM、運営動機＝勉強を兼ねた個人運営、自作ツール、公式X）を書く**。
   加えて **about には記事がAI生成・自動公開であることと自動検査の内容、収集元の媒体一覧
-  （`scripts/sources.ts` の `home` から生成）、FAQを掲載する**。記事本文では一人称の経験談は書かない
+  （`scripts/sources.ts` の `home` から生成）、公開本数・独自記事数・巡回媒体数の実数表、FAQを掲載する**。
+  実数は `src/lib/about.ts` の `aboutFacts()` が content から数える（手で書くと古くなって虚偽になる）。
+  **about に用語の定義を書かない**——GEO・SEOの定義は `/geo` `/seo` `/glossary` が持つ。
+  2026-09-07、about の FAQ 前半3問が `/geo` の FAQ とほぼ同じ回答で、Search Console は about を
+  「クロール済み - インデックス未登録」にしていた（技術面は揃っていたので、原因は専用ページとの重複と
+  固有情報の不足）。重複の再発は `src/lib/about.test.ts`（回答の25文字連続一致・定義を聞く質問・質問文の一致）が落とす。
+  記事本文では一人称の経験談は書かない
   （書くのは自分で検証した `original: true` の独自記事だけ）。
   連絡窓口は匿名のまま用意する（メール or フォーム or 公式X。Organization contactPoint はメール > フォーム > X の順で1つ宣言）
 - 公式X（`X_SCREEN_NAME`）は**about の自己紹介で「公式アカウントはこれ1つ」と明記**し、同じURLを
