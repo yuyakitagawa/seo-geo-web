@@ -138,11 +138,10 @@ export default function PageAuditToolPage() {
             この4つが本文にあるかを見て、無ければ入れ方を出します。
           </p>
           <p className="mt-4 text-sm text-mute">
-            AIクローラー14種の一覧と、方針別のrobots.txtのひな形は
             <Link href="/learn/geo-implementation#crawlers" className={LINK}>
-              レッスン{lessonNo("geo-implementation")}「GEO実装」
+              AIクローラー14種の一覧と、方針別のrobots.txtのひな形
             </Link>
-            にあります。狙った質問にページの中身が噛み合っているかは
+            はレッスン{lessonNo("geo-implementation")}にあります。狙った質問にページの中身が噛み合っているかは
             <Link href="/tools/prompt-fit" className={LINK}>
               プロンプト適合度チェッカー
             </Link>

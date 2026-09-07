@@ -257,7 +257,7 @@ export default function LearnPage() {
           />
           <p>
             AI検索（GEO）側の作業は、この90日の外に別枠で足すものではありません。
-            <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>のAIクローラーの確認は、
+            <Link href={lessonPath("geo-implementation")}>AIクローラーの許可状況の確認</Link>は、
             2番目のrobots.txtの確認と同じタイミングで済ませられます。
           </p>
         </section>

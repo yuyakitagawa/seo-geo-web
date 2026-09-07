@@ -101,7 +101,7 @@ export default function Lesson01() {
           caption={
             <>
               経路Aの追加要件が無いことはGoogleが公式ドキュメントで明記しています。経路Bの各ボットの扱いは
-              <Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>で扱います。
+              <Link href={lessonPath("geo-implementation")}>AIクローラー14種の一覧とrobots.txtでの書き分け</Link>で扱います。
               <GuideRef {...REF.aiFeatures} />
             </>
           }
@@ -118,7 +118,7 @@ export default function Lesson01() {
           ここから分かるのは、<strong>GEOはSEOの置き換えではなく追加である</strong>ということです。
           経路Aは検索インデックスに依存しているため、SEOをやめてGEOだけを行うことはできません。
           GEO固有の作業として残るのは、質問に短く直答する書き方（<Link href={lessonPath("writing")}>レッスン{lessonNo("writing")}</Link>）と、
-          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>レッスン{lessonNo("geo-implementation")}</Link>）の2つです。
+          AI各社のクローラーを止めない設定（<Link href={lessonPath("geo-implementation")}>robots.txtでのAIクローラーの書き分け</Link>）の2つです。
         </p>
       </GuideSection>
 

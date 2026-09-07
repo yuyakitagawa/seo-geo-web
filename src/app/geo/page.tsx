@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import CategoryArticles from "@/components/CategoryArticles";
 import JsonLd from "@/components/JsonLd";
 import PageHeader from "@/components/PageHeader";
@@ -34,7 +35,6 @@ const TOC = [
   { id: "vs-seo", label: "SEOとGEOの違い" },
   { id: "how", label: "AIの回答に引用されるまでの経路" },
   { id: "bots", label: "Botの種類・動き・役割" },
-  { id: "crawlers", label: "主要なAIクローラーとrobots.txt" },
   { id: "writing", label: "引用されやすいページの書き方" },
   { id: "measure", label: "GEOの成果の測り方" },
   { id: "myths", label: "よくある誤解" },
@@ -270,48 +270,17 @@ export default function GeoGuidePage() {
           />
           <h3>Botの名乗りは自己申告。IPレンジで確かめる</h3>
           <p>
-            User-Agentの文字列は誰でも名乗れるため、アクセスログに「GPTBot」と出ていても本物とは限りません。主要な事業者は自社Botの
-            送信元IPレンジをJSONで公開しているので、ログのIPアドレスと突き合わせて確認します。ブロックやレート制限を設定するときも、
-            User-Agent名だけでなくIPレンジで判定するほうが確実です。
+            User-Agentの文字列は誰でも名乗れるため、アクセスログに「GPTBot」と出ていても本物とは限りません。
+            当サイトのログ29日分では、<Link href="/articles/39">Googlebotを名乗るリクエストの27.5%がGoogle公開のIP範囲の外</Link>でした。
+            巡回状況を数えるときは、事業者が公開しているIPレンジのJSONと突き合わせてから数えます。
+            提供元ごとのJSONのURLと、照合の手順は
+            <Link href="/learn/geo-implementation#verify">AIクローラーのなりすましをログで見分ける手順</Link>にまとめています。
           </p>
-          <ul>
-            <li>Google: <a href="https://developers.google.com/search/apis/ipranges/googlebot.json" target="_blank" rel="noopener">googlebot.json</a>（クローラーごとに別ファイルで公開）</li>
-            <li>OpenAI: <a href="https://openai.com/searchbot.json" target="_blank" rel="noopener">searchbot.json</a> / <a href="https://openai.com/gptbot.json" target="_blank" rel="noopener">gptbot.json</a> / <a href="https://openai.com/chatgpt-user.json" target="_blank" rel="noopener">chatgpt-user.json</a></li>
-            <li>Perplexity: <a href="https://www.perplexity.com/perplexitybot.json" target="_blank" rel="noopener">perplexitybot.json</a></li>
-            <li>Anthropic: <a href="https://claude.com/crawling/bots.json" target="_blank" rel="noopener">bots.json</a></li>
-          </ul>
           <h3>広告・エージェント用の特殊なBot</h3>
           <p>
             上の4種類のほかに、特定の用途だけに動くBotがあります。OpenAIのOAI-AdsBotは、ChatGPTに広告として提出されたページの安全性を
             確認するためのもので、提出されたページだけを訪問します。GoogleのGoogle-CloudVertexBotは、サイト所有者自身がVertex AIエージェントを
             構築するために依頼したクロールに対応します。どちらも検索やAI検索での表示とは関係がないため、GEOの観点では優先度は下がります。
-          </p>
-        </GuideSection>
-
-        <GuideSection
-          id="crawlers"
-          title="主要なAIクローラーとrobots.txt"
-          lead="前節の4種類を、robots.txtに実際に書くトークン単位で並べると次のようになります。検索表示用のボットを拒否すると回答に出なくなり、学習用のボットを拒否してもモデルの学習から外れるだけで検索表示には影響しません。robots.txtで一律にAIを拒否すると、引用されたい経路まで同時に閉じることになります。"
-        >
-          <GuideTable
-            head={["ボット", "事業者", "用途", "robots.txtで拒否すると"]}
-            rows={[
-              ["Googlebot", "Google", "Google検索のクロール。AIによる概要・AIモードもこのインデックスを使う", "検索にもAI機能にも表示されない"],
-              ["Google-Extended", "Google", "Geminiアプリ向けモデルの学習と、Geminiアプリ・Vertex AIでのグラウンディング", "Gemini側での利用から外れる。Google検索の登録・ランキングには影響しない"],
-              ["OAI-SearchBot", "OpenAI", "ChatGPTの検索機能に表示するためのクロール", "ChatGPTの検索の回答に表示されない（ナビゲーションリンクとしては出る場合がある）"],
-              ["GPTBot", "OpenAI", "基盤モデルの学習に使われる可能性のあるコンテンツの収集", "学習データから除外される。検索表示の可否とは独立"],
-              ["ChatGPT-User", "OpenAI", "ユーザーの操作を起点としたページの取得", "ユーザー起点の取得のため、robots.txtのルールが適用されない場合があるとOpenAIは説明している"],
-              ["PerplexityBot", "Perplexity", "Perplexityの検索結果にサイトを表示・リンクするためのクロール", "検索結果に表示されにくくなる"],
-              ["Perplexity-User", "Perplexity", "ユーザーの質問を起点としたページの取得", "ユーザーの要求による取得のため、通常はrobots.txtのルールに従わないとPerplexityは説明している"],
-              ["Claude-SearchBot", "Anthropic", "検索結果の品質向上のためのインデックス", "検索での可視性と正確性が下がる可能性がある"],
-              ["Claude-User", "Anthropic", "ユーザーの質問を起点としたページの取得", "ユーザー起点の検索での可視性が下がる可能性がある"],
-              ["ClaudeBot", "Anthropic", "生成AIモデルの学習に使われる可能性のあるコンテンツの収集", "将来の学習データから除外される"],
-            ]}
-            caption="出典: Google 検索セントラル「Google の一般的なクローラー」、OpenAI「Overview of OpenAI Crawlers」、Perplexity「PerplexityBot」、Anthropic ヘルプセンター。ボットの追加・変更は各社の公式ドキュメントで確認してください。"
-          />
-          <p>
-            OpenAIは、robots.txtの変更が検索側の挙動に反映されるまでおよそ24時間かかると説明しています。Perplexityも、設定の反映に最大24時間かかるとしています。
-            変更した直後に結果が変わらないことをもって「効果がない」と判断しないでください。
           </p>
         </GuideSection>
 
