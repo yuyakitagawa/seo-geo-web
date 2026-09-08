@@ -53,3 +53,6 @@ data/
 
 # scripts/verify-api.ts の出力
 .api-verify/
+
+# Python
+__pycache__/
