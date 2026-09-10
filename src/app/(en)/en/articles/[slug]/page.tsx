@@ -13,6 +13,7 @@ import { MDX_FIGURES_EN } from "@/components/figures";
 import { EN_FAQ_HEADING, enArticlePath, getAllEnArticles, getEnArticle } from "@/lib/content-en";
 import { EN_HOME_PATH } from "@/lib/en";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
+import { ogImageUrl } from "@/lib/ogImage";
 import { extractToc } from "@/lib/toc";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { CONTAINER, EYEBROW, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
@@ -70,7 +71,7 @@ export default async function EnArticlePage({ params }: PageProps<"/en/articles/
     dateModified: article.updated,
     inLanguage: "en",
     mainEntityOfPage: url,
-    image: `${url}/opengraph-image`,
+    image: ogImageUrl("/(en)/en/articles/[slug]", { slug: article.slug }),
     isPartOf: { "@id": `${SITE_URL}${EN_HOME_PATH}#website` },
     // 日本語の原文。同じ調査の翻訳であることを宣言し、別の記事として重複扱いされないようにする。
     translationOfWork: { "@id": `${jaUrl}#article` },

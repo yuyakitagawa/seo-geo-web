@@ -496,8 +496,12 @@ npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools �
   WebPage / AboutPage（記事以外のページの公開日・更新日。`src/components/PageDates.tsx`。`type` で
   サブタイプを、`mainEntityId` でそのページが説明している対象の `@id` を指定できる）。
   Organization には `logo`（`/icon-512.png`）、**Article を名乗るページには必ず `image`** を入れる
-  ——どちらもリッチリザルトの要件。記事は `/articles/<id>/opengraph-image`、解説ページは `/seo|/geo/opengraph-image`、
-  教科書（`/learn` と14レッスン）は共有の `/learn/opengraph-image`（`lessonMetadata` の og:image と同じ値）。
+  ——どちらもリッチリザルトの要件。記事は `/articles/<id>` の、解説ページは `/seo|/geo` の opengraph-image、
+  教科書（`/learn` と14レッスン）は共有の `/learn` の opengraph-image（`lessonMetadata` の og:image と同じ値）。
+  **opengraph-image のURLは手で組まず `ogImageUrl()`（`src/lib/ogImage.ts`）を通す**。route group（`(ja)` `(en)`）の下の
+  メタデータのルートは、Next がファイル名にハッシュを付けて書き出す（`/articles/75/opengraph-image-pnm8o`）ため、
+  `${url}/opengraph-image` は404になる（2026-09-11 まで全記事の `image` と全レッスンの og:image が404だった）。
+  規則が Next の実装とずれたら `src/lib/ogImage.test.ts` が落ちる。
 - **BreadcrumbList は `src/components/Breadcrumbs.tsx` が可視UIとJSON-LDを同じ配列から出す**（表示と構造化データがずれない）。
   一覧・固定ページは `PageHeader` に `crumbs` を渡すだけで付く。
   **末尾の要素（現在のページ）には `item` を出さない** —— 最後の要素にURLは不要という仕様で、
@@ -584,7 +588,8 @@ npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools �
 - RSS の `lastBuildDate` は**載せている記事の最新更新日**（sitemap の `lastmod` と同じ規律。ビルド時刻は使わない）。
 - テキスト系ルート（`llms.txt` / `feed.xml` / `ads.txt`）と、メタデータのルート（`opengraph-image.tsx` × 9 / `icon.tsx` / `apple-icon.tsx` /
   `robots.ts` / `sitemap.ts` / `manifest.ts`）は `force-static`。`output: "export"` ではこれが無いとビルドが落ちる。全ページが静的生成。
-  OGP 画像とアイコンは拡張子無しのファイル（`/articles/1/opengraph-image` など）で書き出されるので、`vercel.json` の `headers` で `image/png` を付ける。
+  OGP 画像とアイコンは拡張子無しのファイル（`/articles/1/opengraph-image-pnm8o` `/icon` など）で書き出されるので、`vercel.json` の `headers` で `image/png` を付ける
+  （OGP 画像は route group の下にあってハッシュ付きになるので `/:path*/opengraph-image-:hash`。`icon` `apple-icon` は `src/app` 直下なので付かない）。
 - `robots.txt` は全クローラーに `Allow: /`（`/api/` だけ除外）。ただし商用SEOクローラー8種は `Disallow: /`（`src/lib/scrapers.ts`）。
   `Crawl-delay: 5` は `User-agent: *` にだけ出す。**`src/lib/crawlers.ts` の14種（AI検索・AI学習・検索エンジン）は
   専用グループにして待たせない**——AIと検索に読まれること自体がこのサイトの目的で、名前の分かっている相手を
