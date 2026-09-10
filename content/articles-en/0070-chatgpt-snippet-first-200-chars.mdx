@@ -300,9 +300,7 @@ In a Japanese question with three conditions attached, one of the three slots al
 
 **Same input, moving output.** Tidying the first 200 characters is work to get you "introduced correctly once you're a candidate," not work that locks in a ranking. Don't judge from a single observation; measure several times, spaced out over time.
 
-## What this observation shows and doesn't show
-
-**What it shows**
+## What this observation shows
 
 - All 383 snippets recorded in the conversation JSON were 200–206 characters and truncated at the end
 - On all 12 pages we could match, the header, navigation and skip links had been discarded (0 started at the top of the page)
@@ -311,15 +309,7 @@ In a Japanese question with three conditions attached, one of the three slots al
 - Across days, 82% matched, and the main cause of change was a shift in the body extraction point
 - Both pages where extraction failed had neither `main` nor `article`
 
-**What it doesn't show**
-
-- We didn't look at anything other than ChatGPT. Perplexity, Gemini and AI Overviews may differ. **Since Google states that it uses the meta description, Google's products could show the opposite result**
-- ChatGPT's search backend has not been disclosed
-- The algorithm used for body extraction isn't public. The link to the presence of `main` is based on only six pages
-- We haven't confirmed whether snippets are text after JavaScript execution
-- Why some pages have empty snippets is unknown
-- We haven't tested whether `title` affects candidate selection
-- The sample is 5 prompts × 2 days. The ratios shouldn't be generalized
+**The sample is 5 prompts × 2 days, and we didn't look at anything other than ChatGPT. Since Google states that it uses the meta description, Google's products could show the opposite result.**
 
 ## How to check your own pages
 

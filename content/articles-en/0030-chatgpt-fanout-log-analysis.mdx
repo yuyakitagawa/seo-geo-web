@@ -222,9 +222,9 @@ This observation contradicts that. **In a session logged with the internal slug 
 
 Most earlier reports stop at extracting the fan-out queries; I couldn't find any record that followed candidate URLs, whether bodies were fetched, and citation types in a single continuous trace. That is the focus of this article.
 
-## What this observation shows, and what it doesn't
+## What this observation shows
 
-**What it shows** (facts established within this log)
+The facts established within this log are:
 
 - The fan-out query strings, and that "official" and "2026" were added to them
 - The full list of 36 candidate URLs, and which 4 of them were cited
@@ -232,13 +232,7 @@ Most earlier reports stop at extracting the fan-out queries; I couldn't find any
 - That citations split into 4 types with different display formats
 - That the 2 URLs cited as the `url` type had empty snippets, and the facts were supplied by a different URL (with parameters) for the same page
 
-**What it doesn't show**
-
-- Whether the same ratios hold in other verticals, languages or plans. **The sample size is 1**
-- Why the fan-out stopped at 3 queries. Language, plan and search mode can't be separated
-- Whether the card issuers' terms are accurate. This article records ChatGPT's behavior; **it does not verify anything about the credit cards**
-- The full text of the snippets the model received. The JSON `snippet` is a display value truncated with `…`, and the string passed to the model is not necessarily identical
-- That the search backend passed no body content to the model beyond the snippets. The conversation JSON is a client-side record and can't confirm that
+**The sample size is 1.** The conversation JSON is also a client-side record: the `snippet` is a display value truncated with `…`, so it can't confirm that the search backend passed no other body content to the model. This article records ChatGPT's behavior; **it does not verify anything about the credit cards.**
 
 ## Steps
 

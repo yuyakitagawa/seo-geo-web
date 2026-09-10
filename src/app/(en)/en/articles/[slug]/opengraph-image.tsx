@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getAllEnArticles, getEnArticle } from "@/lib/content-en";
 import { CATEGORIES, SITE_NAME } from "@/lib/site";
-import { OG_CONTENT_TYPE, OG_SIZE, loadOgFont, ogFrame } from "@/lib/og";
+import { OG_CONTENT_TYPE, OG_SIZE, ogFontOption, ogFrame } from "@/lib/og";
 
 // output: "export" では、メタデータのルートにこれが無いとビルドが落ちる。
 export const dynamic = "force-static";
@@ -21,6 +21,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   if (!article) return new Response("Not found", { status: 404 });
 
   const footer = article.date.replaceAll("-", ".");
-  const fonts = await loadOgFont(article.title + CATEGORIES[article.category].label + SITE_NAME + footer);
-  return new ImageResponse(ogFrame({ category: article.category, title: article.title, footer }), { ...size, fonts });
+  const font = await ogFontOption(article.title + CATEGORIES[article.category].label + SITE_NAME + footer);
+  return new ImageResponse(ogFrame({ category: article.category, title: article.title, footer }), { ...size, ...font });
 }
