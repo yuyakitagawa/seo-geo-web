@@ -4,13 +4,13 @@ import { EYEBROW, PADDING, SURFACE, cx } from "@/lib/ui";
 // 記事の目次。本文2,500〜3,500字に対して、読者が読む前に全体像をつかむための一覧。
 // リンクなので、AI検索・検索エンジンにも記事の構成がそのまま渡る。
 // 見出し側の `scroll-mt-24`（記事ページの prose に指定）で、固定ヘッダーに隠れないようにしている。
-export default function Toc({ items }: { items: TocItem[] }) {
+export default function Toc({ items, label = "Contents · 目次" }: { items: TocItem[]; label?: string }) {
   if (items.length === 0) return null;
 
   return (
     <nav aria-labelledby="toc-heading" className={cx(SURFACE.outline, PADDING.tight, "mt-10")}>
       <h2 id="toc-heading" className={cx(EYEBROW.mute, "mb-4")}>
-        Contents · 目次
+        {label}
       </h2>
       <ol className="space-y-2.5 text-sm sm:text-base">
         {items.map((item, i) => (

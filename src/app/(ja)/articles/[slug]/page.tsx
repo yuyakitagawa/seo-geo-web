@@ -21,6 +21,7 @@ import OriginalBadge from "@/components/OriginalBadge";
 import SourceBadge from "@/components/SourceBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
+import { enArticlePath, getEnArticleById } from "@/lib/content-en";
 import { supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { extractToc } from "@/lib/toc";
@@ -40,10 +41,15 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
   // 続報に置き換えられた記事は同じクエリで最新版と食い合うので、インデックスさせず
   // リンクだけ辿らせる（sitemap からも外れる。判定は src/lib/indexability.ts に集約）。
   const superseded = supersededBy(article);
+  // 英語版がある記事（独自記事）は hreflang で相互に宣言する。x-default は日本語版。
+  const en = getEnArticleById(article.id);
   return {
     title: article.title,
     description: article.description,
-    alternates: { canonical: `/articles/${article.slug}` },
+    alternates: {
+      canonical: `/articles/${article.slug}`,
+      ...(en ? { languages: { ja: `/articles/${article.slug}`, en: enArticlePath(en.slug), "x-default": `/articles/${article.slug}` } } : {}),
+    },
     // openGraph は上位の値とマージされず丸ごと置き換わるので、siteName / locale もここで書き直す。
     openGraph: {
       type: "article",
@@ -68,6 +74,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
   const related = getRelatedArticles(article);
   const url = `${SITE_URL}/articles/${article.slug}`;
   const superseded = supersededBy(article);
+  const en = getEnArticleById(article.id);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -117,6 +124,11 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
             <SourceBadge sources={article.sources} type={article.type} original={article.original} size="md" />
             <time dateTime={article.date}>{article.date.replaceAll("-", ".")}</time>
             {article.updated !== article.date && <span>更新 <time dateTime={article.updated}>{article.updated.replaceAll("-", ".")}</time></span>}
+            {en && (
+              <a href={enArticlePath(en.slug)} hrefLang="en" lang="en" className="underline decoration-paper/40 underline-offset-4 hover:text-paper">
+                English
+              </a>
+            )}
           </div>
           <h1 className="text-[clamp(1.9rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-tight animate-rise">{article.title}</h1>
           {article.description && <p className="mt-6 max-w-2xl text-paper/75 sm:text-lg animate-rise [animation-delay:100ms]">{article.description}</p>}

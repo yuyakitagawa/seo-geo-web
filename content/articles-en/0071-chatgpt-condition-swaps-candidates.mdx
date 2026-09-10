@@ -1,0 +1,223 @@
+---
+id: 71
+slug: chatgpt-condition-swaps-candidates
+title: "1 Added Condition Swapped ChatGPT's Brands; 0 Overlap at 3 Conditions"
+description: >-
+  Adding conditions to the same ChatGPT question swapped the brands it picks before searching; no conditions vs. three shared zero. Some queries shifted overnight, others held.
+date: '2026-09-06'
+category: geo
+type: howto
+tags:
+  - ChatGPT
+  - AI search
+  - Brands
+  - Original research
+  - GEO
+  - Branded search
+impact: high
+audience: Businesses that want to make the shortlist when AI search answers comparison and recommendation questions
+actions:
+  - Run your category's question in three versions, with no conditions, one condition, and three conditions
+  - If you drop out on a conditional question, put evidence that you meet that condition on your official pages
+  - Don't judge candidate inclusion from a single result; re-run it on different days
+  - Check whether the price shown for your product in the answer is correct
+sources:
+  - title: "ChatGPT Already Knows Who's In The Running Before It Searches（Suganthan Mohanadasan）"
+    url: "https://suganthan.com/blog/chatgpt-decides-before-it-searches/"
+  - title: "Don't Measure Once: The Instability of LLM Brand Visibility Measurements（arXiv:2604.07585）"
+    url: "https://arxiv.org/abs/2604.07585"
+---
+
+## Conclusion
+
+**When I added conditions to the same question, ChatGPT's candidate brands changed at every step, and the no-condition and three-condition versions shared zero brands.** Re-running the same five questions the next day split them in two: 3 of 5 returned exactly the same candidates, while 2 of 5 swapped some out.
+
+The setup: I asked ChatGPT questions in one category (SEO and GEO tools), in Japanese, adding conditions step by step. Over two days I extracted the candidate brands the model wrote into its search queries before running any search, and compared them.
+
+Every added condition swapped out candidates.
+
+| Question | Brands in the candidate set |
+| --- | --- |
+| No conditions | Ahrefs / Semrush / Google Search Console / Screaming Frog |
+| + "usable for a personal blog" | Google Search Console / **Ahrefs Webmaster Tools (free version)** / Ubersuggest / Google Trends / Rakko Keyword |
+| + "under ¥10,000/month, Japanese-language support, for sole proprietors" | Rakko Keyword / Nobilista / GMO Rank Checker |
+
+**Not a single brand appeared in both the no-condition and the three-condition set.** Semrush and Screaming Frog disappeared after one condition, Ahrefs was replaced by its free version instead of the paid product, and finally even Google Search Console dropped out, leaving only Japanese tools.
+
+When I ran everything again the next day, **the questions split into ones whose candidates changed and ones where nothing moved at all**.
+
+This is a record of two days, five questions, and one account. Read it not as "this is how it works" but as **an observation of how it behaved under these conditions**.
+
+<FigureStats
+  title="Five questions, run under the same conditions on two days"
+  caption="2026-09-05 / 09-06, model gpt-5-6, memory off, no custom instructions"
+  stats={[
+    { value: "0", label: "Brands shared by no-condition and three-condition queries", note: "No overlap at all" },
+    { value: "3/5", label: "Queries with identical candidates on both days", note: "All mature English-language categories" },
+    { value: "2/5", label: "Queries whose candidates changed", note: "GEO, and the Japanese query with many conditions" },
+  ]}
+/>
+
+## What I looked at
+
+When ChatGPT receives a question, it builds its own search queries, and their contents are kept in the conversation JSON. This article looks at **the brand names the model wrote into its first query**.
+
+The user never mentions a brand, yet the model writes product names into the query before it searches. This is the same behavior reported in the overseas study covered in an earlier article; this time I confirmed it in my own logs.
+
+Conditions:
+
+- Logged in, desktop web, model `gpt-5-6`
+- Memory off, all custom instruction fields empty
+- New chat for each question. The five questions were run under the same conditions on two days
+
+The five questions (asked in Japanese):
+
+1. `SEO対策のツールでおすすめを教えて` ("Recommend some SEO tools"; no conditions)
+2. `個人ブログでも使えるSEOツールのおすすめは？` ("What SEO tools would you recommend that work even for a personal blog?"; one condition)
+3. `月1万円以内・日本語対応・個人事業主向けのSEOツールを3つ挙げて` ("Name three SEO tools under ¥10,000/month, with Japanese-language support, for sole proprietors"; three conditions)
+4. `2026年時点で最新のSEOツールのおすすめは？` ("What are the latest recommended SEO tools as of 2026?"; point-in-time)
+5. `AI検索対策（GEO）のツールでおすすめを教えて` ("Recommend some tools for AI search optimization (GEO)"; a new category)
+
+**A caveat up front:** this is a record of two days, five questions, and one account. It cannot be used to generalize rates. Read it as an observation of how things behaved under these conditions.
+
+## More conditions, different candidates
+
+<FigureCompare
+  title="Same category, different brands left standing"
+  caption="Brand names the model wrote into its first search query (same result on both days)"
+  cols={[
+    { label: "No conditions", tone: "news", sub: "Recommend some SEO tools", points: ["Ahrefs", "Semrush", "Google Search Console", "Screaming Frog"] },
+    { label: "+ Personal blog", tone: "accent", sub: "One condition added", points: ["Google Search Console", "Ahrefs Webmaster Tools (free version)", "Ubersuggest", "Google Trends", "Rakko Keyword"] },
+    { label: "+ ¥10,000/mo, Japanese, sole proprietors", tone: "geo", sub: "Three conditions", points: ["Rakko Keyword", "Nobilista", "GMO Rank Checker", "(No major overseas tools)"] },
+  ]}
+/>
+
+Here is what happened at each step.
+
+**No conditions → one condition.** Semrush and Screaming Frog disappeared. Only Google Search Console survived as-is; Ahrefs stayed with the same company but was **replaced by its free version (Ahrefs Webmaster Tools) instead of the paid product**. Ubersuggest, Google Trends, and Rakko Keyword came in. What the survivors had in common was **a free tier**.
+
+**One condition → three conditions.** Google Search Console dropped out too. Only Rakko Keyword remained, joined by Nobilista and GMO Rank Checker. **Not one major overseas tool was left.**
+
+Once "Japanese-language support," "under ¥10,000/month," and "for sole proprietors" were all present, the model switched to looking for Japanese tools. In fact, the domains cited for this question were `rakkokeyword.com` `co.nobilista.com` `group.gmo` `kantan.gmo`, all Japanese.
+
+### Change the candidates, change the cited sites
+
+Candidate inclusion wasn't only about whether a name appears in the answer. **Which sites get read and cited** moved along with it.
+
+For the no-condition question, the cited domains were `developers.google.com` `ahrefs.com` `semrush.com` `screamingfrog.co.uk`. The three-condition question overlapped with none of them. Same category, yet **the whole set of pages being read was swapped out**.
+
+## Across days, some questions changed and some didn't
+
+I ran the same five questions again the next day.
+
+| Question | 9/5 → 9/6 |
+| --- | --- |
+| No conditions | **Exact match** (Ahrefs / Semrush / GSC / Screaming Frog) |
+| + Personal blog | **Exact match** (GSC / Ahrefs WMT / Ubersuggest / Trends / Rakko) |
+| As of 2026 | 5 matched, **SE Ranking added** |
+| + ¥10,000/mo, Japanese | Rakko and Nobilista matched; **Mieruca and Rank Tracker dropped, GMO Rank Checker added** |
+| GEO (new category) | Profound, Peec, and Otterly matched; **AthenaHQ dropped, Scrunch added** |
+
+**The mature English-language categories didn't move at all across days.** What moved was the new category (GEO tools) and the Japanese question with detailed conditions. Both are areas where the "standard" picks haven't settled yet.
+
+The way they moved had something in common: **the top 2–3 brands stayed put, and positions 4 and below were swapped.** For GEO, Profound, Peec, and Otterly appeared on both days, and only the fourth changed, from AthenaHQ to Scrunch. For the Japanese question, Rakko Keyword and Nobilista held, and the third slot changed.
+
+<FigurePipeline
+  title="What moved and what didn't over these two days"
+  caption="Results by question type. Observations from two days and five questions"
+  stages={[
+    { label: "Mature English-language category", desc: "The same four standard picks on both days", fail: "If you aren't one of the standards, you never enter the running" },
+    { label: "Japanese with conditions", desc: "Top two unchanged; the third swapped", fail: "Without evidence that you meet the conditions, you drop off the shortlist" },
+    { label: "New category", desc: "Top three unchanged; the fourth swapped", fail: "A single measurement can't tell a swap from noise" },
+  ]}
+/>
+
+## The answers themselves change too
+
+It wasn't just the candidates; the answer the reader sees moved as well. Here are the three questions that completed on both days.
+
+| Question | 9/5 | 9/6 |
+| --- | --- | --- |
+| + Personal blog | GSC → Rakko → Ahrefs → Trends → Ubersuggest | **Exact match (including order)** |
+| + ¥10,000/mo, Japanese | Rakko → Nobilista → **GMO AI Kantan Shukyaku** | Rakko → Nobilista → **GMO Rank Checker** |
+| GEO | Profound → **Peec** → Ahrefs → Otterly → Semrush | **Otterly** → Profound → Semrush → Ahrefs → **Scrunch** |
+
+For the GEO question, the top spot changed from Profound to Otterly, and on 9/6 the answer flatly stated that if you pick just one, it should be OtterlyAI. Peec AI, second the day before, vanished from the answer and Scrunch took its place.
+
+For the ¥10,000/month question, one of the three slots went to a different product. Both are from GMO, but it switched **from GMO AI Kantan Shukyaku (literally "AI easy customer acquisition") to GMO Rank Checker**, and the domain changed from `kantan.gmo` to `rank-checker.com`.
+
+### Even the quoted prices change
+
+For the same product, Rakko Keyword, the answers said:
+
+- 9/5: "Paid plans **from ¥1,320 billed monthly**"
+- 9/6: "On current monthly billing, Entry is **¥660** and Lite is ¥990"
+
+¥660 is the official price with annual billing. **The 9/6 statement that it's "¥660 on monthly billing" is likely incorrect.** Both figures appear on the official page, but whether the model picked up the monthly or the annual price changed from day to day.
+
+It's worth checking at least once how AI describes your own pricing.
+
+## What this observation does and doesn't show
+
+**What it shows**
+
+- Within the same category, adding conditions swapped the candidate brands
+- No brand was shared between the no-condition and three-condition questions
+- When the candidates changed, the cited domains changed too
+- For 3 of the 5 questions, candidates matched exactly across days
+- The 2 that moved were the new category and the Japanese question with many conditions
+- The same product's price was quoted at different amounts on different days
+
+**What it doesn't show**
+
+- This is a record of two days, five questions, and one account. **The rate of swapping cannot be generalized**
+- The logs don't reveal why a brand was chosen. The decision has already been made by the time the name appears in the query
+- It's an observation of one category, SEO and GEO tools. Other product categories may not behave the same
+- I didn't look at anything other than ChatGPT
+- "The top 2–3 stay fixed" is also a two-day observation, not a rule
+
+The last point matters most. Prior research found that re-running the same prompt yields 32–43% overlap in cited sources, and 45–59% overlap in brand names across days. **You can't judge from a single result.**
+
+## What to take from this
+
+<FigureDoDont
+  title="Staying on the shortlist for conditional questions"
+  caption="Within the scope of what this observation supports"
+  dos={[
+    "Run your category's question in three versions: no conditions, one condition, and three conditions",
+    "If you drop out on a conditional question, put evidence that you meet the condition on your official pages (pricing, supported languages, target business size)",
+    "Collect results multiple times on different days and record them as rates",
+    "Check whether the price shown for your product in the answer is correct",
+  ]}
+  donts={[
+    "Judging candidate inclusion from the no-condition question alone",
+    "Concluding from a single result that your rank went up or down",
+    "Making it a short-term goal to break into the standard picks of a mature category",
+  ]}
+/>
+
+If you aren't among the four standard picks for the no-condition question, going after that spot looks like a long game. **For conditional questions, on the other hand, the candidate slots were replaced wholesale.** The tools that made the list for "under ¥10,000/month," "Japanese-language support," and "for sole proprietors" were Japanese. The move you can make now is to state the conditions you meet as facts on your official pages.
+
+Also note that how your content gets read is decided by [the first 200 characters of the body](/en/articles/chatgpt-snippet-first-200-chars). Even if you meet a condition, it won't feed into the description unless it's at the top of the page.
+
+## FAQ
+
+### Where is it decided which brands make the candidate set?
+
+At the point where the model builds its search query. Even when the user doesn't name anything, product names are written into the first query. The search was used to verify those candidates. In other words, appearing in search results and making the candidate set are separate hurdles.
+
+### Is it worth targeting conditional questions?
+
+In this observation, the no-condition and three-condition questions had no brands in common. Even if you can't break into the standard picks for the unconditioned question, conditional questions have a separate set of slots. But this is a two-day observation, so check for yourself whether the same happens in your category.
+
+### How many times should I measure?
+
+At minimum, several times on different days. Here, 2 of the 5 questions had their candidates swapped the next day. If you look at a single result and conclude your rank moved, you'll mistake noise for the effect of your work. Prior research also found 45–59% brand-name overlap when re-running the same prompt.
+
+### What should I do if my price is described incorrectly?
+
+First check how pricing is written on your official page. In this example, whether the model picked up the monthly or annual price changed by day, and one of the amounts quoted was likely incorrect. The first thing to review is whether the terms of the monthly price (annual vs. monthly contract, tax-inclusive vs. tax-exclusive) can be read unambiguously in one place.
+
+### If the top 2–3 brands are fixed, is there no chance for latecomers?
+
+That's only how it looked in this observation. What moved were the new category and the conditional questions, and in both, positions 4 and below were swapped. Put the other way, **swaps are happening while a category's definition is still new**. For the GEO tools question, AthenaHQ dropped out and Scrunch came in within two days.

@@ -1,0 +1,324 @@
+---
+id: 75
+slug: chatgpt-sol-internal-process
+title: "Inside ChatGPT Sol's Conversation Log: It Searches in Multiple Stages"
+description: >-
+  I read a ChatGPT Sol conversation JSON for a credit card recommendation question, message by message from 0 to 15. It searched in 3 stages; here is how that differs from the older gpt-5-6 model.
+date: '2026-09-10'
+category: geo
+type: howto
+tags:
+  - ChatGPT
+  - AI search
+  - GPT-5.6
+  - Fan-out queries
+  - Citations
+  - Original research
+impact: high
+audience: Businesses that want to be recommended when AI search answers comparison and recommendation questions, and operators of comparison sites
+actions:
+  - Run your category's question on both Sol and the older model, and save the conversation JSON
+  - Check that the domain and page paths written into the search queries for your brand are current
+  - Put the conditions you get compared on (annual fee, reward rate, etc.) at the top of your official pages, with a date
+  - If you run a comparison site, record per model whether you make the candidate set on comparison and recommendation questions
+sources:
+  - title: NTTドコモから提供している一部サービスのURL変更について｜NTTドコモ
+    url: 'https://www.docomo.ne.jp/info/notice/page/211216_00.html'
+  - title: 'Previewing GPT-5.6 Sol: a next-generation model | OpenAI'
+    url: 'https://openai.com/index/previewing-gpt-5-6-sol/'
+---
+## Conclusion
+
+**Sol split its search into 3 stages and ran 10 queries, taking 29 seconds of thinking and about 52 seconds until the answer finished, while the older model's 10 logs showed 1-2 searches and a few seconds to 7 seconds of thinking.** I picked Sol in ChatGPT's model selector and asked "クレジットカードのおすすめを教えて" (Recommend a credit card). The conversation JSON records 16 messages (0 through 15), which let you follow, in order, internal processing that never appears on screen.
+
+**The three stages:**
+
+1. **Search broadly**: one query per company against the official domains of 5 card issuers
+2. **Re-search with specific pages**: write the page path into `site:` to go after particular product pages
+3. **Fill only the gaps**: look up a card added to the candidates mid-process and a card that still hadn't been found
+
+Thinking took 29 seconds, and the answer took about 52 seconds to finish. In 10 logs I captured with the older model (`gpt-5-6` in the log), search ran 1-2 times and thinking took from a few seconds to 7 seconds. **The step the older model always did first, passing the question text straight to search, did not appear in Sol's log.**
+
+<FigureFlow
+  title="Sol searched in 3 stages"
+  caption="2026-09-10, 'Recommend a credit card' (クレジットカードのおすすめを教えて), model in log: gpt-5-6-thinking"
+  steps={[
+    { label: "Preamble (11s)", desc: "Shows the selection criteria on screen before searching" },
+    { label: "Stage 1: broad (13s)", desc: "5 queries, each restricted to an issuer's official domain" },
+    { label: "Stage 2: page-level (17s)", desc: "3 queries with the path written into site:" },
+    { label: "Stage 3: fill gaps (25s)", desc: "2 queries for a candidate added mid-process and one not yet found" },
+    { label: "Answer (36-52s)", desc: "Recommends 5 cards in a table, citing official pages" },
+  ]}
+/>
+
+This is the record of a single conversation. Read it as an observation of "under these conditions it behaved like this," not "Sol always behaves like this."
+
+## What I looked at
+
+Capture conditions:
+
+- 2026-09-10 23:06 (JST), ChatGPT while logged in
+- Sol selected in the model selector. The log records `model_slug: "gpt-5-6-thinking"` and `thinking_effort: "extended"`. The name Sol never appears in the log
+- Memory enabled (there is a `model_editable_context` message). Custom instructions are not recorded in the log, so unknown
+- New chat; the conversation JSON was captured after the answer completed
+- Prompt: "クレジットカードのおすすめを教えて" (Recommend a credit card)
+
+I used two baselines. One is 10 `gpt-5-6` conversation logs captured the same way on 2026-09-05 to 06 (questions about SEO and GEO tools, memory disabled). The other is [my earlier fan-out log analysis](/en/articles/chatgpt-fanout-log-analysis) (2026-08-31, free plan; "the fan-out article" below), which asked the same credit card question on `gpt-5-6`. **Neither baseline matches on everything except the model.** You cannot attribute all the differences to the model.
+
+The conversation JSON was captured the same way as in the fan-out article: open the Network tab in the browser's developer tools, filter by the conversation ID, and save the `conversation` response.
+
+## Messages 0-15 at a glance
+
+Here are the 16 entries of the `messages` array in array order. Elapsed time is seconds since the user sent the message.
+
+| # | Role | Type | Elapsed | What it does |
+| ---: | --- | --- | ---: | --- |
+| 0 | system | text (empty) | 5.9s | Conversation scaffold. Not shown on screen |
+| 1 | user | text | 0s | The question |
+| 2 | system | text (empty) | 7.6s | Plugin upsell slot. Records the thinking start time (6.3s) |
+| 3 | assistant | model_editable_context | 7.8s | Memory slot (empty) |
+| 4 | assistant | text / commentary | 11.1s | Pre-search preamble |
+| 5 | assistant → web.run | code | 13.2s | **Stage 1 search instruction** (5 queries) |
+| 6 | tool (web.run) | text (empty) | 13.4s | Stage 1 query list. Feeds the on-screen "Searching..." display |
+| 7 | tool (web.run) | text (empty) | 14.1s | Stage 1 search results |
+| 8 | assistant → web.run | code | 16.9s | **Stage 2 search instruction** (3 queries) |
+| 9 | tool (web.run) | text (empty) | 17.7s | Stage 2 search results |
+| 10 | assistant → web.run | code | 25.1s | **Stage 3 search instruction** (2 queries) |
+| 11 | tool (web.run) | text (empty) | 26.2s | Stage 3 search results |
+| 12 | assistant | thoughts | 33.0s | Thought summary "比較方針を整える" (Organizing the comparison approach) |
+| 13 | assistant | thoughts | 35.7s | Collapsed on-screen label "3件のウェブサイトを検索しました" (Searched 3 websites) |
+| 14 | assistant | reasoning_recap | 35.7s | End of thinking, "29s考えました" (Thought for 29s) |
+| 15 | assistant | text / final | 35.8-51.7s | Answer body and citations |
+
+Array order and timestamps don't line up. The system message at index 0 was created about 6 seconds after the user's question at index 1.
+
+### Messages 0-3: preparing to answer
+
+**Message 0** is an empty system message with `is_visually_hidden_from_conversation: true`. It is the conversation scaffold.
+
+**Message 1** is the user's question, "クレジットカードのおすすめを教えて" (Recommend a credit card).
+
+**Message 2** is another empty system message, with `exclusive_key: "plugin_upsell"`. It is a slot for recommending plugins and showed nothing this time. This message records the thinking start time (`reasoning_start_time`): 6.3 seconds after sending. `model_slug: "gpt-5-6-thinking"` and `thinking_effort: "extended"` are attached to every message from here on.
+
+**Message 3** is `model_editable_context`, the memory slot the model reads. It was empty. Its presence is the sign that memory is enabled.
+
+### Message 4: showing the approach before searching
+
+**Message 4** is a line shown on screen before any search has run.
+
+> 日本で使う前提なら、「年会費無料」「還元率」「よく使う経済圏」で選ぶと失敗しにくいです。いまの特典や条件を確認して、用途別に絞ります。
+
+(If you'll use it in Japan, choosing by "no annual fee," "reward rate," and "the ecosystem you use most" rarely goes wrong. I'll check current perks and conditions and narrow it down by use case.)
+
+It carries `channel: "commentary"` and `is_thinking_preamble_message: true`. None of the older model's 10 logs had one.
+
+The "annual fee," "reward rate," and "by use case" mentioned here map directly to the columns of the final answer's table (annual fee, base reward rate, who it suits). **The skeleton of the answer existed before any search.**
+
+### Messages 5-7: Stage 1, searching 5 official domains broadly
+
+**Message 5** is the Stage 1 search instruction. It is a message with `recipient: "web.run"`, and `content.text` lists the queries one per line.
+
+```text
+fast|三井住友カード NL 年会費 還元率 公式 2026|30|smbc-card.com
+fast|楽天カード 年会費 還元率 公式 2026|30|rakuten-card.co.jp
+fast|JCB CARD W 年会費 還元率 公式 2026|30|jcb.co.jp
+fast|dカード 年会費 還元率 公式 2026|30|d-card.jp
+fast|PayPayカード 年会費 還元率 公式 2026|30|paypay-card.co.jp
+length|medium
+```
+
+(The queries are `<card name> annual fee reward rate official 2026` for Sumitomo Mitsui Card NL, Rakuten Card, JCB CARD W, d Card, and PayPay Card.)
+
+The `|`-separated fields are, from left: speed mode, query text, recency filter (`30` presumably means the last 30 days), and domain filter. The final `length|medium` I take to be an answer-length setting. This format is an undocumented internal spec, and my reading of it is inferred from the log.
+
+The user named no brand at all, yet the five company names and each one's official domain are already written in. **Both the candidates and which sites to verify them on were decided before searching.** It is the same behavior I saw in [the conditions article](/en/articles/chatgpt-condition-swaps-candidates): the candidates are decided before the search.
+
+**Message 6** is a message from the search tool side; `metadata.search_model_queries.queries` holds the same 5 queries. It is used for the on-screen "Searching..." display. This message exists only for Stage 1; Stages 2 and 3 have no counterpart.
+
+**Message 7** is the Stage 1 search result. `metadata.search_result_groups` held 9 results: 4 from JCB, 2 from Sumitomo Mitsui Card, and 3 from PayPay Card. Every snippet was empty. The screen shows "3件のサイトを検索中" (Searching 3 sites). However, the record in the final answer (message 15) shows that Stage 1 also returned Rakuten Card results. Message 7 contains only part of what came back.
+
+### Messages 8-9: Stage 2, re-searching with specific pages
+
+**Message 8** is the Stage 2 search instruction, issued 2.8 seconds after the Stage 1 results returned.
+
+```text
+fast|site:rakuten-card.co.jp/card/rakuten-card/ 年会費 永年無料 1% 楽天カード
+fast|site:d-card.jp/st/abouts/d-card/ 年会費 永年無料 還元率 dカード
+fast|site:smbc-card.com/nyukai/card/numberless.jsp 対象 コンビニ 飲食店 7% 2026
+length|medium
+```
+
+Where Stage 1 worked at the domain level, **Stage 2 writes the page path into `site:` to go after specific product pages.** The conditions it wants to verify ("永年無料" (free for life), "1%", "7%") are written into the queries too.
+
+**Message 9** is the Stage 2 result: 13 results, 9 from Sumitomo Mitsui Card and 4 from Rakuten Card. d Card pages: 0.
+
+### Messages 10-11: Stage 3, filling only the gaps
+
+**Message 10** is the Stage 3 search instruction. It came 7.5 seconds after the Stage 2 results, the longest gap between searches.
+
+```text
+fast|site:smbc-card.com 三井住友カード ゴールド NL 年間100万円 10000ポイント 継続特典
+fast|site:d-card.jp dカード 基本還元率 1% 年会費 永年無料
+length|short
+```
+
+It looks up only two things. One is **Sumitomo Mitsui Card Gold (NL)**, which was not in Stage 1. Pages for this card had already appeared in the Stage 1 and Stage 2 results, and Stage 3 is where it is named for the first time. The other is **d Card**, which Stage 2 also failed to find. The length setting drops to `short`.
+
+**Message 11** is the Stage 3 result: 8 results, 6 official Sumitomo Mitsui Card pages plus one each from the company's FAQ sites (`faq-mem.smbc-card.com` and `qa.smbc-card.com`). d Card: 0 again.
+
+### Messages 12-14: closing the thinking
+
+**Message 12** is the thought summary. Its heading is "比較方針を整える" (Organizing the comparison approach), and the body read:
+
+> 検索結果が十分でないため、断定を避けつつ、利用目的別に候補を整理している。楽天カード、三井住友カードNL、JCBカードW、PayPayカードを軸に、年間利用額や普段の店を確認して選びたい。
+
+(Because the search results are insufficient, I'm organizing candidates by purpose while avoiding definitive claims. I want to center on Rakuten Card, Sumitomo Mitsui Card NL, JCB Card W, and PayPay Card, and choose after checking annual spend and the stores they usually use.)
+
+**This is where d Card drops out of the candidates.** It also shows the model itself judging that the search results were insufficient. It carries a field, `summary_type: "raw_cot"`, that the older model's logs did not have.
+
+**Message 13** is the label shown when the thinking is collapsed on screen, "3件のウェブサイトを検索しました" (Searched 3 websites). Its `source_message_ids` bundle messages 5, 6, and 7, meaning **Stage 1 only**. On screen it looks like one search, but in reality 10 queries ran across 3 stages.
+
+**Message 14** marks the end of thinking and records "29s考えました" (Thought for 29s). That is the span from the start (6.3 seconds, recorded in message 2) to the end (35.6 seconds).
+
+### Message 15: the answer
+
+**Message 15** is the answer body. It started writing 35.8 seconds after sending and finished at 51.7 seconds. The body was a table lining up 5 cards by "who it suits, annual fee, base reward rate," followed by a description of each card.
+
+- Rakuten Card
+- Sumitomo Mitsui Card (NL)
+- JCB Card W
+- PayPay Card
+- Sumitomo Mitsui Card Gold (NL)
+
+It ended with a follow-up question: "年齢・月にカードで使う金額・よく使う店を教えてくれれば、あなたならこの1枚まで絞れます" (Tell me your age, how much you spend on cards per month, and where you shop most, and I can narrow it down to the one card for you). It opened with "2026年9月時点なら" (As of September 2026), so it also assumed a date.
+
+The metadata holds two things:
+
+- `content_references`: 5 citations (all pill-style `grouped_webpages`) and the source list at the end of the answer (`sources_footnote`, 4 entries)
+- `search_result_groups`: the candidate list with snippets (73 entries)
+
+A citation's `refs[].turn_index` is `0` / `1` / `2`, pointing to the Stage 1, 2, and 3 searches respectively. The citation markers in the body use a different number, such as `turn155362`, which corresponds to the `ref_id.turn_index` attached to the results in messages 7, 9, and 11.
+
+## How it differs from the older model
+
+Compared against the 10 `gpt-5-6` logs captured on 2026-09-05 to 06. The question category (SEO and GEO tools) and memory setting differ, so treat this as a rough guide.
+
+| | Older model (gpt-5-6, 10 logs) | Sol (this log) |
+| --- | --- | --- |
+| Step passing the question text straight to search | Present in all 10 | None |
+| Search stages | 1-2 | 3 |
+| Thinking time | "数秒間" (a few seconds) to 7s | 29s |
+| Until the answer finished | 3-24s after sending | About 52s |
+| Pre-search preamble | None | Present |
+| Thought summary format (`summary_type`) | Not recorded | `raw_cot` |
+
+**In terms of processing order, the biggest difference is that the step passing the question text straight to search is gone.** In all 10 logs, the older model first ran `search("the question text as-is")` in a `recipient: "web"` message, and only then sent rewritten queries to `web.run`. Sol wrote per-brand queries from the start.
+
+Comparing the same credit card question (the fan-out article), the search content differed too.
+
+| | Fan-out article (gpt-5-6) | Sol (this log) |
+| --- | --- | --- |
+| Searches | 1 round, 3 queries | 3 rounds, 10 queries |
+| First query | Mixed English/Japanese, 4 brands in one query | Japanese, one brand per query |
+| Domain restriction | None (the word "official" in the query) | All 5 Stage 1 queries |
+| Candidate URLs | 36 URLs, 14 domains | 78 URLs, 4 domains |
+| Comparison sites | 14 in candidates, 0 cited | 0 in candidates |
+| Citations | 4 URLs, 2 domains | 5 primary citation URLs, 4 domains |
+
+Domain restriction itself existed in the older model too: it was used in 3 of the 10 SEO tool questions, and `site:` in 8. What differed was how it was used. This time it **started by restricting all of Stage 1 to official domains**, so comparison sites had no room to enter the candidates. In the fan-out article, comparison sites made the candidates and then dropped out without being cited.
+
+<FigureCompare
+  title="Internal processing: older model vs. Sol"
+  caption="Older model: 10 logs from 2026-09-05 to 06 plus the fan-out article. Sol: this single log"
+  cols={[
+    { label: "Older model (gpt-5-6)", tone: "seo", sub: "Thinking: a few seconds to 7s", points: ["Searches the question text as-is first", "1-2 searches", "No preamble", "For credit cards, comparison sites also made the candidates"] },
+    { label: "Sol (gpt-5-6-thinking)", tone: "geo", sub: "Thinking: 29s", points: ["Per-brand queries from the start", "3-stage search (broad → page-level → fill gaps)", "Shows a preamble before searching", "Restricted to official domains from Stage 1"] },
+  ]}
+/>
+
+## d Card: a miss in all 3 stages
+
+Following the stages shows that d Card was a candidate from Stage 1 and was searched in all 3 stages.
+
+1. Stage 1: domain filter `d-card.jp`
+2. Stage 2: `site:d-card.jp/st/abouts/d-card/`
+3. Stage 3: `site:d-card.jp`
+
+None of the three returned a single result from d Card's official site. It was then dropped from the candidates in the message 12 thought summary and did not appear in the answer.
+
+According to an NTT Docomo notice, the d Card site moved from `d-card.jp` to `dcard.docomo.ne.jp` in October 2022. When I checked on the capture date (2026-09-10), requests to `d-card.jp` were 301-redirected to `dcard.docomo.ne.jp`, and the path specified in Stage 2, `/st/abouts/d-card/`, returned 404 at the redirect target.
+
+**From here on is interpretation.** The model writes official-site domains and paths from memory. What it wrote was the pre-migration domain, and because the search was narrowed to that domain, the current site was excluded. That is how I read it. This log cannot tell us, however, whether d Card would have stayed in the recommendations had it searched the correct domain.
+
+## Citations and snippets
+
+Each of the 5 citations was a pair of one primary citation and one supporting citation, both on the same company's domain. **None of the 5 primary citation URLs were in the candidate list with snippets, while all 5 supporting URLs were in it, with snippets.** The structure where the link target and the page that supplied the content are different is the same as in the fan-out article and [the snippet article](/en/articles/chatgpt-snippet-first-200-chars).
+
+Many of the numbers in the answer were written verbatim in snippets, such as "通常5,500円" (normally 5,500 yen), "年間100万円で翌年以降永年無料" (free for life from the following year with 1 million yen in annual spend), and "毎年10,000ポイント" (10,000 points every year) for Sumitomo Mitsui Card Gold (NL). On the other hand, the store names given as eligible for Sumitomo Mitsui Card (NL)'s 7% rewards, such as Lawson, McDonald's, and Yoshinoya, and Amazon and Starbucks given as JCB Card W partner stores, appear in no snippet. The log has no record of fetching page bodies, so I can't determine whether these came from the primary citation pages' bodies or from the model's prior knowledge.
+
+## Do / Don't
+
+<FigureDoDont
+  title="Audit on the assumption of multi-stage search"
+  caption="Suggestions from a sample of 1. Measure yourself whether it reproduces in your category"
+  dos={[
+    "Run your question on both Sol and the older model, and keep the logs",
+    "Check that the domain and paths written into the queries for your brand are current",
+    "On frequently targeted product pages, write the conditions you get compared on, with a date",
+    "For comparison sites, record per model whether you made the candidates",
+  ]}
+  donts={[
+    "Judge search volume only from the on-screen 'Searched N websites' label",
+    "Treat a 301 redirect from the old domain as enough",
+    "Draw conclusions about Sol vs. the older model from a single result",
+  ]}
+/>
+
+In Stage 2, not just the domain but the page path was specified. **A page whose URL changed can suffer the same miss even if the domain stays the same.** Factor this in when you change product page URLs.
+
+## Steps
+
+1. In ChatGPT, ask one comparison or recommendation question in your category. Run the same question on Sol and on the older model
+2. Open the Network tab in the browser's developer tools, filter by the conversation ID, and save the `conversation` response JSON
+3. Read `messages` from the top and count the messages whose `recipient` is `web.run` to see how many search stages there were
+4. From each stage's queries, extract the domain filter (the 4th `|` field) and the `site:` paths, and check that yours are current
+5. In the final message's `search_result_groups` and `content_references`, see whether you made the candidates and whether you were cited
+
+## What this observation can and can't tell you
+
+**What it can tell you**
+
+- In this conversation, search was split into 3 stages (domain level → page level → gap filling)
+- The step of passing the question text straight to search, present in all 10 older-model logs, was absent this time
+- All 5 Stage 1 queries were restricted to official domains, and the 78 candidate URLs included no comparison sites
+- d Card was searched 3 times on its pre-migration domain, got 0 results, and was dropped from the candidates mid-thinking
+
+**What it can't tell you**
+
+- Whether Sol always searches in 3 stages. **The sample is 1**
+- Whether the differences from the older model come from the model. Date, plan, question, and memory setting also differ
+- Which Sol setting `gpt-5-6-thinking` in the log corresponds to
+- Whether d Card would have stayed in the recommendations had it searched the correct domain
+- Whether each card issuer's conditions are correct. This article records ChatGPT's behavior; **it does not verify anything about the credit cards**
+
+## FAQ
+
+### If the screen says "Searched 3 websites," were only 3 searches run?
+
+Not this time. Message 13, which produces that label, bundled only the Stage 1 search; in reality 10 queries ran across 3 stages. Check search volume by counting the messages whose `recipient` is `web.run` in the conversation JSON.
+
+### What was the biggest difference between the older model and Sol?
+
+In processing order, the step of passing the question text straight to search disappeared. The older model took this step first in all 10 logs, while Sol wrote per-brand queries from the start. The other difference is time: thinking grew from a few seconds to 7 seconds up to 29 seconds, and the time until the answer finished grew to about 52 seconds.
+
+### Will Sol stop recommending comparison sites?
+
+In this one run, yes. The Stage 1 search was restricted to official domains, so comparison sites didn't even make the candidates. But the sample is 1. If you run a comparison site, record per model and per day whether you make the candidates on questions in your category.
+
+### Where in the conversation JSON can I see the stages?
+
+Read the `messages` array from the top and look for messages whose `recipient` is `web.run`. This time there were three, messages 5, 8, and 10, each immediately followed by results from the search tool (messages 7, 9, and 11). You can measure the gap between searches from the difference in `create_time`.
+
+### Can I trust the card conditions written in the answer?
+
+Much of it was written verbatim in snippets from official pages, but it also included things not in the snippets, such as store names. This article does not verify whether the card conditions are correct. Before applying, check each issuer's official page.
