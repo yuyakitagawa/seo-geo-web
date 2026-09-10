@@ -1,0 +1,147 @@
+---
+id: 77
+slug: ai-cited-only-english-version
+title: "Google's AI Cited Only the English Version: Measured on a Topic With No Competition"
+description: >-
+  I published English versions of articles from a Japanese site. About 96% of Search Console's generative AI impressions landed on the English URLs, though normal search showed Japanese 3x more.
+date: '2026-09-10'
+category: geo
+type: howto
+tags:
+  - AI Overviews
+  - AI Mode
+  - Multilingual sites
+  - Search Console
+  - Original research
+impact: high
+audience: Site operators who want more citations in AI search but are buried under competition on crowded topics
+actions:
+  - List the articles that only your site has as primary information, and search whether anyone covers the same topic in another language
+  - Translate only the articles with no competition in the target language, and write proper nouns the standard way in that language
+  - Split Search Console's generative AI report by language URL and see which version the citations landed on
+  - Record citations and clicks separately, and assume citations can rise while traffic does not
+sources:
+  - title: AI features and your website | Google Search Central
+    url: 'https://developers.google.com/search/docs/appearance/ai-features'
+  - title: Generative AI performance report (Search) - Search Console Help
+    url: 'https://support.google.com/webmasters/answer/16984139'
+  - title: Managing multi-regional and multilingual sites | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites
+---
+## Conclusion
+
+On a separate Japanese site I run, some articles were also published in English at their own URLs. Across three months of Search Console's **generative AI report (impressions in AI Overviews and AI Mode), about 96% of impressions were on the English URLs.** Only 2 articles and 2 non-article pages got impressions on the Japanese side.
+
+In ordinary search results it was the other way around: **the Japanese articles got about 3.1x the impressions and about 8.4x the clicks** of the English ones. For the same articles, the ranking of "strong in normal search" and "strong in AI search" is reversed between the two languages.
+
+Most of the cited English pages were about **foreign investment firms buying or selling shares in listed Japanese companies.** In Japanese, many sites cover that; in English, almost no page does. The hypothesis this observation points to is that the shortcut to being cited by AI is to **write in a language-plus-topic combination competitors have not covered yet.**
+
+<FigureStats
+  title="The same articles, Japanese version vs English version"
+  caption="Search Console search performance and generative AI report. Three months, June to early September 2026"
+  stats={[
+    { value: "~96%", label: "Share of generative AI impressions on English URLs", note: "Only 2 Japanese articles got any" },
+    { value: "~3.1x", label: "Normal search impressions (Japanese / English)", note: "Clicks were about 8.4x" },
+    { value: "6.4", label: "Average position of the English version", note: "Japanese version was 9.4" },
+  ]}
+/>
+
+## What I measured
+
+- Subject: one Japanese site I run separately. Its articles are written from disclosure filings of listed Japanese companies
+- English versions: translations published at URLs separate from the Japanese ones. Each version was self-canonical, and hreflang declared the two as language variants of the same page
+- Data: Search Console's generative AI report (top pages list) and ordinary search performance (fetched per page via the API)
+- Index status: for the top 7 cited articles, I checked both the Japanese and English URLs with Search Console's URL Inspection tool
+
+Per Google's documentation, the generative AI report counts **how many times a link to your site appeared in AI Overviews and AI Mode in Google Search.** The Gemini app is not included. It also states that the condition for appearing as a supporting link in AI Overviews or AI Mode is only that the page **is indexed and eligible to appear in search results with a snippet** — there are no extra technical requirements.
+
+URL Inspection showed that for those top 7 articles, **both the Japanese and the English URLs were indexed.** The conditions were the same for both, and yet what the AI picked was almost always the English version.
+
+## What the cited articles had in common
+
+<FigureCompare
+  title="Articles that got cited vs articles that did not"
+  caption="From the top of the generative AI report and the normal search numbers"
+  cols={[
+    { label: "English versions (citations concentrated)", tone: "geo", sub: "~96% of impressions", points: ["Topics about foreign investment firms trading shares in Japanese companies", "Almost no English page covers the same fact", "Also ranked well in normal search, average position 6.4", "Proper nouns written the standard English way"] },
+    { label: "Japanese versions (almost never cited)", tone: "ink", sub: "Only 2 articles", points: ["Many Japanese sites cover the same topic", "More impressions and clicks than English in normal search", "Average position 9.4", "Foreign company names written in full-width Latin letters, copied from the filings"] },
+  ]}
+/>
+
+There are two plausible reasons the citations landed on the English versions.
+
+1. **There is no competition in English.** Almost no page states, in English, that "foreign investment firm A acquired X% of Japanese company B." Even in normal search, the English versions were published later and still averaged three positions higher than the Japanese ones. When there are fewer candidates, the pages an AI can choose to cite are that much narrower
+2. **Proper nouns are written the standard way for that language.** The English versions wrote foreign investment firms' names in plain English. The Japanese versions used the filings' notation as-is, which meant full-width Latin letters, and titles truncated the longer company names
+
+The second may well be contributing. Both Japanese articles that did get cited had investment firm names written in Japanese (katakana or kanji). But this data cannot separate the first reason from the second.
+
+Google explains that AI Overviews and AI Mode may use **query fan-out, splitting a search into several smaller topics and issuing multiple queries.** The search terms that surfaced the English versions included the investment firms' English names, mixed with short Japanese questions like "what is (company name)?" or "did it acquire?" A plausible path is that Japanese questions produced English sub-queries, which then picked up the English versions that had no competition. (Search Console's API cannot separate normal search terms from AI feature terms, so this is inference.)
+
+## Citations went up; traffic did not
+
+These need to be kept apart. The generative AI report counts **impressions only** — it does not show how many clicks came from the AI answer. In normal search clicks, the Japanese versions were about 8.4x the English ones, and few people read the English pages.
+
+The value of an English version is "having your name appear as the source for this topic in an AI answer," not directly increasing pageviews. For a site that earns from pageviews, such as an ad-funded one, whether translation costs pay off is a separate calculation.
+
+## What this observation supports, and what it does not
+
+Supported:
+
+- With the Japanese and English versions of the same articles both indexed, about 96% of generative AI report impressions were on the English versions
+- In normal search, the Japanese versions had more impressions and more clicks — the opposite of AI search
+- The English versions that got cited were concentrated on topics almost no English page covers
+
+Not supported:
+
+- "Cited because there was no competition" and "cited because proper nouns used standard notation" cannot be separated with this data
+- Impressions are small numbers even over three months, and the sample is one site. The same thing may not happen on another topic or in another language
+- Clicks from AI answers were not measured. How much the citations turned into traffic is unknown
+- Whether citations occurred outside the generative AI report's scope, such as in the Gemini app, is not in this data
+
+## Do and don't
+
+<FigureDoDont
+  title="Writing in another language to go after AI citations"
+  caption="From this observation, as of September 2026"
+  dos={[
+    "Translate only the primary information unique to your site, and only on topics with no competition in the target language",
+    "Write people and company names the standard way in the target language (avoid full-width Latin letters and truncation)",
+    "Give each language its own URL and declare the pairing with hreflang",
+    "Split the generative AI report by language URL and record citations and clicks separately",
+  ]}
+  donts={[
+    "Translate every article mechanically (crowded topics stay buried in any language)",
+    "Keep one URL and switch the display language by browser settings",
+    "Treat a rise in citations as evidence that pageviews will rise",
+    "Assume a low position in normal search means you will not be cited in AI search",
+  ]}
+/>
+
+## Steps
+
+1. Pull out the articles on your site that are **mostly primary information you gathered yourself** (exclude news summaries and explainers other sites also have)
+2. Search each of those topics in the target language. Use combinations of proper nouns (for example investment firm name plus company name) to see whether a page states the same fact
+3. Translate only the articles where almost nothing comes back. Use the target language's official notation for proper nouns, and answer "who did what to whom" in the first sentence
+4. Publish the translation at its own URL and tie it to the original with hreflang
+5. One to two months later, count the top pages in the generative AI report by language and read them alongside normal search clicks
+
+Step 2 is the core of this method. Translating without checking for competition just spends the translation budget and leaves you buried in both languages.
+
+## FAQ
+
+### Does this mean Gemini cited the pages
+
+The generative AI report counts impressions in AI Overviews and AI Mode in Google Search. Both are Google Search features, and Google states that citations in the Gemini app are not included in this report. Whether the Gemini app cites the same pages has to be checked by actually asking it.
+
+### Will an English version get any article cited by AI
+
+The citations here concentrated on topics almost no English page covers. Translating a topic that already has many English explainers just puts you next to the English competition. Checking that the target language has no competition comes first.
+
+### Should the English version go on a subdomain or a subdirectory
+
+Google recommends publishing other language versions at separate URLs and lists both subdomains and subdirectories as options. The English versions that got cited here were published under the same host as the existing site (a subdirectory). Whether the URL structure affected citations cannot be told from this data.
+
+### How should proper nouns be written in the Japanese version
+
+The Japanese versions here wrote foreign company names in full-width Latin letters, copying the filings, and truncated long names in titles. The notation people and AI actually use is usually the half-width English form. Even if you want to keep the source document's notation, it is safer to put the common full name in the first sentence of the body.

@@ -1,0 +1,170 @@
+---
+id: 78
+slug: subdomain-vs-subdirectory-crawler-log
+title: "Republishing the English Version on a Subdomain Cut Googlebot to About a Quarter"
+description: >-
+  I published the same English version in a subdirectory and on a subdomain, and compared Googlebot over the first 6 days. Per page the subdomain got about a quarter, and a tenth of pages were visited.
+date: '2026-09-10'
+category: geo
+type: howto
+tags:
+  - Subdomain
+  - Subdirectory
+  - Multilingual sites
+  - Googlebot
+  - Log analysis
+  - Original research
+impact: high
+audience: Site operators deciding which URL structure to use for an English or other language version
+actions:
+  - If you want Google to find the other language version fast, publish it in a subdirectory of the existing host
+  - If you use a subdomain, treat it as launching a new site - register it in Search Console and submit a sitemap
+  - When comparing, divide Googlebot hits by page count and also show the share of pages visited at least once
+  - Do not conclude from the first few days alone; check index status with URL Inspection too
+sources:
+  - title: Crawl Budget Management For Large Sites | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget
+  - title: Managing multi-regional and multilingual sites | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites
+  - title: Googlebot | Google Search Central
+    url: 'https://developers.google.com/search/docs/crawling-indexing/googlebot'
+  - title: Redirects and Google Search | Google Search Central
+    url: 'https://developers.google.com/search/docs/crawling-indexing/301-redirects'
+---
+## Conclusion
+
+I published the English version of a separate Japanese site I run **twice, at different times: once in a subdirectory (`example.com/en/`) and once on a subdomain (`en.example.com`).** Comparing Googlebot over the first 6 days after each launch, **the subdomain got clearly less crawling.**
+
+- **Hits**: 158 for the subdirectory, 13 for the subdomain
+- **Per page**: 0.17 vs 0.04. Even after normalizing for the difference in page count, **about a quarter**
+- **Share of pages visited at least once**: about 16% vs about 1.5%. **About a tenth**
+
+On day 6, none of the 7 subdomain pages I checked were in Google's index. If the goal is to be found by Google quickly, this log favors the subdirectory.
+
+<FigureStats
+  title="Googlebot over the first 6 days"
+  caption="Subdirectory version August 9-14, 2026; subdomain version September 5-10, 2026"
+  stats={[
+    { value: "~1/4", label: "Googlebot hits per page", note: "0.17 vs 0.04" },
+    { value: "~1/10", label: "Share of pages visited at least once", note: "~16% vs ~1.5%" },
+    { value: "0 of 7", label: "Subdomain pages indexed on day 6", note: "Checked with URL Inspection" },
+  ]}
+/>
+
+## What I measured
+
+- Subject: the English version of one separate Japanese site I run — pages carrying translations of its articles
+- Subdirectory version: published August 9, 2026, under `/en/` on the same host, 911 articles as of mid-August
+- Subdomain version: published September 5, 2026, on a separate host, 328 translated pages. The subdirectory version had been taken down on August 29 and was then republished this way
+- Records: a table where the application stores user agent, path, and hostname. I counted rows identifying as Googlebot
+- Comparison window: 6 days from each launch date
+
+Page counts differ by about 2.8x, so comparing raw hits favors the larger side. I therefore compared two things: **hits divided by page count**, and **the share of pages Googlebot visited at least once during the 6 days.**
+
+## Googlebot by day
+
+<FigureBars
+  title="Googlebot on the subdirectory version, by day"
+  caption="August 9-14, 2026. 147 unique URLs over 6 days"
+  unit="hits"
+  bars={[
+    { label: "Day 1", value: 2 },
+    { label: "Day 2", value: 13 },
+    { label: "Day 3", value: 30 },
+    { label: "Day 4", value: 72, note: "Peak" },
+    { label: "Day 5", value: 30 },
+    { label: "Day 6", value: 11 },
+  ]}
+/>
+
+<FigureBars
+  title="Googlebot on the subdomain version, by day"
+  caption="September 5-10, 2026. 5 unique URLs over 6 days"
+  unit="hits"
+  bars={[
+    { label: "Day 1", value: 2 },
+    { label: "Day 2", value: 4 },
+    { label: "Day 3", value: 0 },
+    { label: "Day 4", value: 4 },
+    { label: "Day 5", value: 0 },
+    { label: "Day 6", value: 3 },
+  ]}
+/>
+
+The subdirectory version went from 2 hits on day 1 to 13 on day 2, 30 on day 3, and 72 on day 4. That is the pattern of finding new paths from existing pages and working steadily deeper.
+
+The subdomain version never grew past its 2 hits on day 1 and stayed in single digits for all 6 days. It touched only 5 URLs and never went deeper into the site.
+
+## Why the gap
+
+Google's crawl budget documentation states that **the unit of crawling, a "site," is per hostname.** `www.example.com` and `code.example.com` are separate sites with separate crawl budgets.
+
+The natural reading is that a subdomain does not inherit the crawling track record of the existing host, so **crawling starts from scratch as a new site.** A subdirectory is a new path on the same host, so it rides the same crawling flow as the existing pages. The gap measured here fits that explanation closely.
+
+Google's multilingual documentation calls both subdomains and subdirectories "easy to set up" and recommends neither. The advantage it lists for subdirectories is "easy maintenance, since it is the same host." This measurement adds that **there is also a gap in how fast Google finds you right after launch.**
+
+## What this observation supports, and what it does not
+
+Supported:
+
+- For the same English content, Googlebot over the first 6 days was about 4x higher for the subdirectory than the subdomain, even after normalizing for page count
+- The share of pages Googlebot visited at least once was about 10x higher for the subdirectory
+- On day 6, none of the 7 subdomain pages checked were indexed ("URL is unknown to Google" for 4, "Discovered - currently not indexed" for 3)
+
+Not supported:
+
+- **The two launches are a month apart.** Early August, when the subdirectory version launched, was a period when crawling was up across the whole site, Japanese side included. A difference in timing cannot be divided out the way page count can
+- **Freshness differs.** The subdomain version was republished after translation generation had stopped, so it had no new articles at launch
+- **The entry points differ.** When the subdirectory version was taken down, its old URLs redirected to the Japanese pages, not to the subdomain. There is also no record of whether a sitemap for the subdomain was submitted to Search Console
+- Whether the gap narrows over a period longer than 6 days is still unknown
+
+## Do and don't
+
+<FigureDoDont
+  title="Choosing a URL structure for another language version"
+  caption="From this log, as of September 2026"
+  dos={[
+    "If you want Google to find it fast, publish under a subdirectory of the existing host",
+    "If you go with a subdomain, have Search Console registration, sitemap submission, and links from existing pages ready at launch",
+    "When retiring old URLs, redirect them to the matching page of the other language version",
+    "When comparing, divide hits by page count and also look at the share of pages visited",
+  ]}
+  donts={[
+    "Compare raw hit counts between two sets with different page counts",
+    "Assume a subdomain inherits the existing domain's crawling as-is",
+    "Treat hits from crawlers other than Googlebot as evidence Google found you",
+    "Decide from the first few days and keep changing the URL structure",
+  ]}
+/>
+
+## Steps
+
+To run the same comparison on your own site, all you need is a log that keeps user agent, path, and hostname.
+
+1. If you are not recording hostname, add a hostname column to the log first (without it you cannot tell a subdomain from a subdirectory)
+2. Treat the launch day as day 1 and fix the window length, such as 6 days, in advance
+3. Produce Googlebot hits and unique URLs visited, by day
+4. Compute hits divided by page count, and the share of pages visited
+5. Run representative pages through Search Console's URL Inspection and check whether they made it into the index
+
+Skipping step 4 makes whichever side has more pages look better. Raw hits here were about a 12x gap; normalized by page count it was about 4x.
+
+## FAQ
+
+### Are subdomains bad for search
+
+Google lists both subdomains and subdirectories as options and does not call either one a disadvantage. But the unit of crawling is per hostname, so a subdomain starts crawling as a new site. In this log there was a large gap in Googlebot crawling over the 6 days right after launch. Whether the gap narrows over a longer run cannot be said from this observation.
+
+### Why only look at Googlebot
+
+Because what decides whether you appear in Google Search is crawling and indexing by Googlebot. Other crawlers have different purposes, and in this log some of them actually hit the subdomain more. That is a separate matter from whether Google Search found you, so this article leaves them out of the comparison.
+
+### What if I already published on a subdomain
+
+Do the same preparation you would for launching a new site. Add the property in Search Console and submit a sitemap, and link to the other language version from the matching pages on the existing host. If you previously published in a subdirectory, point the old URLs' redirects at the matching subdomain pages. Then review Googlebot crawling and URL Inspection results every one to two weeks.
+
+### Is 6 days long enough to judge
+
+I cut the window at 6 days to see how quickly a launch gets found. Indexing and search impressions change over weeks, so if you are reconsidering a URL structure, wait for results over a longer period. The conclusion here only covers "how easy it is to be found in the first week."

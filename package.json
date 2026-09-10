@@ -22,6 +22,7 @@
     "notify": "tsx scripts/notify.ts",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "tsx --test src/lib/*.test.ts",
+    "links": "tsx scripts/internal-links.ts",
     "verify:api": "tsx scripts/verify-api.ts",
     "gsc": "tsx scripts/gsc-report.ts"
   },
