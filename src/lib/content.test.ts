@@ -86,3 +86,26 @@ test("supersedes の参照先が存在し、自分自身ではない", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+// 引用符の無い YAML スカラーに「: 」が入るとマッピングとして読まれ、画面に `[object Object]` が出る。
+// 記事76の actions[0]（`旧ドメインで site: 検索されて0件に…`）が実際に本番でそう出た。
+// 対処は frontmatter 側でその値を "…" で囲むこと。読み込み側は content.ts の parseStringList が弾く。
+test("tags と actions がすべて文字列（「: 」を含む値の引用符落ち）", () => {
+  const dirs = ["articles", "articles-en"];
+  const broken: string[] = [];
+  for (const dir of dirs) {
+    const dirPath = path.join(process.cwd(), "content", dir);
+    if (!fs.existsSync(dirPath)) continue;
+    for (const file of fs.readdirSync(dirPath).filter((f) => /\.mdx?$/.test(f))) {
+      const data = matter(fs.readFileSync(path.join(dirPath, file), "utf8")).data;
+      for (const field of ["tags", "actions"] as const) {
+        const value = data[field];
+        if (!Array.isArray(value)) continue;
+        value.forEach((item, index) => {
+          if (typeof item !== "string") broken.push(`${dir}/${file}: ${field}[${index}] = ${JSON.stringify(item)}`);
+        });
+      }
+    }
+  }
+  assert.deepEqual(broken, []);
+});
