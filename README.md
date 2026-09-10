@@ -27,7 +27,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
 | `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
-| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる |
+| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
@@ -209,6 +209,10 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   ハブ（定義ページ）→ スポーク（各レッスン）の相互リンクを張る。
   **同じ手順を両方に書かない**（着手順・Search Consoleの見方・Googlebotのレンダリングと本人確認・Core Web Vitalsの直し方は `/learn` 側だけに置く）。
   定義ページが長くなったら、手順にあたる節を `/learn` へ移し、跡地に `NextStep` の導線を残す。
+  各レッスンの末尾に「記事から取り入れたこと」を出す。ここに出るのは**Claudeが1本ずつ判定して採用した記事だけ**で、
+  語が一致しただけの記事は出さない（`content/knowhow.csv` / `src/lib/knowhow.ts` / `src/lib/lessonFeed.ts`）。
+  **教科書は仕組みを固定して書き、動く部分は記事側に持たせる**分担。採用が0本のレッスンでは節ごと出さない
+  （空の見出しはAI検索に「中身の無い節」として拾われる）。
 - **旧URLは308でリダイレクト**（`next.config.ts`）: `/category/seo`→`/seo`、`/category/geo`→`/geo`、`/category/news`→`/news`、`/articles`→`/news`。
   記事詳細 `/articles/<id>` は変えない（完全一致のみリダイレクト）。
 - カテゴリのリンク先は `categoryHref()`（`src/lib/site.ts`）だけを通す。URLを変えるときはここ1か所を直す。
@@ -412,6 +416,38 @@ npm run prompt-gap -- --all            # 「保留」も含める
 狙うプロンプトは `content/prompts.csv`（status / category / prompt / note）。**これは実測クエリではなく想定**で、
 実際に引用された記録が取れたら note を更新する。一覧ページ（`/news` `/tag/*`）と規約系ページは判定対象から外す
 （記事へのリンクを並べただけで、プロンプトの答えにはならないため）。
+
+## 記事 → 教科書・ツールの還流
+毎朝の記事は「その日に何が起きたか」を伝えるフロー情報で、**数ヶ月後にも通じる手順・判断基準を含むものは一部しかない**。
+全部を教科書に流すと、教科書が記事一覧の劣化コピーになる。そこで2段階に分けている。
+
+1. **候補を絞る**（`src/lib/lessonFeed.ts` の `matchesLesson`）… レッスンの `topics`（手がかり語）と記事の
+   title / description / tags の一致だけ。外部APIを使わない。**採否ではなく当たりをつけるだけ**で、画面には出ない。
+2. **採否を決める**（`npm run knowhow`）… Claude（`claude-sonnet-5`）が1本ずつ、次の**4条件すべて**で判定する。
+   - 数ヶ月後も通じるか（単発の不具合・「テスト開始」「発表」だけの記事は却下）
+   - 読者が自分のサイトで実行できるか（手順・判断基準・しきい値のいずれかがある）
+   - 候補レッスンにまだ書かれていないか（到達チェックの言い換えは却下）
+   - 一次情報の裏付けがあるか（公式ドキュメント・論文・自分で取った実測）
+
+```bash
+npm run knowhow -- 5         # 未判定の公開記事を新しい順に5本判定（ANTHROPIC_API_KEY 必須）
+npm run learn-gap            # 未判定の候補記事と、取り入れ済みの件数を報告
+npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools に無いもの＋確認から180日たったツール（既定90日）
+```
+
+判定結果は `content/knowhow.csv`（status / articleId / target / knowhow / where / reason / judged）に積む。
+**記事もレッスン本文も書き換えない**。採用行はレッスン末尾の「記事から取り入れたこと」に1文で出て、記事が出典になる。
+ノウハウをレッスン本文そのものに書き込んだら status を「反映済」に変える（二重に出さないため）と同時に、
+`src/lib/curriculum.ts` の `updated` を進める。却下も理由つきで残す（同じ判断を繰り返さないため）。
+`target` に `tool:page-audit` / `tool:list` を選ぶこともでき、その行は `learn-gap` が「ツール側への反映待ち」に出す
+（診断の判定はコードなので人が書く。`content/tools.json` への**自動追記はしない**）。
+
+初回の19本は Claude が判定済み（採用8 / 却下11）。候補記事が0本のレッスンは記事側の題材が足りていないので、
+`content/howto-topics.csv` の材料にする。
+
+`tools-gap`（`scripts/tools-gap.ts`）は `content/candidates.csv` の「ツール検知」候補から、
+`content/tools.json` のツール名・ベンダー名がどれも出てこないものを拾う。自作ツール（`src/lib/apps.ts`）が
+180日さわられていない場合も同じ節に出す。どちらも報告だけで、変更はしない。
 
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、
