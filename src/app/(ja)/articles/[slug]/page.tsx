@@ -150,7 +150,6 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
         )}
 
         <Toc items={extractToc(article.body)} />
-        <ArticleNextStep article={article} />
 
         <div className={cx(PROSE.body, "prose-headings:scroll-mt-24 prose-p:leading-[1.9] sm:prose-lg")}>
           <MDXRemote
@@ -178,6 +177,8 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
             </ul>
           </section>
         )}
+
+        <ArticleNextStep article={article} />
 
         {/* 記事の作り方の開示。読者向けの透明性であり、/about（運営方針）への本文中の内部リンクでもある
             （フッターのリンクだけでは /about が「クロール済み - インデックス未登録」から抜けなかった）。 */}
