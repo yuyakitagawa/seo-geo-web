@@ -29,9 +29,12 @@ export function enArticleErrors(ja: MdxDoc, en: MdxDoc, enSlugs: Set<string>): s
 
   const h2 = en.content.match(/^## .+$/gm) ?? [];
   if (h2[0]?.trim() !== "## Conclusion") errors.push(`最初の見出しは "## Conclusion"（実際: ${h2[0] ?? "なし"}）`);
+  // FAQ節は記事ごとに任意。日本語版に無いのに英語版だけにある（逆も）と、日英で中身が違うページになる。
+  const jaHasFaq = ja.content.includes("## よくある質問");
   const faq = en.content.indexOf("\n## FAQ\n");
-  if (faq === -1) errors.push('"## FAQ" がない');
-  else if (!/^### /m.test(en.content.slice(faq))) errors.push("FAQ に質問（###）がない");
+  if (jaHasFaq && faq === -1) errors.push('日本語記事に「## よくある質問」があるのに "## FAQ" がない');
+  else if (!jaHasFaq && faq !== -1) errors.push('日本語記事に「## よくある質問」が無いのに "## FAQ" がある');
+  else if (faq !== -1 && !/^### /m.test(en.content.slice(faq))) errors.push("FAQ に質問（###）がない");
   if (figureCount(en.content) !== figureCount(ja.content)) {
     errors.push(`図解の数が日本語記事と違う（${figureCount(en.content)} / ${figureCount(ja.content)}）`);
   }

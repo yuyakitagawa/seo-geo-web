@@ -212,7 +212,7 @@ function figureErrors(content: string): string[] {
 }
 
 // 自動公開ではこの検査が唯一の関門になる。記事の型を満たさない出力は捨てる。
-// headings / minChars / minFaq は記事の型ごとに変える。
+// headings / minChars / minFaq は記事の型ごとに変える。minFaq が 0 なら「## よくある質問」は任意。
 export function validate(
   data: Record<string, unknown>,
   content: string,
@@ -228,9 +228,16 @@ export function validate(
   for (const h of headings) if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
   if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
   errors.push(...figureErrors(content));
-  // FAQは FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）。
-  const faqSection = content.slice(content.indexOf("## よくある質問"));
-  if ((faqSection.match(/^### /gm) ?? []).length < minFaq) errors.push(`FAQが${minFaq}問未満`);
+  // FAQ節は任意（minFaq: 0）。置いてあるなら FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）ので、
+  // 質問が0問の空の節は許さない。minFaq が 1 以上の記事の型では節そのものを必須にする。
+  const faqStart = content.indexOf("## よくある質問");
+  if (faqStart === -1) {
+    if (minFaq > 0) errors.push("見出し欠落:## よくある質問");
+  } else {
+    const questions = (content.slice(faqStart).match(/^### /gm) ?? []).length;
+    const need = Math.max(minFaq, 1);
+    if (questions < need) errors.push(`FAQが${need}問未満`);
+  }
   if (errors.length) throw new Error(errors.join(", "));
 }
 
