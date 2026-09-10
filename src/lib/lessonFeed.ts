@@ -1,55 +1,74 @@
 import type { ArticleMeta } from "./content";
 import { LESSONS, type Lesson } from "./curriculum";
 import { indexableArticles } from "./indexability";
+import { adoptedForLesson, type Knowhow } from "./knowhow";
 
-// 教科書（/learn）と、毎朝生成される記事をつなぐ唯一の場所。
+// 教科書（/learn）と、毎朝生成される記事をつなぐ場所。
 //
-// 教科書は手で書いたレッスン本文、記事は自動生成のフロー。放っておくと教科書だけが古くなる。
-// ここでレッスンの `topics`（手がかり語）と記事の title / description / tags を突き合わせ、
-// 「このレッスンの範囲で、その後に何が起きたか」をレッスンページに自動で載せる。
+// つなぎ方は2段階に分かれている。混ぜないこと。
 //
-// **判定は語の一致だけ**で、記事がレッスンの記述を否定しているかどうかは分からない。
-// 本文の書き換えが要るかは人が決める（`npm run learn-gap` が候補を出す）。
+// 1. **候補を絞る**（ここの `matchesLesson`）… レッスンの `topics`（手がかり語）と記事の
+//    title / description / tags を突き合わせるだけ。外部APIを使わない。
+//    これは「どのレッスンの話か」の当たりをつけるためのもので、**採否ではない**。
+// 2. **採否を決める**（`scripts/knowhow.ts` → `content/knowhow.csv`）… Claudeが1本ずつ
+//    「教科書に組み込む価値があるか」を判定する。記事の大半は却下される。
+//
+// **レッスンページに出るのは2を通った行だけ**（`lessonKnowhow`）。1の結果は画面に出ない。
+// 語が一致しただけの記事を並べると、単発の障害報告や「テスト開始」の記事まで教科書に載り、
+// 教科書が記事一覧の劣化コピーになる。
 
 /** 記事側の検索対象。title / description / tags を1本の文字列にする */
 function haystack(article: ArticleMeta): string {
   return [article.title, article.description, ...article.tags].join(" ").toLowerCase();
 }
 
-/** その記事がレッスンの範囲に入るか。topics のどれか1語でも含めば該当 */
+/** その記事がレッスンの範囲に入るか。topics のどれか1語でも含めば該当（**採否ではなく候補**） */
 export function matchesLesson(lesson: Lesson, article: ArticleMeta): boolean {
   const text = haystack(article);
   return lesson.topics.some((t) => text.includes(t.toLowerCase()));
 }
 
-/**
- * レッスンに該当する公開済み記事を新しい順に返す。
- * noindex の記事（薄いタグ・supersedes で置き換えられたもの）は indexableArticles() の時点で落ちる。
- */
-export function lessonArticles(lesson: Lesson, limit = 4): ArticleMeta[] {
-  return indexableArticles()
-    .filter((a) => matchesLesson(lesson, a))
-    .slice(0, limit);
+/** その記事の候補になるレッスン。scripts/knowhow.ts が判定対象をここまで絞ってから聞く */
+export function candidateLessons(article: ArticleMeta): Lesson[] {
+  return LESSONS.filter((l) => matchesLesson(l, article));
 }
 
-/** レッスン本文の更新日より後に出た該当記事。教科書が追いついていない量 */
-export function articlesSinceUpdate(lesson: Lesson): ArticleMeta[] {
-  return indexableArticles().filter((a) => matchesLesson(lesson, a) && a.date > lesson.updated);
+export type LessonKnowhow = Knowhow & { article: ArticleMeta };
+
+/**
+ * そのレッスンに組み込むと判定されたノウハウ。新しい記事から順に返す。
+ * 出典の記事が noindex（薄いタグ・supersedes で置き換え済み）になっていたら落とす。
+ */
+export function lessonKnowhow(lesson: Lesson, limit = 4): LessonKnowhow[] {
+  const byId = new Map(indexableArticles().map((a) => [a.id, a] as const));
+  const items: LessonKnowhow[] = [];
+  for (const k of adoptedForLesson(lesson.slug)) {
+    const article = byId.get(k.articleId);
+    if (article) items.push({ ...k, article });
+  }
+  return items.sort((a, b) => b.article.date.localeCompare(a.article.date)).slice(0, limit);
 }
 
 export type LessonGap = {
   lesson: Lesson;
-  /** 該当記事の総数 */
-  total: number;
-  /** lesson.updated より後に出た該当記事 */
-  since: ArticleMeta[];
+  /** 手がかり語が一致した記事の数（候補。採用数ではない） */
+  candidates: number;
+  /** 組み込むと判定されたノウハウ */
+  adopted: number;
+  /** lesson.updated より後に出た候補記事のうち、まだ判定していないもの */
+  unjudged: ArticleMeta[];
 };
 
-/** 全レッスンの追随状況。since が多い順＝教科書を先に見直すべき順 */
-export function lessonGaps(): LessonGap[] {
-  return LESSONS.map((lesson) => ({
-    lesson,
-    total: indexableArticles().filter((a) => matchesLesson(lesson, a)).length,
-    since: articlesSinceUpdate(lesson),
-  })).sort((a, b) => b.since.length - a.since.length || a.lesson.order - b.lesson.order);
+/** 全レッスンの状況。未判定が多い順＝先に `npm run knowhow` を当てるべき順 */
+export function lessonGaps(judged: Set<number>): LessonGap[] {
+  const articles = indexableArticles();
+  return LESSONS.map((lesson) => {
+    const hits = articles.filter((a) => matchesLesson(lesson, a));
+    return {
+      lesson,
+      candidates: hits.length,
+      adopted: adoptedForLesson(lesson.slug).length,
+      unjudged: hits.filter((a) => !judged.has(a.id) && a.date > lesson.updated),
+    };
+  }).sort((a, b) => b.unjudged.length - a.unjudged.length || a.lesson.order - b.lesson.order);
 }

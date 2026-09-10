@@ -15,6 +15,7 @@
     "icon": "tsx scripts/icon-export.ts",
     "dupes": "tsx scripts/dupes.ts",
     "prompt-gap": "tsx scripts/prompt-gap.ts",
+    "knowhow": "tsx scripts/knowhow.ts",
     "learn-gap": "tsx scripts/learn-gap.ts",
     "tools-gap": "tsx scripts/tools-gap.ts",
     "notify": "tsx scripts/notify.ts",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@next/third-parties": "^16.3.2",
     "@vercel/speed-insights": "^2.0.0",
+    "csv-parse": "^7.0.2",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "next": "16.3.2",
@@ -44,7 +46,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "csv-parse": "^7.0.2",
     "csv-stringify": "^6.8.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",

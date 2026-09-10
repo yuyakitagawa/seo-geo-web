@@ -3,12 +3,11 @@ import type { ReactNode } from "react";
 import JsonLd from "./JsonLd";
 import PageHeader from "./PageHeader";
 import { GuideFaq, GuideSources, GuideToc } from "./guide";
-import type { ArticleMeta } from "@/lib/content";
 import type { Case } from "@/lib/cases";
 import { CASE_AREAS } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, type Lesson, lessonJsonLd, lessonNeighbors, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
-import { lessonArticles } from "@/lib/lessonFeed";
+import { lessonKnowhow, type LessonKnowhow } from "@/lib/lessonFeed";
 import { SITE_URL } from "@/lib/site";
 import { EYEBROW, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 import { Card, CardLink, Eyebrow } from "./ui";
@@ -158,31 +157,29 @@ export function CaseList({ cases, note }: { cases: Case[]; note?: ReactNode }) {
 }
 
 /**
- * このレッスンの範囲でその後に起きたこと。毎朝生成される記事から自動で拾う（src/lib/lessonFeed.ts）。
- * 教科書は仕組みを固定して書き、動く部分は記事側に持たせる分担にしている。
- * 該当記事が無いレッスンでは何も出さない（空の見出しはAI検索に「中身の無い節」として拾われる）。
+ * 記事から教科書に取り入れたノウハウ。**判定を通ったものだけ**が出る（src/lib/knowhow.ts）。
+ * 語が一致しただけの記事は出さない。教科書を記事一覧の劣化コピーにしないための線引き。
+ * 1行のノウハウを主役にし、記事は出典として添える（読者が読むべきは結論であって一覧ではない）。
  */
-export function LessonUpdates({ lesson, articles }: { lesson: Lesson; articles: ArticleMeta[] }) {
-  if (articles.length === 0) return null;
-  const behind = articles.filter((a) => a.date > lesson.updated).length;
+export function LessonUpdates({ lesson, items }: { lesson: Lesson; items: LessonKnowhow[] }) {
+  if (items.length === 0) return null;
   return (
     <section id="updates" className="scroll-mt-24">
-      <h2>このレッスン以降の最新動向</h2>
+      <h2>記事から取り入れたこと</h2>
       <p>
-        「{lesson.title}」の範囲で、その後に確認された変更です。レッスン本文は仕組みの説明にとどめ、動いた部分はここから記事へ送ります
-        {behind > 0 ? `（本文の更新日 ${lesson.updated} より後の記事が${behind}本）` : ""}。
+        「{lesson.title}」の範囲でその後に出た記事のうち、このレッスンに足すべきと判断したものです。
+        レッスン本文は仕組みの説明にとどめ、確認できた個別の手順・数値はここに積みます。
       </p>
       <ul className="not-prose my-8 space-y-3">
-        {articles.map((a) => (
-          <li key={a.slug}>
-            <CardLink href={`/articles/${a.slug}`}>
-              <div className={cx(EYEBROW.mute, "flex flex-wrap items-center gap-3")}>
-                <time dateTime={a.date}>{a.date.replaceAll("-", ".")}</time>
+        {items.map((k) => (
+          <li key={`${k.articleId}-${k.knowhow}`}>
+            <CardLink href={`/articles/${k.article.slug}`}>
+              <p className="text-base font-bold leading-relaxed tracking-tight sm:text-lg">{k.knowhow}</p>
+              <div className={cx(EYEBROW.mute, "mt-3 flex flex-wrap items-center gap-3")}>
+                <time dateTime={k.article.date}>{k.article.date.replaceAll("-", ".")}</time>
                 <span aria-hidden>·</span>
-                <span>{a.type === "howto" ? "解説" : "ニュース"}</span>
+                <span>出典: {k.article.title}</span>
               </div>
-              <p className="mt-2 text-base font-bold leading-snug tracking-tight sm:text-lg">{a.title}</p>
-              <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-mute">{a.description}</p>
             </CardLink>
           </li>
         ))}
@@ -232,12 +229,12 @@ export function LessonNav({ slug }: { slug: string }) {
  */
 export function LessonShell({ lesson, toc, children }: { lesson: Lesson; toc: { id: string; label: string }[]; children: ReactNode }) {
   const url = `${SITE_URL}${lessonPath(lesson.slug)}`;
-  const updates = lessonArticles(lesson);
+  const updates = lessonKnowhow(lesson);
   const fullToc = [
     ...toc,
     { id: "checklist", label: "到達チェックリスト" },
     { id: "faq", label: "よくある質問" },
-    ...(updates.length > 0 ? [{ id: "updates", label: "このレッスン以降の最新動向" }] : []),
+    ...(updates.length > 0 ? [{ id: "updates", label: "記事から取り入れたこと" }] : []),
   ];
 
   return (
@@ -271,7 +268,7 @@ export function LessonShell({ lesson, toc, children }: { lesson: Lesson; toc: { 
           <GuideFaq items={lesson.faq} />
         </section>
 
-        <LessonUpdates lesson={lesson} articles={updates} />
+        <LessonUpdates lesson={lesson} items={updates} />
 
         <GuideSources sources={lesson.sources} />
         <LessonNav slug={lesson.slug} />
