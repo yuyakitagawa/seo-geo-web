@@ -95,3 +95,21 @@ test("buildLinkRules は汎用語を用語集リンクにしない", () => {
   assert.ok(!rules.some((r) => r.href === "/glossary#seo"));
   assert.ok(rules.some((r) => r.href === "/glossary#canonical"));
 });
+
+test("2回実行しても結果が変わらない（冪等）", () => {
+  const body = "llms.txt の話。\n\ncanonical の話。\n\n内部リンク の話。\n\nAIクローラー の話。\n";
+  const once = insertInternalLinks(body, RULES).body;
+  const twice = insertInternalLinks(once, RULES);
+  assert.equal(twice.inserted.length, 0);
+  assert.equal(twice.body, once);
+});
+
+test("既存の用語集リンクも1記事1本の勘定に入れる", () => {
+  const body = "[llms.txt](/glossary#llms-txt) の話。\n\ncanonical の話。\n";
+  assert.equal(insertInternalLinks(body, RULES).inserted.length, 0);
+});
+
+test("既にリンクがある段落には足さない", () => {
+  const body = "[別の話](/articles/1)と内部リンクの話。\n";
+  assert.equal(insertInternalLinks(body, RULES).inserted.length, 0);
+});

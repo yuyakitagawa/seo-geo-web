@@ -74,9 +74,11 @@ export function insertInternalLinks(
   const skip = new Set(opts.skipHrefs ?? []);
 
   const mask = maskedPositions(body);
-  const used = new Set<string>();
-  // 既に本文にあるリンク先は二重に張らない
-  for (const m of body.matchAll(/\]\((\/[^)\s]*)\)/g)) used.add(m[1]);
+  // 既に本文にあるリンクも規則の勘定に入れる。入れないと2回目の実行で用語集リンクが2本目に増え、
+  // リンクのある段落に2本目が入る（冪等でなくなる）。リンク先の重複も同じ理由で弾く
+  const existing = [...body.matchAll(/\]\((\/[^)\s]*)\)/g)];
+  const used = new Set(existing.map((m) => m[1]));
+  const occupied = new Set(existing.map((m) => paragraphOf(m.index!)));
 
   // 候補を全部集めてから、本文の出現位置が早い順に採用する（記事の頭のほうが文脈が濃い）
   type Cand = { at: number; phrase: string; rule: LinkRule };
@@ -103,14 +105,14 @@ export function insertInternalLinks(
   cands.sort((a, b) => a.at - b.at);
 
   const chosen: Cand[] = [];
-  let glossary = 0;
+  let glossary = existing.filter((m) => m[1].startsWith("/glossary")).length;
   for (const c of cands) {
     if (chosen.length >= maxLinks) break;
     if (c.rule.kind === "glossary" && glossary >= maxGlossary) continue;
     // 同じ語・同じリンク先は1本まで。リンク同士が重ならないことも確かめる
     if (chosen.some((x) => x.rule.href === c.rule.href)) continue;
     if (chosen.some((x) => c.at < x.at + x.phrase.length && x.at < c.at + c.phrase.length)) continue;
-    if (chosen.some((x) => paragraphOf(x.at) === paragraphOf(c.at))) continue;
+    if (occupied.has(paragraphOf(c.at)) || chosen.some((x) => paragraphOf(x.at) === paragraphOf(c.at))) continue;
     chosen.push(c);
     if (c.rule.kind === "glossary") glossary++;
   }
