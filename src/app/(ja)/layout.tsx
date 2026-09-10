@@ -8,8 +8,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GaClickTracker from "@/components/GaClickTracker";
 import JsonLd from "@/components/JsonLd";
-import { ORGANIZATION_CONTACT_POINT, ORGANIZATION_SAME_AS, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_LOGO, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
-import "./globals.css";
+import { ORGANIZATION_JSON_LD } from "@/lib/organization";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, X_HANDLE } from "@/lib/site";
+import "../globals.css";
+
+// 日本語側のルートレイアウト。英語版（/en）は <html lang="en"> を出すため別のルートレイアウト
+// （src/app/(en)/en/layout.tsx）を持つ。両方に共通するもの（Organization など）は src/lib に置く。
 
 // 欧文ディスプレイ書体。和文は端末フォント（CSS側のフォールバック）。
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "700"] });
@@ -44,21 +48,6 @@ export const metadata: Metadata = {
   ...(ADSENSE_CLIENT ? { other: { "google-adsense-account": ADSENSE_CLIENT } } : {}),
 };
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": `${SITE_URL}/#organization`,
-  name: SITE_NAME,
-  alternateName: SITE_ALTERNATE_NAMES,
-  url: SITE_URL,
-  // Article のリッチリザルトは publisher.logo を要求する。@id 参照で記事側と共有する。
-  logo: { "@type": "ImageObject", ...SITE_LOGO },
-  // 運営方針・記事の作り方を書いたページ。エンティティ（Organization）と /about を結び付ける。
-  publishingPrinciples: `${SITE_URL}/about`,
-  ...(ORGANIZATION_SAME_AS.length ? { sameAs: ORGANIZATION_SAME_AS } : {}),
-  ...(ORGANIZATION_CONTACT_POINT ? { contactPoint: ORGANIZATION_CONTACT_POINT } : {}),
-};
-
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -76,7 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ja" className={`${display.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={ORGANIZATION_JSON_LD} />
         <JsonLd data={websiteJsonLd} />
         <Header />
         <main className="flex-1">{children}</main>

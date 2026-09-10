@@ -140,6 +140,24 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 | 海外翻訳＋解説 | RSS起点。毎朝2本を自動生成（`scripts/generate.ts`）。日本市場への翻訳・手順化・判断基準が本文の半分以上（`DEPTH_RULES`） | `original` なし |
 | 独自記事 | 自分で取ったログ・実測・検証。**手動**。自動パイプラインからは出ない | `original: true`（「独自」バッジが出る） |
 
+### 独自記事の英語版（/en）
+独自記事**だけ**は英語版を持つ（`content/articles-en/`、URLは `/en/articles/<英語のslug>`）。
+要約記事は元記事（多くが英語）の劣化コピーになるので英訳しない。英語で同じ一次データを書いている競合がほぼ居ないのは独自記事だけ。
+
+```
+独自記事を書いて original: true を付ける
+      ↓
+npm run translate:en -- <id>      英訳を content/articles-en/NNNN-<slug>.mdx に書き出す（Claude。検査に落ちたら1回改稿）
+      ↓ 数値・固有名詞が日本語版と一致しているか読んで確かめる
+npm test                          英語版が無い独自記事があると src/lib/content-en.test.ts が落ちる
+```
+
+- 日英は同じ `id` で対応づけ、各ページの `<head>` で hreflang（ja / en / x-default=ja）を相互に宣言する。英語版の Article には `translationOfWork` で日本語版を指す。
+- 英語版の検査（`src/lib/enRules.ts`。生成時と CI で同じ基準）: 出典URLが日本語版と同じ・`date` が同じ・最初の見出しが `## Conclusion`・`## FAQ` がある・図解の数が同じ・サイト内リンクは英語版の記事どうしだけ。
+- 日本語版を直したら `npm run translate:en -- <id> --force` で作り直す。英語側だけを手で直すと日英の事実がずれる。
+- 英語版は `<html lang="en">` を出すため別のルートレイアウト（`src/app/(en)/en/layout.tsx`）を持つ。AdSense は載せない（審査前）。GA4 は同じプロパティでパスで分ける。
+- sitemap と llms.txt（末尾の「Original research in English」）に載る。RSS（/feed.xml）は日本語のまま。
+
 独自記事の材料は自サイトのSearch Console実測。`npm run gsc` が集計する。
 
 ```
@@ -299,13 +317,15 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
 
   | ファイル | 対象 | 見出し |
   |---|---|---|
-  | `src/app/opengraph-image.tsx` | トップと、下に画像を持たない全ページ | サイトのキャッチコピー |
-  | `src/app/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
-  | `src/app/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
-  | `src/app/learn/opengraph-image.tsx` | 教科書の目次と**14レッスン全部** | 「SEO・GEO教科書」 |
-  | `src/app/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
-  | `src/app/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
-  | `src/app/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
+  | `src/app/(ja)/opengraph-image.tsx` | 日本語のトップと、下に画像を持たない全ページ | サイトのキャッチコピー |
+  | `src/app/(ja)/articles/[slug]/opengraph-image.tsx` | 記事ごと | 記事タイトル |
+  | `src/app/(ja)/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
+  | `src/app/(ja)/learn/opengraph-image.tsx` | 教科書の目次と**14レッスン全部** | 「SEO・GEO教科書」 |
+  | `src/app/(ja)/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
+  | `src/app/(ja)/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
+  | `src/app/(ja)/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
+  | `src/app/(en)/en/opengraph-image.tsx` | 英語版のトップ | 英語版の見出し |
+  | `src/app/(en)/en/articles/[slug]/opengraph-image.tsx` | 英語版の記事ごと | 英語のタイトル |
 
   **注意**: ページ側の `metadata` に `openGraph` を自分で書くと、上位セグメントの画像は引き継がれず
   og:image が消える。レッスン11ページがこれに当たるので、`lessonMetadata()`（`src/lib/curriculum.ts`）で

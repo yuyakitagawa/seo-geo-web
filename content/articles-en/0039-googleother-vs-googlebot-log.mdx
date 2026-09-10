@@ -1,0 +1,184 @@
+---
+id: 39
+slug: googleother-vs-googlebot-log
+title: 'GoogleOther Outcrawled Googlebot 15x: 29 Days of IP-Verified Logs'
+description: >-
+  In 29 days of logs from a site I run, GoogleOther made 109,551 requests and Googlebot 10,856. All 43 GoogleOther IPs were genuine; 27.5% of Googlebot-labeled requests were not.
+date: '2026-09-02'
+category: seo
+type: howto
+tags:
+  - GoogleOther
+  - Googlebot
+  - Crawlers
+  - Log analysis
+  - Original research
+impact: high
+audience: Site owners who want to understand crawl volume and server load
+actions:
+  - Aggregate your access logs by user agent and break out everything other than Googlebot
+  - Match requests against Google's published IP range JSON and exclude those spoofing the name
+  - Evaluate crawl volume on the post-exclusion numbers and decide whether load mitigation is needed
+  - Before blocking GoogleOther, check what it is fetching at the path level
+sources:
+  - title: Google Common Crawlers | Google Search Central
+    url: 'https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers'
+  - title: Verify Requests from Google Crawlers and Fetchers | Google for Developers
+    url: >-
+      https://developers.google.com/crawling/docs/crawlers-fetchers/verify-google-requests
+  - title: Googlebot | Google Search Central
+    url: 'https://developers.google.com/search/docs/crawling-indexing/googlebot'
+  - title: "From Googlebot to GPTBot: who's crawling your site in 2025 | Cloudflare"
+    url: 'https://blog.cloudflare.com/from-googlebot-to-gptbot-whos-crawling-your-site-in-2025/'
+  - title: >-
+      Googlebot dominates web crawling in 2025 as AI bots surge: Report | Search
+      Engine Land
+    url: 'https://searchengineland.com/googlebot-crawling-ai-bots-2025-report-466402'
+---
+## Conclusion
+
+I aggregated 29 days of access logs (August 3 to August 31, 2026) from a Japanese-language site I run: **GoogleOther made 109,551 requests and Googlebot made 10,856**. Taking the user-agent names at face value, a crawler that isn't for Search was hitting the site 10.1x as often as the one that is.
+
+Then I verified the IP addresses. Here is what came out of matching them against Google's published crawler IP ranges:
+
+- **GoogleOther: all 43 IPs were in range**. Not a single spoofed request
+- **Googlebot: 2 of 27 IPs were out of range**. Those two accounted for 2,984 requests, or **27.5%** of all Googlebot-labeled requests
+
+After removing the spoofed traffic and the rows with no recorded IP, comparing genuine against genuine gives **GoogleOther 102,276 vs. Googlebot 6,959, roughly 14.7x**. The gap is wider than in the UA-only comparison, because a quarter of the requests calling themselves Googlebot were fake.
+
+<FigureStats
+  title="Measured on one site over 29 days"
+  caption="August 3 to August 31, 2026 / IPs matched against Google's published common-crawlers.json (September 1, 2026 version)"
+  stats={[
+    { value: "109,551", label: "GoogleOther requests", note: "All 43 IPs in range" },
+    { value: "10,856", label: "Googlebot requests", note: "2,984 of them out of range" },
+    { value: "14.7x", label: "Ratio after verification", note: "102,276 vs. 6,959" },
+    { value: "27.5%", label: "Spoofing rate under the Googlebot name", note: "Judged by IP" },
+  ]}
+/>
+
+## What I measured
+
+- Subject: one Japanese-language site that I run separately
+- Period: August 3, 2026 00:00 to August 31, 2026 23:59 (JST, 29 days)
+- Data: a table on the application side that stores user agent, path, and IP address
+- Excluded: rows with no recorded IP address (7,275 for GoogleOther, 913 for Googlebot) could not be verified, so I left them out of the ratio
+
+The period is cut at the start and end of the month because the logs keep growing. Without a fixed window, running the same aggregation the next day gives different numbers.
+
+## A UA name is only a self-declaration
+
+Google documents two ways to confirm whether a request really comes from a Google crawler:
+
+1. **Reverse DNS**: run a reverse lookup on the IP and confirm it resolves to `googlebot.com`, `google.com`, or `googleusercontent.com`, then run a forward lookup on that hostname and confirm it returns the original IP
+2. **Matching against IP ranges**: check whether the IP falls within the ranges in the JSON files Google publishes
+
+Reverse DNS wasn't available in my environment, so I used method 2. I fetched the JSON for common crawlers and matched against its 170 IPv4 prefixes (the file was generated on September 1, 2026). If you want to automate this, it's the easier route.
+
+<FigureFlow
+  title="IP matching steps"
+  caption="Automatable even where reverse DNS isn't available"
+  steps={[
+    { label: "1. Extract unique IPs from the logs", desc: "For each UA name, list the IP addresses that appeared in the period, deduplicated" },
+    { label: "2. Fetch Google's published JSON", desc: "Download the IP range file for common crawlers. Record its generation timestamp too" },
+    { label: "3. Check range membership", desc: "Test whether each IP falls within any of the prefixes. The ones that don't are impostors" },
+    { label: "4. Measure impact by request count", desc: "Aggregate by number of requests, not by IP. A single impostor IP can hammer the site" },
+  ]}
+/>
+
+That last step is what made the difference. Only 2 of the 27 IPs were out of range, but one of them sent 2,977 requests, which alone is 27.4% of all Googlebot-labeled traffic. Counted by IP it's "only two"; counted by requests it's a quarter.
+
+## What was GoogleOther doing?
+
+Google's documentation describes GoogleOther as **a generic crawler that product teams use to fetch publicly accessible content**. It lists uses such as one-off crawls for internal research and development, and it can be controlled with the `GoogleOther` robots.txt token. The point of the separation is to avoid using the crawl capacity reserved for the Search index.
+
+The actual behavior was far larger than that description suggests, and heavily skewed.
+
+<FigureBars
+  title="GoogleOther daily requests (selected days)"
+  caption="Started on August 7 and dropped sharply at the end of August. Zero from August 3 to 6"
+  unit="requests"
+  bars={[
+    { label: "Aug 7 (first day)", value: 306 },
+    { label: "Aug 11", value: 4200 },
+    { label: "Aug 16", value: 12847, note: "By this point, 14x Googlebot per day" },
+    { label: "Aug 23", value: 9812 },
+    { label: "Aug 28 (peak)", value: 13660 },
+    { label: "Aug 30", value: 100, note: "Plunged to three digits" },
+  ]}
+/>
+
+- **Bursts, not a steady stream**: zero requests from August 3 to 6, a start on August 7, a peak on August 28, and three-digit daily counts from August 29 onward
+- **The same pages, fetched over and over**: 109,551 requests across 6,678 unique paths, an average of 16.4 fetches per path. The homepage alone was fetched 8,104 times. This is re-fetching known pages, not exploration to discover new URLs
+- **Never fetched robots.txt once**: over the same period, Googlebot fetched it 1,661 times. Google states that its common crawlers obey robots.txt, so the fetched result is most likely shared between crawlers, but that can't be confirmed from these logs
+
+## The opposite of the global numbers
+
+The 2025 crawler studies agreed on one thing: **Googlebot is the largest, ahead of every other search and AI bot**. Cloudflare's network-wide aggregation reached that conclusion, and so did a similar report covered by Search Engine Land.
+
+On this one site, it was the reverse. Googlebot ranked fourth among all crawlers, and its verified request count was one-fifteenth of GoogleOther's. The reasonable reading is not a contradiction but that **these are observations at different scales**. A network-wide aggregation is an average over millions of sites; a single site's logs show what happened to that particular site. Skews like the GoogleOther burst disappear once you average.
+
+When you talk about your own server load, what you need is your own logs, not the average. This gap is, in effect, a case for not describing your own crawl situation with someone else's statistics.
+
+## What this observation shows and what it doesn't
+
+What it shows:
+
+- On this site, over 29 days, GoogleOther sent roughly 15x as many requests as Googlebot
+- None of the IPs claiming to be GoogleOther were spoofed; all 43 were genuine
+- Conversely, 27.5% of requests claiming to be Googlebot came from outside Google's IP ranges
+
+What it doesn't show:
+
+- Why GoogleOther was fetching these pages. The logs can't identify which of the "product teams" in the documentation was behind it
+- That other sites will see the same ratio. The sample is one site over 29 days
+- Whether the GoogleOther crawling affected search rankings or visibility in AI search. These logs can't measure that
+
+## What to do / what to skip
+
+<FigureDoDont
+  title="Handling crawler logs"
+  caption="Based on this verification. As of September 2026"
+  dos={[
+    "After aggregating by UA name, always match against the IP ranges before quoting any numbers",
+    "Measure the impact of spoofing by request count, not by IP",
+    "Before blocking GoogleOther, look at which paths it is fetching",
+    "If load is a problem, know that the GoogleOther token in robots.txt lets you control it separately",
+  ]}
+  donts={[
+    'Treating third-party stats saying "Googlebot is the largest crawler" as a premise for your own site',
+    "Treating spoofed Googlebot traffic as genuine and mixing it into crawl volume analysis",
+    "Reading a high GoogleOther volume as a signal of how Search evaluates your site",
+    "Skipping IP verification before blaming all traffic increases on bots",
+  ]}
+/>
+
+## Steps
+
+To do the same on your own site, all you need are logs that retain UA, path, and IP.
+
+1. Fix the period from the start to the end of a month, and compute request count, unique paths, and unique IPs per UA
+2. Fetch Google's published IP range JSON for common crawlers
+3. Match each UA's unique IPs against the ranges and identify the out-of-range IPs
+4. Sum the requests from out-of-range IPs and compute their share of the total
+5. Compare crawlers again using the numbers with spoofed traffic and unrecorded-IP rows removed
+
+Skip steps 4 and 5 and, as happened here, the answer shifts between "10x" and "15x". Publish numbers only after they have been through verification.
+
+## FAQ
+
+### Is it OK to block GoogleOther?
+
+You can block it on its own by specifying `GoogleOther` in robots.txt. Per Google's documentation, it runs separately from crawling for the Search index, so blocking it isn't expected to have a direct effect on search results. However, because its purpose is described as broadly as "product teams", you can't know in advance what you'd be stopping. Unless server load is causing real harm, I recommend first looking at what it fetches at the path level.
+
+### Should I block fake Googlebot?
+
+Requests that claim to be Googlebot from outside the IP ranges are not Google's crawler. In this case, a single IP sent 2,977 requests. The logs can't tell whether it was scraping or something else, but at the very least, "it's Googlebot, so I can't block it" doesn't hold. The decision depends on the site, but counting comes first.
+
+### Which should I use, reverse DNS or IP range matching?
+
+Google presents both as official methods. Reverse DNS suits checking requests one at a time by hand; IP range matching suits processing an entire log mechanically. Here I used the IP ranges because reverse DNS wasn't available in my environment. The range files get updated, so recording the generation timestamp of the file you used lets you reproduce the result later.
+
+### How should I handle rows with no recorded IP?
+
+In this case, 7,275 GoogleOther rows and 913 Googlebot rows had no IP. They can't be judged genuine or fake, so I excluded them from the ratio and stated explicitly that I did. If adding them to the genuine side or the fake side would change the conclusion, the aggregation isn't in a state to support a conclusion.

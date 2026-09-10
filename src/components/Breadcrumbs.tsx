@@ -9,8 +9,12 @@ export type Crumb = { name: string; href?: string };
  * ホームは常に先頭に付くので items には下位階層だけを渡す。最後の要素はリンクにしない。
  * 黒地のヘッダー内で使う前提の配色。
  */
-export default function Breadcrumbs({ items }: { items: Crumb[] }) {
-  const all: Crumb[] = [{ name: "ホーム", href: "/" }, ...items];
+// lang="en" は英語版（/en）のページだけが渡す。ホームは英語版のトップ（/en）になる。
+const HOME = { ja: { name: "ホーム", href: "/", aria: "パンくず" }, en: { name: "Home", href: "/en", aria: "Breadcrumb" } } as const;
+
+export default function Breadcrumbs({ items, lang = "ja" }: { items: Crumb[]; lang?: keyof typeof HOME }) {
+  const home = HOME[lang];
+  const all: Crumb[] = [{ name: home.name, href: home.href }, ...items];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -30,7 +34,7 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <nav aria-label="パンくず" className="mb-8 text-xs text-paper/60">
+      <nav aria-label={home.aria} className="mb-8 text-xs text-paper/60">
         <ol className="flex flex-wrap items-center gap-2">
           {all.map((c, i) => (
             <li key={c.name} className="flex items-center gap-2">

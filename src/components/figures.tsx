@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 // 記事本文（MDX）に埋め込む図解コンポーネント。実画像の代わりにコードで描画する。
 // - 自動生成パイプライン（scripts/generate.ts）でもClaudeがそのまま出力できる
@@ -253,10 +253,10 @@ export function FigureBars({
  * 引用パネル。一次情報の一文を大きく見せて、本文の流れに視覚的な区切りを作る。
  * <FigureQuote text="..." source="Google 検索セントラル" />
  */
-export function FigureQuote({ text, source }: { text: string; source?: ReactNode }) {
+export function FigureQuote({ text, source, marks = ["「", "」"] }: { text: string; source?: ReactNode; marks?: [string, string] }) {
   return (
     <figure className="not-prose my-10 overflow-hidden rounded-card border-l-8 border-accent bg-ink p-6 text-paper sm:p-8 dark:border-y dark:border-r dark:border-y-line-strong dark:border-r-line-strong">
-      <blockquote className="text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">「{text}」</blockquote>
+      <blockquote className="text-lg font-bold leading-relaxed tracking-tight sm:text-2xl">{marks[0]}{text}{marks[1]}</blockquote>
       {source && <figcaption className="mt-4 text-sm text-paper/60">— {source}</figcaption>}
     </figure>
   );
@@ -270,10 +270,12 @@ export function FigurePipeline({
   title,
   caption,
   stages,
+  failLabel = "ここで落ちると",
 }: {
   title: string;
   caption?: ReactNode;
   stages: { label: string; desc?: string; fail?: string }[];
+  failLabel?: string;
 }) {
   return (
     <Frame title={title} caption={caption}>
@@ -285,7 +287,7 @@ export function FigurePipeline({
             {st.desc && <p className="mt-2 text-sm leading-relaxed text-paper/80">{st.desc}</p>}
             {st.fail && (
               <p className="mt-3 border-t border-paper/15 pt-3 text-xs leading-relaxed text-news">
-                <span className="font-bold">ここで落ちると</span> {st.fail}
+                <span className="font-bold">{failLabel}</span> {st.fail}
               </p>
             )}
             {i < stages.length - 1 && (
@@ -644,3 +646,13 @@ export function FigureLinkMap({ title, caption, maps }: { title: string; caption
 }
 
 export const MDX_FIGURES = { FigureCompare, FigureDoDont, FigureFlow, FigureStats, FigureBars, FigureQuote, FigurePipeline, FigureStack, FigureGauge, FigureTimeline, FigureLinkMap };
+
+// 英語版の記事（/en/articles/*）用。既定の文言が日本語の図だけ、英語の既定値を差し込む。
+// 記事側（MDX）で明示したプロパティはそちらが勝つ。
+export const MDX_FIGURES_EN = {
+  ...MDX_FIGURES,
+  FigureDoDont: (p: ComponentProps<typeof FigureDoDont>) => <FigureDoDont doLabel="What to do" dontLabel="What to skip" {...p} />,
+  FigureQuote: (p: ComponentProps<typeof FigureQuote>) => <FigureQuote marks={["“", "”"]} {...p} />,
+  FigurePipeline: (p: ComponentProps<typeof FigurePipeline>) => <FigurePipeline failLabel="If it fails here:" {...p} />,
+  FigureGauge: (p: ComponentProps<typeof FigureGauge>) => <FigureGauge labels={["Good", "Needs improvement", "Poor"]} {...p} />,
+};

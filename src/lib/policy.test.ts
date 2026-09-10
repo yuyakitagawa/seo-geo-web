@@ -12,9 +12,9 @@ import { AUDIT_LOG_RETENTION_DAYS } from "./audit-log";
 
 const read = (p: string) => fs.readFileSync(path.join(process.cwd(), p), "utf8");
 
-const PRIVACY = read("src/app/privacy/page.tsx");
-const PAGE_AUDIT = read("src/app/tools/page-audit/page.tsx");
-const LAYOUT = read("src/app/layout.tsx");
+const PRIVACY = read("src/app/(ja)/privacy/page.tsx");
+const PAGE_AUDIT = read("src/app/(ja)/tools/page-audit/page.tsx");
+const LAYOUT = read("src/app/(ja)/layout.tsx");
 const AUDIT_LOG = read("src/lib/audit-log.ts");
 const PACKAGE = JSON.parse(read("package.json")) as { dependencies: Record<string, string> };
 

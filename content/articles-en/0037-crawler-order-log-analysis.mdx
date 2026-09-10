@@ -1,0 +1,415 @@
+---
+id: 37
+slug: crawler-order-log-analysis
+title: "Crawlers don't follow sitemap order: 190K log requests analyzed"
+description: "We analyzed 190,179 bot requests in our own access logs. Crawl order shows near-zero correlation with sitemap order, and ClaudeBot and GPTBot never fetched a single child sitemap."
+date: '2026-09-02'
+category: geo
+type: howto
+tags:
+  - Crawlers
+  - Server logs
+  - Sitemaps
+  - ClaudeBot
+  - GPTBot
+  - Original research
+impact: high
+audience: Site owners who design sitemaps and manage crawl budget
+actions:
+  - In your server logs, count whether each bot's session starts with robots.txt, sitemap.xml, or a content page
+  - If you split your sitemap, count hits on the child sitemaps (/sitemap/*.xml) per bot
+  - Record the gap between when a new URL is published and when each bot first fetches it
+  - Drop sitemap reordering from the list of things you test for impact
+  - Keep pages of the same type in the same directory, and don't mix pages with different update frequencies
+  - For each directory, compare the number of URLs in the sitemap with the number of unique URLs actually requested, and find the directories with the biggest gap
+  - Decide whether to split a directory by update frequency, not by whether the content means something different
+  - Clean up directories that attract many requests for legacy URL formats or nonexistent IDs, including the redirect sources
+  - Check that every URL is reachable through internal links alone, without the sitemap
+sources:
+  - title: 'Google Crawlers and Fetchers | Google Search Central'
+    url: 'https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers'
+  - title: 'Large sitemaps | Google Search Central'
+    url: 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/large-sitemaps'
+  - title: 'sitemaps.org - Protocol'
+    url: 'https://www.sitemaps.org/protocol.html'
+  - title: 'SEO Starter Guide | Google Search Central'
+    url: 'https://developers.google.com/search/docs/fundamentals/seo-starter-guide'
+  - title: 'Crawl Budget Management For Large Sites | Google Search Central'
+    url: 'https://developers.google.com/crawling/docs/crawl-budget'
+  - title: 'OpenAI bots | OpenAI Developers'
+    url: 'https://developers.openai.com/api/docs/bots'
+  - title: 'Does Anthropic crawl data from the web, and how can site owners block the crawler? | Anthropic Help Center'
+    url: 'https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler'
+---
+## Conclusion
+
+Across 190,179 bot requests, crawlers did not follow sitemap order: the rank correlation between crawl order and sitemap order was **ρ = 0.00 to +0.11** for every bot, and consecutive requests hit the next sitemap entry only 6.0% of the time for Googlebot, 3.4% for GoogleOther, and 1.2% for ClaudeBot.
+
+The operator of this site also runs a separate media site covering disclosures from Japanese listed companies. That site logs the User-Agent of every page request on the server side, so we can check in raw logs **the actual order in which crawlers fetch pages**.
+
+For this analysis we took 31 days of that site's logs: **190,179 requests classified as bots, covering 17,986 paths** (the sitemap lists about 2,300 URLs).
+
+The result: **crawlers do not read in sitemap order.**
+
+The share of consecutive request pairs that were neighbors in the sitemap (index +1) was 6.0% for Googlebot, 3.4% for GoogleOther, and 1.2% for ClaudeBot. The Spearman rank correlation between in-session crawl order and sitemap order was **ρ = 0.00 to +0.11** across all bots, i.e. no correlation. About 50% of steps moved forward, so there isn't even a direction.
+
+What we found instead was a three-layer structure.
+
+<FigureFlow
+  title="Three layers of crawling seen in real logs"
+  caption="Scope: 2026-08-02 to 09-02, 190,179 requests classified as bots"
+  steps={[
+    { label: "Layer 1: Entry point", desc: "The first request of a session. Bots split into three types: those that start at robots.txt, those that start at sitemap.xml, and those that go straight to a content page" },
+    { label: "Layer 2: Bursts by URL type", desc: "If it's stock pages, the bot fetches only stock pages, hundreds in a row. The probability that the next request is the same type is 87.4% for ClaudeBot (26.2% if random)" },
+    { label: "Layer 3: Order within a burst", desc: "This is neither sitemap order nor numeric order. The bot is simply working through its own queue built from past crawls, which looks unordered from the outside" },
+  ]}
+/>
+
+This structure has two practical consequences. Neither is about how you write your sitemap; both are about **how the site itself is built**.
+
+**First: for AI crawlers, internal links are not a supplement but the only path.** ClaudeBot fetched 2,257 paths over 31 days, yet never read a single file that lists page URLs (it fetched only the sitemap index, and child sitemaps 0 times). GPTBot is the same.
+
+**Second: a directory is the unit that gets read in one burst, so if its contents are inconsistent, the whole burst is wasted.** On this site, just two directories full of legacy URL formats and dead URLs (`/investors` and `/en`) absorbed **35.8% of all bot requests**. Most of that ended in redirects or 404s.
+
+The data follows, in order.
+
+## What we measured and how
+
+We classify the User-Agent of every request in Next.js `proxy` (formerly middleware) and record `path` / `bot_name` / `occurred_at` in a database. For this analysis we kept only the bot rows (excluding anything classified as a browser) and **split sessions wherever there was a gap of 30 minutes or more**.
+
+On the sitemap side, we fetched the live `/sitemap.xml` (a sitemapindex) and the five child sitemaps it references, and used the order in which each `<loc>` appears as its index number.
+
+Note that bot classification relies on the self-declared User-Agent; we did not verify it with reverse DNS. Suspicious paths that look like they came from scanners (`/.git/config`, `/.env`, etc.) accounted for 133 requests, or 0.07% of the total.
+
+## Test 1: Do crawlers read in sitemap order? No
+
+For each bot, we took only the pairs of consecutive requests where both URLs appear in the sitemap, and counted the difference in index numbers.
+
+| Bot | Pairs | Diff +1 (next entry) | Diff -1 (previous entry) | Share moving forward |
+| --- | ---: | ---: | ---: | ---: |
+| GoogleOther | 58,580 | 3.4% | 6.0% | 35.3% |
+| Googlebot | 1,621 | 6.0% | 2.1% | 52.0% |
+| OAI-SearchBot | 3,355 | 2.1% | 2.3% | 49.4% |
+| AhrefsBot | 1,369 | 1.5% | 0.9% | 54.2% |
+| MJ12bot | 1,258 | 1.7% | 2.7% | 38.1% |
+| PerplexityBot | 922 | 0.9% | 1.0% | 49.9% |
+| ClaudeBot | 243 | 1.2% | 0.8% | 46.1% |
+
+With 2,255 URLs in the sitemap, a fully random order would give a +1 difference 0.04% of the time. The observed values are a few percent, but if bots were reading in order, they would be in the tens of percent. The forward share hovering around 50% across the board also shows that bots aren't progressing in any direction.
+
+We also computed, per session, the rank correlation between crawl order and sitemap order. The figures below are medians, limited to sessions that fetched 20 or more URLs within the child sitemaps.
+
+<FigureBars
+  title="Rank correlation between crawl order and sitemap order (Spearman ρ)"
+  caption="1.0 would mean perfect sitemap order. Every bot is near 0 = no correlation"
+  bars={[
+    { label: "meta-externalagent", value: 0.11, note: "24 sessions" },
+    { label: "GoogleOther", value: 0.10, note: "247 sessions" },
+    { label: "OAI-SearchBot", value: 0.08, note: "56 sessions" },
+    { label: "ClaudeBot", value: 0.07, note: "5 sessions" },
+    { label: "Googlebot", value: 0.0, note: "25 sessions" },
+    { label: "MJ12bot", value: 0.0, note: "36 sessions" },
+    { label: "PerplexityBot", value: -0.05, note: "17 sessions" },
+  ]}
+/>
+
+**Reordering your sitemap does nothing, at least within the scope of these logs.** When you see advice like "put important pages at the top," we think it's safe to drop it from your list of things to test.
+
+## Test 2: Where do crawlers enter? Completely different per bot
+
+Counting what the first request of each session was revealed very distinct bot personalities.
+
+| Bot | Sessions | Starts with robots.txt | Starts with sitemap.xml |
+| --- | ---: | ---: | ---: |
+| MJ12bot | 119 | 100.0% | 0.0% |
+| ClaudeBot | 95 | 73.7% | 17.9% |
+| Googlebot | 308 | 56.2% | 2.9% |
+| SemrushBot | 168 | 47.6% | 0.0% |
+| AhrefsBot | 186 | 18.8% | 57.0% |
+| GPTBot | 38 | 0.0% | 81.6% |
+| GoogleOther | 230 | 0.0% | 0.0% |
+| ChatGPT-User | 389 | 0.0% | 0.5% |
+| Amazonbot | 90 | 0.0% | 0.0% |
+
+GPTBot **did not fetch robots.txt even once in 31 days**, yet started 80% of its sessions at `/sitemap.xml`. The natural explanation is that it caches robots.txt for a long time.
+
+By contrast, **ChatGPT-User (the fetch triggered when a user asks ChatGPT a question) went straight to a content page (including the home page) in 387 of 389 sessions**. It has no concept of an entry point; it just fetches the one page it needs. GoogleOther and Amazonbot likewise never touch robots.txt or the sitemap.
+
+Googlebot is the opposite: **15.4% of its requests (1,687 of 10,942) were for robots.txt**. SemrushBot was at 11.6%. So bots whose overall crawl speed depends on how fast robots.txt responds really do exist.
+
+## Test 3: What order is used inside a burst? The bot's own queue
+
+ClaudeBot's longest session is a clear example.
+
+```
++     0.0s  /robots.txt
++     1.7s  /sitemap.xml
++   842.2s  /stocks/3950     ← after 14 minutes of silence
++   842.2s  /stocks/8136
++   845.5s  /stocks/3733
++   845.5s  /stocks/6902
++   847.0s  /stocks/4641
+   (followed by 735 consecutive /stocks/ requests)
+```
+
+The session an hour earlier fetched `/investors/` 627 times in a row; on another day it fetched 219 English-version articles in a row. **One session = one URL type.** The probability that the next request is the same type was 87.4%, far above the 26.2% you'd get from a random shuffle.
+
+And the order within a burst is neither stock-code order nor sitemap order. Two findings were decisive.
+
+<FigureCompare
+  title="Ruling out the idea that bots follow links on the spot"
+  caption="Result of cross-checking three ClaudeBot sessions"
+  cols={[
+    { label: "Zero URL overlap between sessions", tone: "accent", sub: "Three sessions of 49, 141, and 735 requests", points: ["Not a single stock page was fetched in more than one of the three sessions", "Requests ÷ unique URLs was 1.1x (almost no repeat fetches)", "= there is a queue that remembers how far it has gotten"] },
+    { label: "No hub page fetched right before", tone: "news", sub: "Just before a burst of detail pages starts", points: ["ClaudeBot: 0 of 18 sessions", "Googlebot: 4 of 364 sessions", "= bots are not opening a listing page and following its links"] },
+  ]}
+/>
+
+In other words, crawlers don't "read" the site on each visit. **They work through a URL queue built from past crawls, sliced by URL type.** The order of that queue is determined by the crawler's internal logic, so the site cannot reorder it.
+
+The practical conclusion of this analysis: the only thing a site can influence is **what goes into the queue**.
+
+## Side finding 1: ClaudeBot and GPTBot never descend into child sitemaps
+
+Sites with many URLs use split sitemaps, where a sitemapindex references child sitemaps (defined in the sitemaps.org protocol, and recommended by Google for sitemaps exceeding 50,000 URLs / 50 MB). This site's `/sitemap.xml` references five children, such as `/sitemap/pages.xml`.
+
+We counted every `/sitemap*` fetch over the 31 days.
+
+| Bot | /sitemap.xml (index) | /sitemap/*.xml (children) |
+| --- | ---: | ---: |
+| Googlebot | 30 | **101** |
+| Bingbot | 27 | **90** |
+| AhrefsBot | 131 | 18 |
+| SemrushBot | 2 | 7 |
+| **ClaudeBot** | **80** | **0** |
+| **GPTBot** | **31** | **0** |
+| PerplexityBot | 1 | 0 |
+
+**ClaudeBot fetched the index 80 times and GPTBot 31 times, yet neither fetched a single child sitemap.** Googlebot and Bingbot descend properly.
+
+ClaudeBot still reached 2,259 paths and GPTBot 1,380, so they do discover URLs via links. But the assumption that "having a sitemap tells AI crawlers about all your URLs" does not hold, at least for these two bots.
+
+<FigureDoDont
+  title="What to do if you use split sitemaps"
+  caption="Implications from this one log. Sample: one site, 31 days"
+  dos={[
+    "Count hits on child sitemaps (/sitemap/*.xml) per bot (check whether any bot is at 0)",
+    "If you have well under 50,000 URLs, consider consolidating into a single sitemap instead of splitting",
+    "Keep every URL reachable through internal links from listing pages, without relying on the sitemap",
+  ]}
+  donts={[
+    "Tweak the order of URLs in the sitemap",
+    "Tweak priority or changefreq values (in these logs they had nothing to do with crawl order anyway)",
+    "Spend time on llms.txt (0 hits from all bots combined over 31 days in this log)",
+  ]}
+/>
+
+Over the same period, `/llms.txt` got **0 hits from all bots combined**. Browsers did request it, but no crawler fetched it even once.
+
+## Side finding 2: GoogleOther is the first to reach new URLs
+
+For the 1,042 article URLs that first appeared 10 or more days after the log started, we tallied which bot fetched each one first, and how many hours each bot lagged behind the first one.
+
+<FigureStats
+  title="How fast new URLs are discovered"
+  caption="Scope: 1,042 article URLs first seen on or after 2026-08-12"
+  stats={[
+    { value: "640", label: "URLs where GoogleOther was first", note: "61.4% of 1,042" },
+    { value: "8.0h", label: "Googlebot lag (median)", note: "81.8% coverage" },
+    { value: "27.1h", label: "OAI-SearchBot lag", note: "41.7% coverage" },
+    { value: "153h", label: "PerplexityBot lag", note: "39.1% coverage" },
+  ]}
+/>
+
+GoogleOther is a fetcher Google uses for purposes other than Search (including AI-related products), and it is listed in Google's crawler documentation. On this site, **GoogleOther accounted for 57.6% of all bot requests (about 3,534 per day)**, re-fetching the same URL 16.4 times on average. That is an order of magnitude beyond Googlebot's 1.9.
+
+AI crawlers as a whole (GoogleOther, GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, meta-externalagent, Amazonbot, Applebot, etc.) made up 68.3% of all bot requests.
+
+## So what does work: link structure and directories
+
+If ordering doesn't matter, is there nothing a site can do? Judging from the logs, two things matter: **what goes into the queue** and **how URLs are grouped**.
+
+### 1. AI crawlers learn URLs almost exclusively through links
+
+ClaudeBot fetched 2,257 paths over 31 days (excluding robots.txt and sitemaps). Yet the only sitemap ClaudeBot fetched was `/sitemap.xml` (the index), **which contains nothing but the URLs of the five child sitemaps**. Not a single page URL is listed there. Child sitemaps: 0 fetches.
+
+So ClaudeBot **knows 2,257 paths without ever having read a file that lists page URLs**. The only possible discovery path is links (internal links or references from other sites). GPTBot shows the same pattern: 1,379 paths fetched, 0 child sitemaps.
+
+<FigureStats
+  title="Paths fetched without reading any list of page URLs"
+  caption="Both bots fetched child sitemaps (/sitemap/*.xml) 0 times"
+  stats={[
+    { value: "2,257", label: "Paths fetched by ClaudeBot", note: "Fetched sitemap.xml (index) 80 times" },
+    { value: "1,379", label: "Paths fetched by GPTBot", note: "Fetched sitemap.xml (index) 31 times" },
+    { value: "0", label: "Child sitemap fetches by either bot", note: "Googlebot: 101, Bingbot: 90" },
+  ]}
+/>
+
+For bots the sitemap doesn't reach, internal links are not a supplement but **the only path**. "It's in the sitemap, so we're fine" does not hold for AI crawlers.
+
+### 2. Crawling is grouped by directory
+
+The "bursts by URL type" from Layer 2 become even clearer when you split URLs by their first path segment (directory).
+
+| Bot | Next request is in the same directory | If the log were randomly shuffled |
+| --- | ---: | ---: |
+| MJ12bot | 95.3% | 38.1% |
+| ClaudeBot | 87.5% | 26.1% |
+| AhrefsBot | 71.2% | 40.6% |
+| GPTBot | 68.2% | 27.1% |
+| PerplexityBot | 67.1% | 27.6% |
+| Googlebot | 51.0% | 15.7% |
+| GoogleOther | 40.5% | 9.8% |
+
+This matches Google's official documentation. The SEO Starter Guide says that grouping pages on similar topics into directories lets Google learn how often each directory changes, and **crawl different directories at different frequencies** (guidance aimed at sites with more than a few thousand URLs).
+
+What the logs show is that this behavior appears not only for Googlebot but equally for ClaudeBot, GPTBot, and PerplexityBot.
+
+Flip that around and **mixing pages with different update frequencies in one directory costs you**. If pages updated daily share a directory with pages that haven't changed in a year, per-directory frequency learning stops working.
+
+#### More top-level directories, or fewer with deeper second levels?
+
+The practical dilemma here is whether to add more directories side by side at the first level, or group them and build out the second level.
+
+The short answer: **we saw no downside to grouping.** The unit bots group by was not "the first level" but **whichever level actually groups pages of the same kind**.
+
+This site has structures where multiple second-level segments sit under one first-level directory, such as `/en/articles/<id>` and `/en/category/<name>` (21,803 requests over 31 days). We measured whether bots group by the second level there.
+
+| Bot | Next request within `/en/` has the same second level | If the log were randomly shuffled |
+| --- | ---: | ---: |
+| MJ12bot | 95.3% | 49.4% |
+| AhrefsBot | 76.4% | 51.7% |
+| Googlebot | 75.6% | 45.6% |
+| GPTBot | 69.6% | 32.4% |
+| GoogleOther | 58.5% | 32.2% |
+| OAI-SearchBot | 45.2% | 31.5% |
+
+**Even under a single first-level directory, bots group their reads by the second level.** There's no need to worry that consolidating will break the burst unit.
+
+Conversely, we found no numbers showing a benefit from adding more first-level directories. Google recommends directories so it can learn update frequency, so **splitting pages with the same update frequency across first-level directories doesn't give it anything new to learn**.
+
+<FigureDoDont
+  title="When to split a directory and when not to"
+  caption="Split on differences in update frequency and content type, not differences in meaning"
+  doLabel="Split"
+  dontLabel="Don't split"
+  dos={[
+    "Update frequencies clearly differ (daily updates vs. content unchanged for years)",
+    "The content types differ and only one of them keeps growing in volume",
+    "You want to treat only one of them differently with robots.txt or noindex",
+  ]}
+  donts={[
+    "The meaning differs, but the update frequency is the same",
+    "You just want things to be tidier",
+    "Because the URLs look cleaner",
+  ]}
+/>
+
+One number does hint at a cost of depth. There are 1,241 cases where the same article ID was requested at both `/articles/<id>` (2 levels) and `/en/articles/<id>` (3 levels). The 2-level side got 15,381 fetches in total and the 3-level side 7,353. **The median ratio was 0.47**: the deeper version got less than half.
+
+That said, we can't attribute this to depth alone. `/en` is the English version, a deprecated section that now 308-redirects to the home page. Language and priority differences are mixed in, so treat this as a reference value only.
+
+Also, on this site the third level exists only under `/en`, and there is no data for 4 or more levels. **Whether deep nesting is a disadvantage could not be tested with these logs.**
+
+### 3. Because directories are read in bursts, their contents become the crawl outcome
+
+If bots read a directory in one go, then **what's in that directory becomes the crawl outcome as-is**. Put good pages in and they all get picked up; put junk in and the bot leaves with junk.
+
+For the same site, we lined up the number of URLs listed in the sitemap per directory against the number of unique URLs bots actually requested.
+
+| Directory | In sitemap | URLs actually requested | Of which not in sitemap | Share of requests outside sitemap |
+| --- | ---: | ---: | ---: | ---: |
+| /investors | 538 | 10,036 | 9,501 | 72% |
+| /en | 0 | 2,034 | 2,034 | 100% |
+| /stocks | 667 | 4,082 | 3,415 | 53% |
+| /articles | 917 | 1,401 | 508 | 34% |
+| /date | 81 | 232 | 152 | 31% |
+| /faq | 10 | 10 | 0 | 0% |
+| /category | 14 | 26 | 12 | 0.3% |
+
+The 12 `/category` URLs outside the sitemap received only 13 requests in total over 31 days.
+
+`/investors` lists 538 URLs in the sitemap, yet **10,036 unique URLs were actually requested**. Here is the breakdown.
+
+- **7,115** were the legacy URL format (`/investors/加藤産業株式会社`, i.e. a company name, Kato Sangyo, in Japanese). These now 308-redirect to `/investors/2925`
+- **2,386** were numeric IDs not in the sitemap (`/investors/9999`, etc.). These return 404
+
+This directory received 35,528 requests over 31 days, **18.7% of all bot requests**. 72% of them ended in a redirect or a 404.
+
+`/en` is even more extreme: **32,608 requests (17.1% of all bot traffic) went to a directory with not a single URL in the sitemap**. That path now 308-redirects to the home page. Bots are still carrying remnants of a former English version in their queues.
+
+In contrast, `/faq` (10 URLs) and `/category` (14 URLs) have near-identical sitemap and actual URLs. Coverage is 100% for both Googlebot and GoogleOther.
+
+<FigureCompare
+  title="How tidy a directory is vs. what the crawl achieves"
+  caption="Same site, same period. Coverage for Googlebot / GoogleOther"
+  cols={[
+    { label: "Tidy directories", tone: "accent", sub: "/faq, /category, /date", points: ["Only one URL format", "Sitemap and actual URLs nearly match", "94–100% coverage", "Nearly every request lands on a 200"] },
+    { label: "Messy directories", tone: "news", sub: "/investors, /en", points: ["Legacy and current URL formats coexist", "2,386 nonexistent IDs requested", "/investors coverage stalls at 50–51%", "These two absorb 35.8% of all bot requests"] },
+  ]}
+/>
+
+So "group pages into directories" **doesn't mean packing URLs in; it means giving each directory one URL format and one update frequency**. If the unit that gets read in a burst is inconsistent, the whole burst is wasted. By our count, cleaning up just these two directories would free up a third of this site's crawling for other uses.
+
+<FigureDoDont
+  title="Fix the paths, not the entry point"
+  caption="What this analysis does and doesn't support"
+  dos={[
+    "Keep every detail page reachable from listing and category pages (some bots never get the sitemap)",
+    "Put pages of the same type and update frequency in the same directory",
+    "Separate directories with high and low update frequency",
+  ]}
+  donts={[
+    "\"Put important pages at the top of the sitemap\" (order has no correlation with crawl order)",
+    "Designing on the assumption that bots follow links within a single crawl (bots work through a queue built on earlier visits)",
+    "Mixing pages with widely varying update frequencies in one directory",
+  ]}
+/>
+
+Incidentally, the popular term "hub and spoke" does not appear in Google's official documentation. What the documentation actually says comes down to three things: "organize your site logically," "group similar topics into directories," and "make your links crawlable." These logs show that the latter two are actually observable in crawler behavior.
+
+## How to check this on your own site
+
+If you have server or CDN logs, you can run the same analysis. No special tools required.
+
+<FigureFlow
+  title="Steps to test crawl order from logs"
+  caption="All you need are three columns: occurred_at / path / user_agent"
+  steps={[
+    { label: "Keep only bot rows", desc: "Identify bot names from the User-Agent and drop browser rows. This is based on self-declaration, so verifying with reverse DNS makes it stricter" },
+    { label: "Split into sessions at 30-minute gaps", desc: "One session = one crawl. Counting whether the first request is robots.txt, sitemap.xml, or a content page reveals each bot's personality" },
+    { label: "Look at runs by URL type", desc: "Compare the probability that the next request is the same type against a randomly shuffled log. If it's far higher, the bot reads in bursts by type" },
+    { label: "Compare with sitemap order", desc: "Number each <loc> by order of appearance and count the index difference between consecutive requests. If +1 isn't in the tens of percent, it's not sitemap order" },
+    { label: "Count child sitemap hits per bot", desc: "If you split your sitemap, check whether any bot fetches only the index and never descends" },
+  ]}
+/>
+
+## Limitations of this analysis
+
+The sample is one site over 31 days. Some results may depend on the site's size (about 2,300 URLs), update frequency (almost daily), and genre (Japanese company disclosures).
+
+In particular, these three points may not hold on other sites.
+
+- **The high share of GoogleOther.** 57.6% is clearly skewed and may reflect something specific to this site
+- **ClaudeBot's last visit was on 2026-08-21.** Not a single request in the 12 days after that
+- **Child sitemaps not being fetched.** We can't rule out that this is due to how the sitemap is split (5 files / up to 916 URLs) or how the index is written
+
+Also, the sitemap we compared against is **a snapshot taken on the last day of the period**. We can't rule out that the order changed during the period. However, the zero-correlation result was consistent across bots, sessions, and the whole period, and changes in order alone can't fully explain it.
+
+We also didn't verify User-Agents with reverse DNS, so some requests may come from bots spoofing their identity. Requests to suspicious paths were 0.07% of the total.
+
+On the other hand, the finding that sitemap order and crawl order are uncorrelated held consistently regardless of bot, session, or period. We think this part is likely to reproduce on other sites.
+
+## FAQ
+
+### Is there any point in putting important URLs at the top of the sitemap?
+
+In these 31 days of logs, there was no correlation between the order of URLs in the sitemap and the actual crawl order. Instead of signaling importance through order, make important URLs reachable via crawlable links from listing and category pages.
+
+### Don't AI crawlers read sitemaps?
+
+It depends on the crawler. On this site, ClaudeBot and GPTBot fetched the sitemap index but never fetched the child sitemaps it references. Googlebot and Bingbot fetched the child sitemaps as well.
+
+### Will a shallower directory structure increase crawling?
+
+This data alone can't settle that. The difference between 2 and 3 levels also mixes in language and page priority. Before worrying about depth, group pages of the same type and update frequency, and reduce legacy URLs and 404s.

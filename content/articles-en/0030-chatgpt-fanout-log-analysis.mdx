@@ -1,0 +1,275 @@
+---
+id: 30
+slug: chatgpt-fanout-log-analysis
+title: "ChatGPT fan-out queries in real logs: 4 of 36 candidate URLs cited"
+description: >-
+  I traced one ChatGPT conversation JSON from 3 fan-out queries to 36 candidate URLs to the 4 URLs actually cited. Comparison sites made the candidate list but got zero citations.
+date: '2026-08-31'
+category: geo
+type: howto
+tags:
+  - ChatGPT
+  - AI search
+  - Citations
+  - Fan-out queries
+  - Original research
+impact: high
+audience: Publishers running comparison and ranking content
+actions:
+  - Run a question from your own category in ChatGPT and save search_model_queries from the conversation JSON
+  - Check whether your brand or product names appear in the fan-out queries
+  - Audit whether the answer is complete within the first 200 characters that show up in search snippets
+  - When you are cited, record whether it is the url type (link directly under a heading) or the grouped_webpages type (small pill)
+  - Consolidate parameter variants onto a canonical URL so you decide where citations land
+sources:
+  - title: Why ChatGPT Cites One Page Over Another (Study of 1.4M Prompts) | Ahrefs
+    url: 'https://ahrefs.com/blog/why-chatgpt-cites-pages/'
+  - title: >-
+      ChatGPT Stopped Showing Query Fan-Out Data Since GPT-5.3. Here's What
+      Still Works. | NO-BS Marketplace
+    url: 'https://nobsmarketplace.com/blog/chatgpt-fanout-queries-hidden-gpt5-3'
+  - title: How to Find ChatGPT's Hidden Fan-Out Queries | getAISO
+    url: 'https://www.getaiso.com/blog/how_to_find_fan_out_queries_blog_post'
+  - title: AI Features and Your Website | Google Search Central
+    url: 'https://developers.google.com/search/docs/appearance/ai-features'
+---
+## Conclusion
+
+I asked ChatGPT once, in Japanese, to recommend a credit card and analyzed the conversation JSON: **3 fan-out queries, 36 candidate URLs from search, and just 4 URLs actually cited**. Fourteen of the candidates were affiliate comparison sites (Kakaku.com, my-best, Minkabu and others), yet they received **zero citations**. All 4 cited URLs were on the card issuers' official domains.
+
+On top of that, the log records **not a single tool call that fetched a page body**. Every annual fee, reward rate and age limit in the answer exists as a string inside the search result snippets. The answer contained no fact that could only have been written by reading a page body.
+
+And the 2 URLs cited as standalone links **had empty snippets**. The page that supplied the facts and the page that got the link were different URLs.
+
+In other words, showing up in search results and being cited in an AI answer are separate gates. This is an observation of a single sample, but I'm disclosing that one sample down to the field names.
+
+<FigureStats
+  title="Four gates one question passed through"
+  caption="Session logged with internal slug gpt-5-6, Japanese query, sample of 1"
+  stats={[
+    { value: "3", label: "Fan-out queries", note: "Reports abroad: 8.5 on average" },
+    { value: "36", label: "Candidate URLs", note: "14 domains" },
+    { value: "0", label: "Pages opened", note: "Judged on snippets alone" },
+    { value: "4", label: "Cited URLs", note: "2 domains, all official" },
+  ]}
+/>
+
+## What I looked at
+
+A ChatGPT conversation is stored as JSON that includes not only the visible answer but also the queries the model sent to its search tool and the list of URLs that came back. Open the Network tab in your browser's developer tools, filter by the conversation ID, and inspect the `conversation` response to get this structure.
+
+The fields to look at are fixed.
+
+| What you want | Field |
+| --- | --- |
+| Fan-out queries | `content.text` of messages whose `recipient` is `web.run`, plus `metadata.search_model_queries.queries` |
+| Candidate URLs returned by search | `url` / `title` / `snippet` / `pub_date` in `metadata.search_result_groups[].entries[]` |
+| Candidate identifier | `entries[].ref_id.ref_index` in the same object. The key for matching against `refs[]` on the citation side |
+| Pages whose body was fetched | `open_url` / `find` calls in the same code part |
+| URLs cited in the answer | `metadata.content_references[]` in the final message |
+| All URLs the model was allowed to reference | `safe_urls` |
+
+Using `search_model_queries` isn't new; GEO practitioners abroad have been sharing the technique since 2025. This article is about what comes after: **how candidate URLs drop out on the way to a citation**.
+
+<FigurePipeline
+  title="Attrition from candidate to citation"
+  caption="Figures are this run's measurements (sample of 1)"
+  stages={[
+    { label: "1 question", desc: "\"Recommend me a credit card\" (asked in Japanese)" },
+    { label: "3 fan-out queries", desc: "The model rewrites and expands the query", fail: "Products whose brand name isn't injected are out here" },
+    { label: "36 candidate URLs", desc: "Collected from 14 domains", fail: "If search doesn't pick you up, you go no further" },
+    { label: "Evaluation", desc: "Judged on snippets only", fail: "Pages without the answer up front drop out here" },
+    { label: "4 cited URLs", desc: "2 domains, all official sites" },
+  ]}
+/>
+
+## The actual fan-out queries
+
+The log recorded two stages. First, the user's message was passed to the search tool as-is; then the model sent 3 rewritten queries.
+
+```text
+# Stage 1: recipient "web" — the user's message passed as-is ("Tell me which credit cards you recommend")
+search("おすすめのクレジットカードを教えて")
+
+# Stage 2: recipient "web.run" — rewritten and expanded into 3 queries (this is the fan-out)
+fast|2026 Japan best credit cards annual fee points JCB 三井住友 ゴールド エポス 楽天
+fast|2026 三井住友カード ゴールド NL 100万円 修行 年会費 永年無料 公式
+fast|2026 JCB CARD W 還元率 公式
+```
+
+(Glosses: 三井住友 = Sumitomo Mitsui, 三井住友カード ゴールド NL = Sumitomo Mitsui Card Gold (NL), ゴールド = Gold, エポス = Epos, 楽天 = Rakuten, 100万円 修行 = the 1 million yen spending challenge, 年会費 永年無料 = no annual fee for life, 還元率 = reward rate, 公式 = official.)
+
+The same 3 queries also appear in `search_model_queries.queries`, which confirms these are the strings that were actually searched. Four things stand out.
+
+**1. "2026" was added to every query automatically.** The user never mentioned a year. Pages without a date or as-of statement will match this injected condition less well.
+
+**2. The model injected brand names the user never mentioned.** JCB, Sumitomo Mitsui, Epos and Rakuten are not in the question. They came from the model's prior knowledge. In other words, **the candidate brands are decided before the fan-out, and products whose names aren't injected here never even get searched**.
+
+**3. Queries 2 and 3 include 公式 (official).** This directly explains the citation results below.
+
+**4. Query 1 mixes English and Japanese.** Japanese brand names sit inside an English frame, `Japan best credit cards annual fee points`. That suggests there is territory a Japanese-only strategy won't reach.
+
+For reference, research abroad (Writesonic, via NO-BS Marketplace) reports that GPT-5.4 issues an average of 8.5 fan-out queries per prompt, so 3 is clearly on the low side. The Japanese language, the free plan, or the `fast|` prefix indicating low latency may each (or together) be the cause, but a single sample can't separate them.
+
+## Domains that were cited, and domains that weren't
+
+Here is the breakdown of the 36 candidates and the citation results.
+
+| Domain | Candidates | Cited |
+| --- | ---: | ---: |
+| smbc-card.com (incl. qa.) | 13 | **2** |
+| jcb.co.jp | 8 | **2** |
+| jcb-card.jp | 1 | 0 |
+| kakaku.com | 3 | 0 |
+| my-best.com | 2 | 0 |
+| minkabu.jp / exidea.co.jp / kakakumag.com and others (9 domains) | 1 each | 0 |
+
+**Comparison sites accounted for 14 candidates and zero citations.** Kakaku.com, my-best, Minkabu, HonNe: the regulars at the top of search results in this vertical made the candidate list and then never appeared in the answer at all.
+
+The cause lies in the fan-out queries. Two of the three include "official," so a bias toward official sites is built in at the query-design stage. **It's a fairly clean example of the claim that appearing in search results and being cited are two different things.**
+
+Ahrefs' study of 1.4 million prompts, published in April 2026, reports that of roughly 33 million retrieved URLs, about 50% (23.4 million URLs) were cited. However, that study doesn't break the figures down into official sites versus third-party comparison sites. This observation adds one sample's worth of data to that gap.
+
+## Citations come in three tiers that look completely different
+
+The `type` in `content_references[]` changes how the citation appears to the reader. This was the most practically useful finding.
+
+| `type` | How it appears on screen | Count |
+| --- | --- | ---: |
+| `url` | **A standalone blue link on its own line, directly under a heading** | 2 |
+| `grouped_webpages` | **A small gray pill** at the end of a bullet (e.g. `SMBCカード +1`, i.e. "SMBC Card +1") | 2 |
+| `sources_footnote` | The sources section at the end of the answer | 1 (containing 2 sources) |
+| `hidden` | **Nothing is displayed** | 1 |
+
+Each reference's `alt` field is rendered as-is. The text in the pill is `attribution`, and the trailing "+1" is the count of `supporting_websites`.
+
+Only the `url` type is worth targeting. It sits directly under a heading as a full-width blue link and effectively works as a "go to the official site" CTA. A `grouped_webpages` pill is only a few dozen pixels wide; both count as "cited," but the expected clicks differ by an order of magnitude. **If you measure AI search citations by count alone, you'll misread what's happening.**
+
+<FigureDoDont
+  title="How to count citations"
+  caption="One citation can be worth very different amounts"
+  dos={[
+    "Record citations separately for each content_references type",
+    "Make the url type (link directly under a heading) your primary KPI",
+    "Cross-check against traffic with utm_source=chatgpt.com",
+  ]}
+  donts={[
+    "Look only at the total citation count",
+    "Count a pill the same as a regular link",
+    "Treat a sources_footnote listing as a win",
+  ]}
+/>
+
+## The cited URL and the source URL were different
+
+Matching the 4 cited URLs against the candidate list by `ref_index` reveals something odd. **The 2 URLs cited as blue links directly under headings (`url` type) had empty snippets.**
+
+| ref | URL | snippet |
+| ---: | --- | --- |
+| 1 | `smbc-card.com/nyukai/card/gold-numberless.jsp` | Empty |
+| 2 | `jcb.co.jp/promotion/ordercard/w/` | Empty |
+
+What's more, these 2 are not in the final snapshot of the candidate list. They exist only in an earlier snapshot taken right after the search (where all 12 entries have empty snippets). **The content of these 2 pages never reached the model, not even as a snippet.**
+
+So where did the annual fees and reward rates in the answer come from? The contents of `grouped_webpages` answer that.
+
+| Displayed on screen | Breakdown |
+| --- | --- |
+| `SMBCカード +1` | ref 1 (empty, no parameters) + **ref 8** (has snippet, with `?dk=hp_083_0022201`) |
+| `JCB +1` | ref 2 (empty, `/promotion/ordercard/w/`) + **ref 10** (has snippet, `/promotion/tstosab/w.html`) |
+
+ref 1 and ref 8 are **the same page**; the only difference is the tracking parameter. In other words, the model **took the facts from the snippet of the parameterized URL and pointed the link at the clean canonical URL.**
+
+<FigureCompare
+  title="Roles split within a single citation"
+  caption="Breakdown of grouped_webpages (measured in this run)"
+  cols={[
+    { label: "URL that supplied the information", tone: "geo", sub: "ref 8 / ref 10", points: ["Has a snippet", "The annual fee and reward rate strings are here", "Has tracking parameters", "Not shown on screen"] },
+    { label: "URL that got the link", tone: "accent", sub: "ref 1 / ref 2", points: ["Snippet is empty", "Neither body nor snippet was passed", "Clean canonical URL without parameters", "This is what readers see"] },
+  ]}
+/>
+
+This has two practical implications.
+
+**1. Citation measurement gets skewed.** Counting only cited URLs misses the pages that were actually read. Conversely, a URL that shows up as a citation didn't necessarily supply the information.
+
+**2. URL normalization matters.** Even when several parameter variants entered the candidate list, the citation was consolidated onto one URL. **It's worth deciding yourself where that consolidation lands** (canonical tags and consistent internal links). This is a separate axis from snippet optimization.
+
+One more point. **Not a single character of the comparison sites' distinctive content from their 14 snippets survived in the answer.** They made the candidate list, their snippets were passed to the model, and still nothing was used. Getting into the candidate set is just a waypoint.
+
+## You can't choose your own anchor text
+
+The display text of the citation link was not the page's title tag.
+
+- Actual page title (`item.title`): `ゴールドカードなら三井住友カード ゴールド（NL）｜三井住友VISAカード` ("For a gold card, Sumitomo Mitsui Card Gold (NL) | Sumitomo Mitsui VISA Card")
+- Text actually displayed (`alt` / `title`): `三井住友カード ゴールド（NL）公式` ("Sumitomo Mitsui Card Gold (NL) Official")
+
+The model shortens and renames the link to fit the context. **You cannot control your own site's anchor text.** Packing information into the title tag doesn't get you through this stage.
+
+## Three more things I could confirm along the way
+
+**Personalization in the answer has no attribution.** The answer used information about the user's age and household finances. The conversation's `model_set_context` was empty, and a single `type: "hidden"` reference was attached at the end. Personal information from memory is blended into the answer **in a way that looks unsourced to the reader**. Because the same question yields different answers for different users, AI search "rankings" can't be fixed in principle.
+
+**An ad was delivered on this turn.** The user message's `metadata` recorded `ad_delivered: true`.
+
+**Every cited URL carries `?utm_source=chatgpt.com`.** You can measure whether your site was cited by looking at this parameter in GA4. You can start tracking citations today without waiting for log analysis.
+
+## How this differs from earlier reports abroad
+
+The technique for extracting fan-out queries is widely shared abroad. Meanwhile, in 2026 there were reports that "since GPT-5.3 became the default, query data no longer appears in the conversation JSON."
+
+This observation contradicts that. **In a session logged with the internal slug `gpt-5-6`, `search_model_queries` was retrieved without issue.** Whether the display conditions changed, or data that had been hidden came back, can't be determined from one sample. But before giving up because "it can't be retrieved anymore," it's worth checking once yourself.
+
+Most earlier reports stop at extracting the fan-out queries; I couldn't find any record that followed candidate URLs, whether bodies were fetched, and citation types in a single continuous trace. That is the focus of this article.
+
+## What this observation shows, and what it doesn't
+
+**What it shows** (facts established within this log)
+
+- The fan-out query strings, and that "official" and "2026" were added to them
+- The full list of 36 candidate URLs, and which 4 of them were cited
+- That no body-fetching tool call was recorded, and that every fact in the answer can be explained by strings in the snippets
+- That citations split into 4 types with different display formats
+- That the 2 URLs cited as the `url` type had empty snippets, and the facts were supplied by a different URL (with parameters) for the same page
+
+**What it doesn't show**
+
+- Whether the same ratios hold in other verticals, languages or plans. **The sample size is 1**
+- Why the fan-out stopped at 3 queries. Language, plan and search mode can't be separated
+- Whether the card issuers' terms are accurate. This article records ChatGPT's behavior; **it does not verify anything about the credit cards**
+- The full text of the snippets the model received. The JSON `snippet` is a display value truncated with `…`, and the string passed to the model is not necessarily identical
+- That the search backend passed no body content to the model beyond the snippets. The conversation JSON is a client-side record and can't confirm that
+
+## Steps
+
+1. Ask ChatGPT one question likely to trigger a search (a comparison or recommendation in a category where brand names exist)
+2. Open the Network tab in your browser's developer tools and filter by the conversation ID in the URL
+3. Save the response JSON of `conversation`
+4. Pull the fan-out queries from `search_model_queries`, candidate URLs from `search_result_groups`, and cited URLs from `content_references`
+5. Record the gap between candidates and citations, and the breakdown of citation `type`
+
+Collect a few dozen of these in your own category and you'll start to see "which query shapes put us in the candidate set." Since top rankings and AI citations are decoupled, you need to measure this path separately from rank tracking.
+
+## FAQ
+
+### Is there a way to know whether my site was cited without log analysis?
+
+Yes. Links ChatGPT includes in its answers carry `?utm_source=chatgpt.com`, so you can measure them as traffic by filtering the referrer in GA4. But this metric only detects cases where you were cited and the link was clicked. It can't capture citations that readers didn't click.
+
+### I've read that fan-out queries can no longer be retrieved.
+
+In 2026, reports abroad said that "since GPT-5.3 became the default, query data no longer appears in the conversation JSON." In this article's observation, however, `search_model_queries` was retrieved in a session logged with the internal slug `gpt-5-6`. Whether it's retrievable may vary by period or model, so check once yourself before giving up.
+
+### Should I beef up my page body to get cited?
+
+In this log, not a single tool call fetching a page body was recorded. Every fact in the answer can be explained by strings in the snippets, and there was nothing that could only have been written by reading the body. No matter how substantial your body copy is, if the answer isn't complete within what appears in the snippet, you'll stay a candidate and drop out. Audit your opening first.
+
+That said, the search engine is what extracts the snippet, and it extracts it from the body. The point is not that "the body is useless" but one of sequence: **depth pays off only after your opening works as a snippet**.
+
+### Can the cited URL differ from the URL that supplied the information?
+
+It did this time. The 2 URLs cited as the `url` type had empty snippets, and the annual fee and reward rate strings were in the snippet of a parameterized URL (`?dk=...`) for the same page. The model took the facts from the latter and linked to the former. When counting citations, record the cited URL and the supplying URL separately.
+
+### How much can I trust results from a sample of 1?
+
+It works as an existence proof that "under these conditions, it behaved this way," but not for generalizing ratios. Neither the 3 fan-out queries nor the zero citations for comparison sites is guaranteed to reproduce in other verticals, languages or plans. Collect a few dozen runs of the same procedure in your own category and judge from your own data.
