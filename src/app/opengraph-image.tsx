@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/site";
-import { OG_CONTENT_TYPE, OG_SIZE, loadOgFont, ogFrame } from "@/lib/og";
+import { OG_CONTENT_TYPE, OG_SIZE, ogFontOption, ogFrame } from "@/lib/og";
 
 // output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
 export const dynamic = "force-static";
@@ -14,9 +14,9 @@ const LABEL = "SEO / GEO";
 const FOOTER = "Google検索・AI Overview・ChatGPT・Perplexityを毎朝巡回し、出典リンク付きで解説";
 
 export default async function Image() {
-  const fonts = await loadOgFont(TITLE + LABEL + FOOTER + SITE_NAME);
+  const font = await ogFontOption(TITLE + LABEL + FOOTER + SITE_NAME);
   return new ImageResponse(
     ogFrame({ category: "geo", title: TITLE, footer: FOOTER, label: LABEL }),
-    { ...size, fonts }
+    { ...size, ...font }
   );
 }
