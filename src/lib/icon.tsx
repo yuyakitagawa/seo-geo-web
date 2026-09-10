@@ -26,6 +26,16 @@ export async function loadIconFont(): Promise<IconFont[]> {
   }
 }
 
+/**
+ * ImageResponse に渡すフォント指定。取得できなかったときは `fonts` ごと省く。
+ * 空配列を明示すると next/og の既定フォントまで無効になり、
+ * 「No fonts are loaded」でビルドが落ちる（2026-09-10、CIでGoogle Fontsに繋がらず発生）。
+ */
+export async function iconFontOption(): Promise<{ fonts?: IconFont[] }> {
+  const fonts = await loadIconFont();
+  return fonts.length ? { fonts } : {};
+}
+
 export function iconFrame(size: number): ReactElement {
   const letter = {
     display: "flex",

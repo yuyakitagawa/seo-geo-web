@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/site";
-import { OG_CONTENT_TYPE, OG_SIZE, loadOgFont, ogFrame } from "@/lib/og";
+import { OG_CONTENT_TYPE, OG_SIZE, ogFontOption, ogFrame } from "@/lib/og";
 
 // output: "export" では、メタデータのルートにこれが無いとビルドが落ちる。
 export const dynamic = "force-static";
@@ -13,6 +13,6 @@ const TITLE = "How AI search engines and their crawlers actually behave, measure
 
 export default async function Image() {
   const footer = "Original research";
-  const fonts = await loadOgFont(TITLE + "GEO" + SITE_NAME + footer);
-  return new ImageResponse(ogFrame({ category: "geo", title: TITLE, footer }), { ...size, fonts });
+  const font = await ogFontOption(TITLE + "GEO" + SITE_NAME + footer);
+  return new ImageResponse(ogFrame({ category: "geo", title: TITLE, footer }), { ...size, ...font });
 }

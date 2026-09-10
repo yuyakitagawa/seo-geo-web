@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { iconFrame, loadIconFont } from "@/lib/icon";
+import { iconFontOption, iconFrame } from "@/lib/icon";
 
 // output: "export" では、メタデータのルートにこれが無いとビルドが落ちる（Vercel上でISRを使わないための静的エクスポート）。
 export const dynamic = "force-static";
@@ -9,5 +9,5 @@ export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default async function AppleIcon() {
-  return new ImageResponse(iconFrame(size.width), { ...size, fonts: await loadIconFont() });
+  return new ImageResponse(iconFrame(size.width), { ...size, ...(await iconFontOption()) });
 }

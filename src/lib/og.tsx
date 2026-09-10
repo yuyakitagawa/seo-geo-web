@@ -33,6 +33,16 @@ export async function loadOgFont(text: string): Promise<OgFont[]> {
   }
 }
 
+/**
+ * ImageResponse に渡すフォント指定。取得できなかったときは `fonts` ごと省く。
+ * 空配列を明示すると next/og の既定フォントまで無効になり、
+ * 「No fonts are loaded」でビルドが落ちる（2026-09-10、CIでGoogle Fontsに繋がらず発生）。
+ */
+export async function ogFontOption(text: string): Promise<{ fonts?: OgFont[] }> {
+  const fonts = await loadOgFont(text);
+  return fonts.length ? { fonts } : {};
+}
+
 /** OGP画像のJSX。satoriの制約に合わせ、flexboxと絶対配置だけで組む */
 export function ogFrame({
   category,

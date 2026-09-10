@@ -284,22 +284,14 @@ In Stage 2, not just the domain but the page path was specified. **A page whose 
 4. From each stage's queries, extract the domain filter (the 4th `|` field) and the `site:` paths, and check that yours are current
 5. In the final message's `search_result_groups` and `content_references`, see whether you made the candidates and whether you were cited
 
-## What this observation can and can't tell you
-
-**What it can tell you**
+## What this observation can tell you
 
 - In this conversation, search was split into 3 stages (domain level → page level → gap filling)
 - The step of passing the question text straight to search, present in all 10 older-model logs, was absent this time
 - All 5 Stage 1 queries were restricted to official domains, and the 78 candidate URLs included no comparison sites
 - d Card was searched 3 times on its pre-migration domain, got 0 results, and was dropped from the candidates mid-thinking
 
-**What it can't tell you**
-
-- Whether Sol always searches in 3 stages. **The sample is 1**
-- Whether the differences from the older model come from the model. Date, plan, question, and memory setting also differ
-- Which Sol setting `gpt-5-6-thinking` in the log corresponds to
-- Whether d Card would have stayed in the recommendations had it searched the correct domain
-- Whether each card issuer's conditions are correct. This article records ChatGPT's behavior; **it does not verify anything about the credit cards**
+**The sample is 1.** The comparison with the older model also differs in date, plan, question and memory setting.
 
 ## FAQ
 
