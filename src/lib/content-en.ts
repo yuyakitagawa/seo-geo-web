@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { getArticle, parseDate, parseImpact, parseSources, parseType, type ArticleMeta, type Source } from "./content";
+import { getArticle, parseDate, parseImpact, parseSources, parseStringList, parseType, type ArticleMeta, type Source } from "./content";
 import type { CategoryKey } from "./site";
 
 // 英語版の記事。**独自記事（original: true）だけ**を英訳して content/articles-en/ に置き、/en/articles/<slug> で配る。
@@ -53,11 +53,11 @@ function parseFile(file: string): EnArticle | null {
     updated: data.updated === undefined ? date : parseDate(data.updated, "updated", label),
     category: ja.category,
     type: parseType(data.type),
-    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    tags: parseStringList(data.tags, "tags", label),
     sources: parseSources(data.sources, label),
     impact: parseImpact(data.impact),
     audience: typeof data.audience === "string" ? data.audience : undefined,
-    actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],
+    actions: parseStringList(data.actions, "actions", label).slice(0, 4),
     body: content,
   };
 }

@@ -66,6 +66,26 @@ export function parseDate(value: unknown, field: "date" | "updated", file: strin
   return value;
 }
 
+/**
+ * tags / actions のような「文字列の配列」。**String() で丸めない**。
+ * 引用符の無い YAML スカラーに `: `（コロン+空白）が入るとマッピングとして読まれ、
+ * String() だと画面に `[object Object]` がそのまま出る（記事76の actions で実際に本番へ出た。
+ * `旧ドメインで site: 検索されて…` が `{"…site": "検索されて…"}` になっていた）。
+ * 対処は frontmatter 側でその値を引用符で囲むこと。
+ */
+export function parseStringList(value: unknown, field: string, file: string): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    if (typeof item !== "string") {
+      throw new Error(
+        `content/${file}: ${field}[${index}] が文字列ではありません（${JSON.stringify(item)}）。` +
+          "「: 」を含む値は \"…\" で囲んでください"
+      );
+    }
+    return item;
+  });
+}
+
 export function parseSources(value: unknown, file: string): Source[] {
   if (!Array.isArray(value)) return [];
   return value.map((source, index) => {
@@ -111,11 +131,11 @@ function parseFile(file: string): Article | null {
     updated,
     category,
     type: parseType(data.type),
-    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    tags: parseStringList(data.tags, "tags", `articles/${file}`),
     sources: parseSources(data.sources, `articles/${file}`),
     impact: parseImpact(data.impact),
     audience: typeof data.audience === "string" ? data.audience : undefined,
-    actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],
+    actions: parseStringList(data.actions, "actions", `articles/${file}`).slice(0, 4),
     // 数値1つでも配列でも書ける（続報が複数の旧記事をまとめて置き換えることがある）。
     supersedes: [data.supersedes ?? []].flat().map(Number).filter((n) => Number.isInteger(n) && n > 0),
     draft,
