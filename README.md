@@ -191,6 +191,10 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   ハブ（定義ページ）→ スポーク（各レッスン）の相互リンクを張る。
   **同じ手順を両方に書かない**（着手順・Search Consoleの見方・Googlebotのレンダリングと本人確認・Core Web Vitalsの直し方は `/learn` 側だけに置く）。
   定義ページが長くなったら、手順にあたる節を `/learn` へ移し、跡地に `NextStep` の導線を残す。
+  各レッスンの末尾には「このレッスン以降の最新動向」を自動で出す（`src/lib/lessonFeed.ts`）。
+  レッスンの `topics`（手がかり語）と、公開済み記事の title / description / tags を突き合わせ、新しい順に最大4本。
+  **教科書は仕組みを固定して書き、動く部分は記事側に持たせる**分担なので、毎朝生成された記事がそのままレッスンに流れ込む。
+  該当記事が0本のレッスンでは節ごと出さない（空の見出しはAI検索に「中身の無い節」として拾われる）。
 - **旧URLは308でリダイレクト**（`next.config.ts`）: `/category/seo`→`/seo`、`/category/geo`→`/geo`、`/category/news`→`/news`、`/articles`→`/news`。
   記事詳細 `/articles/<id>` は変えない（完全一致のみリダイレクト）。
 - カテゴリのリンク先は `categoryHref()`（`src/lib/site.ts`）だけを通す。URLを変えるときはここ1か所を直す。
@@ -392,6 +396,19 @@ npm run prompt-gap -- --all            # 「保留」も含める
 狙うプロンプトは `content/prompts.csv`（status / category / prompt / note）。**これは実測クエリではなく想定**で、
 実際に引用された記録が取れたら note を更新する。一覧ページ（`/news` `/tag/*`）と規約系ページは判定対象から外す
 （記事へのリンクを並べただけで、プロンプトの答えにはならないため）。
+
+教科書とツールが記事に追いついているかを見るとき（どちらも報告だけで、変更はしない）:
+```bash
+npm run learn-gap            # レッスン本文の更新日より後に出た該当記事を、多い順に
+npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools に無いもの＋確認から180日たったツール（既定90日）
+```
+`learn-gap`（`scripts/learn-gap.ts`）は `lessonFeed.ts` の判定をそのまま使う。記事が本文の記述を**否定しているか**までは
+判定できないので、出るのは「読み直す順番」だけ。書き換えたら `src/lib/curriculum.ts` の `updated` を進める。
+該当記事が0本のレッスンは逆に記事側の題材が足りていないので、`content/howto-topics.csv` の材料にする。
+
+`tools-gap`（`scripts/tools-gap.ts`）は `content/candidates.csv` の「ツール検知」候補から、
+`content/tools.json` のツール名・ベンダー名がどれも出てこないものを拾う。**自動追記はしない**（公式ページの確認と
+`verified` の記入は人の作業）。自作ツール（`src/lib/apps.ts`）が180日さわられていない場合も同じ節に出す。
 
 ## SEO / GEO 対策
 - **構造化データ**: Organization / WebSite（全ページ）、Article（記事）、CollectionPage + ItemList（一覧・カテゴリ・タグ）、

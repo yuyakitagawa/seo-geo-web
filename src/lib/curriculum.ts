@@ -53,6 +53,12 @@ export type Lesson = {
   minutes: number;
   /** 到達チェックリスト。読者が自分のサイトで確認する項目 */
   checklist: string[];
+  /**
+   * このレッスンが扱う話題の手がかり語。公開済み記事の title / description / tags に
+   * このどれかが含まれていれば、そのレッスンの「最新動向」として自動で並ぶ（src/lib/lessonFeed.ts）。
+   * 教科書の本文を書き換えなくても、毎朝生成される記事がレッスンに流れ込むための唯一の接続点。
+   */
+  topics: string[];
   faq: FaqItem[];
   sources: { title: string; publisher: string; url: string }[];
   published: string;
@@ -171,6 +177,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.essentials, S.aiFeatures, S.helpful, S.geoPaper, S.crawlers],
+    topics: ["インデックス", "クロール", "検索の仕組み", "AI Overview", "AIモード", "AI Mode"],
     published: "2026-08-30",
     updated: "2026-08-30",
   },
@@ -226,6 +233,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.indexReport, S.urlInspection, S.perf, S.saramin],
+    topics: ["Search Console", "サーチコンソール", "インデックス未登録", "サイトマップ", "URL検査", "所有権"],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
@@ -275,6 +283,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.helpful, S.titleLink, S.snippet, S.canonical, S.perf, S.saramin],
+    topics: ["検索意図", "キーワード", "クエリ", "fan-out", "ファンアウト", "ゼロクリック", "検索行動"],
     published: "2026-08-30",
     updated: "2026-08-30",
   },
@@ -325,6 +334,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.helpful, S.spam, S.aiContent, S.aiFeatures, S.perf, S.canonical],
+    topics: ["ロングテール", "programmatic", "プログラマティック", "大量生成", "低品質", "薄いコンテンツ", "量産"],
     published: "2026-08-31",
     updated: "2026-08-31",
   },
@@ -401,6 +411,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.essentials, S.robots, S.noindex, S.canonical, S.sitemaps, S.jsBasics, S.verifyGooglebot, S.structuredData, S.gallery, S.vitals, S.optimizeLcp, S.optimizeInp, S.optimizeCls, S.nuvemshop, S.redbus, S.yahooNews, S.rakuten24, S.eventbrite, S.rakutenRecipe, S.indexReport, S.urlInspection, S.crawlStats, S.crawlBudget, S.crawlResources, S.crawlCaching],
+    topics: ["Core Web Vitals", "LCP", "INP", "CLS", "JavaScript", "構造化データ", "表示速度", "レンダリング", "schema"],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
@@ -451,6 +462,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.helpful, S.aiFeatures, S.spam, S.aiContent, S.geoPaper, S.snippet, S.titleLink],
+    topics: ["E-E-A-T", "有用なコンテンツ", "本文", "書き方", "引用され", "AI生成コンテンツ", "一次情報", "独自性"],
     published: "2026-08-30",
     updated: "2026-08-30",
   },
@@ -503,6 +515,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.snippet, S.featuredSnippets, S.robotsMeta, S.aiFeatures, S.aiGuide, S.titleLink, S.perf, S.geoPaper],
+    topics: ["スニペット", "タイトル", "title", "nosnippet", "クリック率", "CTR", "見出し"],
     published: "2026-09-01",
     updated: "2026-09-01",
   },
@@ -584,6 +597,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.essentials, S.ecommerceStructure, S.linkArchitecture, S.canonical, S.noindex, S.sitemaps, S.saramin],
+    topics: ["内部リンク", "サイト構造", "パンくず", "カニバリ", "重複", "階層", "ナビゲーション"],
     published: "2026-08-30",
     updated: "2026-09-01",
   },
@@ -641,6 +655,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.starter, S.essentials, S.canonical, S.robots, S.noindex, S.sitemaps, S.spam, S.siteMove],
+    topics: ["ドメイン", "サブドメイン", "サイト移転", "サイトの評判", "中古ドメイン", "ホスト名", "リダイレクト"],
     published: "2026-08-31",
     updated: "2026-09-04",
   },
@@ -691,6 +706,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.aiFeatures, S.crawlers, S.openaiBots, S.perplexityBots, S.anthropicBots, S.llmstxt, S.geoPaper, S.structuredData],
+    topics: ["robots.txt", "クローラー", "GPTBot", "llms.txt", "ClaudeBot", "PerplexityBot", "学習データ", "クロール拒否"],
     published: "2026-08-30",
     updated: "2026-09-07",
   },
@@ -749,6 +765,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.perf, S.indexReport, S.urlInspection, S.manualActions, S.sitemaps, S.robots, S.aiFeatures, S.trafficDrops, S.essentials],
+    topics: ["計測", "効果測定", "Clarity", "AI可視性", "アナリティクス", "GA4", "指標", "流入", "参照トラフィック"],
     published: "2026-08-30",
     updated: "2026-08-31",
   },
@@ -793,6 +810,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.saramin, S.rakutenRecipe, S.eventbrite, S.mxPlayer, S.yahooNews, S.rakuten24, S.nuvemshop, S.redbus, S.vitalsBusiness, S.geoPaper],
+    topics: ["事例", "ケーススタディ", "実測", "検証した", "読み合わせ", "実ログ"],
     published: "2026-08-30",
     updated: "2026-08-30",
   },
@@ -842,6 +860,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.coreUpdates, S.trafficDrops, S.spam, S.manualActions, S.siteMove, S.helpful, S.aiContent],
+    topics: ["コアアップデート", "スパムアップデート", "アップデート", "手動による対策", "ペナルティ", "順位下落", "トラフィック減", "ポリシー"],
     published: "2026-08-30",
     updated: "2026-08-30",
   },
@@ -899,6 +918,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
     sources: [S.ahrefsMentions, S.seerReviews, S.ahrefsSchema, S.measureOnce, S.geoPaper, S.structuredData, S.aiFeatures, S.helpful, S.spam],
+    topics: ["ブランド", "エンティティ", "指名", "言及", "Reddit", "UGC", "口コミ", "レビュー", "知名度"],
     published: "2026-08-31",
     updated: "2026-09-01",
   },
