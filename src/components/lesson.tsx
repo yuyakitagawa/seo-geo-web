@@ -7,6 +7,7 @@ import type { Case } from "@/lib/cases";
 import { CASE_AREAS } from "@/lib/cases";
 import { COURSE, LESSONS, LEVELS, type Lesson, lessonJsonLd, lessonNeighbors, lessonPath } from "@/lib/curriculum";
 import { faqPageJsonLd } from "@/lib/faq";
+import { lessonKnowhow, type LessonKnowhow } from "@/lib/lessonFeed";
 import { SITE_URL } from "@/lib/site";
 import { EYEBROW, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 import { Card, CardLink, Eyebrow } from "./ui";
@@ -155,6 +156,38 @@ export function CaseList({ cases, note }: { cases: Case[]; note?: ReactNode }) {
   );
 }
 
+/**
+ * 記事から教科書に取り入れたノウハウ。**判定を通ったものだけ**が出る（src/lib/knowhow.ts）。
+ * 語が一致しただけの記事は出さない。教科書を記事一覧の劣化コピーにしないための線引き。
+ * 1行のノウハウを主役にし、記事は出典として添える（読者が読むべきは結論であって一覧ではない）。
+ */
+export function LessonUpdates({ lesson, items }: { lesson: Lesson; items: LessonKnowhow[] }) {
+  if (items.length === 0) return null;
+  return (
+    <section id="updates" className="scroll-mt-24">
+      <h2>記事から取り入れたこと</h2>
+      <p>
+        「{lesson.title}」の範囲でその後に出た記事のうち、このレッスンに足すべきと判断したものです。
+        レッスン本文は仕組みの説明にとどめ、確認できた個別の手順・数値はここに積みます。
+      </p>
+      <ul className="not-prose my-8 space-y-3">
+        {items.map((k) => (
+          <li key={`${k.articleId}-${k.knowhow}`}>
+            <CardLink href={`/articles/${k.article.slug}`}>
+              <p className="text-base font-bold leading-relaxed tracking-tight sm:text-lg">{k.knowhow}</p>
+              <div className={cx(EYEBROW.mute, "mt-3 flex flex-wrap items-center gap-3")}>
+                <time dateTime={k.article.date}>{k.article.date.replaceAll("-", ".")}</time>
+                <span aria-hidden>·</span>
+                <span>出典: {k.article.title}</span>
+              </div>
+            </CardLink>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** 前後のレッスン。最後のレッスンでは目次へ戻す */
 export function LessonNav({ slug }: { slug: string }) {
   const { prev, next } = lessonNeighbors(slug);
@@ -196,7 +229,13 @@ export function LessonNav({ slug }: { slug: string }) {
  */
 export function LessonShell({ lesson, toc, children }: { lesson: Lesson; toc: { id: string; label: string }[]; children: ReactNode }) {
   const url = `${SITE_URL}${lessonPath(lesson.slug)}`;
-  const fullToc = [...toc, { id: "checklist", label: "到達チェックリスト" }, { id: "faq", label: "よくある質問" }];
+  const updates = lessonKnowhow(lesson);
+  const fullToc = [
+    ...toc,
+    { id: "checklist", label: "到達チェックリスト" },
+    { id: "faq", label: "よくある質問" },
+    ...(updates.length > 0 ? [{ id: "updates", label: "記事から取り入れたこと" }] : []),
+  ];
 
   return (
     <>
@@ -228,6 +267,8 @@ export function LessonShell({ lesson, toc, children }: { lesson: Lesson; toc: { 
           <h2>よくある質問</h2>
           <GuideFaq items={lesson.faq} />
         </section>
+
+        <LessonUpdates lesson={lesson} items={updates} />
 
         <GuideSources sources={lesson.sources} />
         <LessonNav slug={lesson.slug} />
