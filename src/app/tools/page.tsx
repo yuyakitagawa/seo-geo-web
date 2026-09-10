@@ -165,24 +165,27 @@ export default function ToolsPage() {
           </div>
         </section>
 
-        {/* 比較表の「種別」バッジの用語解説。カードより前に置き、GEOツールが別物の2種類であることを先に伝える */}
+        {/* 比較表の「種別」バッジの用語解説。カードより前に置き、GEOツールが別物の2種類であることを先に伝える。
+            スマホで縦を食いすぎないよう、カード2枚ではなく1枚の中の2行にする */}
         <section>
-          <h2 className={HEADING.section}>GEOツールは別物の2種類</h2>
-          <p className="mb-4 mt-1 text-sm text-mute">
-            下のカードの「種別」バッジは、この2つ（と両方を持つ「計測＋診断」）で分けています。目的が違うので、どちらが要るかを決めてから読んでください。
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className={cx(SURFACE.outline, PADDING.tight)}>
-              <p className={cx(BADGE.sm, "mb-2 bg-geo text-white")}>AI可視性計測</p>
-              <p className="text-sm font-semibold">AIの回答に自社が「出るか」を測る</p>
-              <p className="mt-2 text-sm leading-relaxed text-mute">決めた質問をAIに定期的に投げ、回答に自社名・自社URLが出た割合と競合比較を出す。測れるのは「ツールが投げた質問への回答」で、実ユーザーの回答ではない。多くは有料・継続契約。</p>
+          <h2 className={HEADING.card}>GEOツールは別物の2種類</h2>
+          <p className="mb-3 mt-1 text-sm text-mute">下のカードの「種別」バッジの意味です（両方を持つものは「計測＋診断」）。</p>
+          <dl className={cx(SURFACE.outline, "divide-y divide-line px-4 text-sm")}>
+            <div className="py-3">
+              <dt className="flex flex-wrap items-center gap-2">
+                <span className={cx(BADGE.sm, "bg-geo text-white")}>AI可視性計測</span>
+                <span className="font-semibold">AIの回答に自社が「出るか」を測る</span>
+              </dt>
+              <dd className="mt-1 text-xs leading-relaxed text-mute">決めた質問をAIに定期的に投げ、自社名・自社URLが出た割合と競合比較を出す。測れるのはツールが投げた質問への回答で、実ユーザーの回答ではない。多くは有料。</dd>
             </div>
-            <div className={cx(SURFACE.outline, PADDING.tight)}>
-              <p className={cx(BADGE.sm, "mb-2 bg-geo/70 text-white")}>AI対応診断</p>
-              <p className="text-sm font-semibold">そのページをAIが「読めるか」を調べる</p>
-              <p className="mt-2 text-sm leading-relaxed text-mute">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。多くは無料で、SEOの技術監査とほぼ同じ項目。上の<Link href="/tools/page-audit" className={LINK}>ページ診断</Link>もこの種別。</p>
+            <div className="py-3">
+              <dt className="flex flex-wrap items-center gap-2">
+                <span className={cx(BADGE.sm, "bg-geo/70 text-white")}>AI対応診断</span>
+                <span className="font-semibold">そのページをAIが「読めるか」を調べる</span>
+              </dt>
+              <dd className="mt-1 text-xs leading-relaxed text-mute">URLを入れると、クロール可否・構造化データ・見出し構造などを採点する。多くは無料で、SEOの技術監査とほぼ同じ項目。上の<Link href="/tools/page-audit" className={LINK}>ページ診断</Link>もこの種別。</dd>
             </div>
-          </div>
+          </dl>
         </section>
 
         {sections.map((s) => (
