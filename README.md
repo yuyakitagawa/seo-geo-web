@@ -343,8 +343,9 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   使い所は記事ページのヘッダー背景（`articles/[slug]/page.tsx`）と一覧カードの上部帯（`ArticleCard.tsx`）。
 - **OGP画像**: 実PNGを `next/og` で生成する。枠は全ページ共通で `src/lib/og.tsx` の `ogFrame`、
   背景は黒地＋カテゴリ色のグラデーション。和文は Google Fonts から
-  **その画像で使う文字だけ**を切り出して読む（`loadOgFont`。ImageResponseの500KB制限対策）。
-  フォント取得に失敗しても画像自体は出る（和文が欠けるだけ）。ビルド時にネットワークが必要。
+  **その画像で使う文字だけ**を切り出して読む（`ogFontOption`。ImageResponseの500KB制限対策）。
+  取得は3回まで試し、それでも失敗したら `fonts` を省いて next/og 同梱の Geist で出す（和文が欠けるだけで、ビルドは落ちない）。
+  `fonts: []` を渡すと同梱フォントまで無効になりビルドが落ちるので、OGP画像は必ず `ogFontOption` を通す（`src/lib/og.test.ts` が検査）。
   置き場所は `opengraph-image.tsx` をセグメントごとに置く方式で、**下位のページには自動で引き継がれる**
   （`/tools` の画像が `/tools/page-audit` などにも出る）。記事以外は `pageOgImage()` に文言を渡すだけ:
 
