@@ -12,7 +12,7 @@ export type Source = { title: string; url: string };
 // 影響度。全記事の冒頭パネルに固定表示し、読者が「読むべきか」を3秒で判断できるようにする。
 export type Impact = "high" | "mid" | "low";
 export const IMPACT_LABEL: Record<Impact, string> = { high: "影響大", mid: "影響中", low: "影響小" };
-function parseImpact(v: unknown): Impact | undefined {
+export function parseImpact(v: unknown): Impact | undefined {
   return v === "high" || v === "mid" || v === "low" ? v : undefined;
 }
 
@@ -20,7 +20,7 @@ function parseImpact(v: unknown): Impact | undefined {
 // AI検索に引用されるのは手順・定義を持つ howto 側なので、一覧では howto を先に見せる。
 export type ArticleType = "news" | "howto";
 export const TYPE_LABEL: Record<ArticleType, string> = { news: "ニュース", howto: "解説" };
-function parseType(v: unknown): ArticleType {
+export function parseType(v: unknown): ArticleType {
   return v === "howto" ? "howto" : "news";
 }
 
@@ -57,26 +57,27 @@ export type ArticleMeta = {
 
 export type Article = ArticleMeta & { body: string };
 
-function parseDate(value: unknown, field: "date" | "updated", file: string): string {
+// file は content/ からの相対パス（articles/xxx.mdx / articles-en/xxx.mdx）。英語版の読み込み（content-en.ts）と共用する。
+export function parseDate(value: unknown, field: "date" | "updated", file: string): string {
   const parsed = typeof value === "string" ? new Date(`${value}T00:00:00Z`) : null;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !parsed || Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== value) {
-    throw new Error(`content/articles/${file}: frontmatter の ${field} は YYYY-MM-DD 形式の有効な日付が必要です`);
+    throw new Error(`content/${file}: frontmatter の ${field} は YYYY-MM-DD 形式の有効な日付が必要です`);
   }
   return value;
 }
 
-function parseSources(value: unknown, file: string): Source[] {
+export function parseSources(value: unknown, file: string): Source[] {
   if (!Array.isArray(value)) return [];
   return value.map((source, index) => {
     if (!source || typeof source !== "object" || typeof (source as Source).url !== "string") {
-      throw new Error(`content/articles/${file}: sources[${index}] の url が必要です`);
+      throw new Error(`content/${file}: sources[${index}] の url が必要です`);
     }
     const url = (source as Source).url;
     try {
       const parsed = new URL(url);
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error();
     } catch {
-      throw new Error(`content/articles/${file}: sources[${index}].url は http / https のURLが必要です`);
+      throw new Error(`content/${file}: sources[${index}].url は http / https のURLが必要です`);
     }
     return { title: typeof (source as Source).title === "string" ? (source as Source).title : url, url };
   });
@@ -89,8 +90,8 @@ function parseFile(file: string): Article | null {
   if (typeof data.title !== "string" || typeof data.date !== "string") {
     throw new Error(`content/articles/${file}: frontmatter に title と date が必要です`);
   }
-  const date = parseDate(data.date, "date", file);
-  const updated = data.updated === undefined ? date : parseDate(data.updated, "updated", file);
+  const date = parseDate(data.date, "date", `articles/${file}`);
+  const updated = data.updated === undefined ? date : parseDate(data.updated, "updated", `articles/${file}`);
   if (!Number.isInteger(data.id) || data.id <= 0) {
     throw new Error(`content/articles/${file}: frontmatter に正の整数の id が必要です（URLになる番号）`);
   }
@@ -111,7 +112,7 @@ function parseFile(file: string): Article | null {
     category,
     type: parseType(data.type),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
-    sources: parseSources(data.sources, file),
+    sources: parseSources(data.sources, `articles/${file}`),
     impact: parseImpact(data.impact),
     audience: typeof data.audience === "string" ? data.audience : undefined,
     actions: Array.isArray(data.actions) ? data.actions.map(String).slice(0, 4) : [],

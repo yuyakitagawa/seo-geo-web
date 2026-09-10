@@ -1,4 +1,6 @@
 import { getAllArticles } from "@/lib/content";
+import { enArticlePath, getAllEnArticles } from "@/lib/content-en";
+import { EN_HOME_PATH, SITE_DESCRIPTION_EN } from "@/lib/en";
 import { COURSE, LESSONS, lessonPath } from "@/lib/curriculum";
 import { GLOSSARY, GLOSSARY_PATH } from "@/lib/glossary";
 import { GUIDE_LIST } from "@/lib/guides";
@@ -12,6 +14,7 @@ export const dynamic = "force-static";
 // 「何のサイトか・データはどこから来たか・どう書かれているか・引用時の注意」を平文で置く。
 export function GET() {
   const articles = getAllArticles();
+  const enArticles = getAllEnArticles();
   const sources = FEED_SOURCES.filter((s) => s.home && !s.topic);
 
   const lines = [
@@ -57,6 +60,15 @@ export function GET() {
     "",
     "## 最新記事",
     ...articles.slice(0, 50).map((a) => `- [${a.title}](${SITE_URL}/articles/${a.slug}) (${a.date}): ${a.description}`),
+    // 独自記事（自分で取ったログ・実測値）の英語版。英語で質問されたときの引用先として別に並べる。
+    ...(enArticles.length
+      ? [
+          "",
+          "## Original research in English",
+          `- [Index](${SITE_URL}${EN_HOME_PATH}): ${SITE_DESCRIPTION_EN}`,
+          ...enArticles.map((a) => `- [${a.title}](${SITE_URL}${enArticlePath(a.slug)}) (${a.date}): ${a.description}`),
+        ]
+      : []),
   ];
   return new Response(lines.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

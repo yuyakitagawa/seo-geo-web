@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getArticlesByCategory, getArticlesByTag, latestUpdated } from "@/lib/content";
+import { enArticlePath, getAllEnArticles } from "@/lib/content-en";
+import { EN_HOME_PATH } from "@/lib/en";
 import { indexableArticles, indexableTags } from "@/lib/indexability";
 import { aboutFacts } from "@/lib/about";
 import { APP_TOOLS } from "@/lib/apps";
@@ -18,6 +20,7 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const articles = indexableArticles();
   const latest = latestUpdated(articles) ?? new Date().toISOString().slice(0, 10);
+  const enArticles = getAllEnArticles();
 
   return [
     { url: SITE_URL, lastModified: latest },
@@ -48,5 +51,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE_URL}/tag/${encodeURIComponent(tag)}`,
       lastModified: latestUpdated(getArticlesByTag(tag)) ?? latest,
     })),
+    // 英語版（独自記事の英訳だけ）。hreflang は各ページの <head> で宣言済みなので、ここでは重ねない。
+    ...(enArticles.length
+      ? [
+          { url: `${SITE_URL}${EN_HOME_PATH}`, lastModified: enArticles.map((a) => a.updated).sort().at(-1)! },
+          ...enArticles.map((a) => ({ url: `${SITE_URL}${enArticlePath(a.slug)}`, lastModified: a.updated })),
+        ]
+      : []),
   ];
 }

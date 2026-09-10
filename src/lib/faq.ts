@@ -14,10 +14,11 @@ function plain(md: string): string {
     .trim();
 }
 
-export function extractFaq(body: string): FaqItem[] {
-  const start = body.indexOf(FAQ_HEADING);
+/** heading は英語版の記事（content/articles-en）だけ "## FAQ" を渡す */
+export function extractFaq(body: string, heading = FAQ_HEADING): FaqItem[] {
+  const start = body.indexOf(heading);
   if (start === -1) return [];
-  const rest = body.slice(start + FAQ_HEADING.length);
+  const rest = body.slice(start + heading.length);
   // 次の h2 までがFAQセクション
   const end = rest.search(/\n## /);
   const section = end === -1 ? rest : rest.slice(0, end);

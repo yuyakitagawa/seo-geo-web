@@ -1,0 +1,163 @@
+---
+id: 38
+slug: llms-txt-never-fetched-log
+title: 'llms.txt Was Never Fetched by AI Crawlers in 29 Days: 19,347 Requests'
+description: >-
+  I analyzed 29 days of access logs from a Japanese site I run: of 19,347 requests from 8 AI crawlers, zero fetched llms.txt, while robots.txt in the same root directory was fetched.
+date: '2026-09-02'
+category: geo
+type: howto
+tags:
+  - llms.txt
+  - AI crawlers
+  - Log analysis
+  - GEO
+  - Original research
+impact: high
+audience: Site owners unsure whether to publish an llms.txt file
+actions:
+  - Count requests to /llms.txt in your own access logs, broken down by user agent
+  - Compare them with /robots.txt fetches over the same period to rule out gaps in your logging
+  - Reposition llms.txt as an index for humans, not as a way to get AI to read your site
+sources:
+  - title: The llms.txt file proposal
+    url: 'https://llmstxt.org/'
+  - title: AI Features and Your Website | Google Search Central
+    url: 'https://developers.google.com/search/docs/appearance/ai-features'
+  - title: OpenAI Crawlers and Fetchers | OpenAI Developers
+    url: 'https://developers.openai.com/api/docs/bots'
+  - title: Google Confirms LLMs.txt Has No Current Implementation | Search Engine Journal
+    url: >-
+      https://www.searchenginejournal.com/google-says-llms-txt-is-purely-speculative-for-now/577576/
+  - title: 'LLMS.txt Adoption Data | Rankability'
+    url: 'https://www.rankability.com/data/llms-txt-adoption/'
+---
+## Conclusion
+
+I analyzed 29 days of access logs (August 3 to August 31, 2026) from a Japanese-language site I run. **Of 19,347 requests from 8 AI search and AI training crawlers, 0 fetched `/llms.txt`.**
+
+The site actually serves `/llms.txt`. This is not a case of crawlers skipping a file that didn't exist. The file was there, and for 29 days not a single AI crawler touched it.
+
+`/llms.txt` was fetched 7 times in the same period, but all 7 came from ordinary browser user agents (Chrome / Firefox). Those are visits from humans or browser extensions, not crawlers run by AI companies.
+
+Meanwhile, `/robots.txt`, which sits in the same root directory, was fetched 132 times by OAI-SearchBot, 76 times by ClaudeBot, 59 times by Applebot, and 24 times by PerplexityBot. **The behavior of fetching config files from the site root clearly exists**, yet llms.txt alone gets passed over. That is the observation.
+
+<FigureStats
+  title="29 days, one site, measured"
+  caption="August 3 to August 31, 2026 / 8 AI search and AI training crawlers"
+  stats={[
+    { value: "19,347", label: "Total AI crawler requests", note: "Sum across 8 crawlers" },
+    { value: "0", label: "llms.txt fetches", note: "By AI crawlers" },
+    { value: "7", label: "llms.txt fetches", note: "All from ordinary browser UAs" },
+    { value: "292", label: "robots.txt fetches", note: "By AI crawlers" },
+  ]}
+/>
+
+## What I measured
+
+The subject is a single Japanese-language site that I run separately from this one. The application logs each request's user agent, path, and IP address, and I aggregated that table.
+
+- Period: August 3, 2026 00:00 to August 31, 2026 23:59 (JST, 29 days)
+- Scope: 8 crawlers identifiable by user agent that serve AI search or AI training purposes
+- Counting: requests whose path exactly matches `/llms.txt`
+
+The log records requests that reached the application without going through a CDN or WAF, so any access blocked before reaching it is not included. However, this site does not block AI crawlers, so the absence is not because they were refused.
+
+## Breakdown by crawler
+
+<FigureBars
+  title="AI crawler requests (29 days)"
+  caption="Notes show robots.txt fetches in the same period. llms.txt was fetched 0 times by every crawler"
+  unit="requests"
+  bars={[
+    { label: "OAI-SearchBot", value: 8391, note: "robots.txt 132 times" },
+    { label: "PerplexityBot", value: 2576, note: "robots.txt 24 times" },
+    { label: "ClaudeBot", value: 2302, note: "robots.txt 76 times" },
+    { label: "meta-externalagent", value: 2030, note: "robots.txt 0 times" },
+    { label: "GPTBot", value: 1614, note: "robots.txt 0 times" },
+    { label: "ChatGPT-User", value: 1599, note: "robots.txt 1 time" },
+    { label: "Amazonbot", value: 551, note: "robots.txt 0 times" },
+    { label: "Applebot", value: 284, note: "robots.txt 59 times" },
+  ]}
+/>
+
+What stands out is that GPTBot, meta-externalagent, and Amazonbot did not fetch even `robots.txt` during the period. robots.txt results are cached, so not fetching it for 29 days is not by itself evidence that a crawler ignores it. Still, one contrast holds: **even the crawlers that did fetch robots.txt (OAI-SearchBot, ClaudeBot, PerplexityBot, Applebot) never once fetched llms.txt.**
+
+## What the official documentation says
+
+This observation is consistent with what AI companies and search engines say.
+
+Google states explicitly that you **don't need to create new machine-readable files, AI text files, or markup** to appear in AI Overviews or AI Mode. It frames this as no additional requirements and no special optimization needed. It doesn't name llms.txt, but there is no official statement telling you to create new files for AI.
+
+OpenAI's documentation on its crawlers covers only the user agent names and how to allow or disallow them in robots.txt. Nothing there says OpenAI reads, references, or recommends llms.txt.
+
+Google's John Mueller has said, in effect, that nobody knows and that llms.txt is purely speculative at this point. His point was that the file has existed for a while, yet no AI system uses it.
+
+Adoption, on the other hand, is growing. Rankability's measurements show 8.7% of the top 1,000 sites have an llms.txt (as of its August 23, 2026 update). But Rankability also states the limitation plainly: its own crawler only checks whether the file exists, and it does not measure whether actual AI assistants fetch it. **Adoption has been measured, but nobody was measuring consumption.** This analysis fills that gap for exactly one site.
+
+## What this observation does and doesn't show
+
+It shows exactly one thing: **on this site, over these 29 days, AI crawlers did not fetch llms.txt.** It is a record of an existing file being passed over.
+
+There is more it doesn't show, so I'll lay that out first.
+
+- It doesn't mean other sites see the same. The sample is one site over 29 days
+- It doesn't prove that AI doesn't read llms.txt. Paths other than crawlers (pre-trained data, third-party datasets, internal caches at AI companies) are invisible in this log
+- It doesn't predict that llms.txt will never be read. If the spec gets adopted, the logs will look different
+- It doesn't mean publishing llms.txt lowers rankings or citations. There is no trace of that in these logs
+
+In other words, the point is not that publishing it hurts you. It is that **there was zero evidence, in the form of AI crawler fetches, that publishing it made any difference.**
+
+## How to check
+
+You can verify the same thing on your own site. If you have access logs, it takes 10 minutes.
+
+<FigureFlow
+  title="How to check on your own site"
+  caption="If your logs record UA and path, no extra implementation is needed"
+  steps={[
+    { label: "1. Fix the period", desc: "Pick a range whose edges aren't cut off, such as the first to the last day of a month. Logs keep growing, so without a fixed range the numbers shift" },
+    { label: "2. Count llms.txt", desc: "Aggregate requests to the path /llms.txt by user agent" },
+    { label: "3. Count robots.txt too", desc: "Compare using the same period and the same query. If this is 0, suspect gaps in your logging" },
+    { label: "4. Verify by IP, not UA", desc: "When counts are high, match against the IP ranges published by each company to exclude spoofed traffic" },
+  ]}
+/>
+
+Step 3 is the key. Even if llms.txt shows 0, a nonzero robots.txt count tells you your logging works. If both are 0, the measurement failed.
+
+## What to do / what to skip
+
+<FigureDoDont
+  title="How to approach llms.txt"
+  caption="As of September 2026. Based on official documentation and this site's logs"
+  dos={[
+    "State allow/disallow rules for AI crawlers in robots.txt (it is actually fetched)",
+    "If you publish llms.txt, treat it as an index for humans. It is cheap to set up and does no harm",
+    "Once a month, count in your own logs whether your llms.txt is being fetched",
+    "When evaluating any AI-focused tactic, check real crawler behavior in your logs first",
+  ]}
+  donts={[
+    "Make llms.txt the centerpiece of your AI search strategy",
+    "Claim that publishing llms.txt gets you cited by AI (no primary source supports this)",
+    "Spend time polishing llms.txt while putting off your robots.txt settings",
+    "Cite adoption statistics as evidence that the file is being consumed",
+  ]}
+/>
+
+## FAQ
+
+### Should I avoid publishing llms.txt?
+
+I haven't found any reason it would hurt you, and these logs show no negative effect from having it. The issue is return on effort. Rather than spending time on a file no AI crawler fetched in 29 days, stating allow/disallow rules for AI crawlers in robots.txt is the surer bet, because that file actually gets fetched.
+
+### Can AI cite my site even if AI crawlers don't fetch llms.txt?
+
+Yes. In these same logs, OAI-SearchBot fetched actual pages 8,391 times over 29 days. That is the path AI actually uses. llms.txt not being read is a separate matter from your site not being read by AI.
+
+### Does a crawler that doesn't fetch robots.txt ignore it?
+
+This log alone can't tell you. robots.txt results are commonly cached for some time, so going 29 days without fetching it is possible. To check whether a crawler ignores it, you would need to see whether it keeps accessing disallowed paths, which is outside the scope of this analysis.
+
+### How far can I trust results from a sample of one site?
+
+Use them only as an existence proof: this is what happened on this site. They can't support ratios or general claims. That said, the procedure is only three steps, so producing the same numbers from your own logs should be faster. Your own site's numbers take priority over anyone else's statistics.
