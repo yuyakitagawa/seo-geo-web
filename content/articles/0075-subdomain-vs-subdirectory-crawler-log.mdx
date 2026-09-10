@@ -1,0 +1,192 @@
+---
+title: 英語版をサブディレクトリとサブドメインで出したら、来たクローラーの顔ぶれが逆になった
+description: >-
+  同じサイトの英語版を、サブディレクトリとサブドメインで時期を変えて公開し、公開後6日間のクローラーログを比べました。ClaudeBotはサブドメインに2.2倍来た一方、GoogleOtherは0件、Googlebotは12分の1でした。
+date: '2026-09-10'
+category: geo
+type: howto
+original: true
+tags:
+  - サブドメイン
+  - サブディレクトリ
+  - 多言語サイト
+  - クローラー
+  - ログ解析
+  - 独自調査
+impact: high
+audience: 英語版や別言語版をどのURL構造で出すか決めようとしているサイト運営者
+actions:
+  - 別言語版を出す前に、狙う相手がGoogle検索・AI検索なのか、AI学習用クローラーなのかを決める
+  - Google検索とAI検索での露出が目的なら、既存ホストのサブディレクトリで出す
+  - サブドメインで出すなら、新しいサイトを1から立ち上げるつもりでサイトマップ送信と内部リンクを用意する
+  - 公開後1週間のクローラーログをbot別に数え、公開前に決めた基準で判定する
+sources:
+  - title: Managing multi-regional and multilingual sites | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites
+  - title: Crawl Budget Management For Large Sites | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget
+  - title: Google Crawlers and Fetchers | Google Search Central
+    url: >-
+      https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers
+  - title: Redirects and Google Search | Google Search Central
+    url: 'https://developers.google.com/search/docs/crawling-indexing/301-redirects'
+  - title: OpenAI bots | OpenAI Developers
+    url: 'https://developers.openai.com/api/docs/bots'
+  - title: >-
+      Does Anthropic crawl data from the web, and how can site owners block the
+      crawler? | Anthropic Help Center
+    url: >-
+      https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler
+draft: false
+id: 75
+---
+## 結論
+
+筆者が別に運営している日本語サイトの英語版を、**サブディレクトリ（`example.com/en/`）とサブドメイン（`en.example.com`）で、時期を変えて2回公開**しました。公開後6日間のクローラーログを比べたところ、**どちらが「よく巡回されたか」は、クローラーによって正反対**でした。
+
+- **サブドメインに多く来た**: ClaudeBot（508件 対 234件、2.2倍）。Amazonbot（74件）とApplebot（12件）は、サブドメインにしか来ていません
+- **サブディレクトリに多く来た**: GoogleOther（4,237件 対 **0件**）、Googlebot（158件 対 13件、12倍）、OAI-SearchBot（141件 対 7件、20倍）
+
+Google検索とAI検索で見つけてもらうことが目的なら、今回のログではサブディレクトリの圧勝です。サブドメイン版は公開6日目の時点で、調べた7ページがすべてGoogleのインデックスに入っていませんでした。
+
+<FigureStats
+  title="公開後6日間・同じサイトの英語版"
+  caption="サブディレクトリ版は2026年8月9日〜14日、サブドメイン版は2026年9月5日〜10日のログ"
+  stats={[
+    { value: "0件", label: "サブドメインに来たGoogleOther", note: "サブディレクトリには4,237件" },
+    { value: "12分の1", label: "サブドメインのGooglebot", note: "13件 対 158件" },
+    { value: "2.2倍", label: "サブドメインのClaudeBot", note: "508件 対 234件" },
+    { value: "7ページ中0", label: "6日目にインデックス済みのサブドメインのページ", note: "URL検査で確認" },
+  ]}
+/>
+
+## 何を測ったか
+
+- 対象: 筆者が別に運営している日本語サイト1件の英語版。記事の英訳を載せたページ群
+- サブディレクトリ版: 2026年8月9日に公開。同じホストの `/en/` 配下。約900記事ぶん
+- サブドメイン版: 2026年9月5日に公開。別ホストで、中身は英訳済みの328ページ。サブディレクトリ版は8月29日にいったん閉じていて、そのあと出し直した
+- 記録: アプリケーション側でユーザーエージェント・パス・ホスト名を保存しているテーブル。人のブラウザと判定された行は除外し、3件未満のクローラーは表から外しました
+- 比較の窓: どちらも公開日から6日間
+
+同じ中身をURL構造だけ変えて出したので、比べる材料としては珍しい部類です。ただし**同時に並べたA/Bテストではありません**。後述する条件の違いが残っています。
+
+## クローラー別の結果
+
+<FigureBars
+  title="公開後6日間のリクエスト数（サブディレクトリ版）"
+  caption="2026年8月9日〜14日。GPTBotとClaudeBotは1日だけのまとめ取り"
+  unit="件"
+  bars={[
+    { label: "GoogleOther", value: 4237, note: "6日間毎日。430URL" },
+    { label: "GPTBot", value: 284, note: "1日だけ。214URL" },
+    { label: "ClaudeBot", value: 234, note: "1日だけ。234URL" },
+    { label: "Googlebot", value: 158, note: "6日間毎日。147URL" },
+    { label: "OAI-SearchBot", value: 141, note: "6日間毎日。68URL" },
+  ]}
+/>
+
+<FigureBars
+  title="公開後6日間のリクエスト数（サブドメイン版）"
+  caption="2026年9月5日〜10日。GoogleOtherは0件"
+  unit="件"
+  bars={[
+    { label: "ClaudeBot", value: 508, note: "6日間毎日。405URL" },
+    { label: "GPTBot", value: 172, note: "5日間。168URL" },
+    { label: "Amazonbot", value: 74, note: "74URL" },
+    { label: "Googlebot", value: 13, note: "5URLだけ" },
+    { label: "Applebot", value: 12, note: "9URL" },
+    { label: "OAI-SearchBot", value: 7, note: "2URLだけ" },
+  ]}
+/>
+
+目立つのは次の3点です。
+
+1. **Google系は、サブドメインをほぼ見ていない**。GoogleOtherは6日間で0件。Googlebotも13件・5URLで、サブディレクトリ版の初日（2件）から翌日に13件、3日目に30件と増えていった動きとは違います
+2. **OpenAIの検索用クローラー（OAI-SearchBot）も同じ傾向**。サブディレクトリ版では6日間毎日来て68URLを取っていましたが、サブドメイン版では2URLだけです
+3. **学習用・汎用のクローラーはサブドメインにも普通に来る**。ClaudeBotは6日間毎日来て405URLを取り、サブディレクトリ版の1日だけのまとめ取りを件数で上回りました。GPTBotも件数は近い水準です
+
+<FigureCompare
+  title="どちらによく来たか"
+  caption="公開後6日間のリクエスト数で比較"
+  cols={[
+    { label: "サブディレクトリ（example.com/en/）", tone: "geo", sub: "既存ホストの一部", points: ["GoogleOther 4,237件", "Googlebot 158件", "OAI-SearchBot 141件", "公開8日目に検索結果へ表示"] },
+    { label: "サブドメイン（en.example.com）", tone: "ink", sub: "別ホスト", points: ["ClaudeBot 508件", "Amazonbot 74件・Applebot 12件", "GoogleOther 0件", "6日目時点で7ページ中0がインデックス"] },
+  ]}
+/>
+
+## なぜ差がついたのか
+
+Googleのクロール予算のドキュメントには、**クロールの単位としての「サイト」はホスト名ごと**だと書かれています。`www.example.com` と `code.example.com` は別のサイトで、クロール予算も別々です。
+
+サブドメインにすると、既存ホストが持っているクロールの実績を引き継がず、**新しいサイトとして一から巡回されることになる**、と読むのが自然です。サブディレクトリなら同じホストの中の新しいパスなので、既存のページと同じ巡回の流れに乗ります。今回のGoogle系の差は、この説明とよく合います。
+
+一方で、ClaudeBotやAmazonbotのような学習用・汎用のクローラーは、見つけたホストを広く取りに行くので、ホストが新しいかどうかの影響が小さいのだと考えられます。ただしこれは各社がクロールの仕組みを公開していないので、ログからの推測です。
+
+Googleの多言語サイトのドキュメントは、サブドメインとサブディレクトリのどちらも「設定が簡単」としていて、どちらかを推奨してはいません。サブディレクトリの利点として挙がっているのは「同じホストなので保守が楽」です。今回の実測は、それに加えて**公開直後の見つけてもらいやすさでも差が出る**ことを示しています。
+
+## この観測から言えること／言えないこと
+
+言えること:
+
+- 同じ中身の英語版で、公開後6日間のGoogle系クローラーの巡回はサブディレクトリがサブドメインを大きく上回った
+- ClaudeBot・Amazonbot・Applebotは、サブドメインのほうに多く来た
+- サブドメイン版は6日目の時点で、調べた7ページがすべてGoogleのインデックスに入っていなかった（「URLがGoogleに認識されていません」4件、「検出 - インデックス未登録」3件）
+
+言えないこと:
+
+- **時期が1か月違う**。サブディレクトリ版を出した8月上旬は、日本語側も含めてサイト全体の巡回が増えていた時期でした
+- **ページ数が違う**。サブディレクトリ版は約900記事、サブドメイン版は328ページです
+- **新しさが違う**。サブドメイン版は、英訳の生成を止めたあとに出し直したため、公開時点で新しい記事がありませんでした
+- **入口が違う**。サブディレクトリ版を閉じたとき、旧URLは日本語ページへ転送していて、サブドメインへは転送していません。Googleは転送元と転送先の両方を記録するとしていますが、今回はその経路がサブドメインにつながっていません。Search Consoleにサブドメイン側のサイトマップを送信したかどうかの記録も残っていません
+- 6日より長い期間で差が縮まるかどうかは、まだ分かりません
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="別言語版のURL構造を決めるとき"
+  caption="今回のログから。2026年9月時点"
+  dos={[
+    "Google検索とAI検索での露出が目的なら、既存ホストのサブディレクトリで出す",
+    "サブドメインにするなら、新しいサイトを立ち上げるのと同じ準備（Search Consoleへの登録・サイトマップ送信・既存ページからのリンク）をする",
+    "旧URLを閉じるときは、転送先を別言語版の同じページにする",
+    "判定はクローラー全体の合計ではなく、bot別に分けて見る",
+  ]}
+  donts={[
+    "クローラーの合計件数だけで「サブドメインのほうがよく巡回された」と判断する",
+    "ClaudeBotやGPTBotが来ていることを、Google検索に見つけてもらえた証拠として扱う",
+    "サブドメインでも既存ドメインの評価がそのまま使えると思い込む",
+    "公開直後の数日で結論を出して、URL構造を何度も変える",
+  ]}
+/>
+
+## 手順
+
+自分のサイトで同じ比較をするなら、必要なのはユーザーエージェント・パス・ホスト名が残るログです。
+
+1. ホスト名を記録していなければ、まずログにホスト名の列を足す（サブドメインとサブディレクトリを区別できないと比べられない）
+2. 公開日を0日目として、6日間など窓の長さを先に決める
+3. bot別に、リクエスト数・ユニークURL数・来た日数を出す
+4. Google系（Googlebot・GoogleOther）、AI検索用（OAI-SearchBotなど）、AI学習用（ClaudeBot・GPTBotなど）に分けて比べる
+5. 並行して、代表的なページをSearch ConsoleのURL検査にかけ、インデックスに入ったかを確かめる
+
+4番を飛ばすと、学習用クローラーの件数に引っ張られて、今回のように結論が逆になります。巡回の多さと、検索で見つけてもらえるかどうかは別の話です。
+
+## よくある質問
+
+### サブドメインは検索に不利なのですか
+
+Googleはサブドメインとサブディレクトリのどちらも選択肢として挙げていて、どちらかを不利とは書いていません。ただしクロールの単位はホスト名ごとなので、サブドメインは新しいサイトとして巡回が始まります。今回のログでは、公開直後の6日間でGoogle系の巡回に大きな差が出ました。長く運用したときに差が縮まるかどうかは、この観測からは言えません。
+
+### ClaudeBotがたくさん来ているなら、AIに引用されやすいのでは
+
+ClaudeBotはAnthropicの学習用クローラーで、検索結果やAIの回答で引用するために取りに来るクローラーとは役割が違います。引用に近いのは、OpenAIならOAI-SearchBot、GoogleならGooglebotです。今回はその2つがどちらもサブディレクトリのほうに多く来ていました。学習用クローラーの件数を、引用されやすさの目安にはしないほうが安全です。
+
+### すでにサブドメインで出してしまった場合はどうすればいいですか
+
+新しいサイトを立ち上げたときと同じ準備をします。Search Consoleにプロパティを追加してサイトマップを送信し、既存ホストの対応するページから別言語版へリンクを張ります。以前にサブディレクトリで出していたなら、旧URLの転送先をサブドメインの同じページに向けます。そのうえで、bot別の巡回とURL検査の結果を1〜2週間ごとに見ます。
+
+### 6日間で判断してもいいのですか
+
+今回は、公開直後にどれだけ早く見つけてもらえるかを見るために6日間で切りました。インデックスや検索での表示は数週間かけて変わるので、URL構造を決め直すなら、もっと長い期間の結果を待つべきです。今回の結論は「最初の1週間の見つけてもらいやすさ」までです。
