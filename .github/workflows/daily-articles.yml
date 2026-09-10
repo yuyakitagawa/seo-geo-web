@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: "生成する記事数"
-        default: "2"
+        description: "生成するニュース記事数"
+        default: "1"
       draft:
         description: "draft:true のまま止める（公開しない）"
         type: boolean
@@ -48,10 +48,18 @@ jobs:
         run: npx tsx scripts/collect.ts
 
       - name: 記事にする候補を自動採用
-        run: npx tsx scripts/pick.ts ${{ inputs.count || 2 }}
+        run: npx tsx scripts/pick.ts ${{ inputs.count || 1 }}
 
-      - name: 記事を生成
-        run: npx tsx scripts/generate.ts ${{ inputs.count || 2 }} ${{ inputs.draft == true && '--draft' || '--publish' }}
+      - name: ニュース記事を生成
+        run: npx tsx scripts/generate.ts ${{ inputs.count || 1 }} ${{ inputs.draft == true && '--draft' || '--publish' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      # HOW TO（ストック記事）。テーマと出典は人が content/howto-topics.csv に書き、「採用」を付けたものだけが対象。
+      # 「採用」が1件も無い日は何もせず正常終了するので、無条件に置いてよい（テーマ表が空なら自然に止まる）。
+      # news をRSSから量産しても出典元と同じクエリに並ぶだけなので、日次の枠はこちら側に寄せてある。
+      - name: HOW TO記事を生成（テーマ表に「採用」があるときだけ）
+        run: npx tsx scripts/generate-howto.ts 1 ${{ inputs.draft == true && '--draft' || '--publish' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 

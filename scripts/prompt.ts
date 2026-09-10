@@ -1,5 +1,8 @@
 // 記事生成プロンプトの共通部分。ニュース記事（generate.ts）とHOW TO記事（generate-howto.ts）で
 // 媒体の性格・図解・文体をずらさないため、共有する指示はここ1か所だけに置く。
+import { LESSONS } from "../src/lib/curriculum";
+import { getAllArticles } from "../src/lib/content";
+import { indexableArticles } from "../src/lib/indexability";
 
 export const MEDIA_INTRO = `あなたは日本語のSEO/GEO専門メディアの編集者です。読者は事業会社・制作会社でSEO/GEOを担当している実務者で、
 「自社サイトのどこが動くのか」「何をすればいいのか」を知るために読みます。`;
@@ -90,7 +93,62 @@ export const REVIEW_PROMPT = `あなたは同じ媒体の編集長です。直�
 12. 出典が公式発表か第三者の調査かを本文で区別しているか。調査会社の独自調査を公式発表と同じ強さで書いていないか
 13. 主張の限界（確定値でない・成り立たない条件・保証しないこと）が1文以上あるか。
    ただし「## 結論」の1文目は断定のままか
-14. 「## 結論」に、読者が今日やめるべきことが1つ名指しされているか`;
+14. 「## 結論」に、読者が今日やめるべきことが1つ名指しされているか
+15. 内部リンクが本文中に2〜3本あり、すべて「リンク先の一覧」にあるURLか。
+   一覧に無いURLへのリンク・「詳しくはこちら」のような文言・同じリンク先の重複があれば直す
+   （関連の近いページが一覧に無い場合は、無理に張らず本数を減らしてよい）`;
+
+// 内部リンクの指示。2026-09-09 まで1行も無く、公開73本のうち62本が本文にリンクを1本も持っていなかった。
+// 関連記事コンポーネントがあるのでクロール経路は繋がっているが、文脈のあるリンクは生成側でしか作れない。
+// **リンク先の一覧は userPrompt 側（linkTargetList）から渡す**。ここは一覧に依存しない規則だけを持つ。
+export const INTERNAL_LINK_RULES = `# 内部リンク（本文中に2〜3本）
+- **渡された「リンク先の一覧」にあるURLだけ**をリンク先にする。一覧に無いURLを内部リンクにしない（404になる）。
+  一覧に関連の近いページが無ければ、無理に張らず本数を減らす（1本でも0本でもよい）。
+- 記法は Markdown の \`[文言](/path)\`。文章の流れの中に置く。
+- **リンクの文言はリンク先の内容を表す語にする**。「詳しくはこちら」「この記事」のような文言にしない。
+- 「## 結論」の1文目には置かない（AI検索と強調スニペットが抜き出す文にリンクを混ぜない）。
+- 同じリンク先を2回以上張らない。1つの段落に2本以上入れない。
+- 外部の出典URLは本文に再掲しない（frontmatter の sources に書く）。この規則は内部リンクだけの話。`;
+
+/** 生成時にリンク先として提示できるページ。lessons と固定ページは常に、記事は最近のものから。 */
+export type LinkTarget = { href: string; label: string };
+
+const FIXED_TARGETS: LinkTarget[] = [
+  { href: "/seo", label: "SEO対策とは（カテゴリの入口。基本方針と記事一覧）" },
+  { href: "/geo", label: "GEOとは（カテゴリの入口。AI検索対策の基本方針と記事一覧）" },
+  { href: "/glossary", label: "用語集（SEO・GEOの用語を1語1文で定義）" },
+  { href: "/learn", label: "SEO・GEOの教科書（14レッスン）" },
+  { href: "/tools/page-audit", label: "ページ診断（URLを入れてSEO・GEOの指摘を出す自作ツール）" },
+  { href: "/tools/prompt-fit", label: "プロンプト適合度（AI検索の想定質問にページが答えられているか調べる自作ツール）" },
+];
+
+/**
+ * リンク先の一覧を作る。記事は draft と置き換え済み（noindex）を除いてから、新しい順に maxArticles 件。
+ * category を渡すと同カテゴリを優先する（HOW TO は題材のカテゴリが先に決まっているため）。
+ */
+export function linkTargets({ category, maxArticles = 12 }: { category?: string; maxArticles?: number } = {}): LinkTarget[] {
+  const lessons = [...LESSONS]
+    .sort((a, b) => a.order - b.order)
+    .map((l) => ({ href: `/learn/${l.slug}`, label: `教科書レッスン${String(l.order).padStart(2, "0")}「${l.title}」: ${l.goal}` }));
+
+  const indexable = new Set(indexableArticles().map((a) => a.slug));
+  const articles = getAllArticles()
+    .filter((a) => !a.draft && indexable.has(a.slug))
+    .sort((a, b) => {
+      if (category && a.category !== b.category) return a.category === category ? -1 : b.category === category ? 1 : 0;
+      return a.date < b.date ? 1 : -1;
+    })
+    .slice(0, maxArticles)
+    .map((a) => ({ href: `/articles/${a.slug}`, label: a.title }));
+
+  return [...FIXED_TARGETS, ...lessons, ...articles];
+}
+
+/** userPrompt の末尾に付ける一覧。中身が実行ごとに変わるので SYSTEM_PROMPT には入れない（キャッシュを壊さない） */
+export function linkTargetList(targets: LinkTarget[]): string {
+  return `# リンク先の一覧（内部リンクはこの中からだけ選ぶ）
+${targets.map((t) => `- ${t.href} : ${t.label}`).join("\n")}`;
+}
 
 export const AUTHOR_RULES = `# 書き手についての制約
 - 書き手個人の経歴・前職・実務経験には一切触れない。「〜の経験から言うと」「私が〜で見てきた」のような

@@ -2,7 +2,13 @@
 // generate は「採用」だけを記事化するので、選別基準の変更はこのファイルだけを直せばよい。
 // 件数はスコア連動: 基本は[件数]だが、大きなニュース（MUST_SCORE以上）は件数を超えても MAX_LIMIT まで採用し、
 // 逆に静かな日は基本件数に満たなくてよい（コストの平均は据え置きで、重要ニュースの取りこぼしだけを無くす）。
-// 実行: npx tsx scripts/pick.ts [件数=2]
+//
+// **既定を1本にしてある理由**（2026-09-09）。news はRSS起点のフロー記事で、出典元（SEJ等）と
+// 同じクエリに並ぶ。新規ドメインではそこに勝てず、上がらないまま古くなる。本数を増やしても
+// 資産にならないので、日次の枠は1本に絞り、空いた枠は howto（テーマ起点のストック記事）に回す。
+// 候補は1000件以上あり、うちスコア7以上が7割を占めるため、MIN_SCORE を上げても本数は減らない。
+// 絞るのは点数ではなく本数であること。
+// 実行: npx tsx scripts/pick.ts [件数=1]
 // 過去記事のバックフィル: npx tsx scripts/pick.ts --since=2026-03-02 --until=2026-07-14 [--per-month=5]
 //   窓の中を暦月ごとに区切り、各月からスコア上位を --per-month 件まで採用する（月ごとの本数を揃えるため）。
 //   MAX_AGE_DAYS は無視する。日次の自動採用（--since なし）の挙動は変えない。
@@ -16,7 +22,7 @@ const MIN_SCORE = 2;
 // これ以上のスコアは基本件数を超えても採用する（検索専門の公式発表＝+3や、複数ソースが報じた話題が届く水準）
 const MUST_SCORE = 6;
 // スコア連動で増やすときの上限（コアアップデート級が重なった日でもこの本数まで）
-const MAX_LIMIT = 4;
+const MAX_LIMIT = 3;
 // バックフィルで「同じ話題」と見なす日数差。半年分を一度に選ぶと、3月と6月のコアアップデートのように
 // 別々の出来事が sameTopic で同一視されて後半の月が空になるため、近い日付のときだけ重複扱いにする。
 const BACKFILL_DEDUPE_DAYS = 14;
@@ -44,7 +50,7 @@ const byScore = (a: Candidate, b: Candidate) => b.score - a.score || (a.publishe
 type Covered = { t: Set<string>; published: string };
 
 function pickRecent(list: Candidate[], covered: Covered[], toks: Map<Candidate, Set<string>>) {
-  const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 2);
+  const limit = Number(args.find((a) => /^\d+$/.test(a)) ?? 1);
   const now = Date.now();
   const need = limit - list.filter((c) => c.status === "採用").length;
   const maxNeed = MAX_LIMIT - list.filter((c) => c.status === "採用").length;
