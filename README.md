@@ -395,6 +395,18 @@ supersedes: 12            # 任意。この記事が置き換える古い記事�
 draft: false
 ```
 
+### id の衝突（並行ブランチで採番したとき）
+採番は「そのブランチ時点の最大値+1」なので、**別々のブランチで同じ日に記事を作ると同じ id が振られる**。各PRは単独ではCIを通り、**mainにマージした瞬間に初めて落ちる**（`getArticles()` が `記事 id が重複しています` で throw し、`npm test` が10件前後まとめて失敗する。ビルドも落ちるので毎朝のActionsも止まる）。
+
+直し方は**後から入ったほうを採番し直す**（先に本番へ出た id のURLは動かさない）。
+
+```bash
+grep -h "^id:" content/articles/*.mdx | sort -n -t' ' -k2 | uniq -d   # 衝突の検出
+git log origin/main --diff-filter=A --format='%ad %h' --date=short -1 -- content/articles/<file>.mdx  # どちらが先か
+```
+
+ファイル名の番号・frontmatter の `id`・英語版（`content/articles-en/`）の `id`・本文中の `/articles/<id>` リンクを揃えて直す。
+
 ## セットアップ
 ```bash
 npm ci
