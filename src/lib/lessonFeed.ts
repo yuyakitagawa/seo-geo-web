@@ -17,6 +17,15 @@ import { adoptedForLesson, type Knowhow } from "./knowhow";
 // 語が一致しただけの記事を並べると、単発の障害報告や「テスト開始」の記事まで教科書に載り、
 // 教科書が記事一覧の劣化コピーになる。
 
+/**
+ * 教科書がつながる相手＝公開済み・インデックス対象の記事。
+ * `draft` を明示的に落とす。`getAllArticles()` が下書きを外すのは NODE_ENV=production のときだけなので、
+ * `npm run learn-gap` やテストでは下書きが混ざり、未判定の遅れや候補0本の判定が狂う。
+ */
+export function feedArticles(): ArticleMeta[] {
+  return indexableArticles().filter((a) => !a.draft);
+}
+
 /** 記事側の検索対象。title / description / tags を1本の文字列にする */
 function haystack(article: ArticleMeta): string {
   return [article.title, article.description, ...article.tags].join(" ").toLowerCase();
@@ -40,7 +49,7 @@ export type LessonKnowhow = Knowhow & { article: ArticleMeta };
  * 出典の記事が noindex（薄いタグ・supersedes で置き換え済み）になっていたら落とす。
  */
 export function lessonKnowhow(lesson: Lesson, limit = 4): LessonKnowhow[] {
-  const byId = new Map(indexableArticles().map((a) => [a.id, a] as const));
+  const byId = new Map(feedArticles().map((a) => [a.id, a] as const));
   const items: LessonKnowhow[] = [];
   for (const k of adoptedForLesson(lesson.slug)) {
     const article = byId.get(k.articleId);
@@ -61,7 +70,7 @@ export type LessonGap = {
 
 /** 全レッスンの状況。未判定が多い順＝先に `npm run knowhow` を当てるべき順 */
 export function lessonGaps(judged: Set<number>): LessonGap[] {
-  const articles = indexableArticles();
+  const articles = feedArticles();
   return LESSONS.map((lesson) => {
     const hits = articles.filter((a) => matchesLesson(lesson, a));
     return {

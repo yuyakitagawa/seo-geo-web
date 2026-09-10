@@ -6,8 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ArticleMeta } from "./content";
 import { LESSONS } from "./curriculum";
-import { indexableArticles } from "./indexability";
-import { candidateLessons, lessonGaps, lessonKnowhow, matchesLesson } from "./lessonFeed";
+import { candidateLessons, feedArticles, lessonGaps, lessonKnowhow, matchesLesson } from "./lessonFeed";
 import { KNOWHOW_STATUSES, getKnowhow, isKnowhowTarget, judgedArticleIds } from "./knowhow";
 
 const lesson = (slug: string) => {
@@ -47,17 +46,17 @@ test("topics は大文字小文字を無視して一致する", () => {
 });
 
 test("1つのレッスンが記事の大半を候補にさらわない", () => {
-  const total = indexableArticles().length;
+  const total = feedArticles().length;
   assert.ok(total > 0, "公開記事が1本も無い");
   for (const l of LESSONS) {
-    const hits = indexableArticles().filter((a) => matchesLesson(l, a)).length;
+    const hits = feedArticles().filter((a) => matchesLesson(l, a)).length;
     assert.ok(hits <= total * 0.6, `${l.slug} が記事の${Math.round((hits / total) * 100)}%を候補にしている。topics の語が広すぎる`);
   }
 });
 
 test("公開記事の過半はどこかのレッスンの候補になる", () => {
-  const total = indexableArticles().length;
-  const covered = indexableArticles().filter((a) => candidateLessons(a).length > 0).length;
+  const total = feedArticles().length;
+  const covered = feedArticles().filter((a) => candidateLessons(a).length > 0).length;
   assert.ok(covered > total / 2, `候補になる記事が ${covered}/${total} 本しかない`);
 });
 
@@ -72,8 +71,12 @@ test("判定していない記事は、候補に一致してもレッスンに�
   }
 });
 
+test("下書き記事は教科書につながらない", () => {
+  for (const a of feedArticles()) assert.equal(a.draft, false, `下書き /articles/${a.id} が候補に混ざっている`);
+});
+
 test("台帳の行はすべて実在する記事と反映先を指す", () => {
-  const ids = new Set(indexableArticles().map((a) => a.id));
+  const ids = new Set(feedArticles().map((a) => a.id));
   for (const k of getKnowhow()) {
     assert.ok(KNOWHOW_STATUSES.includes(k.status), `不明な status: ${k.status}`);
     assert.ok(k.judged !== "", `/articles/${k.articleId} の判定日が空`);

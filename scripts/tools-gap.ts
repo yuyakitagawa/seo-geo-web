@@ -17,12 +17,35 @@ const today = new Date();
 const since = new Date(today.getTime() - days * 86400_000).toISOString().slice(0, 10);
 
 const tools = getTools();
-/** 収録済みの手がかり語。ツール名・ベンダー名を語単位でも見る（"Semrush AI Visibility Toolkit" → "semrush"） */
+
+/**
+ * ベンダー名として持っているが、収録の証拠に使えない語。SEOニュースの見出しにほぼ必ず出るため、
+ * これで照合すると未収録のツールまで「収録済み」に見えてしまう。
+ * この2社のツールはツール名の完全一致だけで拾う。
+ */
+const TOO_COMMON = new Set(["google", "microsoft"]);
+
+/** 法人格・「（旧◯◯）」を落とす。"株式会社Ascent Networks" → "ascent networks" */
+function normalizeVendor(v: string): string {
+  return v
+    .toLowerCase()
+    .replace(/（[^）]*）|\([^)]*\)/g, "")
+    .replace(/株式会社|合同会社|有限会社|\b(inc|llc|ltd|gmbh|b\.v|co)\b\.?/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * 収録済みの手がかり語。**ツール名・ベンダー名の完全な識別子だけ**を入れる。
+ * 以前は4文字以上の語に分割していたが、"google" "brand" "insight" "tracker" のような
+ * 一般語が生まれ、それを含むだけの候補が全部「収録済み」に落ちていた（未収録の「AI検索くん」が消えた）。
+ */
 const known = new Set<string>();
-for (const t of [...tools.map((t) => t.name), ...tools.map((t) => t.vendor)]) {
-  const v = t.toLowerCase();
-  known.add(v);
-  for (const w of v.split(/[\s（）()・]+/)) if (w.length >= 4) known.add(w);
+for (const t of tools) {
+  known.add(t.name.toLowerCase());
+  for (const v of [t.vendor.toLowerCase(), normalizeVendor(t.vendor)]) {
+    if (v.length >= 3 && !TOO_COMMON.has(v)) known.add(v);
+  }
 }
 
 const detected = loadCandidates().filter((c) => c.note.startsWith("ツール検知") && c.published >= since);
