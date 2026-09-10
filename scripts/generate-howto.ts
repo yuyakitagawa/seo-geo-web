@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
 import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
+import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, INTERNAL_LINK_RULES, linkTargetList, linkTargets, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 import { CATEGORIES } from "../src/lib/site";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
@@ -29,6 +29,8 @@ ${FIGURE_RULES}
 ${DEPTH_RULES}
 
 ${CREDIBILITY_RULES}
+
+${INTERNAL_LINK_RULES}
 
 ${AUTHOR_RULES}
 
@@ -80,7 +82,9 @@ async function generateOne(client: Anthropic, t: Topic, today: string, nextId: n
 - カテゴリ: ${t.category}（${CATEGORIES[t.category].label}）
 - 出典URL:
 ${t.sources.map((u) => `  - ${u}`).join("\n")}
-- 今日の日付: ${today}`;
+- 今日の日付: ${today}
+
+${linkTargetList(linkTargets({ category: t.category }))}`;
 
   const { parsed, usage } = await generateWithReview(client, {
     system: SYSTEM_PROMPT,

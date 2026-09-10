@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { loadCandidates, saveCandidates, type Candidate } from "./candidates";
 import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
-import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
+import { AUTHOR_RULES, CREDIBILITY_RULES, DEPTH_RULES, FIGURE_RULES, INTERNAL_LINK_RULES, linkTargetList, linkTargets, MEDIA_INTRO, REVIEW_PROMPT, styleRules } from "./prompt";
 
 const SYSTEM_PROMPT = `${MEDIA_INTRO}
 追いきれない量の公式発表と海外ソースの中から、担当者が読むべき変更だけを日本語で整理します。
@@ -26,6 +26,8 @@ ${FIGURE_RULES}
 ${DEPTH_RULES}
 
 ${CREDIBILITY_RULES}
+
+${INTERNAL_LINK_RULES}
 
 ${AUTHOR_RULES}
 
@@ -69,7 +71,9 @@ async function generateOne(client: Anthropic, c: Candidate, today: string, nextI
 - 元記事URL: ${c.url}
 - 発信元: ${c.source}（${c.kind === "official" ? "公式発表" : "業界メディア"}）
 - 概要: ${c.summary || "(なし)"}
-- 今日の日付: ${today}`;
+- 今日の日付: ${today}
+
+${linkTargetList(linkTargets())}`;
 
   const { parsed, usage } = await generateWithReview(client, {
     system: SYSTEM_PROMPT,
