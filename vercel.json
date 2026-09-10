@@ -8,8 +8,7 @@
     { "source": "/tools/ai-crawlers", "destination": "/tools/page-audit", "permanent": true }
   ],
   "headers": [
-    { "source": "/opengraph-image", "headers": [{ "key": "Content-Type", "value": "image/png" }] },
-    { "source": "/:path*/opengraph-image", "headers": [{ "key": "Content-Type", "value": "image/png" }] },
+    { "source": "/:path*/opengraph-image-:hash", "headers": [{ "key": "Content-Type", "value": "image/png" }] },
     { "source": "/icon", "headers": [{ "key": "Content-Type", "value": "image/png" }] },
     { "source": "/apple-icon", "headers": [{ "key": "Content-Type", "value": "image/png" }] }
   ],

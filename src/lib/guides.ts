@@ -1,5 +1,6 @@
 import type { FaqItem } from "./faq";
 import type { CategoryKey } from "./site";
+import { ogImageUrl } from "./ogImage";
 import { SITE_URL } from "./site";
 
 // 「SEO対策とは」「GEO対策とは」に答える解説ページ（/seo, /geo）のデータ。
@@ -218,8 +219,8 @@ export function guideJsonLd(guide: Guide) {
     dateModified: guide.updated,
     inLanguage: "ja",
     mainEntityOfPage: url,
-    // Article のリッチリザルトは image を要求する。実体は src/app/seo|geo/opengraph-image.tsx。
-    image: `${url}/opengraph-image`,
+    // Article のリッチリザルトは image を要求する。実体は src/app/(ja)/seo|geo/opengraph-image.tsx。
+    image: ogImageUrl(`/(ja)${guide.path}`),
     isPartOf: { "@id": `${SITE_URL}/#website` },
     author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization` },

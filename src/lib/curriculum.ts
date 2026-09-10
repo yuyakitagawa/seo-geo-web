@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { FaqItem } from "./faq";
+import { ogImageUrl } from "./ogImage";
 import { SITE_NAME, SITE_URL } from "./site";
 
 // /learn のカリキュラム定義。SEOとGEOを「読む → 作る → 回す」の3レベル14レッスンに分け、
@@ -980,9 +981,9 @@ export function courseJsonLd() {
   };
 }
 
-// 教科書のOGP画像。レッスンは個別のOGP画像を持たず、全ページ /learn/opengraph-image を共有する
+// 教科書のOGP画像。レッスンは個別のOGP画像を持たず、全ページ /learn の opengraph-image を共有する
 // （lessonMetadata の openGraph.images と同じ値）。Article のリッチリザルトは image を要求する。
-const COURSE_OG_IMAGE = `${SITE_URL}${COURSE.path}/opengraph-image`;
+const COURSE_OG_IMAGE = ogImageUrl(`/(ja)${COURSE.path}`);
 
 export function courseArticleJsonLd() {
   const url = `${SITE_URL}${COURSE.path}`;
@@ -1057,7 +1058,7 @@ export function lessonMetadata(lesson: Lesson): Metadata {
       url: `${SITE_URL}${lessonPath(lesson.slug)}`,
       publishedTime: lesson.published,
       modifiedTime: lesson.updated,
-      images: [{ url: `${SITE_URL}${COURSE.path}/opengraph-image`, ...OG_PIXELS, alt: COURSE.h1 }],
+      images: [{ url: COURSE_OG_IMAGE, ...OG_PIXELS, alt: COURSE.h1 }],
     },
   };
 }

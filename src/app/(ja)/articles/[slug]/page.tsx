@@ -24,6 +24,7 @@ import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { enArticlePath, getEnArticleById } from "@/lib/content-en";
 import { supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
+import { ogImageUrl } from "@/lib/ogImage";
 import { extractToc } from "@/lib/toc";
 import { CATEGORIES, SITE_NAME, SITE_URL, categoryHref } from "@/lib/site";
 import { CHIP, CONTAINER, EYEBROW, HEADING, LINK, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
@@ -87,7 +88,7 @@ export default async function ArticlePage({ params }: PageProps<"/articles/[slug
     inLanguage: "ja",
     mainEntityOfPage: url,
     // opengraph-image.tsx が生成する実PNG。Article のリッチリザルトは image を要求する。
-    image: `${url}/opengraph-image`,
+    image: ogImageUrl("/(ja)/articles/[slug]", { slug: article.slug }),
     isPartOf: { "@id": `${SITE_URL}/#website` },
     keywords: article.tags.join(", "),
     articleSection: CATEGORIES[article.category].label,
