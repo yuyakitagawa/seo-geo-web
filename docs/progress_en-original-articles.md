@@ -9,7 +9,7 @@
 - [x] `/en`・`/en/articles/[slug]`・OGP画像・404（`src/app/(en)/en/`）
 - [x] 日本語記事の hreflang と「English」リンク、sitemap、llms.txt
 - [x] 図解・目次・KeyPoints・パンくずの英語の既定値（`MDX_FIGURES_EN` / `label` / `lang`）
-- [x] 既存の独自記事6本（id 30 / 37 / 38 / 39 / 70 / 71）を英訳
+- [x] 既存の独自記事7本（id 30 / 37 / 38 / 39 / 70 / 71 / 75）を英訳（75 は作業中に main へ入ったもの）
 - [x] 英訳スクリプト `npm run translate:en -- <id>`（`scripts/translate-en.ts`）
 - [x] typecheck / test / lint / verify:api / build
 - [ ] 英訳6本をオーナーが確認
