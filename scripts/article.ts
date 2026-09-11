@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import matter from "gray-matter";
+import { aiToneErrors } from "../src/lib/aiTone";
 import { isCategoryKey } from "../src/lib/site";
 
 export const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
@@ -228,6 +229,8 @@ export function validate(
   for (const h of headings) if (!content.includes(h)) errors.push(`見出し欠落:${h}`);
   if ((content.match(/<Figure[A-Za-z]+/g) ?? []).length < 2) errors.push("図解が2個未満");
   errors.push(...figureErrors(content));
+  // AIが書いた文章の型（太字の乱用・段落まるごとの決め台詞）。判定は src/lib/aiTone.ts
+  errors.push(...aiToneErrors(content));
   // FAQは FAQPage 構造化データの元データになる（src/lib/faq.ts が本文から抽出する）。
   const faqSection = content.slice(content.indexOf("## よくある質問"));
   if ((faqSection.match(/^### /gm) ?? []).length < minFaq) errors.push(`FAQが${minFaq}問未満`);
