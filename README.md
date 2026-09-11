@@ -598,8 +598,10 @@ npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools �
     **タイトルの類似度で自動判定はしない** —— `npm run dupes` が候補を報告するだけにしてある。
     `sameTopic()`（`src/lib/topic.ts`）はRSSの見出し重複を弾く基準で、記事タイトルに当てると別の出来事を同一視する
     （実測: 「Google画像検索25周年」と「トップページのボタンをAI Modeに置き換えるテスト」が共有語 google/ai/mode/検索 だけで一致した）。
-- **回遊導線**: 記事は本文の**前**に `ArticleNextStep`（同じタグ／カテゴリの解説／ページ診断）を置く
-  —— 本文下の関連記事は読み切らないと到達しない。一覧・ツールページは末尾に `NextStep`＋`siblingPages()`（`src/lib/nav.ts`、
+- **回遊導線**: 記事は**本文→出典の直後**に `ArticleNextStep`（同じタグ／カテゴリの解説／ページ診断）を置く
+  —— 以前は本文の前だったが、末尾の「関連記事」と導線が重なるうえ、本文の先頭が下がっていた
+  （記事70の観測: ChatGPTのスニペット383件が全件、本文の先頭200字で切られる）。
+  一覧・ツールページは末尾に `NextStep`＋`siblingPages()`（`src/lib/nav.ts`、
   自分の次のページから順に拾うのでどのページも同じ顔にならない）。記事末尾には `ShareButtons`（SDKを読まずWeb Intentのリンクだけ）。
   解説ページは本文の途中に `GuideLessonCta`（`src/components/guide.tsx`）を置いて教科書の該当レッスンへ送る
   —— 末尾の `GuideCrossLinks` は長い解説を読み切らないと届かない。レッスンの見出し・所要時間は `curriculum.ts` から引くので文言は1か所。
