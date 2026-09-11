@@ -20,6 +20,7 @@ actions:
   - Run a few questions from your own category and match the candidate list against the citations in the conversation JSON
   - Save both versions of the candidate list, the one right after search and the one after the answer completes (primary citations disappear from the final version)
   - As a brand, write the conditions you publish on comparison sites into the body of your own official pages
+  - Count how many of your pages enter one group in the candidate list, which tells you whether your domain is searched by name
   - "As a publisher, move to primary information official sites cannot produce: your own measurements, tests and reporting"
 sources:
   - title: "ChatGPT Already Knows Who's In The Running Before It Searches（Suganthan Mohanadasan）"
@@ -107,6 +108,34 @@ K4, the comparison ranking question, put PayPay Card and Recruit Card in its rec
 
 Suganthan Mohanadasan reported the same shape in English, in another category: across 57 conversations, 86 brands were recommended with no fetch at all. That fits the reading that the candidate list is formed inside the model before search, and search is used to verify it. Comparison site content may still feed that prior list, but it is not in the running for citations.
 
+## The chain this log shows: where third-party media drop out
+
+Lined up in order, the path from candidate to citation ran in five steps.
+
+<FigureFlow
+  title="Five steps from candidate list to citation"
+  caption="From the five conversations on 2026-09-11 (236 candidates, 64 groups, 23 citations)"
+  steps={[
+    { label: "1. Brands are decided before search", desc: "Two cards absent from the candidate list were recommended" },
+    { label: "2. Official domains are named with site:", desc: "The decided brands' domains are searched by name" },
+    { label: "3. A named domain enters a dozen pages at once", desc: "12 groups held 10+ pages, 148 candidates in all" },
+    { label: "4. Primary citations come from 1st or 2nd", desc: "10 of 12 at 1st, 2 at 2nd. None below" },
+    { label: "5. Un-named domains enter once and stop", desc: "35 single-page groups produced 2 citations" },
+  ]}
+/>
+
+The evidence for each step:
+
+1. **Brands are decided before search**: K4 recommended PayPay Card and Recruit Card while neither domain appears anywhere in the candidate list. Suganthan's study (English, another category) counted 86 brands recommended with no fetch
+2. **Official domains are named with `site:`**: the second round of K2 runs searches shaped like `site:rakuten-card.co.jp`, naming the domain outright. The Sol log in [article 75](/en/articles/chatgpt-sol-internal-process) shows the same second round, with `site:` carrying the page path
+3. **A named domain enters a dozen pages at once**: 12 domains put 10 or more pages into one group, and those 12 groups account for 148 of the 236 candidates. Nine of those 12 groups were cited
+4. **Primary citations come from 1st or 2nd**: of the 12 primary citations, 10 sat at 1st and 2 at 2nd, none lower
+5. **Un-named domains enter once and stop**: 35 groups held a single candidate, and only 2 of them were cited. Of the 40 candidate URLs from third-party media, 23 were in these single-page groups
+
+So the problem for third-party media is not that they cannot reach 1st inside a group. A group with one page has that page at 1st. They still go uncited because what the model reads for verification is the group of an official domain it had already named. A domain whose name never came up in game one (making the pre-search candidate list) is not in game two (the fight for citations) at all.
+
+Adding pages does not fix it. A high page count is the result of being named with `site:`, not a variable the site controls.
+
 ## Wording changes which domains become candidates
 
 K5 was the exception. Phrased as a complaint about a high annual fee, it triggered one search and 12 candidates, and the list was filled with non-issuers: the National Consumer Affairs Center of Japan, the Ministry of Economy, Trade and Industry, Mizuho Bank. The recommendation and comparison phrasings (K1 to K4) filled the candidate list with issuers' official sites.
@@ -124,6 +153,7 @@ It shows:
 - In these five conversations on 2026-09-11, six comparison sites made the candidate list and took zero citations
 - All 9 cited domains were card issuers' official sites or public agencies
 - All 12 primary citations came from the 1st or 2nd entry of a domain group
+- Of the 40 candidate URLs from third-party media, 23 were the only page their domain contributed
 - Even a question explicitly asking for comparison rankings cited no comparison site
 
 It does not show:
