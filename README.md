@@ -213,7 +213,11 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   idは `src/lib/toc.ts` が MDX から作り、本文に rehype-slug が振るidと同じものを再現する
   （目次に出さない見出しもsluggerに通して採番をそろえる。ずらすとリンクが外れる）
 - 本文に「## 影響を受けるページ・クエリ」（自社のどのページ・クエリが動くかを特定。検索側のKPI推測は書かない）と「## やること／やらなくていいこと」を必須化
-- 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
+- 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）。
+  具体的には、太字の乱用（1セクションに1個まで）／段落を言い直すだけの一行の決め台詞／「Xではなく、Yです」で
+  誰も主張していない否定を置いて強調する形／「先に〜を書いておきます」のような本題前の前置き／装飾の矢印（→）を使わない。
+  既存記事を直すときは `/humanizer`（本文の日本語だけを書き換え、frontmatter・コードブロック・図解コンポーネントのpropsは触らない）。
+  適用済み: 記事76（`content/articles/0076-ai-brand-recall-from-pretraining.mdx`。本文の太字32→5、事実・数値・出典は変更なし）
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける11種:
   `FigureCompare`（比較。3個なら横3列、それ以外は2列）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
   `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）/ `FigureBars`（横棒グラフ。マイナス混在で中央0の左右振り分け）/
