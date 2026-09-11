@@ -1,0 +1,173 @@
+---
+id: 80
+slug: comparison-media-candidates-never-cited
+title: "Comparison sites are dying in AI search: they make the candidate list and get dropped"
+description: >-
+  Five credit card questions in ChatGPT: 236 candidate URLs, 23 citations. All 9 cited domains were issuer official sites or public agencies, and comparison sites took zero.
+date: "2026-09-11"
+category: geo
+type: howto
+tags:
+  - ChatGPT
+  - AI search
+  - Citations
+  - Comparison sites
+  - Fan-out queries
+  - Original research
+impact: high
+audience: Publishers who live on comparison and ranking content, and brands that rely on those sites for referrals
+actions:
+  - Run a few questions from your own category and match the candidate list against the citations in the conversation JSON
+  - Save both versions of the candidate list, the one right after search and the one after the answer completes (primary citations disappear from the final version)
+  - As a brand, write the conditions you publish on comparison sites into the body of your own official pages
+  - "As a publisher, move to primary information official sites cannot produce: your own measurements, tests and reporting"
+sources:
+  - title: "ChatGPT Already Knows Who's In The Running Before It Searches（Suganthan Mohanadasan）"
+    url: "https://suganthan.com/blog/chatgpt-decides-before-it-searches/"
+  - title: "Don't Measure Once: The Instability of LLM Brand Visibility Measurements（arXiv:2604.07585）"
+    url: "https://arxiv.org/abs/2604.07585"
+draft: false
+---
+## Conclusion
+
+I asked ChatGPT five credit card questions in Japanese and read each conversation JSON. Search collected **236 candidate URLs across 44 domains**, and 23 of them were cited in the answers.
+
+All 9 cited domains were either card issuers' official sites or public agencies.
+
+- Cited (9 domains): `jcb.co.jp` / `smbc-card.com` / `rakuten-card.co.jp` / `paypay-card.co.jp` / `paypay.ne.jp` / `recruit-card.jp` / `docomo.ne.jp` / `jal.co.jp` / `kokusen.go.jp`
+- Zero citations: Kakaku.com, my-best, Oricon, CardMAP, CardLens, Mynavi. Every one of them was on the candidate list
+
+The same held for "Which credit cards are popular in comparison rankings?", a question that asks for comparison itself. Comparison sites lined up as candidates and never appeared in the answer. When I ran the same category on a different model on 2026-08-31 ([article 30](/en/articles/chatgpt-fanout-log-analysis)), 14 comparison site URLs made the candidate list and got zero citations too.
+
+This is one account, in Japanese, in one category, on one day. Read it as "this is what happened under these conditions", not as "this is how it works".
+
+<FigureStats
+  title="Where third-party media went after making the candidate list"
+  caption="2026-09-11, ChatGPT (model logged as gpt-5-6), five questions in Japanese, five conversations"
+  stats={[
+    { value: "236 → 23", label: "Candidate URLs → citations", note: "9 of 44 domains" },
+    { value: "0", label: "Citations for 6 comparison sites", note: "All were candidates" },
+    { value: "9/9", label: "Cited domains that are official or public", note: "Card issuers and a consumer agency" },
+  ]}
+/>
+
+## What I measured
+
+- Target: ChatGPT, logged in, desktop web, new chat. Memory off, custom instructions empty
+- Model: auto-selected on screen; the conversation JSON recorded `gpt-5-6`
+- Date: 2026-09-11. Each of the five questions run once, on the same day
+- Record: the `conversation` response JSON saved from the Network tab, one file per conversation
+- Counted: URLs that entered the candidate list as search results (236) and citations attached to the answers (23)
+
+Here are the five questions. Wording changes which domains show up as candidates, so I mixed different intents.
+
+| ID | Question | Candidates | Citations | Search queries |
+| --- | --- | ---: | ---: | ---: |
+| K1 | Recommend me a credit card | 47 | 3 | 4 |
+| K2 | Which no-annual-fee credit cards do you recommend? | 73 | 6 | 7 |
+| K3 | Name 3 credit cards with 1%+ rewards, no annual fee, for heavy online shoppers | 45 | 5 | 4 |
+| K4 | Which credit cards are popular in comparison rankings? | 59 | 6 | 5 |
+| K5 | My credit card annual fee is too high and I want to reconsider | 12 | 3 | 1 |
+
+## Making the candidate list is not the same as being read
+
+Being on the candidate list means the URL, title and snippet were handed to the model as a search result. In the log behind [article 30](/en/articles/chatgpt-fanout-log-analysis), not a single tool call fetched a page body. What reaches the model from a comparison site is, in most cases, the snippet.
+
+Even the snippet goes unused. Across these five conversations, comparison site URLs appeared on the candidate list and then showed up neither in the answer text nor in the citations. They are delivered and not picked.
+
+## Citations came from the top two entries in a domain group
+
+The candidate list is grouped by domain. All 64 groups carried a domain name, with `qa.smbc-card.com` folded into `smbc-card.com` and `dcard.docomo.ne.jp` into `docomo.ne.jp` (29 URLs folded this way).
+
+Position inside the group against citations:
+
+| Position in group | Candidates | Citations |
+| --- | ---: | ---: |
+| 1st | 64 | 14 |
+| 2nd | 29 | 4 |
+| 3rd | 21 | 1 |
+| 4th | 16 | 0 |
+| 5th | 14 | 0 |
+| 6th or lower | 92 | 4 |
+
+Citations also split into two kinds: **primary citations** tied to a claim in the answer, which disappear from the candidate list once the answer completes, and supporting citations listed at the end.
+
+| Citation type | Count | Position in group |
+| --- | ---: | --- |
+| Primary | 12 | 10 at 1st, 2 at 2nd. None at 3rd or lower |
+| Supporting | 11 | Scattered from 1st to 11th |
+
+**Primary citations came only from the 1st or 2nd entry of a domain group.** Comparison sites made the candidate list but sat below the official domains' groups, never reaching the position primary citations come from.
+
+The candidate list is also recorded twice: once right after search, once after the answer completes. Twelve of the 23 citations were gone from the final version. Only cited candidates disappeared; zero uncited candidates did. Reading only the final version loses citation sources.
+
+## Domains that were never searched showed up in the recommendation
+
+K4, the comparison ranking question, put PayPay Card and Recruit Card in its recommendation table and linked to their official sites. Neither domain appears anywhere in the candidate list. They were named without being searched.
+
+Suganthan Mohanadasan reported the same shape in English, in another category: across 57 conversations, 86 brands were recommended with no fetch at all. That fits the reading that the candidate list is formed inside the model before search, and search is used to verify it. Comparison site content may still feed that prior list, but it is not in the running for citations.
+
+## Wording changes which domains become candidates
+
+K5 was the exception. Phrased as a complaint about a high annual fee, it triggered one search and 12 candidates, and the list was filled with non-issuers: the National Consumer Affairs Center of Japan, the Ministry of Economy, Trade and Industry, Mizuho Bank. The recommendation and comparison phrasings (K1 to K4) filled the candidate list with issuers' official sites.
+
+Complaints, trouble and procedure phrasings leave room for public agencies and explainers. [Article 71](/en/articles/chatgpt-condition-swaps-candidates) covers how adding conditions swaps the candidate brands.
+
+## A correction to an earlier article
+
+[Article 30](/en/articles/chatgpt-fanout-log-analysis) read the candidate groups as one group per query. All 64 groups here carried a domain name, so **groups are per domain**. The description in article 30 was wrong, and the position numbers should be read as position inside a domain group, not inside a query.
+
+## What this observation does and does not show
+
+It shows:
+
+- In these five conversations on 2026-09-11, six comparison sites made the candidate list and took zero citations
+- All 9 cited domains were card issuers' official sites or public agencies
+- All 12 primary citations came from the 1st or 2nd entry of a domain group
+- Even a question explicitly asking for comparison rankings cited no comparison site
+
+It does not show:
+
+- This is **one day, one account, one category, five conversations**. Not a sample you can turn into rates (only 16 groups had any citation)
+- Credit cards are a category where official sites publish the conditions in full. Whether the same holds where official information is thin is unknown
+- Reproducibility across models and days is untested. [Article 71](/en/articles/chatgpt-condition-swaps-candidates) shows candidates swapping from one day to the next on the same question
+- Nothing here says comparison sites lost their value for search traffic or brand awareness. It only covers who wins citations
+
+## What third-party publishers can do
+
+<FigureDoDont
+  title="Moves for publishers holding comparison and ranking content"
+  caption="From this observation, as of September 2026"
+  dos={[
+    "Build articles around primary information official sites cannot produce: your own measurements, tests and reporting",
+    "Run a few questions from your category and record candidacy and citation as two separate things",
+    "Pick one page per intent to win the primary citation, and stop adding duplicates of that intent",
+    "Save both the post-search and post-answer candidate lists before counting",
+  ]}
+  donts={[
+    "Add more articles that restate conditions (annual fees, reward rates) already published on official sites",
+    "Treat being on the candidate list as evidence of being cited",
+    "Mass-produce ranking articles for the same intent to raise your page count inside a domain group",
+    "Decide strategy from a single conversation",
+  ]}
+/>
+
+For brands the move runs the other way. If you rely on comparison sites for referrals, write the conditions you give them into the body of your own official pages. The citation slots went to official domains, and the conditions written up by comparison sites were not carried into the answers.
+
+## FAQ
+
+### Are comparison sites finished in AI search?
+
+All this observation shows is that in five credit card questions they made the candidate list and were not cited. In some categories official sites do not publish the conditions at all, and third-party aggregation is the only source. Run the questions from your own category and count candidacy and citations separately before deciding.
+
+### How do I see the candidate list?
+
+Open the Network tab in your browser's developer tools, send the question, and save the `conversation` response JSON after the answer finishes streaming. Candidate URLs sit inside the search result groups, and citations sit in the answer's reference data. Both a post-search version and a post-answer version are recorded, so match them or you will lose citation sources.
+
+### Does getting more pages from one domain into the list help?
+
+In this observation, groups with more pages were cited more, but the cause was not the page count. Groups with many pages were the domains searched by name with `site:`, which returns a dozen or more entries; domains not named that way contributed a single URL. Page count is an outcome, not a variable the site controls. Of the 16 groups with any citation, 15 had one or two, so more pages did not produce more citations.
+
+### Is one day of observation enough to conclude anything?
+
+It is not, and I have not. This article reports counts, not rates. LLM brand visibility is known to be unstable across single measurements (arXiv:2604.07585), and I plan to repeat the same questions on other days. What holds right now is the fact that among these 236 candidates and 23 citations, not one comparison site appears.
