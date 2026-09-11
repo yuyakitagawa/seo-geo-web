@@ -21,7 +21,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 |---|---|
 | `/` | 新着記事・「こんなときは」（困りごと4つから該当レッスン・ツールへ。文言は `src/lib/nav.ts` の `PROBLEM_ENTRIES`）・解説ページ（`/seo` `/geo`）＋教科書・ツールへの導線 |
 | `/articles/[id]` | 記事（URLは連番 `/articles/12`。Article + BreadcrumbList + FAQPage JSON-LD、出典一覧、記事の作り方の開示1行（`/about` への本文内リンク）、関連記事、広告） |
-| `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの全記事リスト |
+| `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの過去記事（すべてカード） |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
@@ -220,7 +220,11 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   FAQPage のリッチリザルトは 2026-05-07 にGoogle検索から廃止され、Ahrefs の1,885ページ調査でも
   構造化データの追加でAI引用は増えていない（AI Overviews は −4.6%、AI Mode と ChatGPT は誤差。記事 id 44）。
   既存の78記事のFAQはそのまま残す（消す理由が無く、FAQPage の元データにもなっている）
-- 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）
+- 日本のサイトでの具体例を最低1つ。AI定型表現は禁止（`scripts/generate.ts` の SYSTEM_PROMPT 参照）。
+  具体的には、太字の乱用（1セクションに1個まで）／段落を言い直すだけの一行の決め台詞／「Xではなく、Yです」で
+  誰も主張していない否定を置いて強調する形／「先に〜を書いておきます」のような本題前の前置き／装飾の矢印（→）を使わない。
+  既存記事を直すときは `/humanizer`（本文の日本語だけを書き換え、frontmatter・コードブロック・図解コンポーネントのpropsは触らない）。
+  適用済み: 記事76（`content/articles/0076-ai-brand-recall-from-pretraining.mdx`。本文の太字32→5、事実・数値・出典は変更なし）
 - **図解を3〜4個必須**（`src/components/figures.tsx`）。MDX内に直接書ける11種:
   `FigureCompare`（比較。3個なら横3列、それ以外は2列）/ `FigureDoDont`（✓✕の2パネル。やること／やらなくていいことのリストはこれで書く）/
   `FigureFlow`（手順ステップ）/ `FigureStats`（数字カード）/ `FigureBars`（横棒グラフ。マイナス混在で中央0の左右振り分け）/
@@ -240,7 +244,11 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
 ## サイト構成
 ナビは **SEO / GEO / ニュース / 教科書 / ツール** の5本。入口をこれだけに絞り、同じ記事群を持つ一覧を2種類作らない。
 - `/seo` `/geo` = 解説（ストック）＋そのカテゴリの記事一覧。一覧は「◯◯対策の解説」（`type: howto`）を上、「◯◯の最新記事」（`type: news`）を下に置く（`src/components/CategoryArticles.tsx`）。
-- `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとの全記事リスト。
+- `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとに過去記事をカードで並べる（2026-09-11にテキスト行の一覧から変更）。
+  アーカイブ側は**新着12本に出した記事を除く**（同じ記事のカードが2枚並ぶのを避ける）。カードは `ArticleCard` を
+  `headingLevel={4}`（月見出し `h3` の下に入れ子にする）・`visual={false}`（キービジュアルなし）で使う。
+  キービジュアルはインラインSVGで1枚あたり約8KBあり、数十枚並べるとHTMLが数百KB増えるため、件数の多い一覧では出さない
+  （66本で +550KB → +109KB）。広告は入れない（`ArticleList` を使わないのはインフィード広告が月ごとに増えるため）。
 - `/learn` = 教科書（ストック）。`/seo` `/geo` が「定義」、`/learn` が「順番のある実務手順」という役割分担で、
   ハブ（定義ページ）→ スポーク（各レッスン）の相互リンクを張る。
   **同じ手順を両方に書かない**（着手順・Search Consoleの見方・Googlebotのレンダリングと本人確認・Core Web Vitalsの直し方は `/learn` 側だけに置く）。
@@ -348,6 +356,7 @@ npm run gsc                掲載順位帯別のCTR / クエリ文字数別 / �
   毎朝の自動生成パイプラインでも人手が要らない。図柄は5種（同心円 / 縦棒 / ノード /
   波 / タイル）、配色はカテゴリ色＋アクセント。インラインSVGなので追加リクエストは発生しない。
   使い所は記事ページのヘッダー背景（`articles/[slug]/page.tsx`）と一覧カードの上部帯（`ArticleCard.tsx`）。
+  ただし `/news` のアーカイブのように数十枚並ぶ一覧では `visual={false}` で出さない（HTMLの肥大を避ける）。
 - **OGP画像**: 実PNGを `next/og` で生成する。枠は全ページ共通で `src/lib/og.tsx` の `ogFrame`、
   背景は黒地＋カテゴリ色のグラデーション。和文は Google Fonts から
   **その画像で使う文字だけ**を切り出して読む（`ogFontOption`。ImageResponseの500KB制限対策）。
