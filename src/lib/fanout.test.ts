@@ -1,119 +1,113 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { byDomainPages, byPosition, citedNotRetrieved, groupShape, parseCapture, toRows, totals } from "./fanout";
+import { allEntries, byGroupSize, byPosition, citedNotRetrieved, groupShape, listDropCross, parseCapture, totals } from "./fanout";
 
-/** 会話JSONの最小形。mapping の入れ子でも拾えるかを一緒に見る */
+const ref = (t: number, r: number) => ({ turn_index: t, ref_type: "search", ref_index: r });
+const entry = (url: string, t: number, r: number) => ({ type: "search_result", url, ref_id: ref(t, r) });
+
+/**
+ * 実ログと同じ形の最小例。
+ * 速報版（検索直後）と最終版（回答完成後）の2回、候補一覧が入る。
+ * 引用された ref 0:0 と 0:2 は最終版から消えている。
+ */
 const conversation = {
-  mapping: {
-    a: {
-      message: {
-        metadata: {
-          search_model_queries: { queries: ["best ai note taking apps 2026 Granola Notion AI"] },
-          search_result_groups: [
-            {
-              domain: "granola.ai",
-              entries: [
-                { url: "https://www.granola.ai/pricing?utm_source=chatgpt.com", title: "Pricing" },
-                { url: "https://granola.ai/features/", title: "Features" },
-              ],
-            },
-            {
-              entries: [
-                { url: "https://otter.ai/pricing", title: "Otter" },
-                { url: "https://fathom.video/pricing", title: "Fathom" },
-                { url: "ftp://example.com/x", title: "対象外のスキーム" },
-              ],
-            },
-          ],
-        },
+  messages: [
+    { metadata: { search_model_queries: { queries: ["best card 2026 JCB SMBC"] } } },
+    {
+      metadata: {
+        search_result_groups: [
+          {
+            domain: "[www.jcb.co.jp](https://www.jcb.co.jp)",
+            entries: [entry("https://www.jcb.co.jp/w/", 0, 0), entry("https://www.jcb.co.jp/w/?tk=1", 0, 1)],
+          },
+          { domain: "qa.smbc-card.com", entries: [entry("https://qa.smbc-card.com/faq", 0, 2)] },
+        ],
       },
     },
-    b: {
-      message: {
-        metadata: {
-          content_references: [
-            { type: "grouped_webpages", items: [{ url: "https://granola.ai/pricing" }] },
-            { type: "url", url: "https://otter.ai/pricing" },
-            { type: "url", url: "https://example.com/never-fetched" },
-          ],
-        },
+    {
+      metadata: {
+        search_result_groups: [
+          { domain: "jcb.co.jp", entries: [entry("https://www.jcb.co.jp/w/?tk=1", 0, 1), entry("https://www.jcb.co.jp/lineup/", 0, 3)] },
+          { domain: "smbc-card.com", entries: [entry("https://www.smbc-card.com/nl", 0, 4)] },
+        ],
+        content_references: [
+          { type: "grouped_webpages", items: [{ url: "https://www.jcb.co.jp/w/?utm_source=chatgpt.com", refs: [ref(0, 0)] }] },
+          { type: "url", url: "https://qa.smbc-card.com/faq?utm_source=chatgpt.com", refs: [ref(0, 2)] },
+          { type: "url", url: "https://recruit-card.jp/?utm_source=chatgpt.com", refs: [] },
+        ],
       },
     },
-  },
+  ],
 };
 
-test("会話JSONから候補URL・引用URL・検索クエリを取り出す", () => {
-  const c = parseCapture("test", conversation);
+test("速報版と最終版の候補一覧を ref_id で1件に畳む", () => {
+  const c = parseCapture("t", conversation);
 
-  assert.equal(c.queries.length, 1);
-  assert.equal(c.groups.length, 2);
-  // http/https 以外のURLは候補に数えない
-  assert.deepEqual(c.groups[1].entries.map((e) => e.domain), ["otter.ai", "fathom.video"]);
-  // grouped_webpages の items[] も引用として拾う
-  assert.deepEqual(c.citations.map((x) => x.url).sort(), [
-    "example.com/never-fetched",
-    "granola.ai/pricing",
-    "otter.ai/pricing",
+  // 0:1 は両方に出るが1件。クエリ違いの 0:0 と 0:1 は別ページとして数える
+  assert.equal(c.entries.length, 5);
+  assert.equal(c.listSnapshots, 2);
+  assert.deepEqual(c.entries.map((e) => e.key).sort(), ["0:0", "0:1", "0:2", "0:3", "0:4"]);
+});
+
+test("グループはドメイン単位。サブドメインは登録可能ドメインに寄せる", () => {
+  const c = parseCapture("t", conversation);
+
+  assert.deepEqual(c.groups.map((g) => g.domain).sort(), ["jcb.co.jp", "smbc-card.com"]);
+  // qa.smbc-card.com の候補が smbc-card.com グループに入る
+  const qa = c.entries.find((e) => e.key === "0:2");
+  assert.equal(qa?.domain, "smbc-card.com");
+  assert.equal(qa?.host, "qa.smbc-card.com");
+  assert.equal(groupShape([c]).subdomainFolded, 1);
+});
+
+test("グループ内の順位と、同じドメインから入った枚数を数える", () => {
+  const entries = allEntries([parseCapture("t", conversation)]);
+
+  assert.deepEqual(
+    entries.map((e) => [e.key, e.position, e.groupSize]),
+    [
+      ["0:0", 1, 3],
+      ["0:1", 2, 3],
+      ["0:3", 3, 3],
+      ["0:2", 1, 2],
+      ["0:4", 2, 2],
+    ],
+  );
+  assert.equal(byPosition(entries).find((b) => b.label === "1位")?.cited, 2);
+  assert.equal(byGroupSize(entries).find((b) => b.label === "2枚")?.retrieved, 2);
+});
+
+test("引用は ref_id で突き合わせる（grouped_webpages の items[] も拾う）", () => {
+  const entries = allEntries([parseCapture("t", conversation)]);
+
+  assert.deepEqual(entries.filter((e) => e.cited).map((e) => e.key), ["0:0", "0:2"]);
+  // ?utm_source= の有無やクエリ違いでは取り違えない
+  assert.equal(entries.find((e) => e.key === "0:1")?.cited, false);
+});
+
+test("引用された候補が最終版の一覧から消えることを数える", () => {
+  const entries = allEntries([parseCapture("t", conversation)]);
+
+  assert.deepEqual(listDropCross(entries), [
+    { label: "引用された・最終一覧にも残っていた", count: 0 },
+    { label: "引用された・最終一覧から消えていた", count: 2 },
+    { label: "引用されず・最終一覧に残っていた", count: 3 },
+    { label: "引用されず・最終一覧からも消えていた", count: 0 },
   ]);
 });
 
-test("クエリ・www・末尾スラッシュの違いを畳んで引用と突き合わせる", () => {
-  const rows = toRows([parseCapture("test", conversation)]);
+test("検索で取りに行っていないのに回答に出したURLを報告する", () => {
+  const c = parseCapture("t", conversation);
 
-  // ?utm_source= 付きの候補と、パラメータ無しの引用が同じページとして一致する
-  const granola = rows.find((r) => r.url === "granola.ai/pricing");
-  assert.equal(granola?.cited, true);
-  assert.equal(rows.find((r) => r.url === "granola.ai/features")?.cited, false);
-  assert.equal(rows.find((r) => r.url === "fathom.video/pricing")?.cited, false);
+  assert.deepEqual(citedNotRetrieved([c]).map((x) => x.url), ["https://recruit-card.jp/?utm_source=chatgpt.com"]);
 });
 
-test("グループ内の順位と、同一ドメインの枚数を数える", () => {
-  const rows = toRows([parseCapture("test", conversation)]);
+test("全体の候補数と引用数を出す", () => {
+  const captures = [parseCapture("t", conversation)];
+  const t = totals(captures);
 
-  assert.deepEqual(
-    rows.map((r) => [r.position, r.sameDomainInGroup]),
-    [
-      [1, 2],
-      [2, 2],
-      [1, 1],
-      [2, 1],
-    ],
-  );
-  assert.equal(byPosition(rows).find((b) => b.label === "1位")?.retrieved, 2);
-  assert.equal(byDomainPages(rows).find((b) => b.label === "2枚")?.cited, 1);
-});
-
-test("同じグループが重複して入っていても1回だけ数える", () => {
-  const sse = [
-    { metadata: { search_result_groups: [{ entries: [{ url: "https://a.example/1" }] }] } },
-    { metadata: { search_result_groups: [{ entries: [{ url: "https://a.example/1" }] }] } },
-  ];
-  const c = parseCapture("sse", sse);
-
-  assert.equal(c.groups.length, 1);
-  assert.equal(c.duplicateGroups, 1);
-});
-
-test("候補一覧に無いのに引用されたURLを報告する", () => {
-  const c = parseCapture("test", conversation);
-
-  assert.deepEqual(citedNotRetrieved([c]).map((x) => x.url), ["example.com/never-fetched"]);
-});
-
-test("グループの単位（ドメインかクエリか）を数で示す", () => {
-  const shape = groupShape([parseCapture("test", conversation)]);
-
-  assert.equal(shape.groups, 2);
-  assert.equal(shape.singleDomain, 1);
-  assert.equal(shape.withDomainField, 1);
-  assert.equal(shape.avgDomains, 1.5);
-});
-
-test("全体の取得数と引用率を出す", () => {
-  const captures = [parseCapture("test", conversation)];
-  const t = totals(captures, toRows(captures));
-
-  assert.equal(t.retrieved, 4);
+  assert.equal(t.retrieved, 5);
   assert.equal(t.cited, 2);
-  assert.equal(t.rate, 50);
+  assert.equal(t.groups, 2);
+  assert.equal(t.queries, 1);
 });

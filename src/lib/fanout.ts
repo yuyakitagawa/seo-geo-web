@@ -1,5 +1,5 @@
 // ChatGPTの会話JSONから「候補URL（検索で取得されたもの）」と「引用URL」を取り出し、
-// グループ内の順位・同一ドメインの枚数と、引用されたかどうかの関係を集計する。
+// ドメイングループ内の順位・グループの大きさと、引用されたかどうかの関係を集計する。
 //
 // 元にした調査: Suganthan Mohanadasan "ChatGPT Already Knows Who's In The Running Before It Searches"
 // https://suganthan.com/blog/chatgpt-decides-before-it-searches/
@@ -7,49 +7,45 @@
 // 同一ドメイン1枚4.0%／2枚6.2%／6枚以上1.7%）を、自分のログで再現できるかを確かめるための道具。
 // 向こうは英語・ドバイの1アカウント・2026年7月24〜25日の観測なので、数字は方向でしかない。
 //
+// 実ログ（2026-09-11・gpt-5-6・日本語）で確かめた前提:
+// - グループは `domain` を持つ。`qa.smbc-card.com` が `smbc-card.com` に畳まれるので**登録可能ドメイン単位**
+// - 候補一覧は1会話に複数回入る（検索直後の速報と、回答完成後の最終版）。**引用されたURLは最終版から消える**
+// - 同じページがクエリ違いで別URLとして載る。突き合わせは `ref_id`（turn_index + ref_index）で行う
+//
 // ファイル入出力は scripts/fanout-report.ts が持つ。ここは純関数だけ（DOMにもNode APIにも依存しない）。
 
-/** グループ内の1件。position はそのグループの中で何番目に置かれていたか（1始まり） */
+/** 候補1件。position は同じ検索回（turn）・同じドメインの中で何番目に返ってきたか（1始まり） */
 export type Entry = {
-  groupIndex: number;
-  position: number;
-  /** 比較用に正規化したURL（scheme・www・クエリ・ハッシュ・末尾スラッシュを落とす） */
-  url: string;
-  /** ログにあったままのURL */
-  raw: string;
+  /** turn_index:ref_index。ログ内で一意 */
+  key: string;
+  turnIndex: number;
+  refIndex: number;
+  /** グループのドメイン（ログの `domain`。無ければURLのホスト） */
   domain: string;
+  /** URLのホスト。グループのドメインと違うことがある（qa.smbc-card.com → smbc-card.com） */
+  host: string;
+  url: string;
+  position: number;
+  /** 同じ検索回・同じドメインで返ってきた件数 */
+  groupSize: number;
+  /** 最終版の候補一覧に残っていたか。引用されたURLはここが false になる */
+  inLastList: boolean;
+  cited: boolean;
 };
 
-export type Group = {
-  index: number;
-  /** グループ自身が持つドメイン名（あれば）。グループの単位がドメインなのかクエリなのかの手がかり */
-  domain?: string;
-  entries: Entry[];
-};
+export type Group = { turnIndex: number; domain: string; entries: Entry[] };
 
-/** 引用1件。type は url / grouped_webpages など、ログにあった表示の型をそのまま持つ */
-export type Citation = { type: string; url: string; raw: string; domain: string };
+/** 引用1件。type は url（見出し直下のリンク）/ grouped_webpages（小さいピル）/ sources_footnote */
+export type Citation = { type: string; url: string; keys: string[] };
 
 export type Capture = {
   name: string;
-  /** モデルが自分で書いた検索クエリ */
   queries: string[];
   groups: Group[];
+  entries: Entry[];
   citations: Citation[];
-  /** SSEの差分で同じグループが重複して入っていたぶん。落とした数を報告に出す */
-  duplicateGroups: number;
-};
-
-/** 集計の1行＝「取得された候補URL 1件」 */
-export type Row = {
-  capture: string;
-  groupIndex: number;
-  position: number;
-  domain: string;
-  url: string;
-  /** 同じグループの中に、同じドメインのページが何枚入っていたか */
-  sameDomainInGroup: number;
-  cited: boolean;
+  /** 候補一覧が何回入っていたか（速報＋最終） */
+  listSnapshots: number;
 };
 
 export type Bucket = { label: string; retrieved: number; cited: number; rate: number };
@@ -58,7 +54,7 @@ function isObj(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-/** JSONを丸ごと歩いて、キーと値を全部見る。会話JSONの形（mapping / SSEの配列）が変わっても拾えるようにするため */
+/** JSONを丸ごと歩く。会話JSONの形（messages配列 / mapping / SSE）が変わっても拾えるようにするため */
 function walk(node: unknown, visit: (key: string, value: unknown) => void): void {
   if (Array.isArray(node)) {
     for (const n of node) walk(n, visit);
@@ -71,22 +67,24 @@ function walk(node: unknown, visit: (key: string, value: unknown) => void): void
   }
 }
 
-/** 比較用のURL。パラメータ違い・末尾スラッシュ違いで同じページが別物に見えるのを防ぐ */
+/** ログの domain は素の文字列のときとMarkdownリンクのときがある。表示名だけ取り出して www を落とす */
+export function cleanDomain(raw: string): string {
+  const text = raw.match(/^\[([^\]]+)\]\(/)?.[1] ?? raw;
+  return text.trim().toLowerCase().replace(/^www\./, "");
+}
+
+/** 比較用のURL。クエリ・ハッシュ・末尾スラッシュの違いを畳む（ref_id が無い引用の照合に使う） */
 export function normalizeUrl(raw: string): string {
-  if (!raw || typeof raw !== "string") return "";
   try {
     const u = new URL(raw);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return "";
-    const host = u.hostname.toLowerCase().replace(/^www\./, "");
-    const path = u.pathname.replace(/\/+$/, "");
-    return host + path;
+    return u.hostname.toLowerCase().replace(/^www\./, "") + u.pathname.replace(/\/+$/, "");
   } catch {
     return "";
   }
 }
 
-/** ドメイン。www だけ落とす（eTLD+1 までは畳まない。co.jp 等の一覧を持たないので畳むと間違える） */
-export function domainOf(raw: string): string {
+/** ホスト名。www だけ落とす */
+export function hostOf(raw: string): string {
   try {
     return new URL(raw).hostname.toLowerCase().replace(/^www\./, "");
   } catch {
@@ -94,7 +92,16 @@ export function domainOf(raw: string): string {
   }
 }
 
-/** content_references の要素から、引用されたURLを全部拾う（grouped_webpages は items[] の中にある） */
+function refKey(ref: unknown): string | null {
+  if (!isObj(ref)) return null;
+  const t = typeof ref.turn_index === "number" ? ref.turn_index : null;
+  const i = typeof ref.ref_index === "number" ? ref.ref_index : null;
+  return t === null || i === null ? null : `${t}:${i}`;
+}
+
+type Draft = { key: string; turnIndex: number; refIndex: number; domain: string; host: string; url: string; lastSnapshot: number };
+
+/** content_references の中から、引用されたURLと参照先（ref_id）を拾う */
 function collectCitations(node: unknown, type: string, out: Citation[]): void {
   if (Array.isArray(node)) {
     for (const n of node) collectCitations(n, type, out);
@@ -103,49 +110,54 @@ function collectCitations(node: unknown, type: string, out: Citation[]): void {
   if (!isObj(node)) return;
   const t = typeof node.type === "string" ? node.type : type;
   if (typeof node.url === "string") {
-    const url = normalizeUrl(node.url);
-    if (url) out.push({ type: t, url, raw: node.url, domain: domainOf(node.url) });
+    const keys = Array.isArray(node.refs) ? node.refs.map(refKey).filter((k): k is string => !!k) : [];
+    out.push({ type: t, url: node.url, keys });
   }
-  for (const v of Object.values(node)) collectCitations(v, t, out);
+  for (const [k, v] of Object.entries(node)) {
+    if (k === "refs") continue;
+    collectCitations(v, t, out);
+  }
 }
 
 /**
  * 会話JSON 1件を読む。
- * 検索クエリのキーは `search_model_queries`（従来）と `search_queries`（2026年8月初旬に改名との報告）の両方を見る。
+ * 検索クエリのキーは `search_model_queries`（従来）と `search_queries`（改名の報告あり）の両方を見る。
  */
 export function parseCapture(name: string, json: unknown): Capture {
-  const groups: Group[] = [];
+  const drafts = new Map<string, Draft>();
   const queries: string[] = [];
-  const citations: Citation[] = [];
-  const seenGroups = new Set<string>();
-  let duplicateGroups = 0;
+  const rawCitations: Citation[] = [];
+  let snapshot = 0;
+  let seq = 0;
 
   walk(json, (key, value) => {
-    if (key === "search_result_groups" && Array.isArray(value)) {
+    if (key === "search_result_groups" && Array.isArray(value) && value.length) {
+      snapshot++;
       for (const g of value) {
         if (!isObj(g)) continue;
-        const raw = Array.isArray(g.entries) ? g.entries : [];
-        const entries: Entry[] = [];
-        for (const e of raw) {
+        const groupDomain = typeof g.domain === "string" ? cleanDomain(g.domain) : "";
+        const entries = Array.isArray(g.entries) ? g.entries : [];
+        for (const e of entries) {
           if (!isObj(e) || typeof e.url !== "string") continue;
-          const url = normalizeUrl(e.url);
-          if (!url) continue;
-          entries.push({ groupIndex: groups.length, position: entries.length + 1, url, raw: e.url, domain: domainOf(e.url) });
+          const host = hostOf(e.url);
+          if (!host) continue;
+          const rk = refKey(e.ref_id);
+          const key = rk ?? `u:${e.url}`;
+          const [turnIndex, refIndex] = rk ? rk.split(":").map(Number) : [0, seq];
+          const prev = drafts.get(key);
+          // 同じ候補が速報版と最終版の両方に出る。**後に出たグループの所属を採る**
+          // （速報では qa.smbc-card.com、最終では smbc-card.com に畳まれる）
+          drafts.set(key, {
+            key,
+            turnIndex,
+            refIndex,
+            host,
+            url: e.url,
+            domain: groupDomain || prev?.domain || host,
+            lastSnapshot: snapshot,
+          });
+          if (!prev) seq++;
         }
-        if (!entries.length) continue;
-        // SSEの差分で同じグループが何度も入ることがある。中身が同じものは1つだけ数える。
-        const sig = entries.map((e) => e.url).join("|");
-        if (seenGroups.has(sig)) {
-          duplicateGroups++;
-          continue;
-        }
-        seenGroups.add(sig);
-        const index = groups.length;
-        groups.push({
-          index,
-          domain: typeof g.domain === "string" ? g.domain : undefined,
-          entries: entries.map((e) => ({ ...e, groupIndex: index })),
-        });
       }
     }
 
@@ -154,134 +166,180 @@ export function parseCapture(name: string, json: unknown): Capture {
       for (const q of list) if (typeof q === "string" && !queries.includes(q)) queries.push(q);
     }
 
-    if (key === "content_references" && Array.isArray(value)) collectCitations(value, "", citations);
+    if (key === "content_references" && Array.isArray(value)) collectCitations(value, "", rawCitations);
   });
 
-  // 同じURLが複数の型で載ることがある。URL単位で1件に畳む（型は最初に出たものを残す）
-  const seenCite = new Set<string>();
-  const unique = citations.filter((c) => (seenCite.has(c.url) ? false : (seenCite.add(c.url), true)));
-
-  return { name, queries, groups, citations: unique, duplicateGroups };
-}
-
-/** 候補URL 1件＝1行に展開する。引用されたかどうかは同じ会話の中で突き合わせる */
-export function toRows(captures: Capture[]): Row[] {
-  const rows: Row[] = [];
-  for (const c of captures) {
-    const cited = new Set(c.citations.map((x) => x.url));
-    for (const g of c.groups) {
-      const perDomain = new Map<string, number>();
-      for (const e of g.entries) perDomain.set(e.domain, (perDomain.get(e.domain) ?? 0) + 1);
-      for (const e of g.entries) {
-        rows.push({
-          capture: c.name,
-          groupIndex: g.index,
-          position: e.position,
-          domain: e.domain,
-          url: e.url,
-          sameDomainInGroup: perDomain.get(e.domain) ?? 1,
-          cited: cited.has(e.url),
-        });
-      }
+  // 同じURLが複数の型で載る。URL単位で1件に畳み、ref_id は全部残す
+  const byUrl = new Map<string, Citation>();
+  for (const c of rawCitations) {
+    const cur = byUrl.get(c.url);
+    if (cur) {
+      for (const k of c.keys) if (!cur.keys.includes(k)) cur.keys.push(k);
+    } else {
+      byUrl.set(c.url, { ...c, keys: [...c.keys] });
     }
   }
-  return rows;
+  const citations = [...byUrl.values()];
+  const citedKeys = new Set(citations.flatMap((c) => c.keys));
+
+  // 速報では `dcard.docomo.ne.jp`、最終では `docomo.ne.jp` のように、グループ名が畳まれることがある。
+  // 同じ検索回に短いほうのドメインがあれば、そちらに寄せる。
+  const shortDomains = new Map<number, Set<string>>();
+  for (const d of drafts.values()) {
+    const set = shortDomains.get(d.turnIndex) ?? new Set<string>();
+    set.add(d.domain);
+    shortDomains.set(d.turnIndex, set);
+  }
+  for (const d of drafts.values()) {
+    const candidates = [...(shortDomains.get(d.turnIndex) ?? [])].filter((s) => d.domain.endsWith(`.${s}`));
+    if (candidates.length) d.domain = candidates.sort((a, b) => a.length - b.length)[0];
+  }
+
+  // 同じ検索回（turn）・同じドメインでまとめる。順番は ref_index（＝返ってきた順）
+  const groupMap = new Map<string, Draft[]>();
+  for (const d of drafts.values()) {
+    const k = `${d.turnIndex}|${d.domain}`;
+    const list = groupMap.get(k) ?? [];
+    list.push(d);
+    groupMap.set(k, list);
+  }
+
+  const groups: Group[] = [];
+  const entries: Entry[] = [];
+  for (const [k, list] of groupMap) {
+    list.sort((a, b) => a.refIndex - b.refIndex);
+    const lastSnapshot = Math.max(...list.map((d) => d.lastSnapshot));
+    const built = list.map((d, i) => ({
+      key: d.key,
+      turnIndex: d.turnIndex,
+      refIndex: d.refIndex,
+      domain: d.domain,
+      host: d.host,
+      url: d.url,
+      position: i + 1,
+      groupSize: list.length,
+      inLastList: d.lastSnapshot === lastSnapshot,
+      cited: citedKeys.has(d.key),
+    }));
+    groups.push({ turnIndex: Number(k.split("|")[0]), domain: list[0].domain, entries: built });
+    entries.push(...built);
+  }
+  groups.sort((a, b) => a.turnIndex - b.turnIndex || a.domain.localeCompare(b.domain));
+
+  return { name, queries, groups, entries, citations, listSnapshots: snapshot };
 }
 
-function bucket(rows: Row[], label: string, match: (r: Row) => boolean): Bucket {
-  const hit = rows.filter(match);
-  const cited = hit.filter((r) => r.cited).length;
+function bucket(entries: Entry[], label: string, match: (e: Entry) => boolean): Bucket {
+  const hit = entries.filter(match);
+  const cited = hit.filter((e) => e.cited).length;
   return { label, retrieved: hit.length, cited, rate: hit.length ? (cited / hit.length) * 100 : 0 };
 }
 
-/** グループ内の順位別の引用率（Suganthan調査の1つめの表と同じ切り口） */
-export function byPosition(rows: Row[]): Bucket[] {
+export function allEntries(captures: Capture[]): Entry[] {
+  return captures.flatMap((c) => c.entries);
+}
+
+/** ドメイングループ内の順位別の引用率（Suganthan調査の1つめの表と同じ切り口） */
+export function byPosition(entries: Entry[]): Bucket[] {
   return [
-    bucket(rows, "1位", (r) => r.position === 1),
-    bucket(rows, "2位", (r) => r.position === 2),
-    bucket(rows, "3位", (r) => r.position === 3),
-    bucket(rows, "4位", (r) => r.position === 4),
-    bucket(rows, "5位", (r) => r.position === 5),
-    bucket(rows, "6位以降", (r) => r.position >= 6),
+    bucket(entries, "1位", (e) => e.position === 1),
+    bucket(entries, "2位", (e) => e.position === 2),
+    bucket(entries, "3位", (e) => e.position === 3),
+    bucket(entries, "4位", (e) => e.position === 4),
+    bucket(entries, "5位", (e) => e.position === 5),
+    bucket(entries, "6位以降", (e) => e.position >= 6),
   ];
 }
 
-/** 同一ドメインが同じグループに何枚入っていたか別の、1ページあたりの引用率（2つめの表） */
-export function byDomainPages(rows: Row[]): Bucket[] {
+/** 同じドメインから何枚が同じグループに入ったか別の、1ページあたりの引用率（2つめの表） */
+export function byGroupSize(entries: Entry[]): Bucket[] {
   return [
-    bucket(rows, "1枚", (r) => r.sameDomainInGroup === 1),
-    bucket(rows, "2枚", (r) => r.sameDomainInGroup === 2),
-    bucket(rows, "3〜4枚", (r) => r.sameDomainInGroup >= 3 && r.sameDomainInGroup <= 4),
-    bucket(rows, "5枚", (r) => r.sameDomainInGroup === 5),
-    bucket(rows, "6枚以上", (r) => r.sameDomainInGroup >= 6),
+    bucket(entries, "1枚", (e) => e.groupSize === 1),
+    bucket(entries, "2枚", (e) => e.groupSize === 2),
+    bucket(entries, "3〜4枚", (e) => e.groupSize >= 3 && e.groupSize <= 4),
+    bucket(entries, "5枚", (e) => e.groupSize === 5),
+    bucket(entries, "6枚以上", (e) => e.groupSize >= 6),
   ];
 }
 
-/** ドメイン別の「取得された回数 vs 引用された回数」。何度取得されても引用されないドメインを見つける */
-export function byDomain(rows: Row[]): { domain: string; retrieved: number; cited: number; rate: number }[] {
+/** ドメイン別の「取得された件数 vs 引用された件数」。何度取得されても引用されないドメインを見つける */
+export function byDomain(entries: Entry[]): { domain: string; retrieved: number; cited: number }[] {
   const map = new Map<string, { retrieved: number; cited: number }>();
-  for (const r of rows) {
-    const cur = map.get(r.domain) ?? { retrieved: 0, cited: 0 };
+  for (const e of entries) {
+    const cur = map.get(e.domain) ?? { retrieved: 0, cited: 0 };
     cur.retrieved++;
-    if (r.cited) cur.cited++;
-    map.set(r.domain, cur);
+    if (e.cited) cur.cited++;
+    map.set(e.domain, cur);
   }
   return [...map.entries()]
-    .map(([domain, v]) => ({ domain, ...v, rate: (v.cited / v.retrieved) * 100 }))
+    .map(([domain, v]) => ({ domain, ...v }))
     .sort((a, b) => b.retrieved - a.retrieved || a.domain.localeCompare(b.domain));
 }
 
 /**
- * グループの単位がドメインなのかクエリなのかを確かめるための数。
- * Suganthanは「ChatGPT groups results by domain」と書いているが、当サイトの記事30は
- * クエリ単位として読んでいる。1グループに何ドメイン入っているかで判断する。
+ * グループがドメイン単位かどうかの根拠になる数。
+ * ログの `domain` を持つグループ数と、グループのドメインと違うホストが中に入っていた件数
+ * （qa.smbc-card.com が smbc-card.com グループに入る＝登録可能ドメイン単位）。
  */
 export function groupShape(captures: Capture[]): {
   groups: number;
-  singleDomain: number;
   withDomainField: number;
-  avgEntries: number;
-  avgDomains: number;
+  subdomainFolded: number;
+  listSnapshots: number;
 } {
-  const groups = captures.flatMap((c) => c.groups);
-  const domainCounts = groups.map((g) => new Set(g.entries.map((e) => e.domain)).size);
-  const entries = groups.reduce((s, g) => s + g.entries.length, 0);
+  const entries = allEntries(captures);
   return {
-    groups: groups.length,
-    singleDomain: domainCounts.filter((n) => n === 1).length,
-    withDomainField: groups.filter((g) => g.domain).length,
-    avgEntries: groups.length ? entries / groups.length : 0,
-    avgDomains: groups.length ? domainCounts.reduce((s, n) => s + n, 0) / groups.length : 0,
+    groups: captures.reduce((s, c) => s + c.groups.length, 0),
+    withDomainField: captures.reduce((s, c) => s + c.groups.filter((g) => g.domain).length, 0),
+    subdomainFolded: entries.filter((e) => e.host !== e.domain).length,
+    listSnapshots: captures.reduce((s, c) => s + c.listSnapshots, 0),
   };
 }
 
-/** 候補一覧に無いのに引用されたURL（記事30・記事75で見た「リンク先と中身を渡したページが別」の型） */
+/** 引用されたか × 最終版の候補一覧に残っていたか。引用されたURLが一覧から消える現象を数で出す */
+export function listDropCross(entries: Entry[]): { label: string; count: number }[] {
+  const n = (cited: boolean, inList: boolean) => entries.filter((e) => e.cited === cited && e.inLastList === inList).length;
+  return [
+    { label: "引用された・最終一覧にも残っていた", count: n(true, true) },
+    { label: "引用された・最終一覧から消えていた", count: n(true, false) },
+    { label: "引用されず・最終一覧に残っていた", count: n(false, true) },
+    { label: "引用されず・最終一覧からも消えていた", count: n(false, false) },
+  ];
+}
+
+/** 候補一覧に無いのに引用されたURL（ref_id が候補のどれとも一致しないもの） */
 export function citedNotRetrieved(captures: Capture[]): { capture: string; url: string; type: string }[] {
   const out: { capture: string; url: string; type: string }[] = [];
   for (const c of captures) {
-    const retrieved = new Set(c.groups.flatMap((g) => g.entries.map((e) => e.url)));
-    for (const cite of c.citations) if (!retrieved.has(cite.url)) out.push({ capture: c.name, url: cite.url, type: cite.type });
+    const keys = new Set(c.entries.map((e) => e.key));
+    const urls = new Set(c.entries.map((e) => normalizeUrl(e.url)));
+    for (const cite of c.citations) {
+      // ref_id があればそれで、無ければURLで照合する。
+      // どちらにも当たらないものが「検索で取りに行っていないのに回答に出したページ」
+      if (cite.keys.some((k) => keys.has(k))) continue;
+      if (urls.has(normalizeUrl(cite.url))) continue;
+      out.push({ capture: c.name, url: cite.url, type: cite.type });
+    }
   }
   return out;
 }
 
-export function totals(captures: Capture[], rows: Row[]): {
+export function totals(captures: Capture[]): {
   captures: number;
   groups: number;
   retrieved: number;
-  uniqueUrls: number;
   cited: number;
   rate: number;
   queries: number;
 } {
-  const cited = rows.filter((r) => r.cited).length;
+  const entries = allEntries(captures);
+  const cited = entries.filter((e) => e.cited).length;
   return {
     captures: captures.length,
     groups: captures.reduce((s, c) => s + c.groups.length, 0),
-    retrieved: rows.length,
-    uniqueUrls: new Set(rows.map((r) => r.url)).size,
+    retrieved: entries.length,
     cited,
-    rate: rows.length ? (cited / rows.length) * 100 : 0,
+    rate: entries.length ? (cited / entries.length) * 100 : 0,
     queries: captures.reduce((s, c) => s + c.queries.length, 0),
   };
 }
