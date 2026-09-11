@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ArticleCard from "@/components/ArticleCard";
 import ArticleList from "@/components/ArticleList";
-import CategoryBadge from "@/components/CategoryBadge";
 import JsonLd from "@/components/JsonLd";
 import NextStep from "@/components/NextStep";
 import PageDates from "@/components/PageDates";
 import PageHeader from "@/components/PageHeader";
-import TypeBadge from "@/components/TypeBadge";
-import OriginalBadge from "@/components/OriginalBadge";
-import SourceBadge from "@/components/SourceBadge";
 import { articleDateRange, collectionJsonLd, collectionSummary } from "@/lib/collection";
 import { getAllArticles, getAllTags, type ArticleMeta } from "@/lib/content";
 import { siblingPages } from "@/lib/nav";
@@ -39,7 +36,8 @@ function byMonth(articles: ArticleMeta[]): { month: string; label: string; items
 export default function NewsPage() {
   const articles = getAllArticles();
   const latest = articles.slice(0, ARTICLES_PER_PAGE);
-  const months = byMonth(articles);
+  // アーカイブは上の最新一覧に出していない分だけ。同じ記事のカードが2枚並ぶのを避ける
+  const months = byMonth(articles.slice(ARTICLES_PER_PAGE));
   const tags = getAllTags().slice(0, 16);
   const url = `${SITE_URL}/news`;
   const dates = articleDateRange(articles);
@@ -81,34 +79,21 @@ export default function NewsPage() {
           </section>
         )}
 
-        {articles.length > latest.length && (
+        {months.length > 0 && (
           <section className="mt-20">
             <h2 className={HEADING.section}>アーカイブ</h2>
-            <p className="mb-8 mt-1 text-sm text-mute">公開月ごとの全{articles.length}本。</p>
-            <div className="space-y-10">
+            <p className="mb-8 mt-1 text-sm text-mute">公開月ごとの過去記事（{articles.length - latest.length}本）。</p>
+            <div className="space-y-12">
               {months.map((m) => (
                 <div key={m.month}>
-                  <h3 className={cx(HEADING.label, "mb-3")}>
+                  <h3 className={cx(HEADING.label, "mb-4")}>
                     {m.label} <span className="opacity-60">（{m.items.length}）</span>
                   </h3>
-                  <ul className="divide-y divide-line border-y border-line">
-                    {m.items.map((a) => (
-                      <li key={a.slug}>
-                        <Link href={`/articles/${a.slug}`} className="group flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3.5">
-                          <time dateTime={a.date} className="w-20 shrink-0 font-mono text-xs text-mute">
-                            {a.date.replaceAll("-", ".")}
-                          </time>
-                          <span className="flex items-center gap-2">
-                            <CategoryBadge category={a.category} asLink={false} />
-                            <TypeBadge type={a.type} />
-                            <OriginalBadge original={a.original} />
-                            <SourceBadge sources={a.sources} type={a.type} original={a.original} />
-                          </span>
-                          <span className="flex-1 font-medium leading-snug underline-offset-4 group-hover:underline">{a.title}</span>
-                        </Link>
-                      </li>
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {m.items.map((a, i) => (
+                      <ArticleCard key={a.slug} article={a} index={i} headingLevel={4} visual={false} />
                     ))}
-                  </ul>
+                  </div>
                 </div>
               ))}
             </div>
