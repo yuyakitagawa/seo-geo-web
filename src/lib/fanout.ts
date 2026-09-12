@@ -204,11 +204,14 @@ export function parseCapture(name: string, json: unknown): Capture {
     groupMap.set(k, list);
   }
 
+  // 「最終の候補一覧に残っていたか」は会話全体の最後のスナップショットで見る。
+  // グループごとに見ると、グループまるごと消えた場合に「残った」と誤判定する（K5の国民生活センター）。
+  const lastSnapshot = snapshot;
+
   const groups: Group[] = [];
   const entries: Entry[] = [];
   for (const [k, list] of groupMap) {
     list.sort((a, b) => a.refIndex - b.refIndex);
-    const lastSnapshot = Math.max(...list.map((d) => d.lastSnapshot));
     const built = list.map((d, i) => ({
       key: d.key,
       turnIndex: d.turnIndex,
