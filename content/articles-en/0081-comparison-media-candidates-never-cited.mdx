@@ -71,6 +71,62 @@ Here are the five questions. Wording changes which domains show up as candidates
 | K4 | Which credit cards are popular in comparison rankings? | 59 | 6 | 5 |
 | K5 | My credit card annual fee is too high and I want to reconsider | 12 | 3 | 1 |
 
+## The 21 search queries that were issued
+
+The five conversations issued 21 search queries. All of them sit in `search_model_queries` in the conversation JSON; `search_queries` held none. Here they are verbatim, in the original Japanese.
+
+```text
+K1 "Recommend me a credit card" — 4 queries (one search round)
+日本 クレジットカード おすすめ 2026 年会費 還元率 三井住友カードNL 楽天カード PayPayカード JCB CARD W
+三井住友カード NL 公式 年会費 ポイント還元率
+楽天カード 公式 年会費 還元率
+JCB CARD W 公式 年会費 還元率
+```
+
+```text
+K2 "Which no-annual-fee credit cards do you recommend?" — 7 queries (two search rounds)
+[round 1]
+年会費無料 クレジットカード おすすめ 三井住友カード NL 楽天カード PayPayカード JCB CARD W 公式
+三井住友カード NL 年会費 永年無料 公式
+楽天カード 年会費 永年無料 基本還元率 公式
+PayPayカード 年会費 無料 還元率 公式
+[round 2]
+site:rakuten-card.co.jp 楽天カード 年会費 永年無料 還元率 1% 公式
+site:jcb.co.jp JCB CARD W 年会費 永年無料 39歳以下 還元率 公式
+site:recruit-card.jp リクルートカード 年会費 無料 1.2% 公式
+```
+
+```text
+K3 "Name 3 credit cards with 1%+ rewards, no annual fee, for heavy online shoppers" — 4 queries
+年会費無料 還元率 1% クレジットカード 楽天カード PayPayカード リクルートカード 2026
+楽天カード 基本還元率 年会費無料 楽天市場 公式
+PayPayカード 基本還元率 年会費無料 Yahooショッピング 公式
+リクルートカード 還元率 1.2 年会費無料 公式
+```
+
+```text
+K4 "Which credit cards are popular in comparison rankings?" — 5 queries
+クレジットカード 人気 ランキング 2026 日本 年会費 還元率
+クレジットカード 利用実態 人気 JCB 楽天 三井住友 2026
+三井住友カード NL 公式 年会費 還元率
+楽天カード 公式 年会費 還元率
+JCB CARD W 公式 年会費 還元率
+```
+
+```text
+K5 "My credit card annual fee is too high and I want to reconsider" — 1 query
+クレジットカード 年会費 見直し 解約 ダウングレード 注意点 日本 2026
+```
+
+Counting the 21:
+
+- 16 of them contain 公式 ("official"). Queries carrying a brand name are shaped to land on that brand's own site
+- Brand names the user never typed appear in the very first query of K1, K2 and K3. K4 brings them in from its second query, and K5 never names a brand
+- Only the three queries in K2's second round use `site:`. Recruit Card shows up there for the first time, meaning the candidate set grew after the first round's results came back
+- Even asked for popularity rankings, K4 falls back to brand queries from its third onward. Two of them, for Rakuten Card and JCB CARD W, match K1's queries character for character (the Sumitomo Mitsui one differs only in ポイント還元率 becoming 還元率)
+
+No comparison site is named anywhere in the 21. What gets searched is product names and official sites.
+
 ## Making the candidate list is not the same as being read
 
 Being on the candidate list means the URL, title and snippet were handed to the model as a search result. In the log behind [article 30](/en/articles/chatgpt-fanout-log-analysis), not a single tool call fetched a page body. What reaches the model from a comparison site is, in most cases, the snippet.
