@@ -20,3 +20,4 @@ status,category,title,intent,sources,articleId,note
 候補,seo,手動による対策の確認手順と再審査リクエストの出し方,手動による対策のレポートの見方と、直してから再審査に出すまでの手順を知りたい,https://support.google.com/webmasters/answer/9044175?hl=ja|https://developers.google.com/search/docs/essentials/spam-policies,,
 候補,seo,内部リンクの張り方。アンカーテキストとクロールできるリンクの条件,どのページからどのページへ・どんな文言でリンクを張ればいいかを知りたい,https://developers.google.com/search/docs/crawling-indexing/links-crawlable,,レッスン08（structure）はサイト全体の構造・こちらは1本のリンクの書き方に寄せる
 候補,seo,サイト移転・URL変更の手順と301リダイレクト,ドメインやURLを変えるときに評価を落とさない手順を知りたい,https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes|https://developers.google.com/search/docs/crawling-indexing/301-redirects,,
+候補,geo,ChatGPTはドメインのグループ内で何番目のページを引用するのか。クレジットカードの会話ログで確かめた,fan-outで候補に入った後、引用を取るには何を直せばいいのか知りたい,https://suganthan.com/blog/chatgpt-decides-before-it-searches/,,独自調査（会話ログの実測。npm run fanout。手順は docs/progress_fanout-cite.md）。ゲーム2＝引用の段階だけを扱う。生成スクリプトではなく手書き
