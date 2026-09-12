@@ -1,0 +1,85 @@
+---
+title: GoogleのAI Overviewに出た「Deez Nuts」イースターエッグの正体
+description: "Google検索で空欄検索を行うとAI Overviewが「...nuts? \U0001F95C」と返す挙動が報告されました。原因と、サイト運営者への実害の有無を整理します。"
+date: '2026-09-10'
+category: news
+type: news
+tags:
+  - Google
+  - AI Overview
+  - イースターエッグ
+  - 検索
+impact: low
+audience: 全サイト運営者（実質的な影響はほぼ無し）
+actions:
+  - 様子見で可
+draft: false
+sources:
+  - title: Google Search Deez Nuts AI Overview Easter Egg
+    url: 'https://www.seroundtable.com/deez-nuts-google-easter-egg-42062.html'
+id: 84
+---
+## 結論
+
+Googleの検索窓に何も入力せず「google.com/search?si=」というURLで検索すると、AI Overviewが「...nuts? 🥜」という遊び心のある回答を返す挙動が報告されました。
+これは検索ボックスに実際に文字を打って起きる現象ではなく、URLのパラメータを直接書き換えたときだけ再現する挙動です。
+この件を見て自社サイトのAI Overview対策を見直そうとしている担当者は、その作業を今日は止めてください。
+
+## 何が起きたか
+
+Search Engine Roundtableの2026年9月10日の記事によると、@harmo_snipe氏がX（旧Twitter）で報告した事例が起点です。
+「google.com/search?si=」というクエリパラメータ空の状態でアクセスすると、AI Overviewが冗談めいた回答を表示します。
+
+<FigureQuote text="It looks like your keyboard got a bit carried away! In case you were curious about the exact breakdown of your input, here is what you typed. d: 880 times e: 206 times z: 200 times." source="Search Engine Roundtable、2026年9月10日、Barry Schwartz" />
+
+日本語にすると「キーボードが少し暴走したようですね。念のため入力内容の内訳をお伝えすると、d:880回、e:206回、z:200回です」という趣旨です。
+実際には何も入力していないのに、AIが「大量のd・e・zを打った」という設定で返答しているのが今回の面白さです。
+記事の筆者自身も「空欄検索を手動で行う方法が分からない」と書いており、この現象は一般ユーザーが通常の検索操作で偶然遭遇するものではないと考えられます。
+
+<FigureStats title="AI Overviewが提示した架空の入力内訳" stats={[{ value: "880回", label: "dの入力回数（AIの回答内）" }, { value: "206回", label: "eの入力回数（AIの回答内）" }, { value: "200回", label: "zの入力回数（AIの回答内）" }]} />
+
+この数字自体に意味はありません。AIが「deez」という文字列を認識し、それを茶化す形で数字を生成しただけの演出です。
+Search Engine Roundtableも「Googleが仕込んだイースターエッグの一つらしい」という推測にとどめており、Google公式のアナウンスは今回の記事には含まれていません。
+
+## 影響を受けるページ・クエリ
+
+この現象が発生するのは、URLのクエリパラメータ「si=」を空にして直接アクセスした場合だけです。
+通常の検索ボックスへの入力、音声検索、スマホアプリからの検索では再現しないと考えられます。
+
+自社サイトのどのページがこの挙動で表示順位を上げ下げすることもありません。
+AI Overviewの生成元になる検索結果やコンテンツの評価ロジックとは無関係の、検索UI側の遊び要素だからです。
+実在するクエリ（商品名・地名・症状名など）に対するAI Overviewの生成には、今回の件は影響しません。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="Deez Nutsイースターエッグへの対応"
+  dos={["社内の共有ネタとして記事を眺める程度に留める", "自社のAI Overview露出状況は通常の計測フローで確認する"]}
+  donts={["この現象を理由にコンテンツやtitleを書き換える", "「AI Overviewにバグがある」として順位変動の原因調査に時間を使う"]}
+/>
+
+やることは実質ありません。この現象はGoogleの検索エンジン内部の遊びであり、検索アルゴリズムやランキング要因の変更を示すものではないためです。
+やらなくていいことは、この記事をきっかけに自社の構造化データやFAQページを緊急点検することです。
+イースターエッグの発生条件とコンテンツ評価のロジックは別物だと考えられます。
+
+## 日本の運営者への意味合い
+
+例えば、日本の家電ECサイトが「掃除機 コードレス おすすめ」で表示されるAI Overviewを日々確認しているとします。
+今回のようなイースターエッグは、そのAI Overviewの表示ロジックとは無関係の別チャネル（空欄クエリ）で起きた現象です。
+担当者が確認すべきなのは、実際に検索されているクエリに対するAI Overviewの引用元であり、空欄検索のジョークではありません。
+
+同様に、店舗集客サイトの運営者が「近所のパン屋 AI Overview 出た」と喜んだり落ち込んだりする対象は、実クエリでの表示です。
+イースターエッグの話題性に引っ張られて、本来見るべき[検索パフォーマンスレポートの確認作業](/learn/measurement)を後回しにしないことが実務上の分かれ目になります。
+
+## AI Overviewの仕組みを理解する
+
+AI Overviewとは、Google検索結果の上部にAIが生成した要約を表示する機能です。
+今回のような遊び要素があっても、通常のクエリに対する生成ロジックの土台は[GEOの基本方針](/geo)で説明した内容から変わっていません。
+用語の意味を確認したい場合は[用語集](/glossary)でAI Overviewの定義を見直しておくと、今後似た話題が出たときに慌てずに済みます。
+
+## よくある質問
+
+### この現象は自分でも再現できますか
+
+ブラウザで「google.com/search?si=」にアクセスすれば再現する可能性がありますが、Google側の仕様変更でいつ消えても不思議ではありません。
+再現できるかどうかとSEO・GEO対策の必要性は無関係です。
