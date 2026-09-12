@@ -34,7 +34,8 @@ Do not include draft, original or supersedes. Quote YAML strings that contain a 
 # Body
 - Faithful translation in natural, concise, technical English — not word-for-word. Never add a fact, number, name or claim that is not in the Japanese. Never drop a number or finding. Keep hedges. If the source gives slightly different numbers for the same thing in different places, keep each as written.
 - "## 結論" → "## Conclusion" and it must be the FIRST h2; its first paragraph must state the answer with the key numbers (AI search snippets take the first ~200 characters of the body). You may lead with a sentence built only from numbers stated elsewhere in the source.
-- "## よくある質問" → "## FAQ" (h2, each question as "### ...", answers as plain paragraphs directly under it). Translate other headings naturally.
+- "## よくある質問" → "## FAQ" (h2, each question as "### ...", answers as plain paragraphs directly under it).
+  If the Japanese article has no "## よくある質問" section, do not add an FAQ section. Translate other headings naturally.
 - Data that was measured on Japanese text or Japanese prompts: keep the Japanese string verbatim with the English meaning in parentheses on first appearance, and keep character counts as Japanese-character counts.
 - Japanese brand/site names: official English name if one exists, otherwise romanize with a short gloss on first use. Code blocks, JSON field names, URLs, user-agent strings, log lines: verbatim (comments may be translated).
 - MDX figure components (<FigureCompare>, <FigureDoDont>, <FigurePipeline>, <FigureStats>, <FigureBars>, <FigureFlow>, ...): keep every component (same count), same names and prop structure; translate only string values. Keep JS expression syntax valid. Do not add doLabel/dontLabel/labels/failLabel/marks unless the Japanese passes them.

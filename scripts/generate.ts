@@ -31,7 +31,7 @@ ${INTERNAL_LINK_RULES}
 
 ${AUTHOR_RULES}
 
-${styleRules({ chars: "2,200〜3,200字", faq: "3問" })}
+${styleRules({ chars: "2,200〜3,200字", faq: "最大3問" })}
 
 # 出力形式
 次のfrontmatter付きMDXだけを出力する。前後に説明文やコードフェンスを付けない。
@@ -58,9 +58,9 @@ draft: true
 // 自動公開ではこの検査が唯一の関門になる。記事の型（SYSTEM_PROMPT）を満たさない出力は捨てて、
 // 候補を「却下」に落とす（同じ候補で毎日失敗し続けないように）。
 const NEWS_SHAPE = {
-  headings: ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと", "## よくある質問"],
+  headings: ["## 結論", "## 影響を受けるページ・クエリ", "## やること／やらなくていいこと"],
   minChars: 1800,
-  minFaq: 3,
+  minFaq: 0,
 };
 
 async function generateOne(client: Anthropic, c: Candidate, today: string, nextId: number, publish: boolean) {
