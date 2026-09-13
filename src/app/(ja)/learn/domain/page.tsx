@@ -163,14 +163,30 @@ export default function Lesson08() {
               "独自ドメインと初期ドメインの両方で同じ内容が見える",
               "初期ドメインから独自ドメインへリダイレクトするか、canonicalを独自ドメインに固定する",
             ],
+            [
+              <>ディレクトリのURL と <code>/index.html</code></>,
+              "既定のファイル名付きのURLが検索結果に出て、ディレクトリのURLと重複する",
+              <>
+                ディレクトリのURL（<code>/</code> で終わる形）に統一し、<code>/index.html</code> から301で寄せる。内部リンクもディレクトリのURLで書く
+              </>,
+            ],
           ]}
           caption={
             <>
               重複したURLは、リダイレクトとcanonicalで代表URLを1つに決めます。
               <GuideRef {...REF.canonical} />
+              クエリパラメータ違い（<code>?sort=</code> のような絞り込み・計測用のパラメータ）で同じ内容が増える場合の扱いは、
+              <Link href={`${lessonPath("technical")}#duplicate`}>レッスン{lessonNo("technical")}</Link>にあります。
             </>
           }
         />
+        <p>
+          ホスト名の統一は、ドメインを分けたサイトでは<strong>ホストごとに確認します</strong>。
+          本体だけwwwに寄せて、サポートやオウンドメディアのサブドメインでは非wwwが生きている、
+          というのが典型的な取りこぼしです。ホストの一覧を作り、1ホストずつ
+          「非wwwが301で寄っているか」「<code>/index.html</code> が検索結果に出ていないか」を確認します。
+          棚卸しの材料は、Search Consoleのインデックス登録レポートと <code>site:</code> 検索です。
+        </p>
         <p>
           実装の要点は、<strong>canonicalやOGP、サイトマップが参照するサイトURLを、コードの1か所で持つ</strong>ことです。
           ページごとにホスト名を書くと、追加したページだけ古いホスト名のまま、という状態が起きます。
@@ -273,6 +289,12 @@ export default function Lesson08() {
             ["robots.txtとサイトマップ", "同じホストの直下に1組だけ置き、サイトマップのURLをrobots.txtに書く", "ホストが1つなので、管理する組も1つで済むため"],
           ]}
         />
+        <p>
+          なお、ホストを分けた場合に増えるのは設定と計測の単位だけではありません。
+          <strong>「これらが同じ1社のサイトである」という宣言</strong>も、ホストの数だけ必要になります。
+          全ホストに同じOrganizationを出して相互に結び付ける作業は
+          <Link href={`${lessonPath("brand-entity")}#entity`}>レッスン{lessonNo("brand-entity")}</Link>で扱います。
+        </p>
         <p>
           この構成の利点は、確認する場所が少ないことです。robots.txtは1つ、サイトマップは1つ、
           Search Consoleのプロパティも1つで、どこかだけ設定が古いという状態が起きません。

@@ -133,7 +133,7 @@ export const COURSE = {
     "SEOとGEO（生成AI検索最適化）を、仕組みの理解 → 実装 → 運用の3レベル14レッスンで学ぶ教科書。各レッスンに到達チェックリストを付け、Googleの成功事例やweb.devのケーススタディなど一次情報で確認できる実例だけを載せています。",
   lead: "「SEO対策とは」「GEO対策とは」の次に読む、順番の決まった教科書です。1から14まで通すと、自分のサイトを検索と生成AIの両方に対応させ、指名で想起される状態まで、数値で確認しながら運用できるようになります。",
   published: "2026-08-30",
-  updated: "2026-09-01",
+  updated: "2026-09-13",
 };
 
 export const LESSONS: Lesson[] = [
@@ -431,6 +431,7 @@ export const LESSONS: Lesson[] = [
       "1見出し1問い・自己完結という、パッセージとして抜き出されるための条件",
       "引用・統計・出典を入れることの効果（GEO論文が測定した数値）",
       "E-E-A-T（経験・専門性・権威性・信頼）をページ上の要素に落とす方法",
+      "条件が並ぶページ（手続き・料金）の冒頭に置く要点ボックスと、数値をHTMLで書く理由",
     ],
     minutes: 15,
     checklist: [
@@ -439,6 +440,8 @@ export const LESSONS: Lesson[] = [
       "数値や条件が表・箇条書きで構造化されており、文章の中に埋もれていない",
       "本文中の事実に一次情報へのリンクが付いている",
       "著者・更新日・運営者情報がページから確認できる",
+      "手続き・料金のページの冒頭に、期限・費用・所要時間・必要なものを並べた要点ボックスがある",
+      "料金や条件の数値が、画像やPDFではなくHTMLのテキストで書かれている",
     ],
     faq: [
       {
@@ -465,7 +468,7 @@ export const LESSONS: Lesson[] = [
     sources: [S.helpful, S.aiFeatures, S.spam, S.aiContent, S.geoPaper, S.snippet, S.titleLink],
     topics: ["E-E-A-T", "有用なコンテンツ", "本文", "書き方", "引用され", "AI生成コンテンツ", "一次情報", "独自性"],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-09-13",
   },
   {
     slug: "snippet",
@@ -618,6 +621,7 @@ export const LESSONS: Lesson[] = [
       "www有無・http/httpsなど、同じ内容が複数のホストで見える状態の畳み方",
       "検証環境やプレビューURLが検索結果に出ないようにする",
       "中古ドメイン（期限切れドメイン）とサブディレクトリの貸し出しで禁止されていること",
+      "ホストが複数あるサイトで、ホストごとに確認する項目と、1社だと宣言する作業",
     ],
     minutes: 13,
     checklist: [
@@ -627,6 +631,7 @@ export const LESSONS: Lesson[] = [
       "サブドメインごとにSearch Consoleで数値を確認できる状態にした（ドメインプロパティ、または個別プロパティ）",
       "新しいコンテンツをサブディレクトリに置くか、サブドメインに分けるかの基準を決めた",
       "検証環境・ステージング環境が、認証かnoindexで検索結果に出ないようにしてある",
+      "ホストの一覧を作り、1ホストずつ非wwwと /index.html が検索結果に出ていないか確認した",
     ],
     faq: [
       {
@@ -658,7 +663,7 @@ export const LESSONS: Lesson[] = [
     sources: [S.starter, S.essentials, S.canonical, S.robots, S.noindex, S.sitemaps, S.spam, S.siteMove],
     topics: ["ドメイン", "サブドメイン", "サイト移転", "サイトの評判", "中古ドメイン", "ホスト名", "リダイレクト"],
     published: "2026-08-31",
-    updated: "2026-09-04",
+    updated: "2026-09-13",
   },
   {
     slug: "geo-implementation",
@@ -830,6 +835,7 @@ export const LESSONS: Lesson[] = [
       "流入が落ちたときの切り分け（技術的・アルゴリズム・季節性・手動対策）",
       "スパムに関するポリシーの禁止事項と、違反したときに起きること",
       "サイト移転・リニューアルで流入を落とさないための手順",
+      "移転していなくても溜まる旧URLの棚卸し（301・残す・404の3分類）",
     ],
     minutes: 15,
     checklist: [
@@ -837,6 +843,8 @@ export const LESSONS: Lesson[] = [
       "流入が落ちたときに見る順番（技術→アルゴリズム→季節性）を決めた",
       "自分のサイトにスパムポリシー違反にあたる要素がないか点検した",
       "URLを変更する予定がある場合、301リダイレクトの対応表を用意した",
+      "インデックス登録レポートに残っている旧世代のURLを、301・残す・404の3つに分類した",
+      "旧URLから現行URLへのリダイレクトが1ホップで終わっている",
     ],
     faq: [
       {
@@ -863,7 +871,7 @@ export const LESSONS: Lesson[] = [
     sources: [S.coreUpdates, S.trafficDrops, S.spam, S.manualActions, S.siteMove, S.helpful, S.aiContent],
     topics: ["コアアップデート", "スパムアップデート", "アップデート", "手動による対策", "ペナルティ", "順位下落", "トラフィック減", "ポリシー"],
     published: "2026-08-30",
-    updated: "2026-08-30",
+    updated: "2026-09-13",
   },
   {
     slug: "brand-entity",
@@ -880,6 +888,7 @@ export const LESSONS: Lesson[] = [
       "表記ゆれを1つのエンティティに束ねる実装と、構造化データに何を期待していいか（実測では引用は増えていない）",
       "第三者の文脈で「カテゴリ名＋ブランド名」を並べる方法と、外部言及がもっとも強い相関を示している海外調査",
       "引用される独自データの作り方。調査日・対象件数・調べ方の3点セット",
+      "料金・条件のように自社しか一次情報を持たない数値を、公式側で読める形にする",
       "指名想起の定点観測。同じ質問でも回答が揺れるため、複数回・2〜4週間の窓で記録する",
     ],
     minutes: 14,
@@ -890,6 +899,7 @@ export const LESSONS: Lesson[] = [
       "サイトの説明文が、トップ・OGP・運営者情報・llms.txtで同じ1文にそろっている",
       "第三者のページで「カテゴリ名＋ブランド名」が並んでいる箇所を3件以上挙げられる",
       "他社が引用できる独自データを1つ持ち、調査日・対象件数・調べ方を併記している",
+      "料金・条件の数値が、適用条件と最終改定日とともにHTMLの表で公式ページにある",
     ],
     faq: [
       {
@@ -921,7 +931,7 @@ export const LESSONS: Lesson[] = [
     sources: [S.ahrefsMentions, S.seerReviews, S.ahrefsSchema, S.measureOnce, S.geoPaper, S.structuredData, S.aiFeatures, S.helpful, S.spam],
     topics: ["ブランド", "エンティティ", "指名", "言及", "Reddit", "UGC", "口コミ", "レビュー", "知名度"],
     published: "2026-08-31",
-    updated: "2026-09-01",
+    updated: "2026-09-13",
   },
 ];
 
