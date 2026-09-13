@@ -11,6 +11,7 @@ import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { MAX_PAGES } from "@/lib/siteCrawl";
+import { DEEP_DEPTH } from "@/lib/siteStructure";
 import { STAGES } from "@/lib/siteReport";
 import { CONTAINER, HEADING, LINK, PADDING, SURFACE, TABLE, cx } from "@/lib/ui";
 
@@ -44,6 +45,14 @@ const FAQ: FaqItem[] = [
   {
     question: "どのページを検査していますか",
     answer: `robots.txt の Sitemap 行（無ければ /sitemap.xml）からURLを集め、取得できなければ入力されたページの内部リンクから集めます。そこから、入力URLとトップページを必ず入れたうえで、第1階層が散るように最大${MAX_PAGES}本を選びます。同じテンプレートのページを何本取っても同じ指摘しか出ないためです。検査したURLは結果の「検査したページ」に全部出しています。`,
+  },
+  {
+    question: "ディレクトリ構造も見ていますか",
+    answer: `見ています。サイトマップにあるURLを**1本も取得せずに**数え、階層の深さの分布、第1階層ごとの本数、${DEEP_DEPTH}階層以上のURL、分類として働いていない中間ディレクトリ（配下が1種類しかない階層）、役割が重なりそうな第1階層（/blog/ と /column/ の併存など）を出します。ページを取りに行かないので、URLが何千本あっても検査にかかる時間は変わりません。サイトマップが取得できないサイトでは出ません（内部リンクで見つかる数十本では形が出ないため）。`,
+  },
+  {
+    question: "リンク構造（孤立ページやクリック深度）も分かりますか",
+    answer: `分かりません。このツールが数えているのは「URLがどう並んでいるか」だけで、「どのページがどこからリンクされているか」は記録していません。それを出すにはサイト内の全ページを取得してリンクをたどる必要があり、1回の診断で最大${MAX_PAGES}ページという上限（＝実行時間と費用の上限）とは両立しないためです。本文中の内部リンクが少ないページの指摘は、検査した${MAX_PAGES}ページの範囲では出ます。`,
   },
   {
     question: "優先度はどう決めていますか",
@@ -98,6 +107,7 @@ export default function SiteReportToolPage() {
         <p className="leading-relaxed text-mute">
           点検すると、直す候補は数十件単位で出ます。出てきた順に上から直すと、後から「どれが効いたのか」も「本当に直ったのか」も言えなくなります。
           このツールは、サイトの代表ページを取得して検査し、同じ指摘を束ねたうえで、着手順の付いた提案書にして返します。
+          あわせて、サイトマップにあるURLを取得せずに数えて、ディレクトリ構造（階層の深さ・第1階層ごとの本数・働いていない中間階層）も出します。
           点数は出しません。<strong className="text-fg">下の段から片付ければよい状態</strong>にすることが目的です。
         </p>
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AREA_LABEL } from "@/lib/audit";
 import { MAX_PAGES } from "@/lib/siteCrawl";
 import { STAGES, stageDef, type Proposal, type SiteReportResult, type Stage } from "@/lib/siteReport";
+import { DEEP_DEPTH, type SiteStructure } from "@/lib/siteStructure";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, TABLE, button, cx } from "@/lib/ui";
 
 const STAGE_STYLE: Record<Stage, string> = {
@@ -70,6 +71,56 @@ function ProposalCard({ p, index }: { p: Proposal; index: number }) {
         </p>
       )}
     </article>
+  );
+}
+
+/**
+ * URLの構造。サイトマップの一覧を**取得せずに数えた**だけのもの。
+ * 合否は出さない（直すべき点は提案側に3段目として出る）。
+ */
+function StructurePanel({ s }: { s: SiteStructure }) {
+  const maxDepth = Math.max(...s.depths.map((d) => d.count), 1);
+  const maxSection = Math.max(...s.sections.map((x) => x.count), 1);
+  return (
+    <section className="print-keep space-y-3">
+      <h2 className={HEADING.section}>URLの構造</h2>
+      <p className="text-sm leading-relaxed text-mute">
+        サイトマップにある {s.total.toLocaleString()} 本のURLを、1本も取得せずに数えたものです。
+        <strong className="text-fg">どのページがどこからリンクされているか（リンク構造）は見ていません</strong>
+        ので、孤立ページやクリック数はここには出ません。
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className={cx(SURFACE.outline, PADDING.tight)}>
+          <p className={cx(EYEBROW.mute, "text-2xs")}>階層の深さ</p>
+          <ul className="mt-3 space-y-2">
+            {s.depths.map((d) => (
+              <li key={d.depth} className="flex items-center gap-3 text-sm">
+                <span className="w-14 shrink-0 text-xs text-mute">{d.depth === 0 ? "トップ" : `${d.depth}階層`}</span>
+                <span className="h-2 min-w-1 rounded-full bg-accent" style={{ width: `${(d.count / maxDepth) * 70}%` }} aria-hidden />
+                <span className="font-mono text-xs tabular-nums">{d.count.toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+          {s.deep.count > 0 && (
+            <p className="mt-3 border-t border-line pt-3 text-xs leading-relaxed text-mute">
+              {DEEP_DEPTH}階層以上: {s.deep.count.toLocaleString()} 本
+            </p>
+          )}
+        </div>
+        <div className={cx(SURFACE.outline, PADDING.tight)}>
+          <p className={cx(EYEBROW.mute, "text-2xs")}>第1階層ごとの本数</p>
+          <ul className="mt-3 space-y-2">
+            {s.sections.map((x) => (
+              <li key={x.name} className="flex items-center gap-3 text-sm">
+                <span className="w-28 shrink-0 truncate font-mono text-xs">{x.name === "/" ? "/" : `/${x.name}/`}</span>
+                <span className="h-2 min-w-1 rounded-full bg-fill-strong" style={{ width: `${(x.count / maxSection) * 55}%` }} aria-hidden />
+                <span className="font-mono text-xs tabular-nums">{x.count.toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -156,6 +207,8 @@ function Report({ r }: { r: SiteReportResult }) {
           <p className="leading-relaxed">検査したページに指摘はありませんでした。判定した項目はすべて満たしています。</p>
         </div>
       )}
+
+      {r.structure && <StructurePanel s={r.structure} />}
 
       {/* 検査したページ */}
       <section className="print-keep space-y-3">

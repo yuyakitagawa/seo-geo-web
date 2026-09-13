@@ -180,6 +180,8 @@ export async function POST(request: Request) {
       entryUrl: entry.finalUrl,
       discovery,
       foundUrls: candidates.length,
+      // 取得はしない。文字列を数えてディレクトリ構造を出すだけ（src/lib/siteStructure.ts）
+      sourceUrls: candidates,
       relatedHosts: links.relatedHosts,
       sitemap: { url: sitemapUrl, ok: sitemapOk },
       robotsOk: robotsTxt !== null,

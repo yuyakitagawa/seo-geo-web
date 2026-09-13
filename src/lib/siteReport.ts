@@ -9,6 +9,7 @@
 // 教科書とこのツールで段の意味や期間がずれると、読んだ人がどちらかを信じられなくなる。
 // 3段の分け方・1件6項目・「1段目はまとめて入れてよい」は当サイトの整理で、Googleの基準ではない。
 import { CHECKLIST, type Area, type AuditResult, type Finding, type Severity } from "./audit";
+import { analyzeStructure, DEEP_DEPTH, MIN_URLS, type SiteStructure } from "./siteStructure";
 
 /** 修正候補の段。下（1）から順に片付ける。基準は「影響の大きさ」ではなく「他の修正の前提になっているか」 */
 export type Stage = 1 | 2 | 3;
@@ -404,6 +405,11 @@ export type SiteReportInput = {
   discovery: "sitemap" | "links";
   /** 見つけたURLの総数（検査した数ではない） */
   foundUrls: number;
+  /**
+   * 収集元で見つけたURLの一覧。**取得はしない**（文字列を数えてディレクトリ構造を出すだけ）。
+   * サイトマップから取れたときだけ構造を数える。内部リンク由来の数十本では形が出ないため。
+   */
+  sourceUrls: string[];
   /** 内部リンクに出てくる同じ登録ドメインの別ホスト */
   relatedHosts: string[];
   sitemap: { url: string; ok: boolean };
@@ -429,6 +435,8 @@ export type SiteReportResult = {
   counts: Record<Stage, number>;
   sitemap: { url: string; ok: boolean };
   robotsOk: boolean;
+  /** URLの構造。サイトマップから十分な本数が取れたときだけ。リンク構造は含まない */
+  structure: SiteStructure | null;
 };
 
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, mid: 1, low: 2, ok: 3 };
@@ -653,9 +661,86 @@ function crossPageProposals(input: SiteReportInput, host: string): Proposal[] {
   return out;
 }
 
+/**
+ * ディレクトリ構造からの提案。**URLの並びだけ**から言えることに限る
+ * （どのページがどこからリンクされているかは数えていないので、孤立ページやクリック深度は出さない）。
+ * 3段目に置く。他の修正の前提ではなく、下の2段が済んでから効くため。
+ */
+function structureProposals(structure: SiteStructure, host: string): Proposal[] {
+  const out: Proposal[] = [];
+  const { total, deep, redundant, overlapping } = structure;
+
+  // 深い枝。少数なら形の問題ではないので、本数と割合の両方で見る
+  if (deep.count >= 5 && deep.count / total >= 0.2) {
+    out.push({
+      id: "site-deep-path",
+      stage: 3,
+      area: "seo",
+      severity: "low",
+      symptom: `トップから${DEEP_DEPTH}階層以上のURLが${deep.count}本ある（数えた${total}本のうち${Math.round((deep.count / total) * 100)}%）`,
+      detail:
+        "階層が深いほど、そこへ届く内部リンクは薄くなりやすい。深さそのものが順位を決めるわけではないが、深い枝ほど「どこからも案内されていないページ」が生まれやすい。",
+      scope: { text: `ホスト全体（${host}）。サイトマップで数えた${total}本のURL`, urls: deep.examples, count: deep.count },
+      cause: "カテゴリを入れ子にしている、日付や連番をパスに入れている、といったURLの設計。",
+      after: "同じテーマのページを1枚の一覧（ハブ）に束ね、そこから2クリックで届く形にする。パスを浅くするなら、旧URLは301で新URLへ寄せる。",
+      metric: `${DEEP_DEPTH}階層以上のURLの本数と、そこへの内部リンクの本数。3か月。`,
+    });
+  }
+
+  // 分類として働いていない中間ディレクトリ
+  if (redundant.length > 0) {
+    const first = redundant[0];
+    out.push({
+      id: "site-redundant-dir",
+      stage: 3,
+      area: "seo",
+      severity: "mid",
+      symptom: `中間ディレクトリの下に1種類しかぶら下がっていない（${first.path}/ の下は ${first.only}/ だけ）`,
+      detail: "その階層はURLを1つ長くしているだけで、分類として働いていない。読者にもクローラーにも区別を伝えていない。",
+      scope: {
+        text: `${redundant.length}か所のディレクトリ`,
+        urls: redundant.map((r) => `${r.path}/${r.only}/ … 配下 ${r.urls} 本`),
+        count: redundant.length,
+      },
+      cause: "将来の拡張を見込んで階層を先に作ったまま、増えていない。日付や年をパスに挟んでいる場合もここに出る。",
+      after:
+        "中間ディレクトリを外して1階層浅くする。URLを変えるなら旧URLは301で寄せ、内部リンクとサイトマップも同じ変更で直す。変えない判断でもよいが、その場合は他の階層と粒度を揃える。",
+      metric: "そのディレクトリ配下のURLが1階層浅くなり、旧URLがすべて301を返す。修正後すぐ確認できる。",
+    });
+  }
+
+  // 役割が重なりそうな第1階層。中身までは見ていないので断定しない
+  if (overlapping.length > 0) {
+    const pairs = overlapping.map((g) => g.map((name) => `/${name}/`).join(" と ")).join("、");
+    out.push({
+      id: "site-overlapping-section",
+      stage: 3,
+      area: "seo",
+      severity: "low",
+      symptom: `同じ役割に見える第1階層が並んでいる（${pairs}）`,
+      detail:
+        "同じテーマのページが2か所に分かれると、内部リンクも評価も分散する。読者にもどちらを見ればよいか伝わらない。ただしこの診断はURLの語だけを見ているので、中身が別物のこともある。",
+      scope: { text: `ホスト全体（${host}）`, urls: overlapping.flat().map((name) => `/${name}/`), count: overlapping.flat().length },
+      cause: "運用の途中でディレクトリを足し、古いほうを残している。CMSの既定のパスと自分で決めたパスが併存していることもある。",
+      after:
+        "中身を確かめて、同じ役割なら片方に寄せる（旧URLは301）。役割が違うなら、それぞれの一覧ページの冒頭で違いを1文で書き分ける。",
+      metric: "同じテーマのページが1つの階層に集まっている。寄せた側の旧URLがすべて301を返す。3か月。",
+    });
+  }
+
+  return out;
+}
+
 export function siteReport(input: SiteReportInput): SiteReportResult {
   const host = hostOf(input.entryUrl);
-  const proposals = [...bundle(input.pages, host), ...crossPageProposals(input, host)].sort(
+  // 構造はサイトマップから十分な本数が取れたときだけ数える（内部リンク由来の数十本では形が出ない）
+  const structure =
+    input.discovery === "sitemap" && input.sourceUrls.length >= MIN_URLS ? analyzeStructure(input.sourceUrls) : null;
+  const proposals = [
+    ...bundle(input.pages, host),
+    ...crossPageProposals(input, host),
+    ...(structure ? structureProposals(structure, host) : []),
+  ].sort(
     (a, b) => a.stage - b.stage || SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] || b.scope.count - a.scope.count,
   );
 
@@ -683,6 +768,7 @@ export function siteReport(input: SiteReportInput): SiteReportResult {
     counts,
     sitemap: input.sitemap,
     robotsOk: input.robotsOk,
+    structure,
   };
 }
 
