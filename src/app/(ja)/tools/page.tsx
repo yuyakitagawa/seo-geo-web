@@ -12,8 +12,8 @@ import { BADGE, CHIP, CONTAINER, HEADING, LINK, PADDING, SURFACE, button, cx } f
 import { Card, CardLink } from "@/components/ui";
 
 export const metadata: Metadata = {
-  title: "SEO・GEOツール比較一覧（国内・海外）",
-  description: "従来SEOツール（順位計測・キーワード調査・クロール監査）と、AI検索向けGEOツール（ChatGPT・Perplexity・AI Overviewでの可視性計測、AI対応診断）を国内外・料金・対象で比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
+  title: "SEO・GEO診断ツールとツール比較一覧（国内・海外）",
+  description: "登録不要で使える無料の診断ツール（ページ診断・プロンプト適合度チェッカー）と、従来SEOツール（順位計測・キーワード調査・クロール監査）・AI検索向けGEOツール（ChatGPT・Perplexity・AI Overviewでの可視性計測、AI対応診断）の国内外・料金・対象の比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
   alternates: { canonical: "/tools" },
 };
 
@@ -127,12 +127,12 @@ export default function ToolsPage() {
     <>
       <JsonLd data={itemListJsonLd} />
       {/* 更新日は掲載ツールの最終確認日。掲載内容が実際に変わるのはここだけ。 */}
-      <PageDatesJsonLd path="/tools" name="SEO・GEOツール比較一覧（国内・海外）" updated={updated} />
+      <PageDatesJsonLd path="/tools" name="SEO・GEO診断ツールとツール比較一覧（国内・海外）" updated={updated} />
       <PageHeader
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
-        title="SEO・GEOツール比較"
-        crumbs={[{ name: "ツール" }]}
-        lead="従来のSEOツールと、AI検索向けのGEOツールを1か所で比較します。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
+        title="SEO・GEO診断ツール"
+        crumbs={[{ name: "診断ツール" }]}
+        lead="登録不要で使える無料の診断ツールと、従来のSEOツール・AI検索向けのGEOツールの比較を1か所にまとめています。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
       />
       <div className={cx(CONTAINER.page, "space-y-14 pb-16")}>
         <nav aria-label="セクション" className="flex flex-wrap gap-2 text-sm">
@@ -145,7 +145,7 @@ export default function ToolsPage() {
 
         {/* 自作ツール。外部ツールの比較表より先に置く */}
         <section>
-          <h2 className={HEADING.section}>{SITE_NAME}の無料ツール</h2>
+          <h2 className={HEADING.section}>{SITE_NAME}の無料診断ツール</h2>
           <p className="mb-4 mt-1 text-sm text-mute">登録不要で使えます。判定の根拠は各ページに公式ドキュメントのリンクを添えています。</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {APP_TOOLS.map((t) => (

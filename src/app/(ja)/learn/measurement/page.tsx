@@ -326,7 +326,7 @@ export default function Lesson10() {
         <p>
           AI可視性ツールを契約する場合、確認すべきなのは<strong>自分で決めた質問を追跡できるか</strong>（カスタムプロンプトに対応しているか）です。
           ツールが用意した汎用の質問だけでは、自社が本当に出たい場面での可視性は測れません。
-          ツールの比較は<Link href="/tools">ツール一覧</Link>にまとめています。
+          ツールの比較は<Link href="/tools">診断ツール</Link>のページにまとめています。
         </p>
       </GuideSection>
 

@@ -27,7 +27,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
 | `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順＋「直す候補が大量に出たときの並べ方」＝3段の優先度と1件6項目の書式）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
-| `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
+| `/tools` | SEO・GEO診断ツール（表示名は「診断ツール」。ヘッダー・パンくず・H1・title・OGP・`src/lib/nav.ts` で統一。自作の無料診断ツールを先に置き、その下に他社ツールの比較。比較のデータは `content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
@@ -276,7 +276,7 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   記事MDXには渡していない（自動生成の記事が架空の管理画面を出さないようにするため）。
 
 ## サイト構成
-ナビは **SEO / GEO / ニュース / 教科書 / ツール** の5本。入口をこれだけに絞り、同じ記事群を持つ一覧を2種類作らない。
+ナビは **SEO / GEO / ニュース / 教科書 / 診断ツール** の5本。入口をこれだけに絞り、同じ記事群を持つ一覧を2種類作らない。
 - `/seo` `/geo` = 解説（ストック）＋そのカテゴリの記事一覧。一覧は「◯◯対策の解説」（`type: howto`）を上、「◯◯の最新記事」（`type: news`）を下に置く（`src/components/CategoryArticles.tsx`）。
 - `/news` = 全記事のアーカイブ。新着12本のカードの下に、公開月ごとに過去記事をカードで並べる（2026-09-11にテキスト行の一覧から変更）。
   アーカイブ側は**新着12本に出した記事を除く**（同じ記事のカードが2枚並ぶのを避ける）。カードは `ArticleCard` を
@@ -406,7 +406,7 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   | `src/app/(ja)/seo|geo/opengraph-image.tsx` | 解説ページ | 「SEO対策とは」「GEO対策とは」 |
   | `src/app/(ja)/learn/opengraph-image.tsx` | 教科書の目次と**14レッスン全部** | 「SEO・GEO教科書」 |
   | `src/app/(ja)/news/opengraph-image.tsx` | 記事アーカイブ | 「検索とAI検索のニュース」 |
-  | `src/app/(ja)/tools/opengraph-image.tsx` | ツール比較と自作ツール2本 | 「SEO・GEOツール比較」 |
+  | `src/app/(ja)/tools/opengraph-image.tsx` | 診断ツールとツール比較 | 「SEO・GEO診断ツール」 |
   | `src/app/(ja)/about/opengraph-image.tsx` | 運営者情報 | 「運営者情報」 |
   | `src/app/(en)/en/opengraph-image.tsx` | 英語版のトップ | 英語版の見出し |
   | `src/app/(en)/en/articles/[slug]/opengraph-image.tsx` | 英語版の記事ごと | 英語のタイトル |
