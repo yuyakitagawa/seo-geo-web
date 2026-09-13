@@ -59,16 +59,24 @@ async function assertPublicUrl(raw: string): Promise<URL> {
   return u;
 }
 
-/** リダイレクトを自分で追う。各ホップで公開URLかを検査する */
-export async function fetchChecked(raw: string, accept: string) {
+/**
+ * リダイレクトを自分で追う。各ホップで公開URLかを検査する。
+ * budgetMs は**リダイレクトを含めた合計**の上限。ホップごとに数え直すと、3回リダイレクトされた1本で
+ * 12秒×4＝48秒走り、呼び出し側の期限（api/site-report.ts の DEADLINE_MS）や Vercel の maxDuration を
+ * 超えて関数ごと落ちる（取れていたページも返せなくなる）。複数ページを取る呼び出しは残り時間を渡す。
+ */
+export async function fetchChecked(raw: string, accept: string, budgetMs = TIMEOUT_MS) {
   const redirects: string[] = [];
+  const until = Date.now() + Math.max(0, budgetMs);
   let current = raw;
   for (let redirectCount = 0; ; redirectCount++) {
     const u = await assertPublicUrl(current);
+    const remaining = until - Date.now();
+    if (remaining <= 0) throw new Error("取得がタイムアウトしました");
     const res = await fetch(u, {
       redirect: "manual",
       headers: { "user-agent": UA, accept },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(remaining),
     });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       if (redirectCount >= MAX_REDIRECTS) throw new Error("リダイレクトが多すぎます");

@@ -408,7 +408,11 @@ export type SiteReportInput = {
   relatedHosts: string[];
   sitemap: { url: string; ok: boolean };
   robotsOk: boolean;
-  pages: { url: string; result: AuditResult | null; status?: number; error?: string }[];
+  /**
+   * 検査したページ。`fromSource` は「サイトマップ／内部リンクで見つけたURLか」。
+   * 入力されたURLとトップページは収集元に無くても検査するので、収集元そのものへの指摘には数えない。
+   */
+  pages: { url: string; result: AuditResult | null; status?: number; error?: string; fromSource?: boolean }[];
   /** 作成日（YYYY-MM-DD）。テストで固定できるように受け取る */
   checkedAt: string;
 };
@@ -444,6 +448,11 @@ function pathOf(url: string): string {
   } catch {
     return url;
   }
+}
+
+/** ディレクトリのURLと重複しうる、ファイル名付きのパスか */
+function isIndexFile(path: string): boolean {
+  return /\/index\.(html?|php)$/i.test(path);
 }
 
 /** 「対象の範囲」の文。1本のURLか、テンプレート単位か、ホスト全体かを書き分ける */
@@ -492,7 +501,7 @@ function bundle(pages: { url: string; result: AuditResult | null }[], host: stri
 /** 1ページずつの検査では出せない指摘。複数ページを突き合わせて初めて分かるものだけをここで出す */
 function crossPageProposals(input: SiteReportInput, host: string): Proposal[] {
   const out: Proposal[] = [];
-  const checked = input.pages.filter((p) => p.result !== null) as { url: string; result: AuditResult }[];
+  const checked = input.pages.filter((p) => p.result !== null) as { url: string; result: AuditResult; fromSource?: boolean }[];
   const total = checked.length;
   if (total === 0) return out;
 
@@ -563,8 +572,13 @@ function crossPageProposals(input: SiteReportInput, host: string): Proposal[] {
     });
   }
 
-  // /index.html とディレクトリURLの両方がある
-  const indexPages = checked.filter((p) => /\/index\.(html?|php)$/i.test(pathOf(p.result.finalUrl)));
+  // ファイル名付きのURL（/index.html）。ディレクトリURL側は取得していないので「両方が200で返る」とは断定しない
+  // （取得本数を増やさないため）。canonical がディレクトリURLを指していれば一本化済みなので出さない。
+  const indexPages = checked.filter((p) => {
+    if (!isIndexFile(pathOf(p.result.finalUrl))) return false;
+    const canonical = p.result.meta.canonical;
+    return canonical === null || isIndexFile(pathOf(canonical));
+  });
   if (indexPages.length > 0) {
     const urls = indexPages.map((p) => p.url);
     out.push({
@@ -572,18 +586,20 @@ function crossPageProposals(input: SiteReportInput, host: string): Proposal[] {
       stage: 1,
       area: "tech",
       severity: "mid",
-      symptom: "/index.html のURLが、ディレクトリのURLと別に取得できる",
-      detail: "同じ内容が2つのURLで返り、リンクと評価が分かれる。",
+      symptom: "ファイル名付きのURL（/index.html）が、そのページの正規URLになっている",
+      detail:
+        "多くのサーバーは、ディレクトリのURL（末尾スラッシュ）とファイル名付きのURLの両方を200で返す。両方が返るなら同じ内容が2つのURLに分かれる。この診断はディレクトリ側を取得していないので、まず両方を開いて同じ内容かを確かめる。",
       scope: { text: scopeText("server", urls.length, total, host), urls, count: urls.length },
-      cause: "サーバーがディレクトリと index ファイルの両方を200で返している。ファイル名付きのURLが内部リンクやサイトマップに残っていることが多い。",
-      after: "ディレクトリのURLを正とし、/index.html は301でそこへ寄せる。内部リンクとサイトマップからもファイル名付きのURLを消す。",
+      cause: "ファイル名付きのURLが内部リンクやサイトマップに残っている。ディレクトリと index ファイルの両方をサーバーが返す設定のことが多い。",
+      after: "ディレクトリのURLを正と決め、canonical をそちらに向ける。ファイル名付きのURLは301で寄せ、内部リンクとサイトマップからも消す。",
       afterCode: "RewriteRule ^(.*)index\\.html$ /$1 [R=301,L]",
-      metric: "/index.html が301を返し、サイトマップに1本も残っていない。修正後すぐ確認できる。",
+      metric: "ディレクトリURLとファイル名付きURLの両方を取得して、後者が301を返す（または canonical がディレクトリURLを指す）。修正後すぐ確認できる。",
     });
   }
 
-  // 収集元に残っている旧URL（取得したらリダイレクトされた）
-  const redirected = checked.filter((p) => p.result.redirects.length > 0);
+  // 収集元に残っている旧URL（取得したらリダイレクトされた）。
+  // 入力されたURLは収集元に載っていたとは限らないので、ここでは数えない（数えると「サイトマップに旧URLがある」が嘘になる）。
+  const redirected = checked.filter((p) => p.fromSource && p.result.redirects.length > 0);
   if (redirected.length > 0) {
     const where = input.discovery === "sitemap" ? "サイトマップ" : "内部リンク";
     out.push({

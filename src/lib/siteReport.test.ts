@@ -22,7 +22,7 @@ function result(over: { url?: string; head?: string; body?: string; redirects?: 
   return audit(input);
 }
 
-function input(pages: { url: string; result: AuditResult | null; error?: string }[], over: Partial<SiteReportInput> = {}): SiteReportInput {
+function input(pages: { url: string; result: AuditResult | null; error?: string; fromSource?: boolean }[], over: Partial<SiteReportInput> = {}): SiteReportInput {
   return {
     entryUrl: "https://example.com/",
     discovery: "sitemap",
@@ -103,19 +103,40 @@ test("canonical の指すホストが分かれていたら1段目で出す", () 
   assert.match(mixed.symptom, /www\.example\.com/);
 });
 
-test("/index.html が取得できたら重複として出す", () => {
+test("/index.html が正規URLになっていたら出す", () => {
   const pages = [{ url: "https://example.com/dir/index.html", result: result({ url: "https://example.com/dir/index.html" }) }];
   const report = siteReport(input(pages));
-  assert.ok(report.proposals.find((p) => p.id === "site-index-html"));
+  const dup = report.proposals.find((p) => p.id === "site-index-html");
+  assert.ok(dup);
+  assert.match(dup.detail, /この診断はディレクトリ側を取得していない/, "取得していない事実を断定せずに書くこと");
+});
+
+test("canonical がディレクトリURLを指していれば /index.html の指摘は出さない", () => {
+  const pages = [
+    {
+      url: "https://example.com/dir/index.html",
+      result: result({ url: "https://example.com/dir/index.html", head: `${HEAD}<link rel="canonical" href="https://example.com/dir/">` }),
+    },
+  ];
+  const report = siteReport(input(pages));
+  assert.equal(report.proposals.find((p) => p.id === "site-index-html"), undefined, "既に一本化されているものを指摘しない");
 });
 
 test("リダイレクトされるURLが収集元に残っていたら旧URLとして出す", () => {
-  const pages = [{ url: "https://example.com/old", result: result({ url: "https://example.com/new", redirects: ["https://example.com/new"] }) }];
+  const pages = [{ url: "https://example.com/old", fromSource: true, result: result({ url: "https://example.com/new", redirects: ["https://example.com/new"] }) }];
   const report = siteReport(input(pages));
   const legacy = report.proposals.find((p) => p.id === "site-legacy-url");
   assert.ok(legacy);
   assert.match(legacy.symptom, /サイトマップ/);
   assert.equal(report.pages[0].redirected, true);
+});
+
+test("入力されたURLがリダイレクトされただけでは、収集元に旧URLがあるとは言わない", () => {
+  // 入力URLはサイトマップにも内部リンクにも載っていないことがある（fromSource が付かない）
+  const pages = [{ url: "https://example.com/entry", result: result({ url: "https://example.com/new", redirects: ["https://example.com/new"] }) }];
+  const report = siteReport(input(pages));
+  assert.equal(report.proposals.find((p) => p.id === "site-legacy-url"), undefined);
+  assert.equal(report.pages[0].redirected, true, "一覧にはリダイレクトされた事実を出す");
 });
 
 test("一部のページだけ noindex なら出し、全ページなら出さない", () => {

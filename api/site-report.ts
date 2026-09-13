@@ -9,7 +9,7 @@
 // どれを外しても、関数の実行時間がそのまま費用になる。
 import { audit, type AuditResult } from "../src/lib/audit";
 import { logAudit } from "../src/lib/audit-log";
-import { fetchChecked, readCapped } from "../src/lib/fetchPage";
+import { fetchChecked, readCapped, TIMEOUT_MS } from "../src/lib/fetchPage";
 import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
 import { parseRobots } from "../src/lib/robots";
 import { CONCURRENCY, DEADLINE_MS, extractLinks, MAX_PAGES, parseSitemap, pickPages } from "../src/lib/siteCrawl";
@@ -105,6 +105,9 @@ export async function POST(request: Request) {
     const discovery: "sitemap" | "links" = sameOriginSitemapUrls.length > 0 ? "sitemap" : "links";
     const candidates = discovery === "sitemap" ? sameOriginSitemapUrls : links.internal;
     const targets = pickPages(entry.finalUrl, candidates, MAX_PAGES);
+    // 入力されたURLとトップページは候補に無くても必ず検査する。「サイトマップや内部リンクに残った旧URL」の
+    // 指摘は収集元に載っていたURLだけが対象なので、どちらから来たURLかをここで分けておく。
+    const fromSource = new Set(candidates);
 
     const auditOne = (input: {
       url: string;
@@ -128,6 +131,7 @@ export async function POST(request: Request) {
     const pages: SiteReportInput["pages"] = [
       {
         url: entry.finalUrl,
+        fromSource: fromSource.has(entry.finalUrl),
         result: auditOne({
           url,
           finalUrl: entry.finalUrl,
@@ -144,14 +148,17 @@ export async function POST(request: Request) {
     const rest = targets.filter((t) => t !== entry.finalUrl);
     const fetched = await mapLimit(rest, CONCURRENCY, async (target): Promise<SiteReportInput["pages"][number]> => {
       // 期限を過ぎたら取りに行かない。取れた分だけで提案書を作る
-      if (Date.now() > deadline) return { url: target, result: null, error: "時間内に検査できませんでした" };
+      const left = deadline - Date.now();
+      if (left <= 0) return { url: target, fromSource: fromSource.has(target), result: null, error: "時間内に検査できませんでした" };
       const at = Date.now();
       try {
-        const { res, finalUrl, redirects } = await fetchChecked(target, HTML_ACCEPT);
+        // 残り時間を渡す。取得1本が期限をまたいで走り続けると、関数ごと落ちて取れた分も返せない
+        const { res, finalUrl, redirects } = await fetchChecked(target, HTML_ACCEPT, Math.min(TIMEOUT_MS, left));
         const body = await readCapped(res);
-        if (body.truncated) return { url: target, result: null, status: res.status, error: "HTMLが大きすぎます（上限2MB）" };
+        if (body.truncated) return { url: target, fromSource: fromSource.has(target), result: null, status: res.status, error: "HTMLが大きすぎます（上限2MB）" };
         return {
           url: target,
+          fromSource: fromSource.has(target),
           result: auditOne({
             url: target,
             finalUrl,
@@ -164,7 +171,7 @@ export async function POST(request: Request) {
           }),
         };
       } catch (e) {
-        return { url: target, result: null, error: errorMessage(e) };
+        return { url: target, fromSource: fromSource.has(target), result: null, error: errorMessage(e) };
       }
     });
     pages.push(...fetched);

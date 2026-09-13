@@ -103,7 +103,7 @@ function Report({ r }: { r: SiteReportResult }) {
               {failed > 0 && <span className="text-mute">（取得できなかったページ {failed}）</span>}
               <span className="text-mute">
                 {" "}
-                / {r.discovery === "sitemap" ? "サイトマップ" : "トップページの内部リンク"}から {r.foundUrls.toLocaleString()} 本を検出
+                / {r.discovery === "sitemap" ? "サイトマップ" : "入力したページの内部リンク"}から {r.foundUrls.toLocaleString()} 本を検出
               </span>
             </dd>
           </div>
@@ -242,7 +242,7 @@ export default function SiteReport() {
           </button>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-mute">
-          トップページでも下層ページでも構いません。サイトマップ（無ければトップページの内部リンク）から最大{MAX_PAGES}ページを取得して検査します。
+          トップページでも下層ページでも構いません。サイトマップ（取得できなければ入力したページの内部リンク）から最大{MAX_PAGES}ページを取得して検査します。
           結果が出るまで20〜40秒ほどかかります。
         </p>
         {error && (
