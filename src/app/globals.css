@@ -106,3 +106,22 @@ body {
     linear-gradient(to bottom, color-mix(in srgb, currentColor 7%, transparent) 1px, transparent 1px);
   background-size: 48px 48px;
 }
+
+/* 提案書の印刷（ブラウザの「PDFに保存」で社外に渡す前提）。
+   画面の共通部分と操作要素を落とし、1件の提案が改ページで割れないようにするだけ。
+   印刷用の別レイアウトは作らない（画面と紙で内容がずれると、どちらを信じるか分からなくなる）。 */
+@media print {
+  header,
+  footer,
+  ins.adsbygoogle,
+  .no-print {
+    display: none !important;
+  }
+  html { scroll-behavior: auto; }
+  body { background: #fff; }
+  /* 1件の提案・1枚のカードは途中で改ページしない */
+  .print-keep { break-inside: avoid; page-break-inside: avoid; }
+  /* コードは紙幅で折り返す（横スクロールは紙に出ない） */
+  pre { white-space: pre-wrap; word-break: break-all; overflow: visible !important; }
+  a { text-decoration: none; }
+}

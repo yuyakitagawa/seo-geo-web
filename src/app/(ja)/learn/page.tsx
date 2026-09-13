@@ -308,7 +308,8 @@ export default function LearnPage() {
             caption={
               <>
                 項目はこのサイトの<Link href="/tools/page-audit">ページ診断</Link>が出す形（症状・該当箇所・修正方針・修正後・出典）と同じ考え方です。
-                並べ方は当サイトの整理です。
+                並べ方は当サイトの整理です。サイトのURLを入れると、この3段と6項目のまま提案書にして返す
+                <Link href="/tools/site-report">サイト修正提案書</Link>も用意しています。
               </>
             }
           />
