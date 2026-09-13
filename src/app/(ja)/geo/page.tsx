@@ -324,7 +324,7 @@ export default function GeoGuidePage() {
             ]}
           />
           <p>
-            AI可視性計測ツールの一覧と料金は、<a href="/tools">SEO・GEOツール比較</a>のページにまとめています。
+            AI可視性計測ツールの一覧と料金は、<a href="/tools">SEO・GEO診断ツール</a>のページにまとめています。
           </p>
         </GuideSection>
 
@@ -359,7 +359,7 @@ export default function GeoGuidePage() {
           links={[
             { href: "/learn", label: "SEO・GEO教科書（14レッスン）", note: "定義の次に読む教科書。基礎→実装→運用の順に、到達チェックリストと実例つきで積み上げる。" },
             { href: "/seo", label: "SEO対策とは", note: "定義、検索Botの3分類、3つの領域、Googleが公式に示す基準。" },
-            { href: "/tools", label: "SEO・GEOツール比較", note: "AI可視性計測ツールとAI対応診断ツールを国内外で比較。" },
+            { href: "/tools", label: "SEO・GEO診断ツール", note: "無料のページ診断と、AI可視性計測・AI対応診断ツールの国内外比較。" },
             { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで引ける。" },
             { href: "/about", label: "運営者情報", note: "サイトの運営方針、収集元の一次情報源、よくある質問。" },
           ]}

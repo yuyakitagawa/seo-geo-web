@@ -91,7 +91,7 @@ export default function SiteReportToolPage() {
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
         lead="サイトのURLを入れると、代表ページを検査して「何から直すか」を優先度つきで並べた提案書にまとめます。"
-        crumbs={[{ name: "ツール", href: "/tools" }, { name: "サイト修正提案書" }]}
+        crumbs={[{ name: "診断ツール", href: "/tools" }, { name: "サイト修正提案書" }]}
       />
 
       <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>

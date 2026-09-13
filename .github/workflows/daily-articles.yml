@@ -63,6 +63,22 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
+      # 過去記事への内部リンクの補充。教科書のレッスンや用語集が増えると、過去記事から張れるリンクも増えるので毎日かけ直す。
+      # **本文の文言は1字も変えない**（既に本文にある語を [語](/path) で包むだけ。判定は src/lib/internalLinks.ts）。
+      # 1記事あたり3本で打ち切るので、張り終わった記事は何度走らせても差分が出ない（毎日の差分は自然に0へ収束する）。
+      # 生成の後に置くのは、この日できた記事にも同じ上限で足すため。壊れたMDXは後続の本番ビルドで止まる。
+      - name: 過去記事に内部リンクを差し込む
+        run: |
+          npx tsx scripts/internal-links.ts --write > /tmp/links.log
+          cat /tmp/links.log
+          {
+            echo '### 内部リンクの補充'
+            echo ''
+            echo '```'
+            cat /tmp/links.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: 差分の有無
         id: diff
         run: |
@@ -85,10 +101,17 @@ jobs:
 
       - name: 公開（main へ反映）
         if: steps.diff.outputs.changed == 'true'
+        env:
+          NEW_ARTICLES: ${{ steps.diff.outputs.articles }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: 記事を自動生成して公開"
+          # 記事が1本も増えていない回（候補リストの更新と内部リンクの補充だけ）は、そう書く。
+          if [ -n "$NEW_ARTICLES" ]; then
+            git commit -m "chore: 記事を自動生成して公開"
+          else
+            git commit -m "chore: 候補リストと内部リンクを更新"
+          fi
           git pull --rebase origin main
           git push origin HEAD:main
 

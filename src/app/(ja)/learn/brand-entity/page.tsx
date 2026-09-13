@@ -280,7 +280,7 @@ export default function Lesson13() {
         />
         <p>
           記録は同じ質問文でそろえ、会話の履歴が残らない状態で投げます。
-          手作業での確認に加えて、可視性を継続測定するツールもあります（<Link href="/tools">SEO・GEOツール</Link>）。
+          手作業での確認に加えて、可視性を継続測定するツールもあります（<Link href="/tools">SEO・GEO診断ツール</Link>）。
           数値の読み方と改善サイクルの回し方は<Link href={lessonPath("measurement")}>レッスン{lessonNo("measurement")}</Link>と同じで、
           4週間ごとに確認する枠にこの3段階を足す形になります。窓の長さをそろえておくと、両方を同じ表で読めます。
         </p>
