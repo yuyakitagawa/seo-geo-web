@@ -24,10 +24,10 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの過去記事（すべてカード） |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
-| `/glossary` | SEO・GEO用語集。41語を5分野に分け、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts` |
+| `/glossary` | SEO・GEO用語集。80語を5分野に分け（2026-09-13に41語→80語。「seo用語集」で98.6位だったため。`docs/progress_gsc-2026-09.md`）、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts`、崩れやすい約束（定義は1文・その語を含む・出典は確認済みドメイン）は `src/lib/glossary.test.ts` が見張る |
 | `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順＋「直す候補が大量に出たときの並べ方」＝3段の優先度と1件6項目の書式）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
-| `/tools` | SEO・GEO診断ツール（表示名は「診断ツール」。ヘッダー・パンくず・H1・title・OGP・`src/lib/nav.ts` で統一。自作の無料診断ツールを先に置き、その下に他社ツールの比較。比較のデータは `content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
+| `/tools` | SEO・GEO診断ツール（表示名は「診断ツール」。ヘッダー・パンくず・H1・title・OGP・`src/lib/nav.ts` で統一。自作の無料診断ツールを先に置き、その下に**全件の比較表**（GEO／SEOの2枚。ツール・提供元・種別・料金・無料枠・対象）、さらにその下に1件ずつのカード。比較表をカードより前に置くのは「◯◯ツール 比較」で来た人が最初に見たいのが横並びの一覧だから（2026-09-13追加。`docs/progress_gsc-2026-09.md`）。比較のデータは `content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
@@ -44,9 +44,16 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
       ↓ npm run generate N [--publish]
                                 「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
                                 --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
-      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→pick→generate --publish→generate-howto→links --write→本番ビルド検証→main へ push
+                                **pick と generate は手動のみ**（2026-09-13〜。下記「news の自動生成は止めた」）
+      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→generate-howto→links --write→本番ビルド検証→main へ push
                                 （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
 ```
+### news の自動生成は止めた（2026-09-13〜）
+Search Console の3か月分（`docs/progress_gsc-2026-09.md`）で、**記事84本の表示合計85回に対し `/tools` と `/glossary` の2枚だけで139回**だった。
+RSS起点のフロー記事は出典元と同じクエリに並ぶだけで、表示にも順位にも出ていない。毎朝の `pick`→`generate` を外し、
+`workflow_dispatch` で `count` を指定したときだけ動くようにした（既定は `0`）。**`collect` は毎朝そのまま回す**
+（`content/candidates.csv` は /tools の「ツール検知」と話題の把握に使うため）。手で出したいときは `npm run pick -- 1 && npm run generate -- 1 --publish`。
+
 **話題スコア**: 検索専門の公式ソース+3（その他公式+1）、同じ話題を報じた他ソース数×2（上限+6。タイトルの語の重なりでクラスタ化）、3日以内+1、テーマ語の一致数（上限3）、ツール発表+2。
 **自動採用の基準**（`scripts/pick.ts`）: スコア2以上・公開21日以内・「ツール検知」メモなし（PR配信のツール発表は /tools の材料で記事にしない）。
 すでに「公開」「採用」にした話題と語が重なるものは選ばない（別ソースが報じた同じ発表の二重記事を防ぐ）。
@@ -172,7 +179,7 @@ npm run links -- --max=2   # 1記事あたりの本数（既定3）
 
 | 系統 | 作り方 | frontmatter |
 |---|---|---|
-| 海外翻訳＋解説 | RSS起点。毎朝1本を自動生成（`scripts/generate.ts`）。日本市場への翻訳・手順化・判断基準が本文の半分以上（`DEPTH_RULES`） | `original` なし |
+| 海外翻訳＋解説 | RSS起点。**手動のみ**（2026-09-13に毎朝の自動生成を停止）。`scripts/generate.ts`。日本市場への翻訳・手順化・判断基準が本文の半分以上（`DEPTH_RULES`） | `original` なし |
 | 独自記事 | 自分で取ったログ・実測・検証。**手動**。自動パイプラインからは出ない | `original: true`（「独自」バッジが出る） |
 
 ### 独自記事の英語版（/en）

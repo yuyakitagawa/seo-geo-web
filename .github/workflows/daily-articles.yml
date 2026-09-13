@@ -1,4 +1,5 @@
-# 毎日 JST 7:00 にRSSを巡回し、候補を自動採用してClaudeで記事を書き、本番ビルドが通ったら main に直接pushする（=公開）。
+# 毎日 JST 7:00 にRSSを巡回し、HOW TO記事（テーマ表に「採用」があるときだけ）をClaudeで書き、本番ビルドが通ったら main に直接pushする（=公開）。
+# news（RSS起点のフロー記事）の自動生成は 2026-09-13 に停止した（理由は docs/progress_gsc-2026-09.md）。手動実行で count を指定したときだけ動く。
 # 人のレビューは挟まない。品質の関門は scripts/generate.ts の validate() と、この workflow の本番ビルドの2つ。
 name: daily-articles
 
@@ -8,8 +9,8 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: "生成するニュース記事数"
-        default: "1"
+        description: "生成するニュース記事数（0で生成しない。定期実行では常に0扱い）"
+        default: "0"
       draft:
         description: "draft:true のまま止める（公開しない）"
         type: boolean
@@ -47,17 +48,24 @@ jobs:
       - name: 候補を収集
         run: npx tsx scripts/collect.ts
 
-      - name: 記事にする候補を自動採用
-        run: npx tsx scripts/pick.ts ${{ inputs.count || 1 }}
+      # news（RSS起点のフロー記事）の自動生成は 2026-09-13 に停止した。
+      # Search Consoleの3か月分（docs/progress_gsc-2026-09.md）で、記事84本の表示合計85回に対し
+      # /tools と /glossary の2枚だけで139回。出典元と同じクエリに並ぶだけのフロー記事は
+      # 表示にも順位にも出ていない。collect は残す（ツール検知と話題の把握に使うため）。
+      # 大きなニュースを手で出したいときは workflow_dispatch から count を指定して回す。
+      - name: 記事にする候補を自動採用（手動実行のときだけ）
+        if: github.event_name == 'workflow_dispatch' && inputs.count != '0'
+        run: npx tsx scripts/pick.ts ${{ inputs.count }}
 
-      - name: ニュース記事を生成
-        run: npx tsx scripts/generate.ts ${{ inputs.count || 1 }} ${{ inputs.draft == true && '--draft' || '--publish' }}
+      - name: ニュース記事を生成（手動実行のときだけ）
+        if: github.event_name == 'workflow_dispatch' && inputs.count != '0'
+        run: npx tsx scripts/generate.ts ${{ inputs.count }} ${{ inputs.draft == true && '--draft' || '--publish' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       # HOW TO（ストック記事）。テーマと出典は人が content/howto-topics.csv に書き、「採用」を付けたものだけが対象。
       # 「採用」が1件も無い日は何もせず正常終了するので、無条件に置いてよい（テーマ表が空なら自然に止まる）。
-      # news をRSSから量産しても出典元と同じクエリに並ぶだけなので、日次の枠はこちら側に寄せてある。
+      # news をRSSから量産しても出典元と同じクエリに並ぶだけなので、日次の枠はこちらだけにしてある（2026-09-13〜）。
       - name: HOW TO記事を生成（テーマ表に「採用」があるときだけ）
         run: npx tsx scripts/generate-howto.ts 1 ${{ inputs.draft == true && '--draft' || '--publish' }}
         env:
