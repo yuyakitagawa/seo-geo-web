@@ -28,6 +28,18 @@ test("内部リンクと、同じ登録ドメインの別ホストを分けて�
   assert.deepEqual(relatedHosts, ["home.example.co.jp"]);
 });
 
+test("本文からのリンクは、ナビ・フッターの外だけを数える", () => {
+  const html = `
+    <header><a href="/logo">ロゴ</a></header>
+    <nav><a href="/nav-only">ナビだけ</a></nav>
+    <main><a href="/body">本文</a><a href="/nav-only">本文にもある</a></main>
+    <aside><a href="/side">サイド</a></aside>
+    <footer><a href="/footer-only">フッターだけ</a></footer>`;
+  const { internal, bodyInternal } = extractLinks(html, "https://example.com/");
+  assert.equal(internal.length, 5, "全体では5本");
+  assert.deepEqual(bodyInternal, ["https://example.com/body", "https://example.com/nav-only"]);
+});
+
 test("入口URLとトップページを必ず入れ、ディレクトリが散るように選ぶ", () => {
   const candidates = [
     "https://example.com/news/1",

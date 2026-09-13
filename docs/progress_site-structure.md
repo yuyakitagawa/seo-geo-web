@@ -22,3 +22,27 @@
 - [x] `/tools/site-report` のFAQに「ディレクトリ構造は見る／リンク構造は見ない」を明記
 - [x] README・CLAUDE.md・apps.ts
 - [x] `npm run typecheck && npm test && npm run lint && npm run verify:api && npm run build`
+
+## リンク構造（2026-09-13 追記）
+ディレクトリ構造に続けて、**オプション**でリンク構造も調べられるようにした。
+
+### 決めたこと
+- **既定はオフ**。チェックを入れたときだけ最大80ページをたどる。取得ページ数＝実行時間＝費用なので、
+  増える実行を利用者が選んだときだけ起こす。`MAX_PAGES`=8 の設計はそのまま残る。
+- **クロールしたページは `audit()` にかけない**。リンクを取るだけにして、判定は今までどおり8ページ。
+  80ページ分の判定をすると、取得の待ち時間ではなくCPU時間で上限に当たる。
+- **深さではなくページ数で制御する**。「5階層まで」だと、トップに100本リンクがあるサイトで
+  2階層目だけで100ページ、3階層目で数千ページになり、実行時間が読めない。
+- **打ち切ったら断定しない**。上限で止めた場合、その先にリンクがあったかは分からない。
+  「どこからもリンクされていない」は候補として出し、`truncated` を結果に必ず載せる。
+- **回数制限をこの実行だけ1分1回に絞る**（既定は2回）。
+- ナビ・ヘッダー・フッター・サイドバーのリンクは「本文からの案内」に数えない。
+
+### ステップ
+- [x] `extractLinks` に `bodyInternal`（ナビ等の外のリンク）を足す
+- [x] `src/lib/linkGraph.ts`（被リンク・クリック深度・孤立候補・リンク切れ）＋テスト8件
+- [x] `siteCrawl.ts`: `CRAWL_MAX_PAGES` / `CRAWL_CONCURRENCY` / `CRAWL_DEADLINE_MS` / `AUDIT_DEADLINE_WITH_LINKS_MS` / `normalizeUrlKey`
+- [x] `api/site-report.ts`: `links: true` のときだけ幅優先クロール。期限を前半（判定）と後半（クロール）で分ける
+- [x] `siteReport.ts`: `linkGraphProposals()`（リンク切れは1段目、孤立・本文リンク無し・被リンク薄は3段目）
+- [x] UI: チェックボックスと「リンク構造」セクション
+- [x] FAQ・README・CLAUDE.md・apps.ts

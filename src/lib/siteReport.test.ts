@@ -28,6 +28,7 @@ function input(pages: { url: string; result: AuditResult | null; error?: string;
     discovery: "sitemap",
     foundUrls: pages.length,
     sourceUrls: [],
+    linkGraph: null,
     relatedHosts: [],
     sitemap: { url: "https://example.com/sitemap.xml", ok: true },
     robotsOk: true,
@@ -240,4 +241,60 @@ test("役割が重なりそうな第1階層を提案に出す", () => {
   const overlap = report.proposals.find((p) => p.id === "site-overlapping-section");
   assert.ok(overlap);
   assert.match(overlap.detail, /中身が別物のこともある/, "断定しないこと");
+});
+
+/** リンク構造のテスト用。既定はすべて空 */
+function graph(over: Partial<import("./linkGraph").LinkGraph> = {}): import("./linkGraph").LinkGraph {
+  return { crawled: 10, truncated: false, depths: [], weak: [], navOnly: [], orphanCandidates: [], broken: [], ...over };
+}
+
+test("リンク構造を渡さなければ、その提案は出ない", () => {
+  const report = siteReport(input([{ url: "https://example.com/a", result: result() }]));
+  assert.equal(report.linkGraph, null);
+  assert.equal(report.proposals.find((p) => p.id === "site-orphan"), undefined);
+});
+
+test("200以外を返す内部リンクは1段目で出す", () => {
+  const report = siteReport(
+    input([{ url: "https://example.com/a", result: result() }], {
+      linkGraph: graph({ broken: [{ url: "https://example.com/gone", status: 404, from: ["https://example.com/"] }] }),
+    }),
+  );
+  const broken = report.proposals.find((p) => p.id === "site-broken-link");
+  assert.ok(broken);
+  assert.equal(broken.stage, 1);
+  assert.equal(broken.severity, "high");
+});
+
+test("打ち切ったときは孤立を断定しない", () => {
+  const report = siteReport(
+    input([{ url: "https://example.com/a", result: result() }], {
+      linkGraph: graph({ truncated: true, orphanCandidates: ["https://example.com/lonely"] }),
+    }),
+  );
+  const orphan = report.proposals.find((p) => p.id === "site-orphan");
+  assert.ok(orphan);
+  assert.match(orphan.symptom, /辿った範囲では/);
+  assert.match(orphan.detail, /可能性が残る/);
+});
+
+test("全ページ辿れたときは孤立と言い切る", () => {
+  const report = siteReport(
+    input([{ url: "https://example.com/a", result: result() }], {
+      linkGraph: graph({ truncated: false, orphanCandidates: ["https://example.com/lonely"] }),
+    }),
+  );
+  const orphan = report.proposals.find((p) => p.id === "site-orphan");
+  assert.ok(orphan);
+  assert.match(orphan.symptom, /どこからもリンクされていないページが1本ある/);
+});
+
+test("本文から案内されていないページと、被リンクが薄いページを3段目で出す", () => {
+  const report = siteReport(
+    input([{ url: "https://example.com/a", result: result() }], {
+      linkGraph: graph({ navOnly: ["https://example.com/x"], weak: [{ url: "https://example.com/y", inbound: 1 }] }),
+    }),
+  );
+  assert.equal(report.proposals.find((p) => p.id === "site-nav-only")?.stage, 3);
+  assert.equal(report.proposals.find((p) => p.id === "site-weak-inbound")?.stage, 3);
 });

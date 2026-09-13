@@ -9,6 +9,7 @@
 // 教科書とこのツールで段の意味や期間がずれると、読んだ人がどちらかを信じられなくなる。
 // 3段の分け方・1件6項目・「1段目はまとめて入れてよい」は当サイトの整理で、Googleの基準ではない。
 import { CHECKLIST, type Area, type AuditResult, type Finding, type Severity } from "./audit";
+import { WEAK_INBOUND, type LinkGraph } from "./linkGraph";
 import { analyzeStructure, DEEP_DEPTH, MIN_URLS, type SiteStructure } from "./siteStructure";
 
 /** 修正候補の段。下（1）から順に片付ける。基準は「影響の大きさ」ではなく「他の修正の前提になっているか」 */
@@ -410,6 +411,8 @@ export type SiteReportInput = {
    * サイトマップから取れたときだけ構造を数える。内部リンク由来の数十本では形が出ないため。
    */
   sourceUrls: string[];
+  /** リンク構造。「リンク構造も調べる」を選んだときだけ入る（既定は null） */
+  linkGraph: LinkGraph | null;
   /** 内部リンクに出てくる同じ登録ドメインの別ホスト */
   relatedHosts: string[];
   sitemap: { url: string; ok: boolean };
@@ -437,6 +440,8 @@ export type SiteReportResult = {
   robotsOk: boolean;
   /** URLの構造。サイトマップから十分な本数が取れたときだけ。リンク構造は含まない */
   structure: SiteStructure | null;
+  /** リンク構造。選ばれたときだけ */
+  linkGraph: LinkGraph | null;
 };
 
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, mid: 1, low: 2, ok: 3 };
@@ -731,6 +736,92 @@ function structureProposals(structure: SiteStructure, host: string): Proposal[] 
   return out;
 }
 
+/**
+ * リンク構造からの提案。**クロールした範囲でしか言えない**ので、
+ * 上限で打ち切ったとき（truncated）は「候補」と書き、断定しない。
+ */
+function linkGraphProposals(graph: LinkGraph): Proposal[] {
+  const out: Proposal[] = [];
+  const range = graph.truncated
+    ? `入口から${graph.crawled}ページまで辿った範囲（上限で打ち切り）`
+    : `入口から辿れた${graph.crawled}ページすべて`;
+
+  // 行き止まり。クローラーにも読者にも実害があるので1段目
+  if (graph.broken.length > 0) {
+    out.push({
+      id: "site-broken-link",
+      stage: 1,
+      area: "tech",
+      severity: "high",
+      symptom: `内部リンクの先が${graph.broken.length}本、200以外を返している`,
+      detail: "読者はそこで行き止まりになり、クローラーはリンクをたどるたびに無駄なリクエストを1回する。",
+      scope: {
+        text: `${range}で見つかったもの`,
+        urls: graph.broken.map((b) => `${b.url}（${b.status}）${b.from[0] ? ` ← ${b.from[0]}` : ""}`),
+        count: graph.broken.length,
+      },
+      cause: "リンク先を消したか、URLを変えたあとに参照側を直していない。",
+      after: "リンク先が生きているなら正しいURLに直す。消したページなら、リンク自体を消すか、後継ページへ301で寄せる。",
+      metric: "同じURLを取得して200が返る（またはリンクが残っていない）。修正後すぐ確認できる。",
+    });
+  }
+
+  // どこからもリンクされていないページ
+  if (graph.orphanCandidates.length > 0) {
+    out.push({
+      id: "site-orphan",
+      stage: 3,
+      area: "seo",
+      severity: "mid",
+      symptom: graph.truncated
+        ? `サイトマップにあるが、辿った範囲ではどこからもリンクされていないURLが${graph.orphanCandidates.length}本ある`
+        : `どこからもリンクされていないページが${graph.orphanCandidates.length}本ある`,
+      detail: graph.truncated
+        ? "クロールを上限で打ち切っているので、辿らなかったページからリンクされている可能性が残る。まず実際にリンク元があるかを確かめる。"
+        : "サイトマップに載っているだけで、サイトの中から案内されていない。読者が辿り着けず、リンクによる評価も渡らない。",
+      scope: { text: `${range}での突き合わせ`, urls: graph.orphanCandidates, count: graph.orphanCandidates.length },
+      cause: "一覧やハブページに載せないままページを増やした。または、一覧の表示件数から溢れて載らなくなった。",
+      after: "同じテーマの一覧ページから案内する。載せる場所が無いページは、内容を既存のページに統合するか、公開をやめる。",
+      metric: "そのURLへの内部リンクが1本以上ある。修正後すぐ確認できる（評価への反映は3か月）。",
+    });
+  }
+
+  // ナビ・フッターからしか案内されていない
+  if (graph.navOnly.length > 0) {
+    out.push({
+      id: "site-nav-only",
+      stage: 3,
+      area: "seo",
+      severity: "low",
+      symptom: `本文から1本も案内されていないページが${graph.navOnly.length}本ある（ナビ・フッターからのリンクだけ）`,
+      detail:
+        "全ページに同じ形で出るナビとフッターのリンクは、どのページからも等しく張られる。本文からのリンクが無いページは、内容の関係で選ばれた導線を持っていない。",
+      scope: { text: `${range}`, urls: graph.navOnly, count: graph.navOnly.length },
+      cause: "関連ページへの導線を、テンプレートのナビだけに任せている。",
+      after: "関係する記事の本文から、そのページの内容を指す文言でリンクする。",
+      metric: "本文中の内部リンクからの流入。3か月。",
+    });
+  }
+
+  // 被リンクが薄いページ
+  if (graph.weak.length > 0) {
+    out.push({
+      id: "site-weak-inbound",
+      stage: 3,
+      area: "seo",
+      severity: "low",
+      symptom: `サイト内から${WEAK_INBOUND}本以下しかリンクされていないページが${graph.weak.length}本ある`,
+      detail: "内部リンクが少ないページは、クローラーが再訪する手がかりも、読者が辿り着く道も細い。",
+      scope: { text: `${range}`, urls: graph.weak.map((w) => `${w.url}（被リンク ${w.inbound}）`), count: graph.weak.length },
+      cause: "そのページを案内する一覧や関連リンクが無い。",
+      after: "同じテーマの一覧（ハブ）と、関係する記事の本文の2か所以上から案内する。",
+      metric: "そのページへの内部リンクの本数。3か月。",
+    });
+  }
+
+  return out;
+}
+
 export function siteReport(input: SiteReportInput): SiteReportResult {
   const host = hostOf(input.entryUrl);
   // 構造はサイトマップから十分な本数が取れたときだけ数える（内部リンク由来の数十本では形が出ない）
@@ -740,6 +831,7 @@ export function siteReport(input: SiteReportInput): SiteReportResult {
     ...bundle(input.pages, host),
     ...crossPageProposals(input, host),
     ...(structure ? structureProposals(structure, host) : []),
+    ...(input.linkGraph ? linkGraphProposals(input.linkGraph) : []),
   ].sort(
     (a, b) => a.stage - b.stage || SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] || b.scope.count - a.scope.count,
   );
@@ -769,6 +861,7 @@ export function siteReport(input: SiteReportInput): SiteReportResult {
     sitemap: input.sitemap,
     robotsOk: input.robotsOk,
     structure,
+    linkGraph: input.linkGraph,
   };
 }
 

@@ -10,7 +10,7 @@ import { AUDIT_LOG_RETENTION_DAYS } from "@/lib/audit-log";
 import { faqPageJsonLd, type FaqItem } from "@/lib/faq";
 import { siblingPages } from "@/lib/nav";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { MAX_PAGES } from "@/lib/siteCrawl";
+import { CRAWL_MAX_PAGES, MAX_PAGES } from "@/lib/siteCrawl";
 import { DEEP_DEPTH } from "@/lib/siteStructure";
 import { STAGES } from "@/lib/siteReport";
 import { CONTAINER, HEADING, LINK, PADDING, SURFACE, TABLE, cx } from "@/lib/ui";
@@ -52,7 +52,11 @@ const FAQ: FaqItem[] = [
   },
   {
     question: "リンク構造（孤立ページやクリック深度）も分かりますか",
-    answer: `分かりません。このツールが数えているのは「URLがどう並んでいるか」だけで、「どのページがどこからリンクされているか」は記録していません。それを出すにはサイト内の全ページを取得してリンクをたどる必要があり、1回の診断で最大${MAX_PAGES}ページという上限（＝実行時間と費用の上限）とは両立しないためです。本文中の内部リンクが少ないページの指摘は、検査した${MAX_PAGES}ページの範囲では出ます。`,
+    answer: `フォームの「リンク構造も調べる」にチェックを入れると調べます。入口のページから内部リンクを最大${CRAWL_MAX_PAGES}ページたどり、入口から何クリックで届くかの分布、どこからもリンクされていないページ、本文（ナビ・フッターの外）から1本も案内されていないページ、サイト内から1本以下しかリンクされていないページ、200以外を返す内部リンクを出します。取得するページが増えるので、結果が出るまで40〜60秒かかります。チェックを入れないときは今までどおり最大${MAX_PAGES}ページで、20〜40秒です。`,
+  },
+  {
+    question: "リンク構造の結果はどこまで信用できますか",
+    answer: `${CRAWL_MAX_PAGES}ページの上限で打ち切ったときは、その先にリンクがあったかどうかまでは分かりません。そのため「どこからもリンクされていない」は断定せず、打ち切ったかどうかを結果に明記したうえで「候補」として出します。入口から辿れるページが上限より少なく、全部たどれたときだけ言い切ります。ナビ・ヘッダー・フッター・サイドバーの中のリンクは「本文からの案内」には数えません（全ページに同じ形で出るため、数に入れると本文から案内されていないページが見えなくなります）。`,
   },
   {
     question: "優先度はどう決めていますか",
@@ -108,6 +112,7 @@ export default function SiteReportToolPage() {
           点検すると、直す候補は数十件単位で出ます。出てきた順に上から直すと、後から「どれが効いたのか」も「本当に直ったのか」も言えなくなります。
           このツールは、サイトの代表ページを取得して検査し、同じ指摘を束ねたうえで、着手順の付いた提案書にして返します。
           あわせて、サイトマップにあるURLを取得せずに数えて、ディレクトリ構造（階層の深さ・第1階層ごとの本数・働いていない中間階層）も出します。
+          リンク構造（孤立ページ・クリック深度・リンク切れ）は、チェックを入れたときだけ内部リンクをたどって調べます。
           点数は出しません。<strong className="text-fg">下の段から片付ければよい状態</strong>にすることが目的です。
         </p>
 

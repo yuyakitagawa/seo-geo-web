@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { AREA_LABEL } from "@/lib/audit";
-import { MAX_PAGES } from "@/lib/siteCrawl";
+import type { LinkGraph } from "@/lib/linkGraph";
+import { CRAWL_MAX_PAGES, MAX_PAGES } from "@/lib/siteCrawl";
 import { STAGES, stageDef, type Proposal, type SiteReportResult, type Stage } from "@/lib/siteReport";
 import { DEEP_DEPTH, type SiteStructure } from "@/lib/siteStructure";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, TABLE, button, cx } from "@/lib/ui";
@@ -124,6 +125,40 @@ function StructurePanel({ s }: { s: SiteStructure }) {
   );
 }
 
+/** リンク構造。クロールした範囲の事実だけを出す（直すべき点は提案側に出る） */
+function LinkGraphPanel({ g }: { g: LinkGraph }) {
+  const max = Math.max(...g.depths.map((d) => d.count), 1);
+  return (
+    <section className="print-keep space-y-3">
+      <h2 className={HEADING.section}>リンク構造</h2>
+      <p className="text-sm leading-relaxed text-mute">
+        入口のページから内部リンクをたどって {g.crawled.toLocaleString()} ページを調べました
+        {g.truncated ? (
+          <>
+            （<strong className="text-fg">上限{CRAWL_MAX_PAGES}ページで打ち切っています</strong>
+            。この先にもページがあるため、ここに出ていないリンクがあります）
+          </>
+        ) : (
+          "（入口から辿れるページはすべて調べました）"
+        )}
+        。
+      </p>
+      <div className={cx(SURFACE.outline, PADDING.tight)}>
+        <p className={cx(EYEBROW.mute, "text-2xs")}>入口から何クリックで届くか</p>
+        <ul className="mt-3 space-y-2">
+          {g.depths.map((d) => (
+            <li key={d.depth} className="flex items-center gap-3 text-sm">
+              <span className="w-24 shrink-0 text-xs text-mute">{d.depth === 0 ? "入口" : `${d.depth}クリック`}</span>
+              <span className="h-2 min-w-1 rounded-full bg-accent" style={{ width: `${(d.count / max) * 65}%` }} aria-hidden />
+              <span className="font-mono text-xs tabular-nums">{d.count.toLocaleString()}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 function Report({ r }: { r: SiteReportResult }) {
   const checked = r.pages.filter((p) => !p.error);
   const failed = r.pages.length - checked.length;
@@ -210,6 +245,8 @@ function Report({ r }: { r: SiteReportResult }) {
 
       {r.structure && <StructurePanel s={r.structure} />}
 
+      {r.linkGraph && <LinkGraphPanel g={r.linkGraph} />}
+
       {/* 検査したページ */}
       <section className="print-keep space-y-3">
         <h2 className={HEADING.section}>検査したページ</h2>
@@ -248,6 +285,7 @@ function Report({ r }: { r: SiteReportResult }) {
 
 export default function SiteReport() {
   const [url, setUrl] = useState("");
+  const [withLinks, setWithLinks] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<SiteReportResult | null>(null);
@@ -262,7 +300,7 @@ export default function SiteReport() {
       const res = await fetch("/api/site-report", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: url.trim(), links: withLinks }),
       });
       const data = await res.json();
       if (!res.ok) setError(String(data.error ?? "検査に失敗しました"));
@@ -294,9 +332,24 @@ export default function SiteReport() {
             {loading ? "診断中…" : "提案書を作る"}
           </button>
         </div>
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            checked={withLinks}
+            onChange={(e) => setWithLinks(e.target.checked)}
+            className="mt-0.5 size-4 shrink-0 accent-current"
+          />
+          <span className="leading-relaxed">
+            <strong>リンク構造も調べる</strong>
+            <span className="text-mute">
+              （入口から内部リンクを最大{CRAWL_MAX_PAGES}ページたどり、どこからもリンクされていないページ・本文から案内されていないページ・リンク切れを出します。
+              取得するページが増えるので、結果が出るまで40〜60秒かかります）
+            </span>
+          </span>
+        </label>
         <p className="mt-3 text-xs leading-relaxed text-mute">
           トップページでも下層ページでも構いません。サイトマップ（取得できなければ入力したページの内部リンク）から最大{MAX_PAGES}ページを取得して検査します。
-          結果が出るまで20〜40秒ほどかかります。
+          結果が出るまで{withLinks ? "40〜60" : "20〜40"}秒ほどかかります。
         </p>
         {error && (
           <p className="mt-4 rounded-panel border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
