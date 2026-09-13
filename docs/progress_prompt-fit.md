@@ -19,3 +19,9 @@
 - [x] `src/lib/apps.ts` に追加（/tools のカードと sitemap が拾う）
 - [x] README.md / CLAUDE.md の更新
 - [x] typecheck と build
+
+## 廃止（2026-09-13）
+公開ツール `/tools/prompt-fit` は運営者の判断で廃止し、308で `/tools/site-report`（サイト修正提案書）へ送っている。
+削除したのはページ・`api/prompt-fit.ts`・`src/components/PromptFit.tsx`・`src/lib/apps.ts` のエントリ。
+**判定本体 `src/lib/promptFit.ts` は残す**（`scripts/prompt-gap.ts` が自サイトのビルド済みHTMLに当てるために使う）。
+このファイルは経緯の記録として残す。作り直すときは上の設計をそのまま使える。

@@ -13,7 +13,7 @@ import { Card, CardLink } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "SEO・GEO診断ツールとツール比較一覧（国内・海外）",
-  description: "登録不要で使える無料の診断ツール（ページ診断・プロンプト適合度チェッカー）と、従来SEOツール（順位計測・キーワード調査・クロール監査）・AI検索向けGEOツール（ChatGPT・Perplexity・AI Overviewでの可視性計測、AI対応診断）の国内外・料金・対象の比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
+  description: "登録不要で使える無料の診断ツール（ページ診断・サイト修正提案書）と、従来SEOツール（順位計測・キーワード調査・クロール監査）・AI検索向けGEOツール（ChatGPT・Perplexity・AI Overviewでの可視性計測、AI対応診断）の国内外・料金・対象の比較。運営者が公式ページを確認したものだけを掲載し、新ツールの検知に応じて更新します。",
   alternates: { canonical: "/tools" },
 };
 

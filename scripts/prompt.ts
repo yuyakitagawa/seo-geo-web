@@ -125,7 +125,7 @@ const FIXED_TARGETS: LinkTarget[] = [
   { href: "/glossary", label: "用語集（SEO・GEOの用語を1語1文で定義）" },
   { href: "/learn", label: "SEO・GEOの教科書（14レッスン）" },
   { href: "/tools/page-audit", label: "ページ診断（URLを入れてSEO・GEOの指摘を出す自作ツール）" },
-  { href: "/tools/prompt-fit", label: "プロンプト適合度（AI検索の想定質問にページが答えられているか調べる自作ツール）" },
+  { href: "/tools/site-report", label: "サイト修正提案書（サイトを数ページ検査して直す順番を優先度つきで出す自作ツール）" },
 ];
 
 /**

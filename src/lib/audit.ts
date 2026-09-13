@@ -121,6 +121,8 @@ export type AuditResult = {
   passed: string[];
   /** 前提が揃わず判定しなかった検査項目（CheckItem.id）。本文が短い・robots.txt が無い等。合格にも不合格にも数えない */
   skipped: string[];
+  /** サイト単位の突き合わせに使う実値。複数ページを比べる /tools/site-report が title の重複や canonical のホスト混在を見る */
+  meta: { title: string; description: string; canonical: string | null; noindex: boolean };
 };
 
 const G = (path: string, title: string) => ({ title, url: `https://developers.google.com/search/docs/${path}` });
@@ -1108,5 +1110,16 @@ export function audit(input: AuditInput): AuditResult {
     counts,
     passed,
     skipped: [...skipped],
+    meta: { title, description: desc, canonical: absoluteOrNull(canonicalHref, input.finalUrl), noindex },
   };
+}
+
+/** canonical は相対で書かれることがあるので、比較に使う前に絶対URLへ直す。直せなければ null */
+function absoluteOrNull(href: string, base: string): string | null {
+  if (!href) return null;
+  try {
+    return new URL(href, base).toString();
+  } catch {
+    return null;
+  }
 }

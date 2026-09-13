@@ -9,7 +9,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - ホスティング: Vercel（Pro。AdSense を載せるサイトは Hobby の規約で不可）。全ページを静的ファイルとして配信し、**ISR を通さない**。
   2026-09-03 に ISR Writes（デプロイごとにキャッシュを作り直し、8KB 単位で課金）の超過でサイトが停止したため。経緯と手順は `docs/progress_vercel-cost.md`。
   `next.config.ts` では扱えなくなった旧URLのリダイレクト、OGP 画像の `Content-Type`、API の実行時間上限は `vercel.json` に置く。
-- API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/prompt-fit.ts` `api/contact.ts`）。URL は `/api/*` のまま。
+- API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/site-report.ts` `api/contact.ts`）。URL は `/api/*` のまま。
   `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: GA4（`NEXT_PUBLIC_GA_ID` 設定時）/ Speed Insights（無料枠 10k イベント/30日の範囲）
@@ -29,7 +29,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEO診断ツール（表示名は「診断ツール」。ヘッダー・パンくず・H1・title・OGP・`src/lib/nav.ts` で統一。自作の無料診断ツールを先に置き、その下に**全件の比較表**（GEO／SEOの2枚。ツール・提供元・種別・料金・無料枠・対象）、さらにその下に1件ずつのカード。比較表をカードより前に置くのは「◯◯ツール 比較」で来た人が最初に見たいのが横並びの一覧だから（2026-09-13追加。`docs/progress_gsc-2026-09.md`）。比較のデータは `content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
-| `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
+| `/tools/site-report` | 自作ツール: サイトを数ページ検査し、優先度3段の修正提案書にまとめる（`src/lib/siteReport.ts` + `POST /api/site-report`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ。フォーム（`POST /api/contact` → LINE・メールへ転送）＋ 窓口の一覧。フォームの転送先 / `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -344,12 +344,34 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   「こちら」等の曖昧なリンク文言。あわせて検査項目の一覧を `CHECKLIST` に集約し、結果に `passed`（指摘なし）と `skipped`（本文が短い等で判定しない）を
   返すようにした。結果画面はエリア別に「n/m 項目に指摘なし」と◎の一覧を出し、ページの「検査する項目」も `CHECKLIST` から描画する。
   同ツールの100点スコアとS〜Dランクは取り入れていない（点数を出さない方針のため）。
-- **プロンプト適合度 `/tools/prompt-fit`**: 狙っているプロンプト（最大5本）とページを比べ、どの見出しブロックがその質問を担当しているかを出す。
-  判定は `src/lib/promptFit.ts`。URLは `POST /api/prompt-fit` で取得するが、原稿を貼り付ければ公開前でも判定できる。
-  日本語は形態素解析なしで扱う。文字bigram（英数字は単語）でベクトル化し、TF-IDFのコサイン類似度を見出しブロック単位で取る（埋め込みAPIも外部AIも使わない）。
-  返すのは4つ: プロンプトの語が本文にあるか（`語の一致`）、最も近いブロック（`近さ`）、そのブロックの先頭に直答があるか、
-  意図（定義/手順/比較/費用/事例/判断）に合った形式（番号付きリスト・表・金額・数値）があるか。足りない場合は見出し・入れる場所・入れる語・文の型を返す。
-  ページが多く語っている語のうち、どのプロンプトにも無いものは「狙いから離れている語」として並べる。
+- **サイト修正提案書 `/tools/site-report`**（2026-09-13 追加）: サイトのURLを1つ入れると、代表ページを最大8本取得して検査し、
+  指摘を**優先度3段に並べた提案書**にして返す。社外向けの修正提案書を手で書いていた作業をツールにしたもの。
+  **判定ロジックはここで増やさない**。1ページ分の指摘は `src/lib/audit.ts` の結果をそのまま使い、`src/lib/siteReport.ts` は
+  「同じ指摘を横断で束ねる／着手順を付ける／6項目に整形する」だけを持つ（判定が2か所に分かれると、片方だけ直って結果が食い違う）。
+  優先度と書式は `/learn#plan`「直す候補が大量に出たときの並べ方」と**同じ定義を使う**（1段目=クロール資産の一本化／2段目=見え方／3段目=積み上げ。
+  基準は「影響の大きさ」ではなく「他の修正の前提になっているか」）。段の意味・期間・「1段目はまとめて入れてよい」が教科書とずれると、
+  読んだ人がどちらを信じるか分からなくなるので、`STAGES` の文言は教科書と揃える。**指摘IDごとの段・原因・検査指標は `RULES`**（`siteReport.ts`）。
+  `CHECKLIST` の findingIds を1つでも埋め忘れると `src/lib/siteReport.test.ts` が落ちる（audit.ts に項目を足したらここも足す）。
+  **1ページ版では出せない指摘**は `crossPageProposals()` が出す: title / description の重複、canonical の指すホストの混在、
+  `/index.html` の重複、サイトマップ・内部リンクに残った旧URL（取得したらリダイレクトされたもの）、一部ページだけの noindex、
+  同じ登録ドメインの別ホスト（`sameSite()`。Organization の `@id` と `sameAs` で束ねる提案）。これがページ診断と別ツールにした理由。
+  **収集元で見つけたURLかどうか（`fromSource`）を分けて持つ**。入力されたURLとトップページは収集元に無くても必ず検査するので、
+  「サイトマップ・内部リンクに旧URLが残っている」の指摘はこれが付いたURLだけを数える（入力URLのリダイレクトを数えると指摘が嘘になる）。
+  `/index.html` の指摘は、canonical がディレクトリURLを指していれば出さない。**ディレクトリURL側は取得していない**ので
+  「両方が200で返る」とは断定せず、両方を開いて確かめる手順を指摘文に書く（取得本数を増やさないため）。
+  検査するページの選び方は `src/lib/siteCrawl.ts`: robots.txt の Sitemap 行（無ければ `/sitemap.xml`、索引なら子を1本だけ）からURLを集め、
+  取得できなければ入口ページの内部リンクから集める。入口URLとトップページを必ず入れ、残りは**第1階層が散るように**取る
+  （同じテンプレートのページを何本取っても同じ指摘しか出ない）。**上限は `MAX_PAGES`=8 / `CONCURRENCY`=4 / `DEADLINE_MS`=40秒の3つだけ**で、
+  APIとUIの説明が同じ数字を見る。期限を過ぎたページは「時間内に検査できませんでした」として一覧に残し、取れた分で提案書を作る。
+  `api/site-report.ts` は **1回で最大8ページ取りに行く**ため、`sameOrigin()` と回数制限（1分2回。ページ診断は5回）を必ず通す。
+  `vercel.json` の `maxDuration` は 60 秒。利用ログは入口URLのホストとパスだけ（`logAudit()`。ページ診断と同じ扱い）。
+  PDFで社外に渡せるように、印刷は `globals.css` の `@media print` だけで作る（ヘッダー・フッター・フォーム・広告を落とし、
+  1件の提案が改ページで割れないよう `.print-keep`）。**印刷用の別レイアウトは持たない**（画面と紙で内容がずれると、どちらを信じるか分からなくなる）。
+- **プロンプト適合度 `/tools/prompt-fit` は 2026-09-13 に廃止**し、308で `/tools/site-report` に送っている（`vercel.json`）。
+  出来が期待に届かないという運営者の判断による差し替えで、置き換え先は同じ「URLを入れる」入口から着手順まで出すサイト修正提案書。
+  ページ・API（`api/prompt-fit.ts`）・コンポーネント（`src/components/PromptFit.tsx`）は削除した。
+  **判定本体 `src/lib/promptFit.ts` は残している**。他人のURL向けの公開ツールとしては消したが、
+  自サイトのビルド済みHTMLに当てる運用スクリプト `npm run prompt-gap`（下記）が同じ判定を使うため。
 - **AIクローラーの定義** `src/lib/crawlers.ts`: AI検索/AI学習/検索エンジンの14種（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
   ページ診断の robots.txt 判定と、`/learn/geo-implementation` の一覧表・robots.txt ひな形（`src/components/RobotsPresets.tsx`）が同じ定義を見る。
   貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
@@ -362,7 +384,10 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   止めるのは、読者を連れて来ないのに全ページを巡回して関数実行と帯域だけを消費する相手だけ。`src/lib/crawlers.ts` とは目的が違うので混ぜない。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
-  12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
+  12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/site-report` がこの1実装を使う。
+  **タイムアウトはリダイレクトを含めた合計**（`budgetMs`。既定12秒）。ホップごとに数え直すと、3回リダイレクトされた1本で
+  12秒×4＝48秒走り、`/api/site-report` の期限（40秒）や Vercel の `maxDuration` を超えて関数ごと落ちる
+  （取れていたページも返せなくなる）。複数ページを取る `/api/site-report` は、1本ごとに残り時間を渡す。
   連打の抑制は `src/lib/rateLimit.ts`（同一インスタンス内で1分あたり、診断5回・お問い合わせ3回、加えてインスタンス全体で60回。IPは数えるだけで記録しない）。
   3つのAPIはいずれも `sameOrigin()` を通し、Origin がサイト自身と一致しない呼び出しは 403 で落とす（比較先はリクエスト自身のホストなので本番・プレビュー・localhost が同じ判定で通る）。
   ブラウザは GET/HEAD 以外に必ず Origin を付けるので、フォームからの `fetch` は通り、curl やスクリプトからの直叩きは落ちる。
@@ -524,7 +549,7 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
 npm run build && npm run prompt-gap    # content/prompts.csv の「対象」全部を、ビルド済みHTML173枚に当てる
 npm run prompt-gap -- --all            # 「保留」も含める
 ```
-`/tools/prompt-fit` と同じ判定（`src/lib/promptFit.ts`）を、他人のURLではなく **自サイトのビルド成果物**
+判定（`src/lib/promptFit.ts`）を、他人のURLではなく **自サイトのビルド成果物**
 （`.next/server/app/**.html`）に当てるスクリプト（`scripts/prompt-gap.ts`）。プロンプト1本につき
 「最も答えているページ1枚・その見出し・重要語のカバー率・足りない形式」を弱い順に出す。変更はしない。
 
