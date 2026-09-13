@@ -44,7 +44,7 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
       ↓ npm run generate N [--publish]
                                 「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
                                 --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
-      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→pick→generate --publish→generate-howto→本番ビルド検証→main へ push
+      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→pick→generate --publish→generate-howto→links --write→本番ビルド検証→main へ push
                                 （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
 ```
 **話題スコア**: 検索専門の公式ソース+3（その他公式+1）、同じ話題を報じた他ソース数×2（上限+6。タイトルの語の重なりでクラスタ化）、3日以内+1、テーマ語の一致数（上限3）、ツール発表+2。
@@ -149,6 +149,12 @@ npm run links              # 報告のみ。どの語をどこへリンクする
 npm run links -- --write   # 書き込む
 npm run links -- --max=2   # 1記事あたりの本数（既定3）
 ```
+
+**`--write` は毎朝のActionsが自動で回す（2026-09-13〜）**。記事生成の後・本番ビルド検証の前に入っているので、
+その日できた記事にも同じ上限で足り、壊れた結果はビルドで止まって公開されない。
+差し込んだ一覧はその実行のサマリに出る。手で回すのは、差分を先に見たいときと `--max` を変えたいときだけ。
+1記事3本で打ち切るため、張り終わった記事は何度走らせても差分が出ない（毎日の差分は0へ収束する）。
+記事が1本も増えなかった回のコミットは「chore: 候補リストと内部リンクを更新」になる。
 
 **本文の文言は1字も変えない。** 既に本文にある語を `[語](/path)` で包むだけなので、差分を読めば何をしたか分かる。
 判定は `src/lib/internalLinks.ts`（純関数。テストは `src/lib/internalLinks.test.ts`）で、次の位置には触れない。

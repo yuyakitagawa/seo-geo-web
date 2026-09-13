@@ -35,7 +35,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - `scripts/fanout-report.ts`: ChatGPTの会話JSON（`data/fanout/*.json`。gitignore）から、候補URLの「グループ内順位」「同一ドメインの枚数」と引用の関係を集計する。判定は `src/lib/fanout.ts`（純関数・テストあり）。検索クエリのキーは `search_model_queries` と `search_queries` の両方を読む。**1,000行に届くまで率を出さない**（スクリプトが実数のまま出して警告する）。
 - `scripts/gsc-report.ts`: Search Consoleのエクスポート（`data/gsc/*.csv`。gitignore）を集計して独自記事の材料を出す。ページ別は `/articles/<id>` から frontmatter と結合し、独自記事と要約記事の成績を並べる。**記事に書くのは率だけ**（クリック・表示の実数は匿名運営の方針で出さない）。
 - `scripts/notify.ts`: 公開した記事のXの投稿文を出す（GitHub Actionsの実行サマリ。LINEのenvがあればLINEにも。自動投稿はしない）。**1記事＝2つ**（本体ツイート＋記事URLのリプライ。外部リンクを含む投稿はリーチが落ちるのでURLは本体に入れない）。投稿文は `scripts/x-post.ts` がClaudeに書かせ（フック1行＋要点2〜3行）、ハッシュタグ（1つまで）・URLのリプライ・280字の勘定は `src/lib/xpost.ts` が持つ。APIキーが無い／検査に3回落ちたらテンプレの文面に落ちる。`scripts/verify-api.ts`: 本番の `/api/*` が `api/tsconfig.json`（module: commonjs）で出力して `require()` できるかを検査する（`vercel dev` では再現しないESM/CJSの壊れ方をCIで捕まえる）。
-- `.github/workflows/ci.yml`: PR と main への push で typecheck・test・lint・verify:api・build を回す。**品質の関門はここ**（記事生成のジョブに兼務させない）。`.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck＋test（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→generate-howto（`content/howto-topics.csv` に「採用」があるときだけ。無ければ何もせず通過）→本番ビルド検証（typecheck＋test＋build。採番が衝突した記事はここで止まる）→main へ push（自動公開。人のレビューなし）→公開した記事のX投稿文を実行サマリへ出力（LINEのenvがあればLINEにも）。失敗時はLINE通知（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ。無いならGitHubのメール通知で受ける。失敗通知だけは npm ci が落ちても飛ばすためymlのcurlのまま）。
+- `.github/workflows/ci.yml`: PR と main への push で typecheck・test・lint・verify:api・build を回す。**品質の関門はここ**（記事生成のジョブに兼務させない）。`.github/workflows/daily-articles.yml`: 毎朝7時JSTに typecheck＋test（生成前の関門。mainが壊れていたらAPI代を使わず終了）→collect→pick→generate --publish→generate-howto（`content/howto-topics.csv` に「採用」があるときだけ。無ければ何もせず通過）→links --write（過去記事への内部リンクの補充。1記事3本まで。差し込んだ一覧は実行サマリに出る）→本番ビルド検証（typecheck＋test＋build。採番が衝突した記事はここで止まる）→main へ push（自動公開。人のレビューなし）→公開した記事のX投稿文を実行サマリへ出力（LINEのenvがあればLINEにも）。失敗時はLINE通知（`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` があるときだけ。無いならGitHubのメール通知で受ける。失敗通知だけは npm ci が落ちても飛ばすためymlのcurlのまま）。
 
 ## 2. Operations
 - 検査: `npm run typecheck && npm test && npm run lint && npm run verify:api && npm run build`（CIと同じ。`.github/workflows/ci.yml`）
@@ -43,7 +43,7 @@ SEOとGEO（AIO/LLMOを包含。用語はGEOに統一）の最新情報と実務
 - HTMLを読む: `npm run html -- <URL|ファイル>`
 - アイコン書き出し: `npm run icon`（`src/lib/icon.tsx` の図案を変えたときだけ。favicon.ico と docs/brand/icon-1024.png を再生成）
 - 収集: `npm run collect` / 採用: `npm run pick -- 1` / 生成: `npm run generate -- 3`（`ANTHROPIC_API_KEY` 必須。`--publish` で draft:false）
-- 内部リンクの補充: `npm run links`（報告のみ）/ `npm run links -- --write`（書き込み）。既に本文にある語をリンクで包むだけで**文言は1字も変えない**。判定は `src/lib/internalLinks.ts`
+- 内部リンクの補充: **毎朝のActionsが `--write` を自動で回す（2026-09-13〜）**。手で回すのは差分を先に見たいときと `--max` を変えたいときだけ（`npm run links` は報告のみ / `npm run links -- --write` で書き込み）。既に本文にある語をリンクで包むだけで**文言は1字も変えない**。判定は `src/lib/internalLinks.ts`
 - 公開の通知（手動）: `npm run notify -- content/articles/0123-foo.mdx`（Actionsの外では文面を標準出力に出すだけ）
 - 重複話題の検知: `npm run dupes`（報告のみ。続報なら新しい記事に `supersedes: <古い記事のid>` を書く）
 - 過去記事のバックフィル（手動のみ。自動実行はしない）: `npm run collect -- --since=2026-03-02 --until=2026-07-14` → `npm run pick -- --since=2026-03-02 --until=2026-07-14 --per-month=5` → `npm run generate -- 30`。手順と注意は `docs/progress_backfill.md`。「採用」を残したまま翌朝のActionsを走らせないこと
