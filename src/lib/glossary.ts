@@ -74,6 +74,16 @@ const S = {
   perplexityBots: { title: "PerplexityBot", publisher: "Perplexity", url: "https://docs.perplexity.ai/guides/bots" },
   anthropicBots: { title: "Does Anthropic crawl data from the web, and how can site owners block the crawler?", publisher: "Anthropic", url: "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler" },
   llmstxt: { title: "The /llms.txt file", publisher: "llmstxt.org", url: "https://llmstxt.org/" },
+  rankingSystems: { title: "Google 検索のランキング システム ガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/ranking-systems-guide?hl=ja" },
+  featuredSnippets: { title: "強調スニペットと Google 検索", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/featured-snippets?hl=ja" },
+  robotsMeta: { title: "robots meta タグ、data-nosnippet、X-Robots-Tag の指定", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag?hl=ja" },
+  crawlBudget: { title: "大規模なサイトのクロール バジェット管理", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget?hl=ja" },
+  verifyGooglebot: { title: "Googlebot と他の Google クローラーを確認する", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja" },
+  robotsSpec: { title: "Google の robots.txt の仕様", publisher: "Google 検索セントラル", url: "https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec" },
+  crawlingCaching: { title: "Crawling December: HTTP caching", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-caching" },
+  aiOptimization: { title: "AI 検索での成功に向けたガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide?hl=ja" },
+  crawlStats: { title: "クロールの統計情報レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9679690?hl=ja" },
+  bingCrawlers: { title: "Which crawlers does Bing use?", publisher: "Microsoft Bing Webmaster Tools", url: "https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0" },
 } as const;
 
 export type GlossaryTerm = {
@@ -161,6 +171,39 @@ export const GLOSSARY: GlossaryTerm[] = [
     source: S.coreUpdates,
   },
 
+  {
+    slug: "ranking-systems",
+    term: "ランキングシステム",
+    aliases: ["ranking systems", "ランキング システム", "検索アルゴリズム"],
+    category: "basics",
+    definition:
+      "ランキングシステムとは、Googleが検索クエリに対して関連性の高い順に結果を並べるために使っている、複数の自動化されたシステムの総称です。",
+    note: "Googleは継続して動く「システム」と、その仕組みへの一度きりの変更である「アップデート」を書き分けています。",
+    seeAlso: [{ href: "/learn/updates-risk", label: "アップデートと順位変動のレッスン" }],
+    source: S.rankingSystems,
+  },
+  {
+    slug: "featured-snippet",
+    term: "強調スニペット",
+    aliases: ["featured snippet", "抜粋表示"],
+    category: "basics",
+    definition:
+      "強調スニペットとは、検索結果の上部に、質問への答えにあたる部分がページの本文から抜き出されて表示される枠のことです。",
+    note: "表示させるための専用のマークアップはなく、Googleが自動で選びます。出したくない範囲は data-nosnippet で除外します。",
+    seeAlso: [{ href: "/learn/snippet", label: "スニペットのレッスン" }],
+    source: S.featuredSnippets,
+  },
+  {
+    slug: "search-essentials",
+    term: "Google 検索の基本事項",
+    aliases: ["Google Search Essentials", "ウェブマスター向けガイドライン"],
+    category: "basics",
+    definition:
+      "Google 検索の基本事項とは、ページがGoogle検索に表示されるためにGoogleが示している3つの柱（技術的な要件・スパムに関するポリシー・主要なベストプラクティス）のことです。",
+    note: "旧「ウェブマスター向けガイドライン」にあたります。SEOで最初に確認する公式の基準はここです。",
+    seeAlso: [{ href: "/seo", label: "SEO対策とは（詳しい解説）" }],
+    source: S.essentials,
+  },
   // ---------------------------------------------------------------- テクニカル
   {
     slug: "robots-txt",
@@ -288,6 +331,148 @@ export const GLOSSARY: GlossaryTerm[] = [
     source: S.siteMove,
   },
 
+  {
+    slug: "robots-meta-tag",
+    term: "robots メタタグ",
+    aliases: ["meta robots", "robots meta tag"],
+    category: "technical",
+    definition:
+      "robots メタタグとは、HTMLのhead内に置いて、そのページを検索結果に出すか・リンクをたどるかなどをページ単位で検索エンジンに指示するタグです。",
+    note: "robots.txt でクロールを止めているページでは読まれないため効きません。noindex を効かせたいならクロールは許可しておきます。",
+    source: S.robotsMeta,
+  },
+  {
+    slug: "x-robots-tag",
+    term: "X-Robots-Tag",
+    aliases: ["x-robots-tag ヘッダー"],
+    category: "technical",
+    definition:
+      "X-Robots-Tag とは、HTTPレスポンスヘッダーで noindex などのインデックスに関する指示を出す方法で、HTMLではないファイルにも指定できます。",
+    note: "PDFや画像のようにmetaタグを書けないファイルをインデックスから外すときに使います。",
+    source: S.robotsMeta,
+  },
+  {
+    slug: "data-nosnippet",
+    term: "data-nosnippet",
+    aliases: ["nosnippet"],
+    category: "technical",
+    definition:
+      "data-nosnippet とは、HTMLの要素に付けて、その範囲を検索結果のスニペットに使わせないようにする属性です。",
+    note: "ページ全体を対象にする nosnippet と違い、ページ内の一部分だけを除外できます。",
+    seeAlso: [{ href: "/learn/snippet", label: "スニペットのレッスン" }],
+    source: S.snippet,
+  },
+  {
+    slug: "crawl-budget",
+    term: "クロールバジェット",
+    aliases: ["crawl budget", "クロール バジェット"],
+    category: "technical",
+    definition:
+      "クロールバジェットとは、検索エンジンが一定期間にそのサイトをクロールする量で、サーバーが返せる速度と、そのサイトをクロールしたい度合いで決まります。",
+    note: "Googleはこの管理ガイドを大規模サイト向けと位置づけており、小規模なサイトでは気にする必要はないとしています。",
+    source: S.crawlBudget,
+  },
+  {
+    slug: "googlebot",
+    term: "Googlebot",
+    aliases: ["Googlebot Smartphone", "Googlebot Desktop"],
+    category: "technical",
+    definition:
+      "Googlebot とは、Google検索のインデックス用にウェブページをクロールするクローラーで、スマートフォン版とパソコン版の2種類があります。",
+    note: "GoogleOther のように検索以外の用途で動くGoogleのクローラーは、別の名前で区別されています。",
+    seeAlso: [{ href: "/tools/page-audit", label: "ページ診断でクロールの許可状況を見る" }],
+    source: S.commonCrawlers,
+  },
+  {
+    slug: "googlebot-verification",
+    term: "Googlebotの検証",
+    aliases: ["verifying Googlebot", "なりすまし判定", "逆引きDNS"],
+    category: "technical",
+    definition:
+      "Googlebotの検証とは、Googlebot を名乗るアクセスが本物かどうかを、IPアドレスの逆引き・正引きか、Googleが公開しているIP帯の一覧で確かめる手順のことです。",
+    note: "ユーザーエージェント名は誰でも名乗れるため、名前だけでは本物と判断できません。",
+    source: S.verifyGooglebot,
+  },
+  {
+    slug: "user-agent",
+    term: "ユーザーエージェント",
+    aliases: ["User-Agent", "UA", "UA文字列"],
+    category: "technical",
+    definition:
+      "ユーザーエージェントとは、アクセスしてきたブラウザやクローラーが自分の名前を伝えるためにHTTPリクエストに付ける文字列のことです。",
+    note: "robots.txt はこの名前でクローラーを指定します。名乗りは詐称できるので、遮断の判断はIPの確認と合わせます。",
+    source: S.commonCrawlers,
+  },
+  {
+    slug: "disallow",
+    term: "Disallow",
+    aliases: ["Allow", "robots.txt のルール"],
+    category: "technical",
+    definition:
+      "Disallow とは、robots.txt に書いてクロールを禁止するパスを指定するルールで、逆に許可を明示するのが Allow です。",
+    note: "同じURLに両方が当たるときは、より長い（具体的な）ルールが優先されます。クロールを禁止してもインデックスから消える保証はありません。",
+    source: S.robotsSpec,
+  },
+  {
+    slug: "bingbot",
+    term: "Bingbot",
+    aliases: ["bingbot", "Bingのクローラー"],
+    category: "technical",
+    definition:
+      "Bingbot とは、Microsoftの検索エンジン Bing がインデックス用にウェブページをクロールするクローラーです。",
+    note: "Bingが使うクローラーの一覧と robots.txt での指定方法は、Microsoftの公式ページに掲載されています。",
+    source: S.bingCrawlers,
+  },
+  {
+    slug: "soft-404",
+    term: "ソフト404",
+    aliases: ["soft 404"],
+    category: "technical",
+    definition:
+      "ソフト404とは、ページが存在しないのにサーバーが200（成功）を返しているために、Googleがインデックスに登録しなかった状態のことです。",
+    note: "Search Consoleの「ページ」レポートに理由として出ます。存在しないURLは404か410を返します。",
+    source: S.indexReport,
+  },
+  {
+    slug: "javascript-seo",
+    term: "JavaScript SEO",
+    aliases: ["JS SEO"],
+    category: "technical",
+    definition:
+      "JavaScript SEO とは、JavaScriptで内容を組み立てるページを、検索エンジンがクロール・レンダリング・インデックスできる形に整えるための考え方と対処のことです。",
+    note: "Googleはレンダリングを行いますが、最初のHTMLに無い内容は反映が遅れることがあります。",
+    source: S.jsSeo,
+  },
+  {
+    slug: "http-caching",
+    term: "HTTPキャッシュ",
+    aliases: ["ETag", "Last-Modified", "304"],
+    category: "technical",
+    definition:
+      "HTTPキャッシュとは、前回から内容が変わっていないことをサーバーが304で伝え、クローラーに同じファイルを再ダウンロードさせない仕組みのことです。",
+    note: "GoogleはETagやLast-Modifiedを返すことを推奨しており、対応するとクロールの無駄が減ります。",
+    source: S.crawlingCaching,
+  },
+  {
+    slug: "breadcrumb",
+    term: "パンくずリスト",
+    aliases: ["BreadcrumbList", "breadcrumb"],
+    category: "technical",
+    definition:
+      "パンくずリストとは、そのページがサイトの階層のどこにあるかを示すリンクの並びで、構造化データで示すと検索結果の表示に反映されることがあります。",
+    seeAlso: [{ href: "/learn/structure", label: "サイト構造のレッスン" }],
+    source: S.gallery,
+  },
+  {
+    slug: "faqpage",
+    term: "FAQPage",
+    aliases: ["FAQ構造化データ", "よくある質問"],
+    category: "technical",
+    definition:
+      "FAQPage とは、1ページに載せた「質問と、その公式な答え」の組を検索エンジンに伝えるための構造化データの型です。",
+    note: "リッチリザルトとして表示される条件はGoogleの検索ギャラリーに記載があり、対象は限定されています。",
+    source: S.gallery,
+  },
   // ---------------------------------------------------------------- コンテンツ
   {
     slug: "eeat",
@@ -352,6 +537,109 @@ export const GLOSSARY: GlossaryTerm[] = [
     source: S.aiContent,
   },
 
+  {
+    slug: "cloaking",
+    term: "クローキング",
+    aliases: ["cloaking"],
+    category: "content",
+    definition:
+      "クローキングとは、同じURLに対して検索エンジンとユーザーに違う内容を見せる行為で、Googleのスパムに関するポリシー違反です。",
+    source: S.spam,
+  },
+  {
+    slug: "link-spam",
+    term: "リンクスパム",
+    aliases: ["link spam", "有料リンク", "被リンク購入"],
+    category: "content",
+    definition:
+      "リンクスパムとは、検索順位を操作する目的で作られたリンクのことで、金銭のやり取りによるリンクや過度な相互リンクが含まれます。",
+    note: "広告や提供の見返りとして張るリンクは、sponsored や nofollow の指定で示します。",
+    source: S.spam,
+  },
+  {
+    slug: "scaled-content-abuse",
+    term: "大規模なコンテンツの不正使用",
+    aliases: ["scaled content abuse", "量産コンテンツ"],
+    category: "content",
+    definition:
+      "大規模なコンテンツの不正使用とは、検索順位を上げる目的で、独自の価値がないページを大量に作る行為のことです。",
+    note: "生成AIを使ったかどうかではなく、独自の価値があるかどうかで判断されます。",
+    source: S.spam,
+  },
+  {
+    slug: "site-reputation-abuse",
+    term: "サイトの評判の不正使用",
+    aliases: ["site reputation abuse", "寄生サイト"],
+    category: "content",
+    definition:
+      "サイトの評判の不正使用とは、評価の高いサイトの一部を第三者に使わせ、そのドメインの評価を借りて第三者のコンテンツを上位に出そうとする行為のことです。",
+    source: S.spam,
+  },
+  {
+    slug: "expired-domain-abuse",
+    term: "期限切れドメインの不正使用",
+    aliases: ["expired domain abuse", "中古ドメイン"],
+    category: "content",
+    definition:
+      "期限切れドメインの不正使用とは、失効したドメインを取得し、元のサイトとは関係のない内容を載せて過去の評価を使おうとする行為のことです。",
+    source: S.spam,
+  },
+  {
+    slug: "doorway",
+    term: "誘導ページ",
+    aliases: ["doorway page", "ドアウェイページ"],
+    category: "content",
+    definition:
+      "誘導ページとは、似たクエリを検索結果で数多く取るためだけに作られ、ユーザーを結局は同じ場所へ送るページのことです。",
+    source: S.spam,
+  },
+  {
+    slug: "thin-affiliate",
+    term: "内容の薄いアフィリエイトページ",
+    aliases: ["thin affiliate", "薄いコンテンツ"],
+    category: "content",
+    definition:
+      "内容の薄いアフィリエイトページとは、提携先の説明文をそのまま載せただけで、独自の情報や付加価値がないページのことです。",
+    source: S.spam,
+  },
+  {
+    slug: "scraped-content",
+    term: "無断複製されたコンテンツ",
+    aliases: ["scraped content", "コピーコンテンツ"],
+    category: "content",
+    definition:
+      "無断複製されたコンテンツとは、他サイトの内容をそのまま、または軽く書き換えただけで転載し、独自の価値を加えていないページのことです。",
+    source: S.spam,
+  },
+  {
+    slug: "keyword-stuffing",
+    term: "キーワードの乱用",
+    aliases: ["keyword stuffing", "キーワード詰め込み"],
+    category: "content",
+    definition:
+      "キーワードの乱用とは、順位を上げる目的で同じ語句を不自然に繰り返し詰め込む行為で、Googleのスパムに関するポリシー違反です。",
+    source: S.spam,
+  },
+  {
+    slug: "hidden-text",
+    term: "隠しテキストと隠しリンク",
+    aliases: ["hidden text", "隠しリンク"],
+    category: "content",
+    definition:
+      "隠しテキストと隠しリンクとは、検索順位の操作を目的として、ユーザーには見えない形でページに置かれた文字やリンクのことです。",
+    source: S.spam,
+  },
+  {
+    slug: "people-first-content",
+    term: "人間第一のコンテンツ",
+    aliases: ["people-first content", "ユーザー第一のコンテンツ"],
+    category: "content",
+    definition:
+      "人間第一のコンテンツとは、検索エンジンを動かすためではなく、読む人の役に立つことを目的として作られたコンテンツのことです。",
+    note: "Googleは自己評価用の質問リストを公開しています。順位が下がったときの見直しはここから始めます。",
+    seeAlso: [{ href: "/learn/writing", label: "記事の書き方のレッスン" }],
+    source: S.helpful,
+  },
   // ---------------------------------------------------------------- AI検索・GEO
   {
     slug: "geo",
@@ -450,6 +738,76 @@ export const GLOSSARY: GlossaryTerm[] = [
     source: S.anthropicBots,
   },
 
+  {
+    slug: "ai-optimization",
+    term: "AI検索向けの最適化",
+    aliases: ["AI optimization", "AI検索対策", "AI対策"],
+    category: "ai",
+    definition:
+      "AI検索向けの最適化とは、AI OverviewやAI Modeのような生成AIの回答に取り上げられるようページを整えることで、Googleは従来のSEOと別物ではないと説明しています。",
+    note: "Googleが挙げているのは、独自で有用な内容・技術的にアクセスできること・スニペットを許可すること・構造化データなど、SEOと同じ項目です。",
+    seeAlso: [{ href: "/geo", label: "GEOとは（詳しい解説）" }],
+    source: S.aiOptimization,
+  },
+  {
+    slug: "gptbot",
+    term: "GPTBot",
+    aliases: ["OpenAI GPTBot"],
+    category: "ai",
+    definition:
+      "GPTBot とは、OpenAIがモデルの学習に使うデータを集めるために動かしているクローラーです。",
+    note: "robots.txt でGPTBotを拒否しても、ChatGPTの検索表示に使われるOAI-SearchBotとは別扱いです。",
+    seeAlso: [{ href: "/learn/geo-implementation", label: "AIクローラーの設定（ひな形あり）" }],
+    source: S.openaiBots,
+  },
+  {
+    slug: "oai-searchbot",
+    term: "OAI-SearchBot",
+    aliases: ["OpenAI SearchBot"],
+    category: "ai",
+    definition:
+      "OAI-SearchBot とは、ChatGPTの検索機能が回答に載せるリンクを集めるためにOpenAIが動かしているクローラーで、モデルの学習には使われません。",
+    note: "AI検索からの流入がほしいなら、GPTBotを拒否する場合でもこちらは許可しておきます。",
+    seeAlso: [{ href: "/learn/geo-implementation", label: "AIクローラーの設定（ひな形あり）" }],
+    source: S.openaiBots,
+  },
+  {
+    slug: "chatgpt-user",
+    term: "ChatGPT-User",
+    aliases: ["ChatGPT User Agent"],
+    category: "ai",
+    definition:
+      "ChatGPT-User とは、ChatGPTの利用者の操作をきっかけに、その場でページを取得しに行くときにOpenAIが使うユーザーエージェントです。",
+    note: "定期的な巡回ではなく、利用者1回の依頼に応じた取得です。",
+    source: S.openaiBots,
+  },
+  {
+    slug: "perplexitybot",
+    term: "PerplexityBot",
+    aliases: ["Perplexityのクローラー"],
+    category: "ai",
+    definition:
+      "PerplexityBot とは、Perplexityが検索インデックス用にページを収集するクローラーで、回答内の引用リンクに使われます。",
+    source: S.perplexityBots,
+  },
+  {
+    slug: "perplexity-user",
+    term: "Perplexity-User",
+    aliases: ["Perplexity User"],
+    category: "ai",
+    definition:
+      "Perplexity-User とは、Perplexityの利用者の操作をきっかけにページを取得するときに使われるユーザーエージェントです。",
+    source: S.perplexityBots,
+  },
+  {
+    slug: "claudebot",
+    term: "ClaudeBot",
+    aliases: ["Anthropicのクローラー"],
+    category: "ai",
+    definition:
+      "ClaudeBot とは、Anthropicがウェブからデータを収集するために動かしているクローラーで、robots.txt での拒否に対応しています。",
+    source: S.anthropicBots,
+  },
   // ---------------------------------------------------------------- 計測
   {
     slug: "search-console",
@@ -535,10 +893,49 @@ export const GLOSSARY: GlossaryTerm[] = [
     note: "Googleは単一の指標ではないとしており、良い体験だけで有用でないコンテンツが上位になるわけではないと説明しています。",
     source: S.pageExperience,
   },
+  {
+    slug: "clicks",
+    term: "クリック数",
+    aliases: ["clicks"],
+    category: "measurement",
+    definition:
+      "クリック数とは、Google検索の結果からそのサイトへ移動した回数のことです。",
+    note: "表示回数と並べて見ます。順位が低いページは表示があってもクリックはほとんど発生しません。",
+    source: S.perf,
+  },
+  {
+    slug: "search-appearance",
+    term: "検索での見え方",
+    aliases: ["search appearance"],
+    category: "measurement",
+    definition:
+      "検索での見え方とは、Search Consoleで、リッチリザルトや動画などの表示形式ごとに成績を分けて確認するための区分のことです。",
+    source: S.perf,
+  },
+  {
+    slug: "crawl-stats",
+    term: "クロールの統計情報",
+    aliases: ["crawl stats", "クロール統計"],
+    category: "measurement",
+    definition:
+      "クロールの統計情報とは、Search Consoleで、Googleがそのサイトへ行ったリクエスト数・応答コード・平均応答時間を確認できるレポートのことです。",
+    note: "5xxが増えているとクロールは減ります。順位より先にサーバーの状態を疑うときに見ます。",
+    source: S.crawlStats,
+  },
+  {
+    slug: "field-data",
+    term: "フィールドデータ",
+    aliases: ["field data", "CrUX", "実測値"],
+    category: "measurement",
+    definition:
+      "フィールドデータとは、実際の利用者がページを開いたときに計測された表示速度などの値のことで、試験環境で測るラボデータと区別されます。",
+    note: "Core Web Vitals の判定はフィールドデータで行われます。",
+    source: S.vitals,
+  },
 ];
 
 export const GLOSSARY_PATH = "/glossary";
-export const GLOSSARY_UPDATED = "2026-08-31";
+export const GLOSSARY_UPDATED = "2026-09-13";
 export const GLOSSARY_PUBLISHED = "2026-08-31";
 
 export function termsByCategory(key: GlossaryCategoryKey): GlossaryTerm[] {
