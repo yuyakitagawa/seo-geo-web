@@ -9,7 +9,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - ホスティング: Vercel（Pro。AdSense を載せるサイトは Hobby の規約で不可）。全ページを静的ファイルとして配信し、**ISR を通さない**。
   2026-09-03 に ISR Writes（デプロイごとにキャッシュを作り直し、8KB 単位で課金）の超過でサイトが停止したため。経緯と手順は `docs/progress_vercel-cost.md`。
   `next.config.ts` では扱えなくなった旧URLのリダイレクト、OGP 画像の `Content-Type`、API の実行時間上限は `vercel.json` に置く。
-- API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/site-report.ts` `api/prompt-fit.ts` `api/contact.ts`）。URL は `/api/*` のまま。
+- API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/site-report.ts` `api/contact.ts`）。URL は `/api/*` のまま。
   `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: GA4（`NEXT_PUBLIC_GA_ID` 設定時）/ Speed Insights（無料枠 10k イベント/30日の範囲）
@@ -30,7 +30,6 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/tools` | SEO・GEOツール比較（`content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）はカード2枚ではなく1枚の定義リスト（`dl`）にして、スマホでの縦の占有を抑える |
 | `/tools/page-audit` | 自作ツール: URLを入れてSEO/GEOの指摘を出す（`src/lib/audit.ts` + `POST /api/audit`） |
 | `/tools/site-report` | 自作ツール: サイトを数ページ検査し、優先度3段の修正提案書にまとめる（`src/lib/siteReport.ts` + `POST /api/site-report`） |
-| `/tools/prompt-fit` | 自作ツール: 狙ったプロンプトにページの内容が合っているかを判定（`src/lib/promptFit.ts` + `POST /api/prompt-fit`） |
 | `/about` `/privacy` `/disclaimer` | 運営者情報（運営者・記事の作り方・訂正の方針・「公開している内容」の実数表・収集元の媒体一覧・FAQ。データは `src/lib/about.ts`、AboutPage JSON-LD は Organization を `mainEntity` で指す）/ プライバシーポリシー（AdSense・GA・CookieのAdSense必須開示）/ 免責事項（正確性・外部リンク・著作権と引用）|
 | `/contact` | お問い合わせ。フォーム（`POST /api/contact` → LINE・メールへ転送）＋ 窓口の一覧。フォームの転送先 / `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_FORM_URL` / 公式X（`X_SCREEN_NAME`。既定 `seogeolab`）が**1つも無いとビルド時に404**になり、フッター・sitemapにも出ない |
 | `/sitemap.xml` `/robots.txt` `/feed.xml` `/llms.txt` `/ads.txt` | クローラー・LLM・AdSense向け |
@@ -351,12 +350,11 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   `vercel.json` の `maxDuration` は 60 秒。利用ログは入口URLのホストとパスだけ（`logAudit()`。ページ診断と同じ扱い）。
   PDFで社外に渡せるように、印刷は `globals.css` の `@media print` だけで作る（ヘッダー・フッター・フォーム・広告を落とし、
   1件の提案が改ページで割れないよう `.print-keep`）。**印刷用の別レイアウトは持たない**（画面と紙で内容がずれると、どちらを信じるか分からなくなる）。
-- **プロンプト適合度 `/tools/prompt-fit`**: 狙っているプロンプト（最大5本）とページを比べ、どの見出しブロックがその質問を担当しているかを出す。
-  判定は `src/lib/promptFit.ts`。URLは `POST /api/prompt-fit` で取得するが、原稿を貼り付ければ公開前でも判定できる。
-  日本語は形態素解析なしで扱う。文字bigram（英数字は単語）でベクトル化し、TF-IDFのコサイン類似度を見出しブロック単位で取る（埋め込みAPIも外部AIも使わない）。
-  返すのは4つ: プロンプトの語が本文にあるか（`語の一致`）、最も近いブロック（`近さ`）、そのブロックの先頭に直答があるか、
-  意図（定義/手順/比較/費用/事例/判断）に合った形式（番号付きリスト・表・金額・数値）があるか。足りない場合は見出し・入れる場所・入れる語・文の型を返す。
-  ページが多く語っている語のうち、どのプロンプトにも無いものは「狙いから離れている語」として並べる。
+- **プロンプト適合度 `/tools/prompt-fit` は 2026-09-13 に廃止**し、308で `/tools/site-report` に送っている（`vercel.json`）。
+  出来が期待に届かないという運営者の判断による差し替えで、置き換え先は同じ「URLを入れる」入口から着手順まで出すサイト修正提案書。
+  ページ・API（`api/prompt-fit.ts`）・コンポーネント（`src/components/PromptFit.tsx`）は削除した。
+  **判定本体 `src/lib/promptFit.ts` は残している**。他人のURL向けの公開ツールとしては消したが、
+  自サイトのビルド済みHTMLに当てる運用スクリプト `npm run prompt-gap`（下記）が同じ判定を使うため。
 - **AIクローラーの定義** `src/lib/crawlers.ts`: AI検索/AI学習/検索エンジンの14種（トークンと用途は各社の公式ドキュメントで確認。verified 日付つき）。
   ページ診断の robots.txt 判定と、`/learn/geo-implementation` の一覧表・robots.txt ひな形（`src/components/RobotsPresets.tsx`）が同じ定義を見る。
   貼り付け式の `/tools/ai-crawlers` は判定がページ診断と重複していたため廃止し、308で `/tools/page-audit` に送っている。
@@ -369,7 +367,7 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   止めるのは、読者を連れて来ないのに全ページを巡回して関数実行と帯域だけを消費する相手だけ。`src/lib/crawlers.ts` とは目的が違うので混ぜない。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
-  12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/prompt-fit` がこの1実装を使う。
+  12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/site-report` がこの1実装を使う。
   連打の抑制は `src/lib/rateLimit.ts`（同一インスタンス内で1分あたり、診断5回・お問い合わせ3回、加えてインスタンス全体で60回。IPは数えるだけで記録しない）。
   3つのAPIはいずれも `sameOrigin()` を通し、Origin がサイト自身と一致しない呼び出しは 403 で落とす（比較先はリクエスト自身のホストなので本番・プレビュー・localhost が同じ判定で通る）。
   ブラウザは GET/HEAD 以外に必ず Origin を付けるので、フォームからの `fetch` は通り、curl やスクリプトからの直叩きは落ちる。
@@ -531,7 +529,7 @@ npm run icon   # src/app/favicon.ico（16/32/48/64/128）と docs/brand/icon-102
 npm run build && npm run prompt-gap    # content/prompts.csv の「対象」全部を、ビルド済みHTML173枚に当てる
 npm run prompt-gap -- --all            # 「保留」も含める
 ```
-`/tools/prompt-fit` と同じ判定（`src/lib/promptFit.ts`）を、他人のURLではなく **自サイトのビルド成果物**
+判定（`src/lib/promptFit.ts`）を、他人のURLではなく **自サイトのビルド成果物**
 （`.next/server/app/**.html`）に当てるスクリプト（`scripts/prompt-gap.ts`）。プロンプト1本につき
 「最も答えているページ1枚・その見出し・重要語のカバー率・足りない形式」を弱い順に出す。変更はしない。
 

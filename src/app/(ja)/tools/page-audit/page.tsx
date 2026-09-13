@@ -141,11 +141,11 @@ export default function PageAuditToolPage() {
             <Link href="/learn/geo-implementation#crawlers" className={LINK}>
               AIクローラー14種の一覧と、方針別のrobots.txtのひな形
             </Link>
-            はレッスン{lessonNo("geo-implementation")}にあります。狙った質問にページの中身が噛み合っているかは
-            <Link href="/tools/prompt-fit" className={LINK}>
-              プロンプト適合度チェッカー
+            はレッスン{lessonNo("geo-implementation")}にあります。サイト全体を見て、どの指摘から着手するかを決めるときは
+            <Link href="/tools/site-report" className={LINK}>
+              サイト修正提案書
             </Link>
-            が判定します。
+            を使ってください。
           </p>
         </section>
 

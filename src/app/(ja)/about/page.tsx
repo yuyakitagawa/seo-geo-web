@@ -72,7 +72,7 @@ export default function AboutPage() {
               ["公開記事数", `${facts.articles}本（ニュース${facts.news}本 / 解説${facts.howto}本）`],
               ["うち独自記事", `${facts.original}本（運営者が自分で取ったログ・計測値・検証が中心の記事）`],
               ["巡回している情報源", `${facts.feeds}媒体（うち検索・AI各社の公式は${facts.official}媒体）`],
-              ["公開している自作ツール", `${facts.tools}種類（ページ診断・プロンプト適合度。無料・登録不要）`],
+              ["公開している自作ツール", `${facts.tools}種類（ページ診断・サイト修正提案書。無料・登録不要）`],
               [
                 "更新の頻度",
                 `毎朝7時（日本時間）に自動生成。${facts.latest ? `直近の公開は${jp(facts.latest)}` : "基準を満たす話題が無い日は公開なし"}`,
@@ -131,7 +131,7 @@ export default function AboutPage() {
       <p>
         ネット企業でプロダクトマネージャーとしてサービスの運営に関わってきました。毎朝一次情報を巡回して記事にするほか、
         自分が使いたかった診断ツール（<a href="/tools/page-audit">ページ診断</a>・
-        <a href="/tools/prompt-fit">プロンプト適合度</a>）を作って公開しています。
+        <a href="/tools/site-report">サイト修正提案書</a>）を作って公開しています。
         自分で試して分かったことは独自記事として書いています。
         {X_PROFILE_URL ? (
           <>
