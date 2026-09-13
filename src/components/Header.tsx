@@ -6,7 +6,7 @@ import { CATEGORIES, CATEGORY_KEYS, SITE_NAME, categoryHref } from "@/lib/site";
 const NAV = [
   ...CATEGORY_KEYS.map((key) => ({ href: categoryHref(key), label: CATEGORIES[key].label })),
   { href: "/learn", label: "教科書" },
-  { href: "/tools", label: "ツール" },
+  { href: "/tools", label: "診断ツール" },
 ];
 
 export default function Header() {

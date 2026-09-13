@@ -5,12 +5,12 @@ export const dynamic = "force-static";
 
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
-export const alt = "SEO・GEOツール比較";
+export const alt = "SEO・GEO診断ツール";
 
 // /tools/page-audit にもこの画像が引き継がれる。
 export default pageOgImage({
   category: "seo",
-  title: "SEO・GEOツール比較",
-  footer: "可視性計測とページ診断を1か所で比べる",
-  label: "ツール",
+  title: "SEO・GEO診断ツール",
+  footer: "無料の診断ツールと国内外のツール比較を1か所で",
+  label: "診断ツール",
 });

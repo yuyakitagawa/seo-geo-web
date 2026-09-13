@@ -90,7 +90,7 @@ export default function PromptFitToolPage() {
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
         lead="狙っているプロンプトを並べると、ページのどの見出しがその質問を担当しているか、何が足りないかを返します。"
-        crumbs={[{ name: "ツール", href: "/tools" }, { name: "プロンプト適合度" }]}
+        crumbs={[{ name: "診断ツール", href: "/tools" }, { name: "プロンプト適合度" }]}
       />
 
       <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>

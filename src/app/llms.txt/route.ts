@@ -41,7 +41,7 @@ export function GET() {
     // 同名アカウントとの取り違えを防ぐため、公式アカウントが1つだけであることを明示する（Organization.sameAs と同じURL）。
     ...(X_PROFILE_URL ? [`- 公式X（旧Twitter）: ${X_HANDLE} ${X_PROFILE_URL} — ${SITE_NAME}の公式アカウントはこれ1つ`] : []),
     `- [ニュース（記事アーカイブ）](${SITE_URL}/news): 全${articles.length}本を新しい順に、公開月ごとのアーカイブ付き`,
-    `- [AI検索（GEO）ツール比較](${SITE_URL}/tools): 可視性計測ツールとサイト診断ツールの一覧（国内外・料金・対象AI）`,
+    `- [SEO・GEO診断ツール](${SITE_URL}/tools): 無料の診断ツールと、可視性計測ツール・サイト診断ツールの一覧（国内外・料金・対象AI）`,
     `- [免責事項](${SITE_URL}/disclaimer)`,
     `- [プライバシーポリシー](${SITE_URL}/privacy)`,
     "",

@@ -96,7 +96,7 @@ export default function PageAuditToolPage() {
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
         lead="URLを入れると、検索エンジンとAI検索がそのページをどう読むかを検査し、直すべき箇所を該当コードつきで指摘します。"
-        crumbs={[{ name: "ツール", href: "/tools" }, { name: "ページ診断" }]}
+        crumbs={[{ name: "診断ツール", href: "/tools" }, { name: "ページ診断" }]}
       />
 
       <div className={cx(CONTAINER.wide, "space-y-14 py-14 sm:py-20")}>
