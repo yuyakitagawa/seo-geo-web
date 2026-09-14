@@ -30,6 +30,9 @@ import {
   type Intent,
   type TermHit,
 } from "./promptFit";
+// 画面と共有する定数は auditMeta.ts（何も import しない葉）に置く。ここから再エクスポートする
+export { HEADING_VERDICT_LABEL, MIN_TEXT, type HeadingVerdict } from "./auditMeta";
+import { MIN_TEXT, type HeadingVerdict } from "./auditMeta";
 
 /**
  * 見出しと本文の噛み合いを見ない、定型の見出し。
@@ -41,8 +44,7 @@ const BOILERPLATE = [
   "出典", "関連記事", "よくある質問", "faq", "q&a", "背景", "目的", "前提", "用語", "この記事について",
 ];
 
-/** 本文がこれより短いブロックは判定しない（判定の材料が足りない） */
-export const MIN_TEXT = 120;
+
 
 /** 見出しがこれより短いと重要語が取れない */
 const MIN_HEADING = 4;
@@ -50,13 +52,7 @@ const MIN_HEADING = 4;
 /** 重要語のうち、本文に出てこないものがこの割合を超えたら「弱い」 */
 const WEAK_MISS_RATIO = 0.5;
 
-export type HeadingVerdict = "ok" | "weak" | "off";
 
-export const HEADING_VERDICT_LABEL: Record<HeadingVerdict, string> = {
-  ok: "噛み合っている",
-  weak: "弱い",
-  off: "噛み合っていない",
-};
 
 export type HeadingFit = {
   heading: string;

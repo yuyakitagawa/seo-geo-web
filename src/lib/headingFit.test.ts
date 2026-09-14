@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { headingFit, MIN_TEXT } from "./headingFit";
-import { blocksFromHtml } from "./promptFit";
+import { blocksFromHtml, keyTerms } from "./promptFit";
 
 /** MIN_TEXT を超える長さの本文を作る */
 function body(core: string): string {
@@ -143,4 +143,36 @@ test("体言止めでも費用の語があれば、金額があるかを見る",
   const { fits } = headingFit(blocks);
   assert.equal(fits[0].intent, "price");
   assert.equal(fits[0].answer?.ok, false);
+});
+
+// --- 重要語の取り出し（BudouX で文節に切る） ---
+
+test("送り仮名を含む語を壊さない（書き方・申し込み）", () => {
+  // 文字種の切れ目だけで切ると「書き方」→「書」「方」となり、2字未満で捨てられて語が0個になる
+  assert.ok(
+    keyTerms("robots.txtの書き方").some((t) => t.term === "書き方"),
+    "「書き方」が取れること",
+  );
+  const terms = keyTerms("申し込みの流れ").map((t) => t.term);
+  assert.ok(terms.includes("申し込み"), `「申し込み」が取れること: ${terms.join("/")}`);
+  assert.ok(terms.length > 0, "重要語が0個だと判定が素通りする");
+});
+
+test("送り仮名を削られた壊れた語は捨てる（見出 は出さない）", () => {
+  const terms = keyTerms("見出しと本文の噛み合い").map((t) => t.term);
+  assert.ok(terms.includes("見出し"));
+  assert.ok(!terms.includes("見出"), `画面に「見出」と出ると読み手が混乱する: ${terms.join("/")}`);
+});
+
+test("本文の大文字小文字を問わずに語を探す", () => {
+  // keyTerms は小文字に正規化した語を返すので、本文側も正規化しないと「GEO対策」が見つからない
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用</h2><p>${body("GEO対策の費用は月額30万円からです。")}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.deepEqual(
+    fits[0].terms.filter((t) => t.hit === "none"),
+    [],
+    "本文にある語が「本文に無い」と出ないこと",
+  );
 });

@@ -8,7 +8,8 @@
 // 優先度・書式は /learn#plan「直す候補が大量に出たときの並べ方」と同じ定義を使う。
 // 教科書とこのツールで段の意味や期間がずれると、読んだ人がどちらかを信じられなくなる。
 // 3段の分け方・1件6項目・「1段目はまとめて入れてよい」は当サイトの整理で、Googleの基準ではない。
-import { CHECKLIST, type Area, type AuditResult, type Finding, type Severity } from "./audit";
+import type { AuditResult, Finding } from "./audit";
+import { CHECKLIST, type Area, type Severity } from "./auditMeta";
 import { WEAK_INBOUND, type LinkGraph } from "./linkGraph";
 import { analyzeStructure, DEEP_DEPTH, MIN_URLS, type SiteStructure } from "./siteStructure";
 

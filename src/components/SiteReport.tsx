@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AREA_LABEL } from "@/lib/audit";
+import { AREA_LABEL } from "@/lib/auditMeta";
 import type { LinkGraph } from "@/lib/linkGraph";
 import { CRAWL_MAX_PAGES, MAX_PAGES } from "@/lib/siteCrawl";
 import { STAGES, stageDef, type Proposal, type SiteReportResult, type Stage } from "@/lib/siteReport";

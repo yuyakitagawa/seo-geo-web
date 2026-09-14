@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import type { AiView, AiViewRow } from "@/lib/aiView";
-import { AREA_LABEL, CHECKLIST, SEVERITY_LABEL, type Area, type AuditResult, type Finding, type Severity } from "@/lib/audit";
-import { HEADING_VERDICT_LABEL, MIN_TEXT, type HeadingFit, type HeadingFitResult, type HeadingVerdict } from "@/lib/headingFit";
+import type { AuditResult, Finding } from "@/lib/audit";
+// 判定本体（audit.ts / headingFit.ts）は読み込まない。読むとBudouXまで閲覧者に配られる
+import { AREA_LABEL, CHECKLIST, HEADING_VERDICT_LABEL, MIN_TEXT, SEVERITY_LABEL, type Area, type HeadingVerdict, type Severity } from "@/lib/auditMeta";
+import type { HeadingFit, HeadingFitResult } from "@/lib/headingFit";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const SEVERITY_STYLE: Record<Severity, string> = {
