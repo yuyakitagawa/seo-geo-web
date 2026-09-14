@@ -6,11 +6,29 @@
 // （2026-09-04 の本番で発生。vercel build → node で .vercel/output/functions/api/audit.func/api/audit.js を require して再現できる）。
 // URLを1本取得して src/lib/audit.ts で判定するAPI。/tools/page-audit のフォームから呼ばれる。
 // 取得（SSRF対策・バイト上限）は src/lib/fetchPage.ts、回数制限は src/lib/rateLimit.ts が持つ。
-import { audit } from "../src/lib/audit";
-import { logAudit } from "../src/lib/audit-log";
-import { fetchChecked, readCapped } from "../src/lib/fetchPage";
+//
+// 判定本体（audit.ts）と取得（fetchPage.ts）は**ハンドラの中で読み込む**。理由は2つ。
+//   1. sameOrigin / rateLimited で弾くリクエストでは読み込まない（関数の実行時間がそのまま費用になる）
+//   2. **読み込みに失敗したときに理由をJSONで返せる**。モジュールの読み込み時に落ちると Vercel は
+//      素のHTMLで 500 を返し、画面には「サーバーがJSONを返しませんでした」としか出ず、
+//      本番だけ壊れたときに原因が分からない（2026-09-04・2026-09-14 に実際に困った）
 import { clientIp, rateLimited, sameOrigin } from "../src/lib/rateLimit";
-import { parseRobots } from "../src/lib/robots";
+
+async function loadParts() {
+  const [auditMod, logMod, fetchMod, robotsMod] = await Promise.all([
+    import("../src/lib/audit"),
+    import("../src/lib/audit-log"),
+    import("../src/lib/fetchPage"),
+    import("../src/lib/robots"),
+  ]);
+  return {
+    audit: auditMod.audit,
+    logAudit: logMod.logAudit,
+    fetchChecked: fetchMod.fetchChecked,
+    readCapped: fetchMod.readCapped,
+    parseRobots: robotsMod.parseRobots,
+  };
+}
 
 export async function POST(request: Request) {
   // サイトのフォーム以外からの直接呼び出しは受けない（関数実行を無駄に増やさないため）。
@@ -20,6 +38,16 @@ export async function POST(request: Request) {
   if (rateLimited(clientIp(request))) {
     return Response.json({ error: "短時間に検査しすぎです。1分ほど空けてから試してください。" }, { status: 429 });
   }
+
+  let parts: Awaited<ReturnType<typeof loadParts>>;
+  try {
+    parts = await loadParts();
+  } catch (e) {
+    // ここが落ちるのは本番の関数だけが壊れている状態。原因をそのまま返す（握りつぶすと調べようがない）
+    const detail = e instanceof Error ? `${e.message}` : String(e);
+    return Response.json({ error: `検査の読み込みに失敗しました: ${detail}` }, { status: 500 });
+  }
+  const { audit, logAudit, fetchChecked, readCapped, parseRobots } = parts;
 
   let url: string;
   try {
