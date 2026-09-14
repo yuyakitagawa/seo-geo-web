@@ -343,13 +343,13 @@ export default function SiteReport() {
             <strong>リンク構造も調べる</strong>
             <span className="text-mute">
               （入口から内部リンクを最大{CRAWL_MAX_PAGES}ページたどり、どこからもリンクされていないページ・本文から案内されていないページ・リンク切れを出します。
-              取得するページが増えるので、結果が出るまで40〜60秒かかります）
+              取得するページが増えるので、サイトの規模と表示の速さによって10秒〜1分ほどかかります）
             </span>
           </span>
         </label>
         <p className="mt-3 text-xs leading-relaxed text-mute">
           トップページでも下層ページでも構いません。サイトマップ（取得できなければ入力したページの内部リンク）から最大{MAX_PAGES}ページを取得して検査します。
-          結果が出るまで{withLinks ? "40〜60" : "20〜40"}秒ほどかかります。
+          結果が出るまで{withLinks ? "10秒〜1分" : "20〜40秒"}ほどかかります。
         </p>
         {error && (
           <p className="mt-4 rounded-panel border border-news/40 bg-news/10 p-4 text-sm text-news" role="alert">
