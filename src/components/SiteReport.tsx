@@ -125,86 +125,6 @@ function StructurePanel({ s }: { s: SiteStructure }) {
   );
 }
 
-/**
- * どの階層からどの階層へリンクしているかのマス目。
- * 300ページの生のリンク図は人が読めないので、第1階層でまとめる。見たいのは**空のマス**
- * （その階層から一度もリンクされていない＝回遊が途切れている場所）。
- * 色は濃さだけ（単一色相）で、数はマスの中に必ず書く。色が読めなくても表として読める。
- */
-function SectionMatrix({ g }: { g: LinkGraph }) {
-  const names = g.sections.map((s) => s.name);
-  const count = new Map(g.sectionLinks.map((l) => [`${l.from}\u0000${l.to}`, l.count]));
-  const max = Math.max(...g.sectionLinks.map((l) => l.count), 1);
-  // 本数は偏る（ナビのリンクは全ページから出る）ので、濃さは対数で割り当てる
-  const shade = (n: number) => (n <= 0 ? 0 : Math.log1p(n) / Math.log1p(max));
-  // 濃さは 8%〜60% に収める。これ以上濃くすると、明るい配色と暗い配色のどちらかで
-  // マスの中の数字が読めなくなる（文字色を切り替えずに両方で成立させるための上限）。
-  const fill = (t: number) => `color-mix(in srgb, var(--color-accent) ${Math.round(8 + t * 52)}%, transparent)`;
-
-  return (
-    <div className={cx(SURFACE.outline, PADDING.tight, "print-keep")}>
-      <p className={cx(EYEBROW.mute, "text-2xs")}>本文からどの階層へ案内しているか</p>
-      <p className="mt-2 text-sm leading-relaxed text-mute">
-        行が<strong className="text-fg">案内する側</strong>、列が<strong className="text-fg">案内される側</strong>の第1階層です。
-        <strong className="text-fg">空のマス</strong>は、その階層の本文から一度も案内していないことを表します
-        （例: 記事から教科書へのリンクが本文に1本も無い）。
-        <strong className="text-fg">ナビ・ヘッダー・フッター・サイドバーのリンクは数えていません</strong>
-        。全ページから同じ形で出るため、混ぜるとどのマスも埋まってしまい、本文の設計が見えなくなるからです。
-      </p>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[32rem] border-separate border-spacing-0.5 text-center text-xs">
-          <caption className="sr-only">第1階層どうしの本文リンクの本数。行が案内する側、列が案内される側。ナビ・フッターは含まない。</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="px-2 py-1 text-left text-2xs font-medium text-mute">
-                元＼先
-              </th>
-              {names.map((name) => (
-                <th key={name} scope="col" className="max-w-20 truncate px-1.5 py-1 text-2xs font-medium text-mute">
-                  {name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {names.map((from) => (
-              <tr key={from}>
-                <th scope="row" className="max-w-24 truncate px-2 py-1 text-left text-2xs font-medium text-mute">
-                  {from}
-                </th>
-                {names.map((to) => {
-                  const n = count.get(`${from}\u0000${to}`) ?? 0;
-                  const t = shade(n);
-                  return (
-                    <td
-                      key={to}
-                      className="rounded-sm px-1.5 py-1.5 font-mono tabular-nums"
-                      style={t > 0 ? { background: fill(t) } : undefined}
-                      title={n > 0 ? `${from} の本文 → ${to}: ${n} 本` : `${from} の本文から ${to} への案内なし`}
-                    >
-                      {n > 0 ? n.toLocaleString() : <span className="opacity-30">–</span>}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-2xs text-mute">
-        <span>少ない</span>
-        {[0.15, 0.35, 0.6, 0.85, 1].map((t) => (
-          <span key={t} className="inline-block size-3.5 rounded-sm" style={{ background: fill(t) }} aria-hidden />
-        ))}
-        <span>多い（最大 {max.toLocaleString()} 本）</span>
-      </div>
-      <p className="mt-2 text-2xs leading-relaxed text-mute">
-        ページ数: {g.sections.map((s) => `${s.name} ${s.pages.toLocaleString()}`).join(" / ")}
-      </p>
-    </div>
-  );
-}
-
 /** リンク構造。クロールした範囲の事実だけを出す（直すべき点は提案側に出る） */
 function LinkGraphPanel({ g }: { g: LinkGraph }) {
   const max = Math.max(...g.depths.map((d) => d.count), 1);
@@ -235,8 +155,6 @@ function LinkGraphPanel({ g }: { g: LinkGraph }) {
           ))}
         </ul>
       </div>
-
-      {g.sections.length > 0 && <SectionMatrix g={g} />}
     </section>
   );
 }

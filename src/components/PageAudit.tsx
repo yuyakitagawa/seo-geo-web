@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AiView, AiViewRow } from "@/lib/aiView";
 import { AREA_LABEL, CHECKLIST, SEVERITY_LABEL, type Area, type AuditResult, type Finding, type Severity } from "@/lib/audit";
+import { HEADING_VERDICT_LABEL, MIN_TEXT, type HeadingFit, type HeadingFitResult, type HeadingVerdict } from "@/lib/headingFit";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const SEVERITY_STYLE: Record<Severity, string> = {
@@ -134,6 +135,102 @@ function AiViewPanel({ view }: { view: AiView }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+const VERDICT_STYLE: Record<HeadingVerdict, string> = {
+  ok: "bg-fill-strong text-fg",
+  weak: "bg-accent text-accent-ink",
+  off: "bg-news text-white",
+};
+
+/** 語が本文に出てくるか。○=そのまま出てくる △=一部だけ ×=出てこない */
+const HIT_SIGN = { full: "○", partial: "△", none: "×" } as const;
+const HIT_STYLE = { full: "text-accent", partial: "text-mute", none: "text-news" } as const;
+const HIT_LABEL = { full: "本文にある", partial: "一部だけある", none: "本文に無い" } as const;
+
+function HeadingRow({ f }: { f: HeadingFit }) {
+  return (
+    <li className={cx("rounded-panel border p-4", f.verdict === "off" ? "border-news/40 bg-news/5" : "border-line")}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-sm bg-fill px-1.5 py-0.5 font-mono text-2xs text-mute">H{f.level}</span>
+        <p className="text-sm font-bold leading-snug">{f.heading}</p>
+        <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", VERDICT_STYLE[f.verdict])}>
+          {HEADING_VERDICT_LABEL[f.verdict]}
+        </span>
+      </div>
+      <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        {f.terms.map((t) => (
+          <li key={t.term} className="flex items-center gap-1.5">
+            <span className={cx("font-bold", HIT_STYLE[t.hit])} aria-hidden>
+              {HIT_SIGN[t.hit]}
+            </span>
+            <span className="sr-only">{HIT_LABEL[t.hit]}:</span>
+            <span className="font-mono text-xs">{t.term}</span>
+          </li>
+        ))}
+      </ul>
+      {f.lead && (
+        <p className="mt-2.5 text-xs leading-relaxed text-mute">
+          <span className="font-medium">見出しの直後</span>: {f.lead.slice(0, 90)}
+          {f.lead.length > 90 && "…"}
+        </p>
+      )}
+      <p className="mt-1.5 text-2xs text-mute">
+        近さ <span className="font-mono">{f.closeness.toFixed(2)}</span>（参考。判定には使っていません）
+      </p>
+    </li>
+  );
+}
+
+/**
+ * 見出しと本文の対応。**測り方をそのまま画面に出す**（何を見て判定したかが分からないと直せない）。
+ * 指摘は「噛み合っていない」ものだけだが、ここでは判定した見出しを全部並べる。
+ */
+function HeadingFitPanel({ r }: { r: HeadingFitResult }) {
+  const off = r.fits.filter((f) => f.verdict === "off").length;
+  const weak = r.fits.filter((f) => f.verdict === "weak").length;
+  return (
+    <div className={cx(SURFACE.card, PADDING.card)}>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h2 className={HEADING.card}>見出しと本文の対応</h2>
+        <p className="text-sm text-mute">
+          判定した見出し {r.fits.length}
+          {off > 0 && (
+            <>
+              <span className="mx-2 opacity-40">/</span>
+              <span className="font-bold text-news">噛み合っていない {off}</span>
+            </>
+          )}
+          {weak > 0 && (
+            <>
+              <span className="mx-2 opacity-40">/</span>
+              弱い {weak}
+            </>
+          )}
+        </p>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-mute">
+        h1〜h4 の見出しごとに、<strong className="text-fg">見出しから取り出した語が、その下の本文に出てくるか</strong>
+        を見ています（○ そのまま出てくる／△ 一部だけ／× 出てこない）。
+        <strong className="text-fg">1つも出てこない見出しだけを指摘</strong>しています。
+        見出しと本文の「近さ」（文字bigramのTF-IDFのコサイン類似度）も出しますが、
+        <strong className="text-fg">判定には使っていません</strong>
+        。近さの数値を見せられても直しようがないためです。
+        AI検索は見出しごとのまとまりを抜き出して回答に使うので、見出しが中身を言い当てていないと、その見出しで拾われても答えになりません。
+      </p>
+      <ul className="mt-5 space-y-3">
+        {r.fits.map((f) => (
+          <HeadingRow key={`${f.level}-${f.heading}`} f={f} />
+        ))}
+      </ul>
+      {r.skipped > 0 && (
+        <p className="mt-5 border-t border-line pt-4 text-sm leading-relaxed text-mute">
+          {r.skipped}個の見出しは判定していません。「まとめ」「はじめに」のような定型の見出しと、本文が{MIN_TEXT}字未満の節です。
+          どちらも見出しの語が本文に出てこないのが当たり前で、判定すると直す必要のない指摘が並ぶためです。
+        </p>
+      )}
     </div>
   );
 }
@@ -281,6 +378,8 @@ export default function PageAudit() {
           <Checklist result={result} />
 
           <AiViewPanel view={result.aiView} />
+
+          {result.headings.fits.length > 0 && <HeadingFitPanel r={result.headings} />}
 
           {result.head200 && (
             <div className={cx(SURFACE.outline, PADDING.tight)}>

@@ -5,7 +5,7 @@
 import { parse, type HTMLElement } from "node-html-parser";
 import { aiView, type AiView } from "./aiView";
 import { CRAWLERS } from "./crawlers";
-import { headingFit } from "./headingFit";
+import { headingFit, type HeadingFitResult } from "./headingFit";
 import { check, parseRobots } from "./robots";
 import { blocksFromHtml } from "./promptFit";
 
@@ -126,6 +126,11 @@ export type AuditResult = {
   skipped: string[];
   /** サイト単位の突き合わせに使う実値。複数ページを比べる /tools/site-report が title の重複や canonical のホスト混在を見る */
   meta: { title: string; description: string; canonical: string | null; noindex: boolean };
+  /**
+   * 見出し（h1〜h4）ごとの、その下の本文との対応。**判定の内訳をそのまま画面に出すため**に返す。
+   * 指摘（findings の `heading-fit`）は、このうち「噛み合っていない」ものだけを集めたもの。
+   */
+  headings: HeadingFitResult;
 };
 
 const G = (path: string, title: string) => ({ title, url: `https://developers.google.com/search/docs/${path}` });
@@ -1139,6 +1144,7 @@ export function audit(input: AuditInput): AuditResult {
     passed,
     skipped: [...skipped],
     meta: { title, description: desc, canonical: absoluteOrNull(canonicalHref, input.finalUrl), noindex },
+    headings: fit,
   };
 }
 
