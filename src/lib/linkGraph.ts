@@ -57,7 +57,11 @@ export type LinkGraph = {
   broken: { url: string; status: number; from: string[] }[];
   /** 図に出す第1階層（ページ数の多い順） */
   sections: { name: string; pages: number }[];
-  /** 第1階層どうしのリンク本数。sections に出てくる名前だけを使う */
+  /**
+   * 第1階層どうしの**本文からの**リンク本数。sections に出てくる名前だけを使う。
+   * ナビ・ヘッダー・フッター・サイドバーのリンクは数えない。全ページから同じ形で出るため、
+   * 混ぜるとどのマスも埋まってしまい、「その階層から案内していない」が見えなくなる。
+   */
   sectionLinks: { from: string; to: string; count: number }[];
 };
 
@@ -123,9 +127,11 @@ export function buildLinkGraph(input: LinkGraphInput): LinkGraph {
     .map((p) => ({ url: p.url, status: p.status, from: [...(inbound.get(normalizeUrlKey(p.url)) ?? [])].slice(0, 3) }))
     .slice(0, MAX_LIST);
 
-  // ---- 図にする集計: 第1階層どうしのリンク本数 ----
+  // ---- 図にする集計: 第1階層どうしの本文リンク ----
   // 300ページの生のリンク図は人が読めないので、第1階層でまとめてマス目にする。
-  // 見たいのは「どこからどこへ繋がっていないか」（空のマス）。
+  // 見たいのは「どの階層から、どの階層へ案内していないか」（空のマス）。
+  // **本文のリンクだけを数える**。ナビとフッターは全ページから同じ形で出るので、混ぜると
+  // どのマスも埋まってしまい、本文の設計（記事から教科書へ送っているか等）が一切見えなくなる。
   const pageCount = new Map<string, number>();
   for (const page of ok) {
     const s = sectionOf(page.url);
@@ -150,7 +156,7 @@ export function buildLinkGraph(input: LinkGraphInput): LinkGraph {
   for (const page of ok) {
     const from = sectionOf(page.url);
     if (!from) continue;
-    for (const link of page.links) {
+    for (const link of page.bodyLinks) {
       const to = sectionOf(link);
       if (!to) continue;
       const key = `${label(from)}\u0000${label(to)}`;
