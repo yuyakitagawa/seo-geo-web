@@ -6,6 +6,7 @@ import type { AuditResult, Finding } from "@/lib/audit";
 // 判定本体（audit.ts / headingFit.ts）は読み込まない。読むとBudouXまで閲覧者に配られる
 import { AREA_LABEL, CHECKLIST, HEADING_VERDICT_LABEL, MIN_TEXT, SEVERITY_LABEL, type Area, type HeadingVerdict, type Severity } from "@/lib/auditMeta";
 import type { HeadingFit, HeadingFitResult } from "@/lib/headingFit";
+import { postJson } from "@/lib/postJson";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const SEVERITY_STYLE: Record<Severity, string> = {
@@ -316,20 +317,10 @@ export default function PageAudit() {
     setLoading(true);
     setError("");
     setResult(null);
-    try {
-      const res = await fetch("/api/audit", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(String(data.error ?? "検査に失敗しました"));
-      else setResult(data as AuditResult);
-    } catch {
-      setError("通信に失敗しました。時間を置いて試してください。");
-    } finally {
-      setLoading(false);
-    }
+    const r = await postJson<AuditResult>("/api/audit", { url: url.trim() }, "検査に失敗しました");
+    if (r.ok) setResult(r.data);
+    else setError(r.error);
+    setLoading(false);
   };
 
   return (

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CONTACT_LIMITS, CONTACT_TOPICS, type ContactTopic } from "@/lib/contact";
+import { postJson } from "@/lib/postJson";
 import { FIELD, PADDING, SURFACE, button, cx } from "@/lib/ui";
 
 const TOPIC_KEYS = Object.keys(CONTACT_TOPICS) as ContactTopic[];
@@ -26,20 +27,14 @@ export default function ContactForm() {
     if (loading || message.trim().length < 10) return;
     setLoading(true);
     setError("");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ topic, name, email, message, company, elapsed: openedAt.current ? Date.now() - openedAt.current : 0 }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(String(data.error ?? "送信に失敗しました"));
-      else setDone(true);
-    } catch {
-      setError("通信に失敗しました。時間を置いて試してください。");
-    } finally {
-      setLoading(false);
-    }
+    const r = await postJson<unknown>(
+      "/api/contact",
+      { topic, name, email, message, company, elapsed: openedAt.current ? Date.now() - openedAt.current : 0 },
+      "送信に失敗しました",
+    );
+    if (r.ok) setDone(true);
+    else setError(r.error);
+    setLoading(false);
   };
 
   if (done) {

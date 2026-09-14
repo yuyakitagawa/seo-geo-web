@@ -18,7 +18,7 @@ export {
   type CheckItem,
   type Severity,
 } from "./auditMeta";
-import { CHECKLIST, type Area, type CheckItem, type Severity } from "./auditMeta";
+import { CHECKLIST, type Area, type Severity } from "./auditMeta";
 
 
 export type Finding = {

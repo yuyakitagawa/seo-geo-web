@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AREA_LABEL } from "@/lib/auditMeta";
 import type { LinkGraph } from "@/lib/linkGraph";
+import { postJson } from "@/lib/postJson";
 import { CRAWL_MAX_PAGES, MAX_PAGES } from "@/lib/siteCrawl";
 import { STAGES, stageDef, type Proposal, type SiteReportResult, type Stage } from "@/lib/siteReport";
 import { DEEP_DEPTH, type SiteStructure } from "@/lib/siteStructure";
@@ -296,20 +297,10 @@ export default function SiteReport() {
     setLoading(true);
     setError("");
     setResult(null);
-    try {
-      const res = await fetch("/api/site-report", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), links: withLinks }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(String(data.error ?? "検査に失敗しました"));
-      else setResult(data as SiteReportResult);
-    } catch {
-      setError("通信に失敗しました。時間を置いて試してください。");
-    } finally {
-      setLoading(false);
-    }
+    const r = await postJson<SiteReportResult>("/api/site-report", { url: url.trim(), links: withLinks }, "検査に失敗しました");
+    if (r.ok) setResult(r.data);
+    else setError(r.error);
+    setLoading(false);
   };
 
   return (
