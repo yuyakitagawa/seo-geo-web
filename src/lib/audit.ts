@@ -78,6 +78,7 @@ export const CHECKLIST: CheckItem[] = [
   { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-late"] },
   { id: "faq", area: "geo", label: "質問と回答の形式（解説ページのみ）", findingIds: ["faq"] },
   { id: "heading-fit", area: "geo", label: "見出しと、その下の本文が噛み合っているか", findingIds: ["heading-fit"] },
+  { id: "heading-answer", area: "geo", label: "見出しが聞いていることの答えが本文にあるか", findingIds: ["heading-answer"] },
   { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
   { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%。出典のあるページのみ）", findingIds: ["geo-quotation"] },
   { id: "geo-statistics", area: "geo", label: "具体的な数値（同 約32%）", findingIds: ["geo-statistics"] },
@@ -833,6 +834,30 @@ export function audit(input: AuditInput): AuditResult {
       fix: "本文を見出しの問いに答える形に直すか、見出しを本文の中身に合わせて書き直します。どちらが早いかは節ごとに違うので、見出し直後の1文が見出しへの答えになっているかで決めます。",
       fixCode: `## ${offHeadings[0].heading}\n${offHeadings[0].heading.replace(/[？?]$/, "")}は、（見出しの語をそのまま使った1〜2文の答え）。`,
       where: { note: `該当する見出し: ${offHeadings.map((f) => f.heading).join(" / ")}` },
+      source: SRC.aiGuide,
+    });
+  }
+
+  // 見出しを「問い」として読み、その答えの形（金額・番号付きの手順・定義文など）が本文にあるか。
+  // 噛み合い（上）とは直し方が違う（上は見出しを直す、こちらは本文に答えを足す）ので別の指摘にする。
+  const unanswered = fit.unanswered;
+  if (fit.fits.every((f) => f.answer === null)) skip("heading-answer");
+  else if (unanswered.length > 0) {
+    const first = unanswered[0];
+    add({
+      id: "heading-answer",
+      area: "geo",
+      severity: "mid",
+      title: `聞いていることの答えが本文に無い見出しが${unanswered.length}個あります`,
+      detail:
+        "見出しが問いなら、その節はその問いの答えです。費用を聞く見出しに金額が無い、手順を聞く見出しに番号付きの手順が無い、といった節は、AI検索がその問いの答えとして抜き出せません。",
+      code: unanswered
+        .slice(0, 3)
+        .map((f) => `${"#".repeat(Math.max(1, f.level))} ${f.heading}\n  → ${f.intentLabel}のに、${f.answer?.label}がありません。\n  本文の書き出し: ${f.lead.slice(0, 60)}…`)
+        .join("\n\n"),
+      fix: first.answer?.detail ?? "見出しが聞いていることの答えを、節の先頭に置きます。",
+      fixCode: `${"#".repeat(Math.max(1, first.level))} ${first.heading}\n（ここに${first.answer?.label}を置く。節の先頭に書くと、AI検索がその問いの答えとしてそのまま抜き出せます）`,
+      where: { note: `該当する見出し: ${unanswered.map((f) => `${f.heading}（${f.answer?.label}が無い）`).join(" / ")}` },
       source: SRC.aiGuide,
     });
   }

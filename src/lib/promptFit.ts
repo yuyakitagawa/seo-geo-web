@@ -11,7 +11,7 @@ import { parse, type HTMLElement } from "node-html-parser";
 export type Verdict = "covered" | "weak" | "missing";
 export const VERDICT_LABEL: Record<Verdict, string> = { covered: "答えている", weak: "弱い", missing: "答えていない" };
 
-export type Intent = "definition" | "howto" | "compare" | "price" | "case" | "judge" | "other";
+export type Intent = "definition" | "howto" | "compare" | "price" | "case" | "judge" | "reason" | "other";
 export const INTENT_LABEL: Record<Intent, string> = {
   definition: "定義を聞いている",
   howto: "手順を聞いている",
@@ -19,6 +19,7 @@ export const INTENT_LABEL: Record<Intent, string> = {
   price: "費用を聞いている",
   case: "事例・効果を聞いている",
   judge: "やるべきかを聞いている",
+  reason: "理由を聞いている",
   other: "情報を求めている",
 };
 
@@ -168,6 +169,8 @@ const GENERIC = new Set([
 ]);
 
 const INTENT_RULES: { intent: Intent; words: string[] }[] = [
+  // 「なぜ費用が高いのか」は費用ではなく理由を聞いているので、reason を先に見る
+  { intent: "reason", words: ["なぜ", "理由", "原因", "どうして"] },
   { intent: "price", words: ["料金", "価格", "費用", "相場", "いくら", "値段", "コスト", "無料"] },
   { intent: "compare", words: ["比較", "違い", "どっち", "どちら", "おすすめ", "ランキング", "選び方", "vs", "代わり"] },
   { intent: "howto", words: ["方法", "やり方", "手順", "どうやって", "作り方", "始め", "何から", "設定", "導入", "対処", "書き方", "使い方"] },
@@ -176,7 +179,8 @@ const INTENT_RULES: { intent: Intent; words: string[] }[] = [
   { intent: "definition", words: ["とは", "意味", "何ですか", "なに", "定義", "仕組み", "どういう"] },
 ];
 
-function detectIntent(prompt: string): Intent {
+/** 質問文（プロンプト・見出し）が何を聞いているかを判定する（`src/lib/headingFit.ts` と共有） */
+export function detectIntent(prompt: string): Intent {
   const p = normalize(prompt);
   for (const r of INTENT_RULES) if (r.words.some((w) => p.includes(w))) return r.intent;
   return "other";
@@ -334,11 +338,13 @@ const TEMPLATE: Record<Intent, (topic: string, add: string) => string> = {
   compare: (t, a) => `結論から言うと、〈条件A〉なら〈X〉、〈条件B〉なら〈Y〉です。\n\n| 項目 | X | Y |\n| --- | --- | --- |\n| 〈${a}〉 | 〈値〉 | 〈値〉 |\n| 費用 | 〈値〉 | 〈値〉 |\n\n〈選び分けの理由を2文〉`,
   price: (t, a) => `${t}は〈金額〉です（〈確認日〉時点）。\n\n〈内訳・条件を2〜3文。${a}に触れる〉\n\n出典: 〈公式の料金ページURL〉`,
   case: (t, a) => `〈主語〉は〈施策〉を行い、〈期間〉で〈数値〉が〈変化〉しました。\n\n〈条件と再現性の注意を2文。${a}に触れる〉\n\n出典: 〈一次情報のURL〉`,
+  reason: (t, a) => `${t}の理由は〈結論を1文で〉。\n\n〈根拠を2〜3文。${a}に触れる〉\n\n出典: 〈一次情報のURL〉`,
   judge: (t, a) => `結論: 〈条件A〉なら必要、〈条件B〉なら不要です。\n\n〈判断の分かれ目を2〜3文。${a}に触れる〉`,
   other: (t, a) => `${t}については、〈結論を1文で〉。\n\n〈根拠と補足を2〜3文。${a}に触れる〉\n\n出典: 〈一次情報のURL〉`,
 };
 
-function formatChecks(intent: Intent, block: Block | null, pageText: string): FormatCheck[] {
+/** 意図に対して「答えの形」が本文にあるかを見る（`src/lib/headingFit.ts` と共有） */
+export function formatChecks(intent: Intent, block: Block | null, pageText: string): FormatCheck[] {
   const text = block?.text ?? pageText;
   const checks: FormatCheck[] = [];
   const push = (ok: boolean, label: string, detail: string) => checks.push({ ok, label, detail });
@@ -365,6 +371,13 @@ function formatChecks(intent: Intent, block: Block | null, pageText: string): Fo
       break;
     case "definition":
       push(/とは[、。 ]|といいます|を指します|のことです/.test(text), "定義文", "定義のプロンプトです。「〜とは、〜です」の形の文を1つ置くと、そのまま定義として引用されます。");
+      break;
+    case "reason":
+      push(
+        /ためです|ためだ|ため[、。]|からです|理由は|原因は|背景には|に起因/.test(text),
+        "理由を述べる文",
+        "理由を聞いています。「〜のため」「理由は〜です」の形の文が1つも無いと、AIは理由の答えとして抜き出せません。"
+      );
       break;
     case "judge":
       push(/結論|必要|不要|べき|場合は/.test(text), "結論の明示", "判断を求めるプロンプトです。「〈条件〉なら必要、〈条件〉なら不要」と条件つきで言い切ります。");

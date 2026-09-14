@@ -64,3 +64,83 @@ test("見出しが無いページでは何も返さない", () => {
   assert.deepEqual(fits, []);
   assert.equal(skipped, 0);
 });
+
+// --- 見出しを「問い」として読み、答えの形が本文にあるかを見る ---
+
+test("費用を聞く見出しに金額が無ければ、答えの形が無いと見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用はいくらですか</h2><p>${body(
+      "GEO対策の費用は会社によって様々です。費用はいくらか気になるところですが、一概には言えません。",
+    )}</p></main>`,
+  );
+  const { fits, unanswered } = headingFit(blocks);
+  assert.equal(fits[0].intent, "price");
+  assert.equal(fits[0].answer?.ok, false, "金額が無いので答えの形が無い");
+  assert.equal(unanswered.length, 1);
+  // 見出しの語は本文に出ているので、噛み合い（語の一致）とは別の指摘になる
+  assert.equal(fits[0].verdict, "ok");
+});
+
+test("費用を聞く見出しに金額があれば、答えの形があると見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用はいくらですか</h2><p>${body(
+      "GEO対策の費用は月額30万円からです。内訳は記事制作と計測で、いくらかかるかは本数で決まります。",
+    )}</p></main>`,
+  );
+  const { fits, unanswered } = headingFit(blocks);
+  assert.equal(fits[0].answer?.ok, true);
+  assert.deepEqual(unanswered, []);
+});
+
+test("理由を聞く見出しに理由の文が無ければ、答えの形が無いと見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>なぜAI検索に引用されないのか</h2><p>${body(
+      "AI検索に引用されないという相談は増えています。引用されない状況は多くのサイトで起きています。",
+    )}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].intent, "reason", "「なぜ」は理由を聞いている");
+  assert.equal(fits[0].answer?.ok, false);
+});
+
+test("「なぜ費用が高いのか」は費用ではなく理由を聞いていると見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>なぜGEOの費用は高いのか</h2><p>${body(
+      "GEOの費用が高いのは、記事1本ごとに一次情報の裏取りが要るためです。",
+    )}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].intent, "reason");
+  assert.equal(fits[0].answer?.ok, true, "「〜ためです」があるので答えの形がある");
+});
+
+test("手順を聞く見出しは番号付きの手順があるかを見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>robots.txtの書き方</h2><ol><li>ファイルを作る</li><li>User-agentを書く</li></ol><p>${body(
+      "robots.txtの書き方をまとめました。",
+    )}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].intent, "howto");
+  assert.equal(fits[0].answer?.ok, true);
+});
+
+test("何を聞いているか分からない見出しは、答えの形を判定しない", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>AI検索の現在地</h2><p>${body("AI検索の現在地について、いま起きていることを並べます。")}</p></main>`,
+  );
+  const { fits, unanswered } = headingFit(blocks);
+  assert.equal(fits[0].intent, "other");
+  assert.equal(fits[0].answer, null, "判定しない（null）。誤検知を出さない");
+  assert.deepEqual(unanswered, []);
+});
+
+test("体言止めでも費用の語があれば、金額があるかを見る", () => {
+  // 「〜はいくら？」の形でなくても、料金の節に金額が1つも無いのは指摘に値する
+  const { blocks } = blocksFromHtml(
+    `<main><h2>ガス料金の基本</h2><p>${body("ガス料金の基本について、基本的な考え方をまとめます。")}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].intent, "price");
+  assert.equal(fits[0].answer?.ok, false);
+});

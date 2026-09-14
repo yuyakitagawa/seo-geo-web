@@ -151,14 +151,20 @@ const HIT_STYLE = { full: "text-accent", partial: "text-mute", none: "text-news"
 const HIT_LABEL = { full: "本文にある", partial: "一部だけある", none: "本文に無い" } as const;
 
 function HeadingRow({ f }: { f: HeadingFit }) {
+  const missingAnswer = f.answer !== null && !f.answer.ok;
   return (
-    <li className={cx("rounded-panel border p-4", f.verdict === "off" ? "border-news/40 bg-news/5" : "border-line")}>
+    <li className={cx("rounded-panel border p-4", f.verdict === "off" || missingAnswer ? "border-news/40 bg-news/5" : "border-line")}>
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-sm bg-fill px-1.5 py-0.5 font-mono text-2xs text-mute">H{f.level}</span>
         <p className="text-sm font-bold leading-snug">{f.heading}</p>
         <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", VERDICT_STYLE[f.verdict])}>
           {HEADING_VERDICT_LABEL[f.verdict]}
         </span>
+        {f.answer && (
+          <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", f.answer.ok ? "bg-fill text-mute" : "bg-news text-white")}>
+            {f.answer.ok ? `${f.answer.label}あり` : `${f.answer.label}なし`}
+          </span>
+        )}
       </div>
       <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
         {f.terms.map((t) => (
@@ -171,6 +177,16 @@ function HeadingRow({ f }: { f: HeadingFit }) {
           </li>
         ))}
       </ul>
+      {f.answer && (
+        <p className="mt-2.5 text-xs leading-relaxed text-mute">
+          <span className="font-medium">{f.intentLabel}見出し</span>です。
+          {f.answer.ok ? (
+            <>本文に{f.answer.label}があります。</>
+          ) : (
+            <span className="text-news">本文に{f.answer.label}がありません。{f.answer.detail}</span>
+          )}
+        </p>
+      )}
       {f.lead && (
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
           <span className="font-medium">見出しの直後</span>: {f.lead.slice(0, 90)}
@@ -178,7 +194,7 @@ function HeadingRow({ f }: { f: HeadingFit }) {
         </p>
       )}
       <p className="mt-1.5 text-2xs text-mute">
-        近さ <span className="font-mono">{f.closeness.toFixed(2)}</span>（参考。判定には使っていません）
+        近さ <span className="font-mono">{f.closeness.toFixed(2)}</span>（文字の重なり。意味は見ていないので、判定には使っていません）
       </p>
     </li>
   );
@@ -191,6 +207,7 @@ function HeadingRow({ f }: { f: HeadingFit }) {
 function HeadingFitPanel({ r }: { r: HeadingFitResult }) {
   const off = r.fits.filter((f) => f.verdict === "off").length;
   const weak = r.fits.filter((f) => f.verdict === "weak").length;
+  const unanswered = r.unanswered.length;
   return (
     <div className={cx(SURFACE.card, PADDING.card)}>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -209,6 +226,12 @@ function HeadingFitPanel({ r }: { r: HeadingFitResult }) {
               弱い {weak}
             </>
           )}
+          {unanswered > 0 && (
+            <>
+              <span className="mx-2 opacity-40">/</span>
+              <span className="font-bold text-news">答えが無い {unanswered}</span>
+            </>
+          )}
         </p>
       </div>
       <p className="mt-2 text-sm leading-relaxed text-mute">
@@ -219,6 +242,13 @@ function HeadingFitPanel({ r }: { r: HeadingFitResult }) {
         <strong className="text-fg">判定には使っていません</strong>
         。近さの数値を見せられても直しようがないためです。
         AI検索は見出しごとのまとまりを抜き出して回答に使うので、見出しが中身を言い当てていないと、その見出しで拾われても答えになりません。
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-mute">
+        もう1つ、<strong className="text-fg">見出しを「問い」として読み、その答えの形が本文にあるか</strong>を見ています。
+        費用を聞く見出しには金額、手順を聞く見出しには番号付きの手順、理由を聞く見出しには「〜のため」の文、というように、
+        聞いていることごとに本文へあるべき形が決まります。これが無い節は、その問いの答えとして抜き出せません。
+        見出しに<strong className="text-fg">何を聞いているか分かる語が無ければ、この判定はしません</strong>（誤検知を出さないため）。
+        「〜はいくら？」の形でなくても、<strong className="text-fg">「料金の内訳」のような体言止めの見出しは費用の節として見ます</strong>。
       </p>
       <ul className="mt-5 space-y-3">
         {r.fits.map((f) => (
