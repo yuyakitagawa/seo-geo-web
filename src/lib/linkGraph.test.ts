@@ -99,3 +99,35 @@ test("自分から自分へのリンクは被リンクに数えない", () => {
   const a = g.weak.find((w) => w.url === "https://example.com/a");
   assert.equal(a?.inbound, 0);
 });
+
+test("第1階層どうしのリンク本数をマス目用に集計する", () => {
+  const g = buildLinkGraph(
+    input([
+      page({ url: "https://example.com/", links: ["https://example.com/blog/1", "https://example.com/about"] }),
+      page({ url: "https://example.com/blog/1", depth: 1, links: ["https://example.com/blog/2", "https://example.com/"] }),
+      page({ url: "https://example.com/blog/2", depth: 2, links: [] }),
+      page({ url: "https://example.com/about", depth: 1, links: [] }),
+    ]),
+  );
+  assert.deepEqual(g.sections, [
+    { name: "blog", pages: 2 },
+    { name: "/", pages: 1 },
+    { name: "about", pages: 1 },
+  ]);
+  const find = (from: string, to: string) => g.sectionLinks.find((l) => l.from === from && l.to === to)?.count ?? 0;
+  assert.equal(find("/", "blog"), 1);
+  assert.equal(find("/", "about"), 1);
+  assert.equal(find("blog", "blog"), 1, "同じ階層の中のリンクも数える");
+  assert.equal(find("blog", "/"), 1);
+  assert.equal(find("about", "blog"), 0, "リンクが無い組は出てこない＝マス目が空になる");
+});
+
+test("第1階層が多いときは「その他」にまとめる", () => {
+  const many = Array.from({ length: 10 }, (_, i) =>
+    page({ url: `https://example.com/s${i}/a`, depth: 1, links: ["https://example.com/"] }),
+  );
+  const g = buildLinkGraph(input([page({ url: "https://example.com/" }), ...many]));
+  assert.equal(g.sections.length, 9, "上位8つ＋その他");
+  assert.equal(g.sections.at(-1)?.name, "その他");
+  assert.ok(g.sectionLinks.some((l) => l.from === "その他"));
+});

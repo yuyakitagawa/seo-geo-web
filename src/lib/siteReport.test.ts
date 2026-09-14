@@ -245,7 +245,7 @@ test("役割が重なりそうな第1階層を提案に出す", () => {
 
 /** リンク構造のテスト用。既定はすべて空 */
 function graph(over: Partial<import("./linkGraph").LinkGraph> = {}): import("./linkGraph").LinkGraph {
-  return { crawled: 10, truncated: false, depths: [], weak: [], navOnly: [], orphanCandidates: [], broken: [], ...over };
+  return { crawled: 10, truncated: false, depths: [], weak: [], navOnly: [], orphanCandidates: [], broken: [], sections: [], sectionLinks: [], ...over };
 }
 
 test("リンク構造を渡さなければ、その提案は出ない", () => {
