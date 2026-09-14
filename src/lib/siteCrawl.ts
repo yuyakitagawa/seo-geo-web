@@ -3,7 +3,7 @@
 //
 // 何ページ取るかは費用に直結する（Vercel Functions の実行時間）。上限はここに1つだけ置き、
 // APIとUIの説明が同じ数字を見るようにする。
-import { parse } from "node-html-parser";
+import { parse, type HTMLElement } from "node-html-parser";
 
 /** 1回の診断で取得するページ数の上限。増やすと実行時間と費用がそのまま増える */
 export const MAX_PAGES = 8;
@@ -13,6 +13,25 @@ export const CONCURRENCY = 4;
 
 /** 全体の期限。これを過ぎたら、取れた分だけで提案書を作る（関数のタイムアウトで全部捨てない） */
 export const DEADLINE_MS = 40_000;
+
+// ---- 「リンク構造も調べる」を選んだときだけ使う上限 ----
+// 既定の診断より多くのページを取りに行くので、実行時間がそのまま費用になる。
+// 利用者がチェックを入れたときだけ動かし、上限はここ3つで決める。
+
+/** クロールするページ数の上限 */
+export const CRAWL_MAX_PAGES = 80;
+
+/** クロール時の同時実行数。相手のサーバーに並べて当てすぎない */
+export const CRAWL_CONCURRENCY = 8;
+
+/** クロール全体の期限。vercel.json の maxDuration（60秒）より短くする */
+export const CRAWL_DEADLINE_MS = 50_000;
+
+/**
+ * リンク構造まで調べるときの、判定用8ページの取得に使う期限。
+ * 前半でCRAWL_DEADLINE_MSを使い切るとクロールの時間が残らないので、ここで切る。
+ */
+export const AUDIT_DEADLINE_WITH_LINKS_MS = 25_000;
 
 /**
  * 2階層のパブリックサフィックス。ここに載るものは「1つ上」まで同じなら同じサイトと見る。
@@ -46,14 +65,13 @@ export function parseSitemap(xml: string): { urls: string[]; isIndex: boolean } 
   return { urls, isIndex };
 }
 
-/** HTMLから内部リンクと、同じ登録ドメインの別ホストを取り出す */
-export function extractLinks(html: string, baseUrl: string): { internal: string[]; relatedHosts: string[] } {
-  const base = new URL(baseUrl);
+/** 1つの範囲からリンクを拾う。internal は同一ホスト、related は同じ登録ドメインの別ホスト */
+function collectLinks(root: HTMLElement, base: URL): { internal: string[]; related: Set<string> } {
   const internal: string[] = [];
   const related = new Set<string>();
   const seen = new Set<string>();
 
-  for (const a of parse(html).querySelectorAll("a[href]")) {
+  for (const a of root.querySelectorAll("a[href]")) {
     const href = a.getAttribute("href");
     if (!href || href.startsWith("#") || /^(mailto|tel|javascript):/i.test(href)) continue;
     let u: URL;
@@ -74,11 +92,42 @@ export function extractLinks(html: string, baseUrl: string): { internal: string[
       related.add(u.host);
     }
   }
-  return { internal, relatedHosts: [...related].sort() };
+  return { internal, related };
+}
+
+/**
+ * HTMLから内部リンクと、同じ登録ドメインの別ホストを取り出す。
+ * `bodyInternal` は nav / header / footer / aside の**外**にあるリンクだけ。
+ * 全ページに同じ形で出るナビとフッターを数に入れると、どのページも「リンクされている」ことになり、
+ * 本文から案内されていないページが見えなくなる。
+ */
+export function extractLinks(html: string, baseUrl: string): { internal: string[]; bodyInternal: string[]; relatedHosts: string[] } {
+  const base = new URL(baseUrl);
+  const root = parse(html);
+  const all = collectLinks(root, base);
+  // ナビ・フッターを取り除いてから数え直す（root を壊すので all を先に取る）
+  for (const el of root.querySelectorAll("nav, header, footer, aside")) el.remove();
+  const body = collectLinks(root, base);
+  return { internal: all.internal, bodyInternal: body.internal, relatedHosts: [...all.related].sort() };
+}
+
+/**
+ * URLを突き合わせるためのキー。ハッシュを外し、末尾のスラッシュを揃える。
+ * `/a` と `/a/` を別物として数えると、リンクされているページを「孤立」と誤って出す。
+ */
+export function normalizeUrlKey(url: string): string {
+  try {
+    const u = new URL(url);
+    u.hash = "";
+    u.pathname = u.pathname.replace(/\/+$/, "") || "/";
+    return u.toString();
+  } catch {
+    return url;
+  }
 }
 
 /** 拡張子や明らかに本文でないURLを外す */
-function isPageUrl(url: string): boolean {
+export function isPageUrl(url: string): boolean {
   try {
     const path = new URL(url).pathname.toLowerCase();
     return !/\.(pdf|jpe?g|png|gif|webp|svg|zip|docx?|xlsx?|pptx?|csv|mp4|mp3|xml|json|css|js)$/.test(path);
