@@ -5,7 +5,9 @@
 import { parse, type HTMLElement } from "node-html-parser";
 import { aiView, type AiView } from "./aiView";
 import { CRAWLERS } from "./crawlers";
+import { headingFit } from "./headingFit";
 import { check, parseRobots } from "./robots";
+import { blocksFromHtml } from "./promptFit";
 
 export type Severity = "high" | "mid" | "low" | "ok";
 export type Area = "tech" | "seo" | "geo";
@@ -75,6 +77,7 @@ export const CHECKLIST: CheckItem[] = [
   { id: "lead", area: "geo", label: "冒頭の直答文の長さ", findingIds: ["no-lead", "lead-long"] },
   { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-late"] },
   { id: "faq", area: "geo", label: "質問と回答の形式（解説ページのみ）", findingIds: ["faq"] },
+  { id: "heading-fit", area: "geo", label: "見出しと、その下の本文が噛み合っているか", findingIds: ["heading-fit"] },
   { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
   { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%。出典のあるページのみ）", findingIds: ["geo-quotation"] },
   { id: "geo-statistics", area: "geo", label: "具体的な数値（同 約32%）", findingIds: ["geo-statistics"] },
@@ -800,6 +803,31 @@ export function audit(input: AuditInput): AuditResult {
       fix: "実際に来る質問を、質問文のままの見出しにして、直下に単体で意味が通る2〜3文の回答を書きます。FAQPage 構造化データのリッチリザルトは2026年5月7日にGoogle検索から廃止されたので、マークアップを足す必要はありません。",
       fixCode: "## よくある質問\n### （質問文）\n（質問を読まなくても意味が通る回答）",
       where: { note: "本文の末尾。まとめの前後に節として置きます。" },
+      source: SRC.aiGuide,
+    });
+  }
+
+  // 見出しと、その下の本文が噛み合っているか。AI検索は見出しごとのまとまりを抜いて回答に使うので、
+  // 見出しが中身を言い当てていないと、その見出しで拾われたときに答えになっていない。
+  // 判定は src/lib/headingFit.ts（重要語が本文に出てくるかが主軸。近さの数値は判定に使わない）。
+  const fit = headingFit(blocksFromHtml(input.html).blocks);
+  const offHeadings = fit.fits.filter((f) => f.verdict === "off");
+  if (fit.fits.length === 0) skip("heading-fit");
+  else if (offHeadings.length > 0) {
+    add({
+      id: "heading-fit",
+      area: "geo",
+      severity: "mid",
+      title: `見出しと本文が噛み合っていない見出しが${offHeadings.length}個あります`,
+      detail:
+        "AI検索は見出しごとのまとまりを抜き出して回答に使います。見出しの語が本文に1つも出てこない節は、その見出しで拾われても中身が答えになりません。",
+      code: offHeadings
+        .slice(0, 3)
+        .map((f) => `${"#".repeat(Math.max(1, f.level))} ${f.heading}\n  → ${f.reason}\n  本文の書き出し: ${f.lead.slice(0, 60)}…`)
+        .join("\n\n"),
+      fix: "本文を見出しの問いに答える形に直すか、見出しを本文の中身に合わせて書き直します。どちらが早いかは節ごとに違うので、見出し直後の1文が見出しへの答えになっているかで決めます。",
+      fixCode: `## ${offHeadings[0].heading}\n${offHeadings[0].heading.replace(/[？?]$/, "")}は、（見出しの語をそのまま使った1〜2文の答え）。`,
+      where: { note: `該当する見出し: ${offHeadings.map((f) => f.heading).join(" / ")}` },
       source: SRC.aiGuide,
     });
   }

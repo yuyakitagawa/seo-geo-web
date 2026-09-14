@@ -209,3 +209,16 @@ test("snippet-head: 本文が200字未満、または見出しが無ければ判
   assert.ok(audit(input({ body: "<main><h1>短い</h1><p>本文</p></main>" })).skipped.includes("snippet-head"));
   assert.ok(audit(input({ body: "<main>" + LONG + "</main>" })).skipped.includes("snippet-head"));
 });
+
+test("見出しの語が本文に1つも出てこなければ指摘する", () => {
+  const filler = "弊社は創業から地域の暮らしを支えてまいりました。社員一同、皆さまのご愛顧に感謝しております。".repeat(6);
+  const r = audit(input({ body: `<main><h2>ガス料金の計算方法</h2><p>${filler}</p></main>` }));
+  const found = r.findings.find((f) => f.id === "heading-fit");
+  assert.ok(found, "見出しと中身が別のことを指しているので指摘する");
+  assert.match(found.code ?? "", /ガス料金の計算方法/);
+});
+
+test("判定できる見出しが無いページでは、噛み合いを合否に数えない", () => {
+  const r = audit(input({ body: "<main><p>見出しのない本文です。</p></main>" }));
+  assert.ok(r.skipped.includes("heading-fit"), "材料が無いので対象外にする");
+});

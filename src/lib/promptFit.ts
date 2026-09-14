@@ -80,7 +80,8 @@ function normalize(s: string): string {
   return s.normalize("NFKC").toLowerCase().replace(/\s+/g, " ");
 }
 
-function tokenize(s: string): string[] {
+/** 文字bigram（英数字は単語）に割る。`src/lib/headingFit.ts` と共有する */
+export function tokenize(s: string): string[] {
   const out: string[] = [];
   for (const run of normalize(s).match(TOKEN_RUN) ?? []) {
     if (/^[a-z0-9]/.test(run)) {
@@ -96,7 +97,8 @@ function tokenize(s: string): string[] {
   return out;
 }
 
-function sentences(text: string): string[] {
+/** 文に割る。`src/lib/headingFit.ts` と共有する */
+export function sentences(text: string): string[] {
   const out: string[] = [];
   let cur = "";
   for (const ch of text) {
@@ -114,9 +116,10 @@ function sentences(text: string): string[] {
 
 // ---------- TF-IDF ----------
 
-type Vec = Map<string, number>;
+export type Vec = Map<string, number>;
 
-function buildIdf(docs: string[][]): { idf: Map<string, number>; fallback: number } {
+/** 1ページ内を母集団にしたIDF。`src/lib/headingFit.ts` と共有する */
+export function buildIdf(docs: string[][]): { idf: Map<string, number>; fallback: number } {
   const n = docs.length || 1;
   const df = new Map<string, number>();
   for (const d of docs) for (const t of new Set(d)) df.set(t, (df.get(t) ?? 0) + 1);
@@ -129,7 +132,8 @@ function buildIdf(docs: string[][]): { idf: Map<string, number>; fallback: numbe
 /** ひらがなだけの2文字（助詞・語尾）は、どのページにも出るので重みを下げる */
 const HIRA_ONLY = new RegExp(`^[${HIRA}]+$`);
 
-function toVec(tokens: string[], idf: Map<string, number>, fallback: number): Vec {
+/** TF-IDFのベクトル。`src/lib/headingFit.ts` と共有する */
+export function toVec(tokens: string[], idf: Map<string, number>, fallback: number): Vec {
   const tf = new Map<string, number>();
   for (const t of tokens) tf.set(t, (tf.get(t) ?? 0) + 1);
   const v: Vec = new Map();
@@ -144,7 +148,8 @@ function toVec(tokens: string[], idf: Map<string, number>, fallback: number): Ve
   return v;
 }
 
-function cosine(a: Vec, b: Vec): number {
+/** コサイン類似度。`src/lib/headingFit.ts` と共有する */
+export function cosine(a: Vec, b: Vec): number {
   const [small, large] = a.size <= b.size ? [a, b] : [b, a];
   let s = 0;
   for (const [t, w] of small) {
@@ -177,7 +182,8 @@ function detectIntent(prompt: string): Intent {
   return "other";
 }
 
-function keyTerms(prompt: string): { term: string; weight: number }[] {
+/** 短い日本語の文字列から重要語を取り出す。プロンプトにも見出しにも使う（`src/lib/headingFit.ts` と共有） */
+export function keyTerms(prompt: string): { term: string; weight: number }[] {
   const text = normalize(prompt);
   const runs: { term: string; start: number; end: number }[] = [];
   TERM_RUN.lastIndex = 0;
@@ -216,7 +222,8 @@ function displayCase(term: string, lower: string, raw: string): string {
 }
 
 /** 本文にその語があるか。少し崩れていても拾えるよう、1文字欠けた形も見る */
-function presence(term: string, text: string): TermHit["hit"] {
+/** その語が本文に出てくるか。`src/lib/headingFit.ts` と共有する */
+export function presence(term: string, text: string): TermHit["hit"] {
   if (text.includes(term)) return "full";
   if (term.length >= 3) {
     const w = term.length - 1;
