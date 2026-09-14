@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { AiView, AiViewRow } from "@/lib/aiView";
 import type { AuditResult, Finding } from "@/lib/audit";
 // 判定本体（audit.ts / headingFit.ts）は読み込まない。読むとBudouXまで閲覧者に配られる
-import { AREA_LABEL, CHECKLIST, HEADING_VERDICT_LABEL, MIN_TEXT, SEVERITY_LABEL, type Area, type HeadingVerdict, type Severity } from "@/lib/auditMeta";
+import { ANSWER_STATE_LABEL, AREA_LABEL, CHECKLIST, HEADING_VERDICT_LABEL, MIN_TEXT, SEVERITY_LABEL, type AnswerState, type Area, type HeadingVerdict, type Severity } from "@/lib/auditMeta";
 import type { HeadingFit, HeadingFitResult } from "@/lib/headingFit";
 import { postJson } from "@/lib/postJson";
 import { CODE, EYEBROW, FIELD, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
@@ -153,8 +153,17 @@ const HIT_SIGN = { full: "○", partial: "△", none: "×" } as const;
 const HIT_STYLE = { full: "text-accent", partial: "text-mute", none: "text-news" } as const;
 const HIT_LABEL = { full: "本文にある", partial: "一部だけある", none: "本文に無い" } as const;
 
+/** 答えとして適切か。ok 以外は直し方が一意に決まる */
+const ANSWER_STYLE: Record<AnswerState, string> = {
+  ok: "bg-fill text-mute",
+  late: "bg-seo text-white",
+  hedge: "bg-news text-white",
+  none: "bg-news text-white",
+  skip: "bg-fill text-mute",
+};
+
 function HeadingRow({ f }: { f: HeadingFit }) {
-  const missingAnswer = f.answer !== null && !f.answer.ok;
+  const missingAnswer = f.answerState === "none" || f.answerState === "hedge" || f.answerState === "late";
   return (
     <li className={cx("rounded-panel border p-4", f.verdict === "off" || missingAnswer ? "border-news/40 bg-news/5" : "border-line")}>
       <div className="flex flex-wrap items-center gap-2">
@@ -163,9 +172,9 @@ function HeadingRow({ f }: { f: HeadingFit }) {
         <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", VERDICT_STYLE[f.verdict])}>
           {HEADING_VERDICT_LABEL[f.verdict]}
         </span>
-        {f.answer && (
-          <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", f.answer.ok ? "bg-fill text-mute" : "bg-news text-white")}>
-            {f.answer.ok ? `${f.answer.label}あり` : `${f.answer.label}なし`}
+        {f.answerState !== "skip" && (
+          <span className={cx("rounded-full px-2 py-0.5 text-2xs font-bold", ANSWER_STYLE[f.answerState])}>
+            {ANSWER_STATE_LABEL[f.answerState]}
           </span>
         )}
       </div>
@@ -180,14 +189,10 @@ function HeadingRow({ f }: { f: HeadingFit }) {
           </li>
         ))}
       </ul>
-      {f.answer && (
+      {f.answerState !== "skip" && (
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
           <span className="font-medium">{f.intentLabel}見出し</span>です。
-          {f.answer.ok ? (
-            <>本文に{f.answer.label}があります。</>
-          ) : (
-            <span className="text-news">本文に{f.answer.label}がありません。{f.answer.detail}</span>
-          )}
+          <span className={missingAnswer ? "text-news" : undefined}>{f.answerReason}</span>
         </p>
       )}
       {f.lead && (
@@ -247,9 +252,12 @@ function HeadingFitPanel({ r }: { r: HeadingFitResult }) {
         AI検索は見出しごとのまとまりを抜き出して回答に使うので、見出しが中身を言い当てていないと、その見出しで拾われても答えになりません。
       </p>
       <p className="mt-2 text-sm leading-relaxed text-mute">
-        もう1つ、<strong className="text-fg">見出しを「問い」として読み、その答えの形が本文にあるか</strong>を見ています。
+        もう1つ、<strong className="text-fg">見出しを「問い」として読み、その節が答えとして適切か</strong>を見ています。
         費用を聞く見出しには金額、手順を聞く見出しには番号付きの手順、理由を聞く見出しには「〜のため」の文、というように、
-        聞いていることごとに本文へあるべき形が決まります。これが無い節は、その問いの答えとして抜き出せません。
+        聞いていることごとに本文へあるべき形が決まります。判定は3つで、<strong className="text-fg">どれも直し方が一意に決まるもの</strong>だけにしました。
+        <strong className="text-fg">答えが無い</strong>（その形が本文に無い）／
+        <strong className="text-fg">言い切っていない</strong>（「会社によって様々です」「一概には言えません」で始まり、答えの形も無い）／
+        <strong className="text-fg">答えが後ろにある</strong>（答えはあるが節の書き出しに無い。AI検索は見出しの直後から抜き出す）。
         見出しに<strong className="text-fg">何を聞いているか分かる語が無ければ、この判定はしません</strong>（誤検知を出さないため）。
         「〜はいくら？」の形でなくても、<strong className="text-fg">「料金の内訳」のような体言止めの見出しは費用の節として見ます</strong>。
       </p>

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { headingFit, MIN_TEXT } from "./headingFit";
-import { blocksFromHtml, keyTerms } from "./promptFit";
+import { blocksFromHtml } from "./promptFit";
 
 /** MIN_TEXT を超える長さの本文を作る */
 function body(core: string): string {
@@ -160,3 +160,46 @@ test("本文の大文字小文字を問わずに語を探す", () => {
   );
 });
 
+
+// --- 答えとして適切か（答えが無い／言い切っていない／答えが後ろ） ---
+
+test("「会社によって様々です」は答えになっていないと見る", () => {
+  // 埋め込みベクトルなら見出しと同じ話題として高く出てしまう文。語句でなら捕まえられる
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用はいくらですか</h2><p>${body(
+      "GEO対策の費用は会社によって様々です。相場が知りたいところですが一概には言えません。",
+    )}</p></main>`,
+  );
+  const { fits, unanswered } = headingFit(blocks);
+  assert.equal(fits[0].answerState, "hedge");
+  assert.equal(unanswered.length, 1);
+});
+
+test("答えが節の書き出しにあれば適切と見る", () => {
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用はいくらですか</h2><p>${body("GEO対策の費用は月額30万円からです。内訳は記事制作と計測です。")}</p></main>`,
+  );
+  const { fits, unanswered } = headingFit(blocks);
+  assert.equal(fits[0].answerState, "ok");
+  assert.deepEqual(unanswered, []);
+});
+
+test("答えが節の末尾にしかなければ「後ろにある」と見る", () => {
+  // AI検索は見出しの直後から抜き出すので、答えが後ろだと拾われない
+  const { blocks } = blocksFromHtml(
+    `<main><h2>GEO対策の費用はいくらですか</h2><p>${body(
+      "まず前提を整理します。市場の状況を踏まえる必要があります。細かい条件を見ていきましょう。結論として月額30万円からです。",
+    )}</p></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].answerState, "late");
+});
+
+test("手順・比較の見出しでは答えの位置を判定しない", () => {
+  // ブロックからは「リストや表があるか」しか分からず、どこにあるかは分からない。断定しない
+  const { blocks } = blocksFromHtml(
+    `<main><h2>robots.txtの書き方</h2><p>${body("前置きを書きます。")}</p><ol><li>作る</li><li>書く</li></ol></main>`,
+  );
+  const { fits } = headingFit(blocks);
+  assert.equal(fits[0].answerState, "ok", "位置を見ないので late にはしない");
+});

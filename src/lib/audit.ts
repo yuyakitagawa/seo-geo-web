@@ -790,26 +790,42 @@ export function audit(input: AuditInput): AuditResult {
     });
   }
 
-  // 見出しを「問い」として読み、その答えの形（金額・番号付きの手順・定義文など）が本文にあるか。
-  // 噛み合い（上）とは直し方が違う（上は見出しを直す、こちらは本文に答えを足す）ので別の指摘にする。
+  // 見出しを「問い」として読み、その節が**答えとして適切か**を見る。
+  // 噛み合い（上）とは直し方が違う（上は見出しを直す、こちらは本文の答えを直す）ので別の指摘にする。
+  // 判定は3種類あり、どれも直し方が一意に決まる:
+  //   答えが無い     → その形（金額・手順・理由の文）を書く
+  //   言い切っていない → 「様々です」「一概には」をやめて言い切る
+  //   答えが後ろ      → 答えを節の書き出しに出す
   const unanswered = fit.unanswered;
   if (fit.fits.every((f) => f.answer === null)) skip("heading-answer");
   else if (unanswered.length > 0) {
     const first = unanswered[0];
+    const counts = {
+      none: unanswered.filter((f) => f.answerState === "none").length,
+      hedge: unanswered.filter((f) => f.answerState === "hedge").length,
+      late: unanswered.filter((f) => f.answerState === "late").length,
+    };
+    const summary = [
+      counts.none > 0 ? `答えが無い${counts.none}個` : "",
+      counts.hedge > 0 ? `言い切っていない${counts.hedge}個` : "",
+      counts.late > 0 ? `答えが後ろにある${counts.late}個` : "",
+    ]
+      .filter(Boolean)
+      .join("・");
     add({
       id: "heading-answer",
       area: "geo",
       severity: "mid",
-      title: `聞いていることの答えが本文に無い見出しが${unanswered.length}個あります`,
+      title: `見出しの問いに答えられていない節が${unanswered.length}個あります（${summary}）`,
       detail:
-        "見出しが問いなら、その節はその問いの答えです。費用を聞く見出しに金額が無い、手順を聞く見出しに番号付きの手順が無い、といった節は、AI検索がその問いの答えとして抜き出せません。",
+        "AI検索は見出しごとのまとまりを頭から読んで回答に使います。問いの形の見出しなら、その節はその問いの答えです。費用を聞く見出しに金額が無い・「会社によって様々です」で終わる・答えが節の末尾にしかない、のどれも、その問いの答えとして抜き出せません。",
       code: unanswered
         .slice(0, 3)
-        .map((f) => `${"#".repeat(Math.max(1, f.level))} ${f.heading}\n  → ${f.intentLabel}のに、${f.answer?.label}がありません。\n  本文の書き出し: ${f.lead.slice(0, 60)}…`)
+        .map((f) => `${"#".repeat(Math.max(1, f.level))} ${f.heading}\n  → ${f.answerReason}`)
         .join("\n\n"),
-      fix: first.answer?.detail ?? "見出しが聞いていることの答えを、節の先頭に置きます。",
-      fixCode: `${"#".repeat(Math.max(1, first.level))} ${first.heading}\n（ここに${first.answer?.label}を置く。節の先頭に書くと、AI検索がその問いの答えとしてそのまま抜き出せます）`,
-      where: { note: `該当する見出し: ${unanswered.map((f) => `${f.heading}（${f.answer?.label}が無い）`).join(" / ")}` },
+      fix: "見出しが聞いていることの答えを、その節の書き出しに1文で置きます。「様々です」「一概には言えません」で始めず、条件を付けてでも言い切ります（「小規模なら月10万円から、指名検索を狙うなら月50万円から」のように）。",
+      fixCode: `${"#".repeat(Math.max(1, first.level))} ${first.heading}\n（ここに${first.answer?.label}を1文で置く。条件が要るなら「〜なら〈値〉、〜なら〈値〉」と条件付きで言い切る）\n\n〈補足・内訳をこの後に2〜3文〉`,
+      where: { note: `該当する見出し: ${unanswered.map((f) => f.heading).join(" / ")}` },
       source: SRC.aiGuide,
     });
   }

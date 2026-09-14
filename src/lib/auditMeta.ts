@@ -77,5 +77,16 @@ export const HEADING_VERDICT_LABEL: Record<HeadingVerdict, string> = {
   off: "噛み合っていない",
 };
 
+/** 見出しが聞いていることの答えとして、その節が適切か（`headingFit.ts`） */
+export type AnswerState = "ok" | "late" | "hedge" | "none" | "skip";
+
+export const ANSWER_STATE_LABEL: Record<AnswerState, string> = {
+  ok: "答えになっている",
+  late: "答えが後ろにある",
+  hedge: "言い切っていない",
+  none: "答えが無い",
+  skip: "判定せず",
+};
+
 /** 本文がこれより短いブロックは、見出しとの対応を判定しない（判定の材料が足りない） */
 export const MIN_TEXT = 120;
