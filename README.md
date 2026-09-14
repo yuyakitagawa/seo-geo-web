@@ -398,17 +398,15 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   「金額が1つも無い」なら直し方が一意に決まるため。廃止した `/tools/prompt-fit` が
   読み手に刺さらなかったのは、この種の数値を前に出していたからだと見ている。
   外部APIを呼ばないので、診断1回あたりの追加費用はゼロ。
-  **重要語の取り出しは BudouX**（Google の分かち書き器。Apache-2.0、モデル込みで約20KB）で文節に切ってから、
-  末尾の助詞・語尾（`TAIL_WORDS`）を剥がす。文字種の切れ目だけを見る方式は**送り仮名を含む語を壊し**、
-  「書き方」→「書」「方」で2字未満として消え、「申し込みの流れ」では重要語が0個になって判定が素通りしていた。
-  BudouX が切り損ねた欠片（「なぜ」→「な」「ぜAI検索に」）を拾わないよう、**ひらがな始まりは、全部ひらがなの語だけ残す**
-  （「いくら」は語として意味がある／「ぜai検索」は欠片）。長さで見分けようとすると欠片が素通りする（実際に「ぜai検索」が画面に出ていた）。
-  文字種の切れ目が作る壊れた語（「見出し」に対する「見出」）は、送り仮名の分だけ長い語があれば捨てる。
-  語を本文と照合する `presence()` は**本文をここで正規化する**（呼び出し側に任せていたため、「GEO対策」の本文に対し
-  「geo対策」が「本文に無い」と出ていた）。
-  **BudouX を閲覧者のブラウザに配らないこと**: 画面（`PageAudit.tsx` / `SiteReport.tsx`）は表示用の定数を
-  `src/lib/auditMeta.ts`（何も import しない葉）から取り、判定本体（`audit.ts` / `headingFit.ts` / `promptFit.ts`）は
-  読み込まない。以前は定数のために `audit.ts` を読んでおり、そのままだと**ページ診断の画面のJSが250KB増えた**（実測）。
+  重要語は `TERM_RUN`（漢字・カタカナ・英数字の連なり）で取り出す。ひらがなを跨がないので**送り仮名を含む語は壊れる**
+  （「書き方」→「書」「方」で2字未満として消え、「申し込みの流れ」では重要語が0個になる）。これは分かっている弱点。
+  **2026-09-14 に BudouX（Google の分かち書き器）で直そうとして戻した**。BudouX は分かち書きのために
+  linkedom（DOM実装一式・125モジュール）を連れてきて、その linkedom が ESM専用の css-select@7 を `require` するため、
+  **Vercel の関数が起動時に `ERR_REQUIRE_ESM` で落ちた**。手元と CI は Node 22 で、Node 22.12 以降は `require()` で
+  ES module を読めるため検査が素通りし、本番だけ壊れた（下の `verify:api` の項を参照）。
+  形態素解析なしでこの弱点を直すには、サーバーレス関数に載せられる軽い分かち書きが要る。
+  **画面（`PageAudit.tsx` / `SiteReport.tsx`）が判定本体を読み込まない**作りは残す（表示用の定数は `src/lib/auditMeta.ts`）。
+  以前は定数のために `audit.ts` を読んでおり、判定側に重い依存を足すとそのまま閲覧者のJSに乗っていた。
   `audit.ts` が同じ名前で再エクスポートするので、サーバー側の呼び出し元は今までどおり `audit.ts` から取れる。
   **誤検知を出さないための除外**: 「まとめ」「はじめに」などの定型の見出し（`BOILERPLATE`）と、
   本文が `MIN_TEXT`（120字）未満の節は判定しない。語が重ならないのが当たり前で、直す必要のない指摘が並ぶため。
@@ -451,13 +449,12 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   モジュールの読み込み時に落ちると Vercel は素のHTMLで500を返し、画面には「サーバーがJSONを返しませんでした」
   としか出ないため、本番だけ壊れたときに原因が分からない（2026-09-04・2026-09-14 に実際に困った）。
 
-  **Vercel の Node は `package.json` の `engines.node` で固定する（22.x）**。
-  2026-09-14、`verify:api` が通ったのに本番の関数だけが `ERR_REQUIRE_ESM` で落ちた。手元と CI は Node 22 で、
-  **Node 22.12 以降は `require()` で ES module を読める**ため、ESM専用の依存
-  （BudouX → linkedom → css-select@7）を `require` するコードが検査を素通りした。
-  Vercel はそれより古い Node で動いていたので落ちた。`verify:api` は `engines.node` と実行中の Node の
-  メジャーがずれていたら落ちる（別の版で検査しても本番の壊れ方を再現できないため）。
-  手元で本番の壊れ方を再現するには `node --no-experimental-require-module -e "require('<パッケージ>')"`。
+  **`verify:api` の require は `--no-experimental-require-module` を付けた子プロセスで走らせる**。
+  2026-09-14、この検査が通ったのに本番の関数だけが `ERR_REQUIRE_ESM` で落ちた。手元も CI も Node 22 で、
+  **Node 22.12 以降は `require()` で ES module を読める**ため、ESM専用の依存を `require` するコードが素通りし、
+  それより古い Node で動く Vercel だけが落ちた。このフラグで `require(esm)` を切ると、**動かす Node の版に関係なく**
+  本番と同じ厳しさで検査できる（`engines.node` で Vercel の Node を 22.x に固定する案も試したが、効かなかった）。
+  手元で同じ再現をするには `node --no-experimental-require-module -e "require('<パッケージ>')"`。
   ブラウザは GET/HEAD 以外に必ず Origin を付けるので、フォームからの `fetch` は通り、curl やスクリプトからの直叩きは落ちる。
   どちらの回数制限も**落とした回は数えない**（数えると洪水を受けている間だけ配列が伸びて1件ごとの走査が重くなる）。判定は `src/lib/rateLimit.test.ts`。
 - **お問い合わせフォーム** `/contact` → `POST /api/contact`: 入力の検証と通知文は `src/lib/contact.ts`、転送は `src/lib/contact-notify.ts`。

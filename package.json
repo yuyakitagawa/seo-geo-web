@@ -2,9 +2,6 @@
   "name": "seo-geo-web",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -33,7 +30,6 @@
   "dependencies": {
     "@next/third-parties": "^16.3.2",
     "@vercel/speed-insights": "^2.0.0",
-    "budoux": "^0.9.1",
     "csv-parse": "^7.0.2",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",

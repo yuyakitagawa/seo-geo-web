@@ -6,7 +6,6 @@
 // 見出しごとのブロック単位でTF-IDFのコサイン類似度を取る。これで「どのブロックがそのプロンプトに
 // 答えているか」が出る。加えて、プロンプトの重要語が本文に出てくるか、意図（定義/手順/比較/費用/事例/判断）に
 // 合った形式（番号付きの手順・表・金額・数値）が揃っているかを見て、書き足す文の型まで返す。
-import { loadDefaultJapaneseParser } from "budoux";
 import { parse, type HTMLElement } from "node-html-parser";
 
 export type Verdict = "covered" | "weak" | "missing";
@@ -187,52 +186,6 @@ export function detectIntent(prompt: string): Intent {
   return "other";
 }
 
-/**
- * 文節の末尾に付く助詞・語尾。BudouX は文節で切るので「費用は」「ガス料金の」のように付いてくる。
- * 長いものから順に、付かなくなるまで剥がす。
- */
-const TAIL_WORDS = [
-  "でしょうか", "だろうか", "ですか", "ますか", "なのか", "という", "って", "から", "まで", "より",
-  "のか", "です", "ます", "でした", "ました", "である", "は", "が", "を", "に", "へ", "と", "で",
-  "の", "も", "や", "か", "ね", "よ", "だ",
-];
-
-const HIRAGANA_HEAD = /^[\u3041-\u309f]/;
-const ALL_HIRAGANA = /^[\u3041-\u309f]+$/;
-
-/**
- * BudouX（Google の分かち書き器。Apache-2.0、モデル込みで約20KB）で文節に切る。
- * 文字種の切れ目だけを見る `TERM_RUN` は**送り仮名を含む語を壊す**（「書き方」→「書」「方」で消える、
- * 「見出し」→「見出」）。「申し込みの流れ」のように重要語が1つも取れず、判定が素通りになる見出しもあった。
- * モデルの読み込みが重いので、最初に使ったときだけ作る。
- */
-let japaneseParser: ReturnType<typeof loadDefaultJapaneseParser> | null = null;
-
-function phraseTerms(text: string): string[] {
-  japaneseParser ??= loadDefaultJapaneseParser();
-  const out: string[] = [];
-  for (const phrase of japaneseParser.parse(text)) {
-    let term = phrase;
-    for (let stripped = true; stripped; ) {
-      stripped = false;
-      for (const w of TAIL_WORDS) {
-        if (term.length > w.length && term.endsWith(w)) {
-          term = term.slice(0, -w.length);
-          stripped = true;
-          break;
-        }
-      }
-    }
-    // 文節の頭がひらがなで始まるものは、BudouX が切り損ねた欠片のことがある（「なぜ」→「な」「ぜAI検索に」）。
-    // 欠片は「ひらがな＋別の文字種」の形になるので、**ひらがな始まりは、全部ひらがなの語だけ残す**
-    // （「いくら」は語として意味がある。「ぜai検索」は欠片）。長さで見分けようとすると欠片が素通りする。
-    const t = normalize(term);
-    const ok = !HIRAGANA_HEAD.test(t) || (ALL_HIRAGANA.test(t) && t.length >= 3);
-    if (t.length >= 2 && ok) out.push(t);
-  }
-  return out;
-}
-
 /** 短い日本語の文字列から重要語を取り出す。プロンプトにも見出しにも使う（`src/lib/headingFit.ts` と共有） */
 export function keyTerms(prompt: string): { term: string; weight: number }[] {
   const text = normalize(prompt);
@@ -248,21 +201,9 @@ export function keyTerms(prompt: string): { term: string; weight: number }[] {
     .filter((t) => t.length >= 3);
 
   const map = new Map<string, number>();
-  for (const term of [...phraseTerms(prompt), ...compounds, ...runs.map((r) => r.term)]) {
+  for (const term of [...compounds, ...runs.map((r) => r.term)]) {
     if (term.length < 2 || map.has(term)) continue;
     map.set(term, (GENERIC.has(term) ? 0.4 : 1) * (term.length >= 4 ? 1.3 : 1));
-  }
-  // 送り仮名を削られた壊れた語（「見出し」に対する「見出」）は捨てる。TERM_RUN は文字種の切れ目で
-  // 切るので必ず作ってしまうが、画面に「見出」と出ると読み手が混乱する
-  for (const term of [...map.keys()]) {
-    for (const other of map.keys()) {
-      if (other === term || !other.startsWith(term)) continue;
-      const rest = other.slice(term.length);
-      if (rest.length <= 2 && /^[\u3041-\u309f]+$/.test(rest)) {
-        map.delete(term);
-        break;
-      }
-    }
   }
   // 長い語を含む短い語（ai検索 に対する ai）は、二重に数えないよう重みを下げる
   const terms = [...map].map(([term, weight]) => ({ term, weight }));

@@ -8,34 +8,10 @@
 // そこで api/tsconfig.json で実際に出力し、出力を require() して読み込めるところまでを検査する。
 // 落ちたときは本番の関数が動かない状態なので、CI はここで止める。
 import { execFileSync } from "node:child_process";
-import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
-
-// **Vercel と同じ Node の major で検査する。**
-// 2026-09-14、この検査は通ったのに本番の関数だけが落ちた。手元と CI は Node 22 で、Node 22.12 以降は
-// require() で ES module を読めるため、ESM専用の依存（budoux → linkedom → css-select@7）を
-// require するコードが通ってしまった。Vercel はそれより古い Node で動いていたので
-// ERR_REQUIRE_ESM になり、関数が起動時に落ちて素のHTMLで500を返した。
-// engines.node と実行中の Node がずれていたら、この検査は本番を代表していないので落とす。
-const enginesNode = String(
-  (JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")) as { engines?: { node?: string } }).engines?.node ?? ""
-);
-const wantMajor = enginesNode.match(/(\d+)/)?.[1];
-const haveMajor = process.versions.node.split(".")[0];
-if (!wantMajor) {
-  console.error("✗ package.json に engines.node がありません（Vercel の Node を固定しないと、この検査が本番を代表しません）");
-  process.exit(1);
-}
-if (wantMajor !== haveMajor) {
-  console.error(
-    `✗ Node のメジャーが engines.node と違います（engines: ${enginesNode} / 実行中: ${process.versions.node}）。\n` +
-      "  Vercel は engines.node の版で関数を動かすので、別の版で検査しても本番の壊れ方を再現できません。"
-  );
-  process.exit(1);
-}
 const API_DIR = path.join(ROOT, "api");
 // 出力先はリポジトリ内に置く。tmp に出すと node_modules を辿れず、実際には解決できる import まで落ちる
 const out = path.join(ROOT, ".api-verify");
@@ -64,7 +40,6 @@ const entries = fs
 
 if (entries.length === 0) fail("api/ に関数のエントリがありません");
 
-const require_ = createRequire(import.meta.url);
 for (const entry of entries) {
   const file = path.join(out, "api", entry);
   if (!fs.existsSync(file)) fail(`${entry} が出力されていません（rootDir がずれている可能性）`);
@@ -75,18 +50,28 @@ for (const entry of entries) {
     fail(`${entry} が ESM で出力されています（api/tsconfig.json の module を commonjs に保つこと）`);
   }
 
-  try {
-    const mod = require_(file);
-    // Vercel Functions は HTTP メソッド名の named export（POST など）か default export をハンドラにする
+  // **--no-experimental-require-module を付けた子プロセスで読む。**
+  // Node 22.12 以降は require() で ES module を読めてしまうため、この検査を素の node で走らせると
+  // ESM専用の依存（2026-09-14 は budoux → linkedom → css-select@7）が通ってしまい、
+  // それより古い Node で動く本番の関数だけが ERR_REQUIRE_ESM で落ちる。実際に起きた。
+  // このフラグで require(esm) を切ると、Node の版に関係なく本番と同じ厳しさで検査できる。
+  const check = `
+    const mod = require(${JSON.stringify(file)});
     const handlers = ["default", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
     if (!handlers.some((name) => typeof mod[name] === "function")) {
-      fail(`${entry} にハンドラの export がありません（${handlers.join(" / ")} のいずれか）`);
+      console.error("ハンドラの export がありません（" + handlers.join(" / ") + " のいずれか）");
+      process.exit(2);
     }
+  `;
+  try {
+    execFileSync(process.execPath, ["--no-experimental-require-module", "-e", check], { cwd: ROOT, stdio: "pipe" });
   } catch (e) {
-    fail(`${entry} を読み込めません: ${(e as Error).message}`);
+    const err = e as { stderr?: Buffer; stdout?: Buffer };
+    const detail = String(err.stderr ?? err.stdout ?? "").trim().split("\n").slice(0, 4).join("\n  ");
+    fail(`${entry} を読み込めません:\n  ${detail}`);
   }
   console.log(`✓ ${entry}`);
 }
 
 fs.rmSync(out, { recursive: true, force: true });
-console.log(`Vercel Functions ${entries.length} 本を CommonJS で読み込めました`);
+console.log(`Vercel Functions ${entries.length} 本を CommonJS で読み込めました（require(esm) を切った状態で確認）`);
