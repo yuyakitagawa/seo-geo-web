@@ -450,6 +450,14 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   読み込まないので関数の実行時間が減り、かつ**読み込みに失敗したときに理由をJSONで返せる**）。
   モジュールの読み込み時に落ちると Vercel は素のHTMLで500を返し、画面には「サーバーがJSONを返しませんでした」
   としか出ないため、本番だけ壊れたときに原因が分からない（2026-09-04・2026-09-14 に実際に困った）。
+
+  **Vercel の Node は `package.json` の `engines.node` で固定する（22.x）**。
+  2026-09-14、`verify:api` が通ったのに本番の関数だけが `ERR_REQUIRE_ESM` で落ちた。手元と CI は Node 22 で、
+  **Node 22.12 以降は `require()` で ES module を読める**ため、ESM専用の依存
+  （BudouX → linkedom → css-select@7）を `require` するコードが検査を素通りした。
+  Vercel はそれより古い Node で動いていたので落ちた。`verify:api` は `engines.node` と実行中の Node の
+  メジャーがずれていたら落ちる（別の版で検査しても本番の壊れ方を再現できないため）。
+  手元で本番の壊れ方を再現するには `node --no-experimental-require-module -e "require('<パッケージ>')"`。
   ブラウザは GET/HEAD 以外に必ず Origin を付けるので、フォームからの `fetch` は通り、curl やスクリプトからの直叩きは落ちる。
   どちらの回数制限も**落とした回は数えない**（数えると洪水を受けている間だけ配列が伸びて1件ごとの走査が重くなる）。判定は `src/lib/rateLimit.test.ts`。
 - **お問い合わせフォーム** `/contact` → `POST /api/contact`: 入力の検証と通知文は `src/lib/contact.ts`、転送は `src/lib/contact-notify.ts`。

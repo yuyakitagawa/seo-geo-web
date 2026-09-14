@@ -13,6 +13,29 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
+
+// **Vercel と同じ Node の major で検査する。**
+// 2026-09-14、この検査は通ったのに本番の関数だけが落ちた。手元と CI は Node 22 で、Node 22.12 以降は
+// require() で ES module を読めるため、ESM専用の依存（budoux → linkedom → css-select@7）を
+// require するコードが通ってしまった。Vercel はそれより古い Node で動いていたので
+// ERR_REQUIRE_ESM になり、関数が起動時に落ちて素のHTMLで500を返した。
+// engines.node と実行中の Node がずれていたら、この検査は本番を代表していないので落とす。
+const enginesNode = String(
+  (JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")) as { engines?: { node?: string } }).engines?.node ?? ""
+);
+const wantMajor = enginesNode.match(/(\d+)/)?.[1];
+const haveMajor = process.versions.node.split(".")[0];
+if (!wantMajor) {
+  console.error("✗ package.json に engines.node がありません（Vercel の Node を固定しないと、この検査が本番を代表しません）");
+  process.exit(1);
+}
+if (wantMajor !== haveMajor) {
+  console.error(
+    `✗ Node のメジャーが engines.node と違います（engines: ${enginesNode} / 実行中: ${process.versions.node}）。\n` +
+      "  Vercel は engines.node の版で関数を動かすので、別の版で検査しても本番の壊れ方を再現できません。"
+  );
+  process.exit(1);
+}
 const API_DIR = path.join(ROOT, "api");
 // 出力先はリポジトリ内に置く。tmp に出すと node_modules を辿れず、実際には解決できる import まで落ちる
 const out = path.join(ROOT, ".api-verify");
