@@ -198,6 +198,7 @@ const TAIL_WORDS = [
 ];
 
 const HIRAGANA_HEAD = /^[\u3041-\u309f]/;
+const ALL_HIRAGANA = /^[\u3041-\u309f]+$/;
 
 /**
  * BudouX（Google の分かち書き器。Apache-2.0、モデル込みで約20KB）で文節に切る。
@@ -223,9 +224,11 @@ function phraseTerms(text: string): string[] {
       }
     }
     // 文節の頭がひらがなで始まるものは、BudouX が切り損ねた欠片のことがある（「なぜ」→「な」「ぜAI検索に」）。
-    // ひらがなだけの語（「いくら」）は語として意味があるので、3字以上なら残す。
+    // 欠片は「ひらがな＋別の文字種」の形になるので、**ひらがな始まりは、全部ひらがなの語だけ残す**
+    // （「いくら」は語として意味がある。「ぜai検索」は欠片）。長さで見分けようとすると欠片が素通りする。
     const t = normalize(term);
-    if (t.length >= 2 && (!HIRAGANA_HEAD.test(t) || t.length >= 3)) out.push(t);
+    const ok = !HIRAGANA_HEAD.test(t) || (ALL_HIRAGANA.test(t) && t.length >= 3);
+    if (t.length >= 2 && ok) out.push(t);
   }
   return out;
 }
