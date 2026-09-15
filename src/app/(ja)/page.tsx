@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   const articles = getAllArticles();
+  const originalArticles = articles.filter((article) => article.original).slice(0, 3);
   // 更新日は「載せている記事の最新更新日」。ビルド時刻を使うと、記事が増えていない日も更新扱いになる。
   const updated = latestUpdated(articles);
 
@@ -55,6 +56,22 @@ export default function Home() {
         </div>
         <ArticleList articles={articles.slice(0, ARTICLES_PER_PAGE)} featuredFirst />
       </section>
+
+      {originalArticles.length > 0 && (
+        <section className={cx(CONTAINER.page, "pb-20 sm:pb-28")}>
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div className="max-w-2xl">
+              <p className={cx(HEADING.label, "mb-2 text-accent")}>Original research</p>
+              <h2 className={cx(HEADING.section, "text-3xl sm:text-4xl")}>独自調査・実測</h2>
+              <p className="mt-3 text-sm leading-relaxed text-mute sm:text-base">
+                自分で取得したクローラーログやAI検索の会話ログを、計測条件・観測期間・限界とともに公開しています。
+              </p>
+            </div>
+            <Link href="/research" className={cx(LINK, "shrink-0 text-sm font-semibold")}>独自調査をすべて見る</Link>
+          </div>
+          <ArticleList articles={originalArticles} />
+        </section>
+      )}
 
       {/* こんなときは。困りごとから入る導線（用語から入る下のセクションと役割を分ける）。文言は nav.ts */}
       <section className={cx(CONTAINER.page, "pb-20 sm:pb-28")}>
