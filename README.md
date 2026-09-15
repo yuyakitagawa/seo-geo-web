@@ -2,7 +2,8 @@
 
 SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）の最新動向と実務ノウハウを発信するメディア。
 読者は事業会社・制作会社のSEO/GEO担当。追いきれない量の公式発表と海外ソースから、読むべき変更だけを日本語で整理する。
-一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説を生成して自動公開する（GitHub Actions）。
+一次情報（Google Search Central 等）をRSSで毎日収集し、Claudeで日本語解説の下書きを生成する（GitHub Actions）。
+公開前に運営者が一次情報との照合・加筆を行い、`draft: false` にした記事だけをサイトへ出す。
 
 ## スタック
 - Next.js 16 (App Router, `output: "export"` の静的エクスポート) + TypeScript + Tailwind CSS v4 (+ @tailwindcss/typography)
@@ -45,8 +46,8 @@ scripts/sources.ts  収集元（公式: Search Central / Search Status / The Key
                                 「採用」をスコア順にN件、Claudeが元記事をweb_fetchで読んで MDX を出力 → status を「公開」に
                                 --publish なら draft:false（自動公開）、無指定なら draft:true（下書き）
                                 **pick と generate は手動のみ**（2026-09-13〜。下記「news の自動生成は止めた」）
-      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→generate-howto→links --write→本番ビルド検証→main へ push
-                                （.github/workflows/daily-articles.yml）→ Vercel が自動デプロイ
+      ↓ GitHub Actions           毎朝7時JST、typecheck→collect→generate-howto→links --write→本番ビルド検証→main へ下書きを保存
+                                （.github/workflows/daily-articles.yml）。一次情報との照合後、手動で draft:false にして公開
 ```
 ### news の自動生成は止めた（2026-09-13〜）
 Search Console の3か月分（`docs/progress_gsc-2026-09.md`）で、**記事84本の表示合計85回に対し `/tools` と `/glossary` の2枚だけで139回**だった。
@@ -77,7 +78,7 @@ npm run generate -- 30
 ```
 **日次の自動公開と同時に走らせない**: 「採用」が残っていると翌朝のActionsが `pick`（`need = 件数 - 採用済み` が0以下で新規採用なし）→ `generate` でバックフィル分を先に消費し、その日のニュースが出なくなる。collect→pick→generate を一度に流し切ってからコミットする。
 **日付は過去のまま**（`date` = 出典の公開日）なので、記事一覧・RSS・`datePublished` は過去日で出る。まとめて公開する場合、初回クロールは全記事が同日になる。
-**自動公開の関門は3つ**:
+**下書き生成の関門は3つ**（通過しても自動公開せず、人の確認後に `draft:false` にする）:
 1. **生成の前**に `npm run typecheck && npm test` を1回（`.github/workflows/daily-articles.yml`）。mainが壊れているとAPI代を使ってから捨てることになるので、その前に落とす。
    2026-08-28〜30の3便は、mainに `src/lib/apps.ts` が無いまま `sitemap.ts` がimportしていたせいで生成後に落ち、記事ごと捨てて課金だけが残った。
 2. `scripts/generate.ts` の `validate()`（カテゴリ・description長・actions・本文1,800字以上・必須見出し3種・図解2個以上・FAQは任意で置くなら1問以上）
@@ -134,7 +135,7 @@ content/howto-topics.csv   テーマ表。人が status を「採用」にする
 - 必須見出しは「## 結論 / ## 手順 / ## やること／やらなくていいこと」、本文2,000字以上。FAQは任意（置くなら最大5問）。
 - 「最近」「現在」のような時点依存の表現を禁止（半年後に読んでも成立させるため）。
 - 生成失敗したテーマは「候補」に戻してメモを残す（ニュース側と違い、テーマ自体は捨てない）。
-- **毎朝のActionsでも1本動く（2026-09-09〜）**。テーマ表に「採用」がある日だけ生成し、無ければ何もせず通過する。
+- **毎朝のActionsでも下書きを1本作る（2026-09-09〜）**。テーマ表に「採用」がある日だけ生成し、無ければ何もせず通過する。
   テーマと出典URLは今までどおり人が書くので、採用を付けなければ自動では1本も出ない。
   ニュース側を2本→1本に減らし、空いた枠をこちらに回した（news は出典元と同じクエリに並ぶフロー記事で、
   本数を増やしても資産にならない。判断の経緯は `docs/progress_ranking-fix.md`）。
