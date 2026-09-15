@@ -5,6 +5,7 @@ import { CATEGORIES, CATEGORY_KEYS, SITE_NAME, categoryHref } from "@/lib/site";
 // ナビは1つの配列から出す（並び順とラベルの重複定義をなくす）。
 const NAV = [
   ...CATEGORY_KEYS.map((key) => ({ href: categoryHref(key), label: CATEGORIES[key].label })),
+  { href: "/research", label: "独自調査" },
   { href: "/learn", label: "教科書" },
   { href: "/tools", label: "診断ツール" },
 ];

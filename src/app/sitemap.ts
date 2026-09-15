@@ -21,11 +21,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const articles = indexableArticles();
   const latest = latestUpdated(articles) ?? new Date().toISOString().slice(0, 10);
   const enArticles = getAllEnArticles();
+  const originalArticles = articles.filter((article) => article.original);
 
   return [
     { url: SITE_URL, lastModified: latest },
     // 記事アーカイブ。lastmod は載っている記事の最新更新日にする（全ページ同じ日付だと更新シグナルにならない）。
     { url: `${SITE_URL}/news`, lastModified: latest },
+    ...(originalArticles.length
+      ? [{ url: `${SITE_URL}/research`, lastModified: latestUpdated(originalArticles) ?? latest }]
+      : []),
     { url: `${SITE_URL}/tools`, lastModified: latest },
     ...APP_TOOLS.map((t) => ({ url: `${SITE_URL}${t.path}`, lastModified: t.updated })),
     // 解説ページ（/seo, /geo）。ページ自身の更新日と、そのカテゴリの記事の最新更新日の新しい方。

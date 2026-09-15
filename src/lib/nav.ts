@@ -6,6 +6,7 @@ export type NavLink = { href: string; label: string; note: string };
 // カテゴリ・日付ページは入口の直帰率100%）を受けて各ページの末尾に兄弟ページを3件置いた。
 const HUB_PAGES: NavLink[] = [
   { href: "/news", label: "ニュース", note: "検索とAI検索のアップデートを新しい順に。全記事に一次情報のURL付き。" },
+  { href: "/research", label: "独自調査", note: "クローラーログやAI検索の会話ログを自分で計測した、再検証できる一次データ。" },
   { href: "/seo", label: "SEO対策とは", note: "定義・検索Botの3分類・3つの領域・Googleの基準を一次情報のリンク付きで。" },
   { href: "/geo", label: "GEOとは", note: "生成AI検索最適化の定義と、AIに引用されるための実務。" },
   { href: "/glossary", label: "SEO・GEO用語集", note: "実務で出てくる用語を1語1文の定義と出典リンクで。" },
