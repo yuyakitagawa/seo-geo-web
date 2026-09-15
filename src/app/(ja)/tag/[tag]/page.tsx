@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/tag/[tag]">): Pro
     title: `#${tag} の記事`,
     description: `「${tag}」に関する記事一覧。`,
     alternates: { canonical: `/tag/${encodeURIComponent(tag)}` },
-    // 記事が1本だけのタグページは中身が薄いのでインデックスさせない（sitemapからも外れる）。
+    // 記事数が足切り未満のタグページは中身が薄いのでインデックスさせない（sitemapからも外れる）。
     // リンクは辿らせるのでページ自体は残し、内部リンクの経路として機能させる。
     ...(isIndexableTag(tag) ? {} : { robots: { index: false, follow: true } }),
   };

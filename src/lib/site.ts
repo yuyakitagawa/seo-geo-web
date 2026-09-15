@@ -71,7 +71,7 @@ export function categoryHref(key: CategoryKey): string {
 
 export const ARTICLES_PER_PAGE = 12;
 
-// タグページの足切り。記事1本だけのタグページは中身が一覧リンク1個しかなく、
+// タグページの足切り。記事2本以下のタグページは一覧としての固有価値が薄く、
 // 「クロール済み - インデックス未登録」を増やしてクロール枠を食う。
 // この本数未満のタグは noindex にし、sitemap からも外す（表示側と生成側で同じ値を使う）。
-export const TAG_MIN_ARTICLES = 2;
+export const TAG_MIN_ARTICLES = 3;
