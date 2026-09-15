@@ -705,7 +705,7 @@ npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools �
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
 - **インデックス判定は `src/lib/indexability.ts` に集約する**。ページ側（robots メタ）・sitemap 側・内部リンク側で
   条件がずれると「サイトマップに載っているのに noindex」という矛盾をGoogleに送ることになる。判定を足すときは必ずここに書く。
-  - 薄いタグページ: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定2）本未満のタグは `noindex, follow` ＋ sitemap 除外。
+  - 薄いタグページ: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定3）本未満のタグは `noindex, follow` ＋ sitemap 除外。
     ページ自体は残すので内部リンクの経路としては機能する。
   - 同じ話題のカニバリ対策: 続報が前の記事を置き換えたときは、新しい記事の frontmatter に `supersedes: <古い記事のid>` を書く。
     指定された記事は `noindex, follow` ＋ sitemap 除外になり、本文の冒頭から最新版へ送られる。
