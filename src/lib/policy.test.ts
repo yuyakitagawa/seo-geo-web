@@ -17,6 +17,7 @@ const PAGE_AUDIT = read("src/app/(ja)/tools/page-audit/page.tsx");
 const LAYOUT = read("src/app/(ja)/layout.tsx");
 const AUDIT_LOG = read("src/lib/audit-log.ts");
 const PACKAGE = JSON.parse(read("package.json")) as { dependencies: Record<string, string> };
+const DAILY_ARTICLES = read(".github/workflows/daily-articles.yml");
 
 test("保持日数をページに直書きしていない", () => {
   // 直書きすると audit-log.ts 側を変えたときに説明だけ古いまま残る
@@ -24,6 +25,11 @@ test("保持日数をページに直書きしていない", () => {
     const hardcoded = source.match(/\d+日/g) ?? [];
     assert.deepEqual(hardcoded, [], `${name} は AUDIT_LOG_RETENTION_DAYS を参照すること（見つかった: ${hardcoded.join(", ")}）`);
   }
+});
+
+test("日次生成の記事を人の確認なしで公開しない", () => {
+  assert.ok(!/scripts\/generate(?:-howto)?\.ts[^\n]*--publish/.test(DAILY_ARTICLES));
+  assert.ok(/draft:true/.test(DAILY_ARTICLES), "日次生成が下書き保存である説明が無い");
 });
 
 test("保持日数の説明が両方のページに載っている", () => {

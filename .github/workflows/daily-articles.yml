@@ -1,6 +1,6 @@
-# 毎日 JST 7:00 にRSSを巡回し、HOW TO記事（テーマ表に「採用」があるときだけ）をClaudeで書き、本番ビルドが通ったら main に直接pushする（=公開）。
+# 毎日 JST 7:00 にRSSを巡回し、HOW TO記事（テーマ表に「採用」があるときだけ）の下書きをClaudeで作り、検査後に main へ保存する。
 # news（RSS起点のフロー記事）の自動生成は 2026-09-13 に停止した（理由は docs/progress_gsc-2026-09.md）。手動実行で count を指定したときだけ動く。
-# 人のレビューは挟まない。品質の関門は scripts/generate.ts の validate() と、この workflow の本番ビルドの2つ。
+# draft:true のためサイトには出ない。一次情報との照合・加筆を人が行い、draft:false にしたコミットで公開する。
 name: daily-articles
 
 on:
@@ -11,10 +11,6 @@ on:
       count:
         description: "生成するニュース記事数（0で生成しない。定期実行では常に0扱い）"
         default: "0"
-      draft:
-        description: "draft:true のまま止める（公開しない）"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -59,7 +55,7 @@ jobs:
 
       - name: ニュース記事を生成（手動実行のときだけ）
         if: github.event_name == 'workflow_dispatch' && inputs.count != '0'
-        run: npx tsx scripts/generate.ts ${{ inputs.count }} ${{ inputs.draft == true && '--draft' || '--publish' }}
+        run: npx tsx scripts/generate.ts ${{ inputs.count }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -67,7 +63,7 @@ jobs:
       # 「採用」が1件も無い日は何もせず正常終了するので、無条件に置いてよい（テーマ表が空なら自然に止まる）。
       # news をRSSから量産しても出典元と同じクエリに並ぶだけなので、日次の枠はこちらだけにしてある（2026-09-13〜）。
       - name: HOW TO記事を生成（テーマ表に「採用」があるときだけ）
-        run: npx tsx scripts/generate-howto.ts 1 ${{ inputs.draft == true && '--draft' || '--publish' }}
+        run: npx tsx scripts/generate-howto.ts 1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -92,12 +88,6 @@ jobs:
         run: |
           git add -A content
           git diff --cached --quiet && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
-          # 新しく増えた記事ファイル（公開後のLINE通知に使う）。修正だけの回は空になる。
-          {
-            echo "articles<<EOF"
-            git diff --cached --name-only --diff-filter=A -- content/articles
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
 
       # 壊れたMDX・存在しない図解コンポーネントを本番に出さないための関門。
       # npm test には記事の不変条件（id の重複・ファイル名と id の一致・sources の有無）が入っている。
@@ -107,36 +97,14 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         run: npm run typecheck && npm test && npm run build
 
-      - name: 公開（main へ反映）
+      - name: 下書きを保存（main へ反映）
         if: steps.diff.outputs.changed == 'true'
-        env:
-          NEW_ARTICLES: ${{ steps.diff.outputs.articles }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 記事が1本も増えていない回（候補リストの更新と内部リンクの補充だけ）は、そう書く。
-          if [ -n "$NEW_ARTICLES" ]; then
-            git commit -m "chore: 記事を自動生成して公開"
-          else
-            git commit -m "chore: 候補リストと内部リンクを更新"
-          fi
+          git commit -m "chore: 記事の下書きと候補リストを更新"
           git pull --rebase origin main
           git push origin HEAD:main
-
-      # 公開できた記事をXに手で投稿するための文面。この実行ページのサマリに出るので、そこからコピーして貼る。
-      # 文面はClaudeが記事本文から書く（scripts/x-post.ts）。自動投稿はしない（投稿タイミングは人が決める）。
-      # LINEのSecretsを入れればLINEにも同じものが届く（未設定ならサマリだけ）。
-      - name: 公開した記事のX投稿文を出力
-        if: steps.diff.outputs.changed == 'true' && steps.diff.outputs.articles != ''
-        env:
-          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
-          # X投稿文の生成に使う。未設定でも通知は飛ぶ（テンプレの文面になる）。
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # 記事URLの組み立てに使う。未設定だと localhost のURLを送ってしまうのでここで固定する。
-          NEXT_PUBLIC_SITE_URL: https://seo-geo-lab.com
-          ARTICLES: ${{ steps.diff.outputs.articles }}
-        run: npx tsx scripts/notify.ts $ARTICLES
 
       # ワークフローの赤は誰も見ていない、という前提で運用する。落ちたらスマホに届ける。
       # 認証情報が無ければ黙ってスキップするので、未設定のうちは何も起きない。
