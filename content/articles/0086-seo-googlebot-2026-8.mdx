@@ -1,0 +1,135 @@
+---
+title: SEOに関係するボット一覧とGooglebotなりすまし確認手順【2026年8月時点】
+description: >-
+  Googlebot・GoogleOther・GPTBot・PerplexityBotなど主要ボットの見分け方と、なりすましアクセスをIP・逆引きDNSで確認する手順を公式ドキュメントの記載だけで解説します。
+date: '2026-09-16'
+category: seo
+type: howto
+tags:
+  - Googlebot
+  - GoogleOther
+  - GPTBot
+  - PerplexityBot
+  - robots.txt
+  - クローラー
+audience: 全サイト
+actions:
+  - アクセスログでUser-Agentが「Googlebot」を含む行を抽出する
+  - 抽出したIPアドレスに対してhostコマンドで逆引き・正引きを実施する
+  - AI各社のボットを許可するかrobots.txtで判断し記述する
+sources:
+  - title: Google クローラー（ユーザー エージェント）の概要
+    url: >-
+      https://developers.google.com/crawling/docs/crawlers-fetchers/overview-google-crawlers?hl=ja
+  - title: Google の一般的なクローラー
+    url: >-
+      https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers?hl=ja
+  - title: Google クローラーとフェッチャーからのリクエストを確認する
+    url: >-
+      https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot?hl=ja
+  - title: Overview of OpenAI Crawlers
+    url: 'https://developers.openai.com/api/docs/bots'
+  - title: Perplexity Crawlers
+    url: 'https://docs.perplexity.ai/guides/bots'
+draft: true
+id: 86
+---
+## 結論
+
+User-Agent文字列だけでは本物のGooglebotかどうか判断できず、IPアドレスの逆引き・正引きによる確認が唯一確実な方法です。
+
+自サイトのログを見て「User-Agentに`Googlebot`と書いてあるからGoogleのアクセスだ」と判断するのは、今日でやめるべき見方です。User-Agentはヘッダーの文字列にすぎず、なりすましが可能だとGoogle自身が明記しています。AI各社のクローラーも含め、まず何という名前のボットが存在するのかを把握したうえで、疑わしいアクセスだけIPで確認する順番が現実的です。
+
+### なぜUser-Agentだけでは確認できないのか
+
+User-Agentは送信側が自由に書ける文字列で、Googleの一般的なクローラーの一覧ページにも「HTTP ユーザー エージェント文字列はなりすましが可能」と注意書きがあります。ここから確実に言えるのは、なりすまし対策が必要な場面ではUser-Agent単体の判定を根拠にできないという点です。スクレイパーやスパムボットが`Googlebot`を名乗って過剰にクロールし、サーバー負荷だけをかけるケースはこの仕組み上避けられません。
+
+## 手順
+
+<FigureFlow
+  title="Googlebotなりすまし確認までの流れ"
+  steps={[
+    { label: "ログを確認する", desc: "アクセスログからUser-Agentに「Googlebot」を含む行を抽出する" },
+    { label: "IPアドレスを控える", desc: "抽出した行の送信元IPアドレスを一覧化する" },
+    { label: "逆引きDNSを実行する", desc: "hostコマンドでIPからホスト名を調べる" },
+    { label: "ドメイン名を確認する", desc: "googlebot.com・google.com・googleusercontent.comのいずれかか見る" },
+    { label: "正引きDNSで照合する", desc: "得られたホスト名を再度hostコマンドで正引きし、元のIPと一致するか確認する" },
+  ]}
+/>
+
+手順は公式ドキュメントが示す「コマンドライン ツールを使用する」方法にそのまま沿います。まずアクセスログから、User-Agentに`Googlebot`を含む行を抽出します。
+
+次に、その行の送信元IPアドレスに対して`host`コマンドでリバースDNSルックアップを行います。得られたドメイン名が`googlebot.com`、`google.com`、`googleusercontent.com`のいずれかであることを確認します。
+
+最後に、そのドメイン名で再度`host`コマンドを実行してDNSフォワードルックアップを行い、結果のIPアドレスが最初にログへ記録されていたIPアドレスと同じかどうかを確認します。一致すれば本物のGoogleクローラーです。
+
+公式ドキュメントには次の実行例が載っています。
+
+host 66.249.66.1
+1.66.249.66.in-addr.arpa domain name pointer crawl-66-249-66-1.googlebot.com.
+
+host crawl-66-249-66-1.googlebot.com
+crawl-66-249-66-1.googlebot.com has address 66.249.66.1
+
+1回限りの確認ならこの手動手順で十分です。大量のIPアドレスをまとめて照合する場合は、Googleが公開しているクローラーのIPアドレス範囲一覧(一般的なクローラー用、特殊なケース用クローラー用、ユーザー トリガー フェッチャー用のJSONファイル)と突き合わせる自動的な方法が案内されています。ログ管理システムやWAFにIP範囲を定期的に取り込む仕組みを作れば、目視の逆引き作業を毎回行う必要がなくなります。
+
+### 自社サイトに来ているボットの正体を知る
+
+手順を実行する前に、そもそも自サイトに来ている名前が何のボットなのかを整理しておく必要があります。Googleのクローラーは「一般的なクローラー」「特殊なケース用のクローラー」「ユーザー トリガー フェッチャー」の3種類に分かれ、それぞれ逆引きDNSマスクとIP範囲一覧が異なります。
+
+<FigureCompare
+  title="Googleクローラー3種の違い"
+  caption="いずれも公式ドキュメントの分類にもとづく"
+  cols={[
+    { label: "一般的なクローラー", tone: "seo", sub: "Googlebotなど", points: ["自動クロールで常にrobots.txtに従う", "逆引きは「crawl-*.googlebot.com」等"] },
+    { label: "特殊なケース用クローラー", tone: "accent", sub: "AdsBotなど", points: ["サイトとの個別の合意にもとづく", "robots.txtに従わない場合がある"] },
+    { label: "ユーザートリガーフェッチャー", tone: "geo", sub: "サイト検証ツールなど", points: ["ユーザーのリクエストで動く", "robots.txtルールを無視する"] },
+  ]}
+/>
+
+一般的なクローラーに分類される主なユーザーエージェントは、`Googlebot`(スマートフォン用・パソコン用)、画像用の`Googlebot-Image`、動画用の`Googlebot-Video`、ニュース用の`Googlebot-News`、ショッピング関連の`Storebot-Google`、検索テストツール用の`Google-InspectionTool`、汎用の`GoogleOther`とその派生の`GoogleOther-Image`・`GoogleOther-Video`、Vertex AIエージェント構築用の`Google-CloudVertexBot`、AIモデルの学習・グラウンディング可否を管理する`Google-Extended`です。このうち`GoogleOther`は特定の製品に影響しない汎用クローラーで、内部の研究開発用途などに使われるとドキュメントに書かれています。`Google-Extended`は検索のインデックス登録やランキングシグナルには使われないと明記されており、これを許可・拒否してもGoogle検索の順位には関係しません。
+
+生成AI側のクローラーも整理しておきます。OpenAIは`OAI-SearchBot`(ChatGPTの検索機能に表示するためのクロール)、`OAI-AdsBot`(広告の安全性検証用)、`GPTBot`(生成AI基盤モデルの学習用データ収集)、`ChatGPT-User`(ユーザーの質問に応じて都度ページを取得するエージェント。自動クロールではないためrobots.txtのルールが適用されない場合がある)の4種類を公開しています。OpenAIのドキュメントには、robots.txtの各設定は独立していて、たとえば検索結果には出したいが学習には使わせたくない場合は`OAI-SearchBot`を許可し`GPTBot`を拒否できると書かれています。robots.txtの更新が反映されるまで、検索結果への反映はおよそ24時間かかるとも明記されています。
+
+<FigureQuote
+  text="Each setting is independent of the others – for example, a webmaster can allow OAI-SearchBot in order to appear in search results while disallowing GPTBot to indicate that crawled content should not be used for training OpenAI's generative AI foundation models."
+  source="Overview of OpenAI Crawlers（OpenAI Developers公式ドキュメント）"
+/>
+
+検索結果への表示と、AIモデルの学習データとしての利用は別の設定として切り分けられるという内容です。ChatGPTの検索機能に出たいがモデル学習には使われたくないサイトは、`OAI-SearchBot`を許可し`GPTBot`だけを拒否する書き方ができます。
+
+PerplexityはUser-Agentを2種類公開しています。`PerplexityBot`はPerplexityの検索結果にサイトを表示・リンクするためのクローラーで、AI基盤モデルの学習用クロールには使われないとドキュメントに書かれています。`Perplexity-User`はユーザーがPerplexityに質問した際に、その回答のためにページを取得するエージェントで、ユーザーが発端のリクエストであるためrobots.txtのルールは基本的に無視されると明記されています。設定の反映にはPerplexity側もおよそ24時間かかるとされています。
+
+AI各社のクローラーの見分け方とrobots.txtでの書き分けは、[教科書レッスン10「AIクローラーとrobots.txt」](/learn/geo-implementation)でさらに詳しく手順化しています。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="ボット対応でやること・やらなくていいこと"
+  dos={["疑わしいアクセスだけIPアドレスの逆引き・正引きで確認する", "robots.txtでユーザーエージェントごとに許可・拒否を書き分ける", "GPTBot・OAI-SearchBot・PerplexityBotなど利用目的が異なるボットは別設定にする"]}
+  donts={["すべてのアクセスログを毎回目視でIP照合する", "Google-Extendedの拒否でSEO順位が変わると期待する"]}
+/>
+
+すべてのアクセスを毎回IP照合する必要はありません。逆引き・正引きの手動確認は「1回限りのルックアップ」向けとドキュメントに明記されており、通常時は公開IP範囲一覧との自動照合で足ります。異常なアクセス数の急増やサーバー負荷の増大など、なりすましを疑う具体的な理由があるときだけ手動確認に回す判断基準で十分です。
+
+`Google-Extended`を拒否する作業も、SEO順位への影響を期待して行うものではありません。ドキュメントには、このトークンが検索のインデックス登録やランキングシグナルに使われることはないと明記されています。AIモデルの学習・グラウンディングへの利用を止めたいという目的だけに絞って設定するべきです。
+
+### 業種別の判断基準
+
+ECサイトの場合、Google ショッピングのサーフェスに影響する`Storebot-Google`をrobots.txtで誤ってブロックしていないかは確認する価値があります。例えば、ある衣料品ECサイトが在庫切れページ配下を丸ごとGooglebotから`disallow`していた設定を、`Storebot-Google`にも同じ範囲で適用していた場合、Google ショッピングタブでの商品表示に影響します。ショッピング機能を使わないBtoBサイトであれば、この確認の優先度は低くなります。
+
+メディアサイトでGPTBotやOAI-SearchBotへの対応を検討する場合は、本文の転載・要約による流入減とAI経由の露出増のどちらを優先するかをまず決める必要があります。会員限定コンテンツを持つメディアであれば、無料公開部分だけをクロール対象にするディレクトリ設計と組み合わせて判断する方が現実的です。判断の材料は[コアアップデートで順位が落ちたときにやること](/articles/85)のような順位変動対応の考え方とも共通しています。
+
+店舗集客サイトやBtoBサイトでは、AIクローラーの許可・拒否よりもGooglebotが正しくページを取得できているかどうかの方が優先度が高くなります。サーバーログにアクセスがほとんど記録されていない場合は、まず[Search Consoleの使い方](/articles/36)で示されているクロール状況の確認を先にするべきです。
+
+なりすましボットの疑いがあるアクセスを見つけても、`host`コマンドの結果だけでは相手の目的まではわかりません。逆引き・正引きが一致しなかった場合は、そのIPからのアクセスを拒否するかどうかをサーバー負荷の実害で判断する必要があります。
+
+## よくある質問
+
+### GoogleOtherがGooglebotより多くアクセスしてくるのは異常か
+
+GoogleOtherは特定の製品には影響しない汎用クローラーで、内部の研究開発など複数の用途に使われるとドキュメントに書かれています。アクセス量が多いこと自体は仕組み上あり得るため、サーバー負荷が実害になっていない限りは異常と判断する根拠にはなりません。
+
+### ChatGPT-Userをrobots.txtで拒否すればChatGPTの検索結果から除外できるか
+
+除外できません。ChatGPT-Userはユーザーの質問に応じて都度ページを取得するエージェントで、検索結果への表示可否を管理するためのものではないとドキュメントに明記されています。検索結果からの除外を管理したい場合は`OAI-SearchBot`側の設定を使う必要があります。
