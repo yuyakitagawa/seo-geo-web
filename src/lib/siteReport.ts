@@ -339,6 +339,30 @@ const RULES: Record<string, Rule> = {
     cause: "1文に複数の主語と条件を入れている。",
     metric: "1文の平均文字数。修正後すぐ確認できる（引用の変化は3か月）。",
   },
+  "heading-generic": {
+    stage: 2,
+    origin: "content",
+    cause: "節の結論ではなく、章の役割（導入・まとめ）を見出しにしている。",
+    metric: "見出しが節の結論の文になっている。修正後すぐ確認できる（引用の変化は3か月）。",
+  },
+  "heading-orphan": {
+    stage: 3,
+    origin: "content",
+    cause: "見出しの直後に図・表・箇条書きを置き、文の説明を省いている。",
+    metric: "すべての見出しの直下に段落がある。修正後すぐ確認できる（引用の変化は3か月）。",
+  },
+  "section-lead": {
+    stage: 3,
+    origin: "content",
+    cause: "節をつなげて読ませる前提で書き、1文目を指示語や予告で始めている。",
+    metric: "節の1文目が単体で意味が通る。修正後すぐ確認できる（引用の変化は3か月）。",
+  },
+  "section-long": {
+    stage: 3,
+    origin: "content",
+    cause: "話題が変わっても見出しを足さず、1つの節に詰めている。",
+    metric: "1節あたりの文字数。修正後すぐ確認できる（引用の変化は3か月）。",
+  },
   "geo-keyword-stuffing": {
     stage: 3,
     origin: "content",

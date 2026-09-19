@@ -2,7 +2,7 @@
 // 取得（fetch）は src/app/api/audit/route.ts が担当し、ここは受け取ったHTMLを判定するだけの純関数にする。
 // 指摘は「該当コード（実物）＋修正方針＋入れる場所＋修正後のコード」で返す。根拠がある項目には公式ドキュメントを添える。
 // 「無い」ものの指摘は該当コードが取れないので、実物のheadや見出しを並べて追加位置に印を入れる（headSpot）。
-import { parse, type HTMLElement } from "node-html-parser";
+import { NodeType, parse, type HTMLElement } from "node-html-parser";
 import { aiView, type AiView } from "./aiView";
 import { CRAWLERS } from "./crawlers";
 import { check, parseRobots } from "./robots";
@@ -80,6 +80,10 @@ export const CHECKLIST: CheckItem[] = [
   { id: "geo-statistics", area: "geo", label: "具体的な数値（同 約32%）", findingIds: ["geo-statistics"] },
   { id: "geo-fluency", area: "geo", label: "1文の長さ（同 約29%）", findingIds: ["geo-fluency"] },
   { id: "geo-keyword-stuffing", area: "geo", label: "キーワードの詰め込み（同 効果なし）", findingIds: ["geo-keyword-stuffing"] },
+  { id: "heading-generic", area: "geo", label: "中身を表さない見出し（「まとめ」等）", findingIds: ["heading-generic"] },
+  { id: "heading-orphan", area: "geo", label: "見出しの直下に段落があるか", findingIds: ["heading-orphan"] },
+  { id: "section-lead", area: "geo", label: "節の1文目が単体で意味が通るか", findingIds: ["section-lead"] },
+  { id: "section-long", area: "geo", label: "見出しで区切られていない長い本文", findingIds: ["section-long"] },
   { id: "date", area: "geo", label: "公開日・更新日の機械可読性（記事ページのみ）", findingIds: ["date"] },
   { id: "organization", area: "geo", label: "運営者の構造化データ（トップ・運営者紹介ページのみ）", findingIds: ["organization"] },
   { id: "robots-ai", area: "geo", label: "AI検索クローラー（OAI-SearchBot等）の許可状況", findingIds: ["robots-ai"] },
@@ -241,6 +245,85 @@ function textOf(root: HTMLElement): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+/**
+ * 見出しで区切った節。AI検索は節の単位で本文を抜き出すので、節ごとに「単体で意味が通るか」を見る。
+ * level 0 は最初の見出しより前の範囲。
+ */
+type Section = {
+  level: number;
+  title: string;
+  /** 節の中で最初に出てきた10字以上の段落 */
+  lead: string;
+  /** 段落・リスト項目・セルのテキスト量（見出しは含めない） */
+  length: number;
+  /** 10字以上の段落が1つでもあるか */
+  hasProse: boolean;
+};
+
+/** 節の文字数に数えるブロック。入れ子は二重に数えないのでここで止める */
+const PROSE_TAGS = new Set(["P", "LI", "DD", "DT", "TD", "TH", "BLOCKQUOTE", "FIGCAPTION", "PRE"]);
+/** 本文ではない範囲。節の判定から外す */
+const CHROME_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "SVG", "HEADER", "NAV", "FOOTER", "ASIDE", "FORM"]);
+
+/** 本文を見出しで切り分ける。文書順に歩き、h1〜h6 で節を開く */
+function splitSections(scope: HTMLElement): Section[] {
+  const out: Section[] = [{ level: 0, title: "", lead: "", length: 0, hasProse: false }];
+  const walk = (node: HTMLElement) => {
+    for (const child of node.childNodes) {
+      if (child.nodeType !== NodeType.ELEMENT_NODE) continue;
+      const el = child as HTMLElement;
+      const tag = el.tagName?.toUpperCase() ?? "";
+      if (CHROME_TAGS.has(tag)) continue;
+      if (/^H[1-6]$/.test(tag)) {
+        out.push({ level: Number(tag.slice(1)), title: textOf(el), lead: "", length: 0, hasProse: false });
+        continue;
+      }
+      if (PROSE_TAGS.has(tag)) {
+        const t = el.text.replace(/\s+/g, " ").trim();
+        const cur = out[out.length - 1];
+        cur.length += t.length;
+        // 「公開から4週間後に始めます。」のような短い直答も段落として数える。図の番号だけの p は数えない
+        if ((tag === "P" || tag === "BLOCKQUOTE") && t.length >= 10) {
+          cur.hasProse = true;
+          if (!cur.lead) cur.lead = t;
+        }
+        continue;
+      }
+      walk(el);
+    }
+  };
+  walk(scope);
+  return out;
+}
+
+/** 見出しから記号・連番を落として比べる */
+function headingKey(title: string): string {
+  return title
+    .replace(/[\s　]+/g, "")
+    .replace(/^[0-9０-９一二三四五六七八九十]+[.．、）)]?/, "")
+    .replace(/^[【\[（(]?(?:第[0-9０-９一二三四五六七八九十]+[章節項]|STEP|Step|ステップ)[0-9０-９]*[】\])）]?[:：.．]?/, "")
+    .replace(/[。.:：!！?？]+$/, "");
+}
+
+/** それ自体では何の話か分からない見出し。中身があるのにこの語だけだと、節を選ぶ手がかりにならない */
+const GENERIC_HEADINGS = new Set([
+  "はじめに", "初めに", "概要", "目次", "本記事について", "この記事について",
+  "まとめ", "おわりに", "終わりに", "さいごに", "最後に", "結び",
+  "ポイント", "注意点", "注意事項", "補足", "その他", "詳細", "背景", "前提",
+  "メリット", "デメリット", "メリットとデメリット", "特徴", "解説", "基本", "基礎知識", "対策", "方法", "手順", "使い方",
+]);
+
+/**
+ * 節の1文目がこれで始まると、前の節を読まないと意味が取れない。
+ * 「この記事」「このページ」はページ自身を指すので外す（前の節への依存ではない）。
+ */
+const VAGUE_LEAD = /^(?:これ|それ|あれ|こう|そう|こちら|そちら|上記|前述|先ほど|同[^\s、。]|また|さらに|しかし|一方|ただし|なお|つまり|そこで|ここでは|次に|続いて|以下|[こそあ]の(?!記事|ページ|サイト))/;
+/**
+ * 節の1文目がこれで終わると、答えではなく予告になっている。
+ * 「Googleは説明しています」のような報告の形（〜しています／〜しました）は予告ではないので外す。
+ */
+const PREAMBLE_LEAD = /(?:解説|説明|紹介|整理|検討|お伝え)し(?:て(?:い|ゆ)?き)?ま(?:す|しょう)。?$|(?:見|見て(?:い|ゆ)?き)ま(?:す|しょう)。?$/;
 
 export function audit(input: AuditInput): AuditResult {
   const findings: Finding[] = [];
@@ -996,6 +1079,115 @@ export function audit(input: AuditInput): AuditResult {
       fix: "指示語や言い換えに置き換えて回数を減らし、空いた分を統計・引用・出典に使います。効果が確認されているのはそちらです。",
       source: PAPER,
     });
+  }
+
+  // ---------- 見出しと本文が節の単位で引用できるか ----------
+  // AI検索は本文を丸ごとではなく、見出しで区切られた節を単位に抜き出す。
+  // 「その節だけを読んで意味が通るか」を、見出しの文言・直下の段落・節の長さの3つで見る。
+  // ここは公式ドキュメントの記述に対応づけられる項目ではないので、出典は付けない（判定の根拠は上の仕組みだけ）。
+  const sections = splitSections(bodyScope);
+  const named = sections.filter((x) => x.level >= 2 && x.level <= 4 && x.title.length > 0);
+  const nextOf = (x: Section) => sections[sections.indexOf(x) + 1] ?? null;
+
+  // 中身のある節に、内容を表さない見出しが付いている
+  if (text.length < 800 || named.length === 0) skip("heading-generic");
+  else {
+    const generic = named.filter((x) => GENERIC_HEADINGS.has(headingKey(x.title)) && x.length >= 200);
+    if (generic.length > 0) {
+      add({
+        id: "heading-generic",
+        area: "geo",
+        severity: "low",
+        title: `中身を表さない見出しが${generic.length}件あります`,
+        detail:
+          "AI検索は見出しを手がかりに、どの節を回答に使うかを決めます。「まとめ」「ポイント」のように、それだけでは何の話か分からない見出しの下は、中身があっても選ばれません。",
+        code: generic.map((x) => `<h${x.level}>${snippet(x.title, 40)}</h${x.level}>（この節の本文 ${x.length}字）`).join("\n"),
+        fix: "節の結論をそのまま見出しにします。読者が打つ質問の形（「〜はいくらか」「〜はいつまでか」）にすると、質問文とそのまま照合されます。",
+        fixCode: `<h2>${snippet(generic[0].title, 20)}</h2>\n→\n<h2>（この節の結論を一文で。固有名詞と数値を入れる）</h2>`,
+        where: { note: "該当の見出しを書き換えます。本文は変えません。" },
+      });
+    }
+  }
+
+  // 見出しの直下に段落が無い（画像・表・リストだけ、または空）
+  if (text.length < 800 || named.length === 0) skip("heading-orphan");
+  else {
+    const orphans = named.filter((x) => {
+      if (x.hasProse) return false;
+      const next = nextOf(x);
+      // h2 の直後に h3 が来るのは節の入れ子なので、ここでは数えない
+      return next === null || next.level <= x.level;
+    });
+    if (orphans.length > 0) {
+      add({
+        id: "heading-orphan",
+        area: "geo",
+        severity: "low",
+        title: `見出しの直下に段落が無い節が${orphans.length}件あります`,
+        detail:
+          "見出しの直後が画像・表・箇条書きだけだと、抜き出したときに何についての一覧なのかが残りません。文として取り出せる答えが節の中にない状態です。",
+        code: orphans
+          .slice(0, 5)
+          .map((x) => `<h${x.level}>${snippet(x.title, 40)}</h${x.level}>（10字以上の段落なし / 本文 ${x.length}字）`)
+          .join("\n"),
+        fix: "見出しの直後に、その節の答えを1〜2文の段落で置いてから、画像や表を続けます。",
+        fixCode: `<h2>${snippet(orphans[0].title, 20)}</h2>\n<p>（この節の答えを1〜2文。主語を省略しない）</p>\n<ul>…</ul>`,
+        where: { note: "該当の見出しと、その次の要素の間。" },
+      });
+    }
+  }
+
+  // 節の1文目が指示語・前置きで、単体では意味が取れない
+  if (text.length < 800 || named.length < 3) skip("section-lead");
+  else {
+    const vague = named
+      .map((x) => ({ x, first: (x.lead.split(/(?<=[。！？])/)[0] ?? "").trim() }))
+      .filter(({ first }) => first.length > 0 && (VAGUE_LEAD.test(first) || PREAMBLE_LEAD.test(first)));
+    if (vague.length >= 2) {
+      add({
+        id: "section-lead",
+        area: "geo",
+        severity: "low",
+        title: `節の1文目が前の節に依存している箇所が${vague.length}件あります（全${named.length}節）`,
+        detail:
+          "「これは」「その場合」のような指示語や、「〜について解説します」のような予告で始まる節は、その部分だけを抜き出しても何を指しているか分かりません。抜き出す側は前の節を読まないので、主語が失われます。",
+        code: vague
+          .slice(0, 3)
+          .map(({ x, first }) => `<h${x.level}>${snippet(x.title, 30)}</h${x.level}>\n  ${snippet(first, 100)}`)
+          .join("\n"),
+        fix: "1文目の指示語を実際の語に置き換え、予告を結論に差し替えます。前の節を読まなくても意味が通る文にします。",
+        fixCode: "これは3か月で効果が出ます。\n→\n内部リンクの整理は3か月で効果が出ます。",
+        where: { note: "該当の節の1文目。2文目以降は変えません。" },
+      });
+    }
+  }
+
+  // 見出しで区切られていない長い本文
+  if (text.length < 1200) skip("section-long");
+  else {
+    const longs = sections.filter((x) => x.length >= 1200);
+    if (longs.length > 0) {
+      const worst = longs.slice().sort((a, b) => b.length - a.length)[0];
+      add({
+        id: "section-long",
+        area: "geo",
+        severity: "low",
+        title:
+          worst.level === 0
+            ? `最初の見出しより前に本文が${worst.length}字あります`
+            : `1つの節に本文が${worst.length}字あります`,
+        detail:
+          "1つの節が長いと、抜き出す側はその中のどこが答えかを決められず、節ごと見送られます。見出しは節を区切ると同時に、抜き出す単位を決めています。",
+        code: longs
+          .slice()
+          .sort((a, b) => b.length - a.length)
+          .slice(0, 3)
+          .map((x) => (x.level === 0 ? `（最初の見出しより前）${x.length}字` : `<h${x.level}>${snippet(x.title, 40)}</h${x.length >= 1 ? x.level : 2}>（${x.length}字）`))
+          .join("\n"),
+        fix: "話題が変わるところで見出しを足し、1つの節を1つの問いへの答えにします。目安は1節500〜1,000字です。",
+        where: { note: "長い節の中で、話題が切り替わる段落の直前。" },
+      });
+    }
   }
 
   // 日付。Googleの案内は Article などの CreativeWork を対象にしたものなので、記事系のページだけで判定する
