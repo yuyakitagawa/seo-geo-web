@@ -3,6 +3,7 @@
 // ニュース記事（generate.ts）との違いは、起点がRSSではなく人が決めたテーマで、
 // 出典が公式ドキュメントであること。記事は日付が変わっても読める形（手順・チェックリスト）で書く。
 // 実行: npx tsx scripts/generate-howto.ts [件数=1] [--publish]
+import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { loadTopics, saveTopics, type Topic } from "./howto";
 import { currentMaxId, GenerationError, generateWithReview, requireApiKey, today as jstToday, validate, writeArticle } from "./article";
@@ -123,6 +124,7 @@ async function main() {
   const client = new Anthropic();
 
   let nextId = currentMaxId() + 1;
+  const failed: string[] = [];
   for (const t of adopted) {
     try {
       await generateOne(client, t, today, nextId, publish);
@@ -140,9 +142,24 @@ async function main() {
       // 生出力の先頭を残す。検査結果だけでは原因（取得失敗・途中終了・形式崩れ）を切り分けられない。
       const raw = e instanceof GenerationError && e.raw ? ` / 生出力: ${e.raw}` : "";
       t.note = `生成失敗: ${(e as Error).message}${raw}`;
+      failed.push(t.title);
     }
   }
   saveTopics(list);
+  reportFailures(failed);
+}
+
+/**
+ * 失敗したテーマ数を GitHub Actions に渡す。ここで exit 1 にはしない
+ * （メモを書いた content/howto-topics.csv を commit する前にジョブを止めると原因が残らない）。
+ * push まで済んだあとのステップが落とし、LINE通知を鳴らす。
+ * 2026-09-17〜19、3日連続で「採用」が全滅していたのに正常終了扱いで誰も気づかなかった。
+ */
+function reportFailures(failed: string[]) {
+  if (failed.length === 0) return;
+  const out = process.env.GITHUB_OUTPUT;
+  if (out) fs.appendFileSync(out, `failed=${failed.length}\n`);
+  console.error(`生成に失敗したテーマ: ${failed.join(" / ")}`);
 }
 
 main().catch((e) => {

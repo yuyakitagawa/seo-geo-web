@@ -31,7 +31,7 @@ sources:
     url: 'https://developers.openai.com/api/docs/bots'
   - title: Perplexity Crawlers
     url: 'https://docs.perplexity.ai/guides/bots'
-draft: true
+draft: false
 id: 86
 ---
 ## 結論
@@ -65,11 +65,13 @@ User-Agentは送信側が自由に書ける文字列で、Googleの一般的な�
 
 公式ドキュメントには次の実行例が載っています。
 
+```
 host 66.249.66.1
 1.66.249.66.in-addr.arpa domain name pointer crawl-66-249-66-1.googlebot.com.
 
 host crawl-66-249-66-1.googlebot.com
 crawl-66-249-66-1.googlebot.com has address 66.249.66.1
+```
 
 1回限りの確認ならこの手動手順で十分です。大量のIPアドレスをまとめて照合する場合は、Googleが公開しているクローラーのIPアドレス範囲一覧(一般的なクローラー用、特殊なケース用クローラー用、ユーザー トリガー フェッチャー用のJSONファイル)と突き合わせる自動的な方法が案内されています。ログ管理システムやWAFにIP範囲を定期的に取り込む仕組みを作れば、目視の逆引き作業を毎回行う必要がなくなります。
 

@@ -5,6 +5,7 @@ import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import matter from "gray-matter";
 import { aiToneErrors } from "../src/lib/aiTone";
+import { extractMdx } from "../src/lib/mdxResponse";
 import { isCategoryKey } from "../src/lib/site";
 
 export const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
@@ -77,14 +78,18 @@ function isFetchFailed(text: string): boolean {
   return /^FETCH_FAILED\b/m.test(text);
 }
 
-/** 応答から記事MDXを取り出す。最後のtextブロックが本文（途中のtextはツール呼び出し前の前置き） */
+/**
+ * 応答から記事MDXを取り出す。frontmatter を持つ最後のtextブロックを選び、
+ * その前の前置きを捨てる（判定は src/lib/mdxResponse.ts）。
+ * 「最後のtextブロックをそのまま本文」にしていた頃は、前置き1行や英語の独り言で
+ * frontmatter を読み落として3日連続で生成が止まった（2026-09-17〜19）。
+ */
 function extractText(response: Anthropic.Message): string {
   if (response.stop_reason === "refusal") {
     throw new GenerationError(`refusal: ${response.stop_details?.explanation ?? ""}`);
   }
-  // 最後のtextブロックが記事本文（途中のtextはツール呼び出し前の前置きの可能性がある）
   const texts = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
-  const text = texts.at(-1)?.text.trim() ?? "";
+  const text = extractMdx(texts.map((b) => b.text));
   if (!text) throw new GenerationError("空の応答");
   if (isFetchFailed(text)) throw new GenerationError("fetch failed（元記事を取得できなかった）", text);
   return text;
