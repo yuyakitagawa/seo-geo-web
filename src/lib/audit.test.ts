@@ -209,3 +209,65 @@ test("snippet-head: 本文が200字未満、または見出しが無ければ判
   assert.ok(audit(input({ body: "<main><h1>短い</h1><p>本文</p></main>" })).skipped.includes("snippet-head"));
   assert.ok(audit(input({ body: "<main>" + LONG + "</main>" })).skipped.includes("snippet-head"));
 });
+
+// ---------- 見出しと本文が節の単位で引用できるか ----------
+
+/** 見出し1つと本文の節を組み立てる。len 字ぶんの段落を1つ置く */
+const sec = (title: string, lead: string, len = 300) =>
+  `<h2>${title}</h2><p>${lead}</p><p>${"この節の説明を続けるための文章です。".repeat(Math.ceil(len / 18))}</p>`;
+
+test("heading-generic: 中身のある節に「まとめ」等の見出しが付いていれば指摘する", () => {
+  const body = `<main><h1>見出しの検査</h1>${sec("まとめ", "内部リンクの整理は3か月で効果が出ます。", 500)}${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 500)}</main>`;
+  const f = audit(input({ body })).findings.find((x) => x.id === "heading-generic");
+  assert.ok(f);
+  assert.match(f.code ?? "", /まとめ/);
+  // 見出しが具体的なら出さない
+  const ok = `<main><h1>見出しの検査</h1>${sec("内部リンクは3か月で効く", "内部リンクの整理は3か月で効果が出ます。", 500)}${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 500)}</main>`;
+  assert.ok(!ids(input({ body: ok })).includes("heading-generic"));
+});
+
+test("heading-generic: 中身が200字未満の「まとめ」は指摘しない（問題は中身が埋もれること）", () => {
+  const body = `<main><h1>見出しの検査</h1>${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 900)}<h2>まとめ</h2><p>以上です。</p></main>`;
+  assert.ok(!ids(input({ body })).includes("heading-generic"));
+});
+
+test("heading-orphan: 見出しの直後が箇条書きだけなら指摘し、h2→h3 の入れ子は数えない", () => {
+  const body = `<main><h1>見出しの検査</h1>${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 900)}<h2>確認する項目</h2><ul><li>表示回数</li><li>クリック数</li></ul></main>`;
+  const f = audit(input({ body })).findings.find((x) => x.id === "heading-orphan");
+  assert.ok(f);
+  assert.match(f.code ?? "", /確認する項目/);
+  const nested = `<main><h1>見出しの検査</h1>${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 900)}<h2>確認する項目</h2><h3>表示回数の見方</h3><p>Search Console の表示回数を4週間の窓で比べます。</p></main>`;
+  assert.ok(!ids(input({ body: nested })).includes("heading-orphan"));
+});
+
+test("section-lead: 1文目が指示語・予告で始まる節が2件以上あれば指摘する", () => {
+  const vague = `<main><h1>見出しの検査</h1>${sec("内部リンクの効果", "これは3か月で効果が出ます。")}${sec("効果測定の始めどき", "ここでは測定の手順について解説します。")}${sec("測定の窓", "4週間の窓で前後を比べます。")}</main>`;
+  const f = audit(input({ body: vague })).findings.find((x) => x.id === "section-lead");
+  assert.ok(f);
+  assert.match(f.title, /2件/);
+  const fixed = `<main><h1>見出しの検査</h1>${sec("内部リンクの効果", "内部リンクの整理は3か月で効果が出ます。")}${sec("効果測定の始めどき", "公開から4週間後に始めます。")}${sec("測定の窓", "4週間の窓で前後を比べます。")}</main>`;
+  assert.ok(!ids(input({ body: fixed })).includes("section-lead"));
+});
+
+test("section-long: 1節が1,200字を超えれば指摘し、最初の見出しより前も1つの節として数える", () => {
+  const body = `<main><h1>見出しの検査</h1>${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 1400)}</main>`;
+  const f = audit(input({ body })).findings.find((x) => x.id === "section-long");
+  assert.ok(f);
+  assert.match(f.title, /1つの節/);
+  const before = `<main><p>${"見出しを置かずに書き続けた本文です。".repeat(80)}</p><h2>GEOの効果測定はいつ始めるか</h2><p>公開から4週間後に始めます。</p></main>`;
+  const g = audit(input({ body: before })).findings.find((x) => x.id === "section-long");
+  assert.ok(g);
+  assert.match(g.title, /最初の見出しより前/);
+});
+
+test("節の検査: 本文が短いページ・見出しが無いページでは判定しない", () => {
+  const r = audit(input({ body: "<main><h1>短いページ</h1><p>ここだけです。</p></main>" }));
+  for (const id of ["heading-generic", "heading-orphan", "section-lead", "section-long"]) {
+    assert.ok(r.skipped.includes(id), id);
+  }
+});
+
+test("節の検査: nav・footer の見出しは節に数えない", () => {
+  const body = `<nav><h2>まとめ</h2><p>${"ナビゲーションの中の文章です。".repeat(30)}</p></nav><main><h1>見出しの検査</h1>${sec("GEOの効果測定はいつ始めるか", "公開から4週間後に始めます。", 900)}</main>`;
+  assert.ok(!ids(input({ body })).includes("heading-generic"));
+});
