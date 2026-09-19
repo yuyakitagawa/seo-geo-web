@@ -63,6 +63,7 @@ jobs:
       # 「採用」が1件も無い日は何もせず正常終了するので、無条件に置いてよい（テーマ表が空なら自然に止まる）。
       # news をRSSから量産しても出典元と同じクエリに並ぶだけなので、日次の枠はこちらだけにしてある（2026-09-13〜）。
       - name: HOW TO記事を生成（テーマ表に「採用」があるときだけ）
+        id: howto
         run: npx tsx scripts/generate-howto.ts 1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -105,6 +106,16 @@ jobs:
           git commit -m "chore: 記事の下書きと候補リストを更新"
           git pull --rebase origin main
           git push origin HEAD:main
+
+      # 生成の失敗をここで落とす。generate-howto.ts は失敗しても exit 0 で終える
+      # （メモを書いた content/howto-topics.csv を commit する前に止めると原因が残らない）ので、
+      # 保存が済んだあとのこのステップが赤にして下のLINE通知を鳴らす。
+      # 2026-09-17〜19、「採用」3件が3日連続で全滅していたのに、緑のまま誰も気づかなかった。
+      - name: HOW TO生成の失敗を検知
+        if: steps.howto.outputs.failed != ''
+        run: |
+          echo "::error::HOW TO記事の生成が ${{ steps.howto.outputs.failed }} 件失敗しました（content/howto-topics.csv の note を確認。status は「候補」に戻っています）"
+          exit 1
 
       # ワークフローの赤は誰も見ていない、という前提で運用する。落ちたらスマホに届ける。
       # 認証情報が無ければ黙ってスキップするので、未設定のうちは何も起きない。
