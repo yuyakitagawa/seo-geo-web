@@ -81,11 +81,32 @@ function ToolCard({ t }: { t: Tool }) {
 }
 
 function ToolCards({ rows }: { rows: Tool[] }) {
-  if (rows.length === 0) return <p className="text-sm text-mute">確認済みのツールはまだありません。</p>;
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {rows.map((t) => (
         <ToolCard key={t.name} t={t} />
+      ))}
+    </div>
+  );
+}
+
+// セクションの中を無料枠の有無で分ける。料金が最初の分かれ目なので「無料あり」を先に置く。
+// 片方が0件のときはその見出しごと出さない（空の見出しを残さない）。
+function ToolGroups({ rows }: { rows: Tool[] }) {
+  if (rows.length === 0) return <p className="text-sm text-mute">確認済みのツールはまだありません。</p>;
+  const groups = [
+    { key: "free", label: "無料あり", rows: rows.filter((t) => t.free) },
+    { key: "paid", label: "有料のみ", rows: rows.filter((t) => !t.free) },
+  ].filter((g) => g.rows.length > 0);
+  return (
+    <div className="space-y-6">
+      {groups.map((g) => (
+        <div key={g.key}>
+          <h4 className={cx(HEADING.label, "mb-3")}>
+            {g.label}（{g.rows.length}件）
+          </h4>
+          <ToolCards rows={g.rows} />
+        </div>
       ))}
     </div>
   );
@@ -182,7 +203,7 @@ export default function ToolsPage() {
               <div key={s.id} id={s.id} className="scroll-mt-24">
                 <h3 className={HEADING.card}>{s.title}</h3>
                 <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
-                <ToolCards rows={s.rows} />
+                <ToolGroups rows={s.rows} />
               </div>
             ))}
           </div>
