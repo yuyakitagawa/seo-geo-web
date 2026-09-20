@@ -8,7 +8,7 @@ import { APP_TOOLS } from "@/lib/apps";
 import { siblingPages } from "@/lib/nav";
 import { getTools, latestVerified, TOOL_TYPE_COLOR, TOOL_TYPE_LABEL, type Tool } from "@/lib/tools";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { BADGE, CHIP, CONTAINER, HEADING, LINK, PADDING, SURFACE, TABLE, button, cx } from "@/lib/ui";
+import { BADGE, CHIP, CONTAINER, HEADING, LINK, PADDING, SURFACE, button, cx } from "@/lib/ui";
 import { Card, CardLink } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -91,45 +91,6 @@ function ToolCards({ rows }: { rows: Tool[] }) {
   );
 }
 
-// 料金・種別・対象を1枚で見比べる表。カードは1件ずつ読む形なので、横並びの比較はこちらが担う。
-// 「SEOツール 比較」「検索順位チェックツール 比較」のように比較を前提に探されるため、
-// 全件を1つの表に入れて、スクロールだけで見終われるようにする。
-function ToolTable({ rows, caption }: { rows: Tool[]; caption: string }) {
-  return (
-    <div className={TABLE.frame}>
-      <table className={cx(TABLE.table, "min-w-[760px]")}>
-        <caption className="sr-only">{caption}</caption>
-        <thead className={TABLE.head}>
-          <tr>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>ツール</th>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>提供元</th>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>種別</th>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>料金</th>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>無料枠</th>
-            <th scope="col" className={cx(TABLE.headCell, "font-bold")}>対象</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((t) => (
-            <tr key={t.name} className={TABLE.row}>
-              <th scope="row" className={cx(TABLE.cell, "text-left font-semibold")}>
-                <a href={t.jaUrl ?? t.url} target="_blank" rel="noopener" className={LINK}>{t.name}</a>
-              </th>
-              <td className={cx(TABLE.cell, "text-mute")}>{t.vendor}<span className="ml-1 opacity-60">/ {t.country}</span></td>
-              <td className={TABLE.cell}>
-                <span className={cx(BADGE.sm, TOOL_TYPE_COLOR[t.type])}>{TOOL_TYPE_LABEL[t.type]}</span>
-              </td>
-              <td className={cx(TABLE.cell, "text-mute")}>{t.price}</td>
-              <td className={cx(TABLE.cell, t.free ? "font-semibold" : "text-mute")}>{t.free ? "あり" : "なし"}</td>
-              <td className={cx(TABLE.cell, "text-mute")}>{t.engines.length > 0 ? t.engines.join("・") : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export default function ToolsPage() {
   const tools = getTools();
   const updated = latestVerified(tools);
@@ -155,8 +116,6 @@ export default function ToolsPage() {
     })),
   };
 
-  const geoTools = tools.filter((t) => t.category === "geo");
-  const seoTools = tools.filter((t) => t.category === "seo");
   const freeCount = tools.filter((t) => t.free).length;
 
   const sections: { id: string; title: string; lead: string; rows: Tool[] }[] = [
@@ -179,9 +138,6 @@ export default function ToolsPage() {
       />
       <div className={cx(CONTAINER.page, "space-y-14 pb-16")}>
         <nav aria-label="セクション" className="flex flex-wrap gap-2 text-sm">
-          <a href="#compare" className={CHIP}>
-            料金・種別の比較表 <span className="opacity-50">{tools.length}</span>
-          </a>
           {sections.map((s) => (
             <a key={s.id} href={`#${s.id}`} className={CHIP}>
               {s.title} <span className="opacity-50">{s.rows.length}</span>
@@ -211,40 +167,32 @@ export default function ToolsPage() {
           </div>
         </section>
 
-        {/* 比較表。カード一覧より前に置く。「◯◯ツール 比較」で来た人が最初に見たいのは横並びの一覧で、
-            1件ずつのカードはその後に読むもの。 */}
-        <section id="compare" className="scroll-mt-24">
-          <h2 className={HEADING.section}>料金・種別の比較表（{tools.length}件）</h2>
+        {/* ツール一覧。1枚のカードに料金・対象・公式リンクまで入れる。
+            同じ52件を表とカードで2回出していたのを、2026-09-20にカードへ一本化した
+            （表が持っていた件数・無料枠の合計・独立性の明記はこのリードに移した）。 */}
+        <section id="list" className="scroll-mt-24">
+          <h2 className={HEADING.section}>ツール一覧（{tools.length}件）</h2>
           <p className="mb-6 mt-1 text-sm text-mute">
             掲載{tools.length}件のうち、無料枠があるものは{freeCount}件です。料金は公式ページの表示額（最終確認 {updated}）で、
             為替・プラン改定で変わります。「対象」はそのツールが見ているAIエンジンや検索エンジンです。
             各ツールの提供元とは関係がなく、依頼や監修を受けずに運営者が独自に選び、公式ページを読んで書いたコメントです。
           </p>
-          <div className="space-y-8">
-            <div>
-              <h3 className={cx(HEADING.card, "mb-3")}>GEO（AI検索）ツール · {geoTools.length}件</h3>
-              <ToolTable rows={geoTools} caption={`GEO（AI検索）ツール${geoTools.length}件の種別・料金・無料枠・対象エンジンの比較`} />
-            </div>
-            <div>
-              <h3 className={cx(HEADING.card, "mb-3")}>SEOツール · {seoTools.length}件</h3>
-              <ToolTable rows={seoTools} caption={`SEOツール${seoTools.length}件の種別・料金・無料枠・対象の比較`} />
-            </div>
+          <div className="space-y-12">
+            {sections.map((s) => (
+              <div key={s.id} id={s.id} className="scroll-mt-24">
+                <h3 className={HEADING.card}>{s.title}</h3>
+                <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
+                <ToolCards rows={s.rows} />
+              </div>
+            ))}
           </div>
-          {/* 「種別」バッジの用語解説。表を見て意味が分からなかった人だけが読めばよいので、表の下に1行で置く */}
-          <p className="mt-4 text-xs leading-relaxed text-mute">
+          {/* 「種別」バッジの用語解説。意味が分からなかった人だけが読めばよいので、一覧の下に1段落で置く */}
+          <p className="mt-6 text-xs leading-relaxed text-mute">
             「種別」の意味：<span className={cx(BADGE.sm, "mx-1 bg-geo align-middle text-white")}>AI可視性計測</span>AIの回答に自社が出るかを測る（多くは有料）。
             <span className={cx(BADGE.sm, "mx-1 bg-geo/70 align-middle text-white")}>AI対応診断</span>そのページをAIが読めるかを調べる（多くは無料。
             <Link href="/tools/page-audit" className={LINK}>ページ診断</Link>もこの種別）。両方を持つものは「計測＋診断」。
           </p>
         </section>
-
-        {sections.map((s) => (
-          <section key={s.id} id={s.id} className="scroll-mt-24">
-            <h2 className={HEADING.section}>{s.title}</h2>
-            <p className="mb-4 mt-1 text-sm text-mute">{s.lead}</p>
-            <ToolCards rows={s.rows} />
-          </section>
-        ))}
 
         <section className={cx(SURFACE.invert, PADDING.card, "text-sm")}>
           <h2 className={HEADING.card}>掲載基準</h2>
