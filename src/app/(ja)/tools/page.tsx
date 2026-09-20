@@ -175,7 +175,7 @@ export default function ToolsPage() {
         eyebrow={`Tools · ${tools.length}件 · 更新 ${updated}`}
         title="SEO・GEO診断ツール"
         crumbs={[{ name: "診断ツール" }]}
-        lead="登録不要で使える無料の診断ツールと、従来のSEOツール・AI検索向けのGEOツールの比較を1か所にまとめています。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。運営者が公式ページを確認したツールだけを載せています。"
+        lead="登録不要で使える無料の診断ツールと、従来のSEOツール・AI検索向けのGEOツールの比較を1か所にまとめています。GEOツールは「AIの回答に自社が出るか」を測る可視性計測と、「ページがAIに読めるか」を採点する診断に分かれ、両者は別物です。提供元とは関係なく、運営者が独自に選び、公式ページを確認したツールだけを載せています。"
       />
       <div className={cx(CONTAINER.page, "space-y-14 pb-16")}>
         <nav aria-label="セクション" className="flex flex-wrap gap-2 text-sm">
@@ -241,6 +241,7 @@ export default function ToolsPage() {
           <p className="mb-6 mt-1 text-sm text-mute">
             掲載{tools.length}件のうち、無料枠があるものは{freeCount}件です。料金は公式ページの表示額（最終確認 {updated}）で、
             為替・プラン改定で変わります。「対象」はそのツールが見ているAIエンジンや検索エンジンです。
+            各ツールの提供元とは関係がなく、依頼や監修を受けずに運営者が独自に選び、公式ページを読んで書いたコメントです。
           </p>
           <div className="space-y-8">
             <div>
@@ -265,6 +266,8 @@ export default function ToolsPage() {
         <section className={cx(SURFACE.invert, PADDING.card, "text-sm")}>
           <h2 className={HEADING.card}>掲載基準</h2>
           <ul className="mt-3 list-disc space-y-1 pl-5 opacity-80">
+            <li>各ツールの提供元とは関係がありません。掲載の依頼・監修・対価は受けておらず、どれを載せるかは運営者が独自に決めています。アフィリエイトリンクも使っていません。</li>
+            <li>カードや表のコメントは、運営者が公式ページを読んで書いた見解です。提供元の説明そのままではなく、評価が分かれる点も含みます。</li>
             <li>運営者が公式ページで機能・料金を確認できたものだけを載せています（最終確認 {updated}）。</li>
             <li>新ツールの発表は{SITE_NAME}の収集システムが日次で検知し、確認後に追記します。掲載依頼・誤りの指摘は公式Xまで。</li>
             <li>掲載は推奨ではありません。料金・機能は変わるため、契約前に公式ページを確認してください。</li>
