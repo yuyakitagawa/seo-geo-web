@@ -218,7 +218,14 @@ npm test                          英語版が無い独自記事があると src
 - 英語版は `<html lang="en">` を出すため別のルートレイアウト（`src/app/(en)/en/layout.tsx`）を持つ。AdSense は載せない（審査前）。GA4 は同じプロパティでパスで分ける。
 - sitemap と llms.txt（末尾の「Original research in English」）に載る。RSS（/feed.xml）は日本語のまま。
 
-独自記事の材料は自サイトのSearch Console実測。`npm run gsc` が集計する。
+独自記事の材料は自サイトのSearch Console実測。`npm run gsc` が集計する。ChatGPTの会話JSONから取る場合は `npm run fanout`（`src/lib/fanout.ts`）。
+
+#### 公開待ちの独自記事
+- **記事89「AI検索に引用されないNGな書き方10選」**（`content/articles/0089-ng-writing-not-cited-by-ai.mdx`、`draft: true`）。
+  2026-09-21のChatGPT会話9本（候補187URL・引用40件）から、引用されなかった側にだけ共通していた書き方10個をまとめた独自記事。
+  読者は自社サイトで料金・仕様を説明している事業者。落ちたページを名指ししないため、本文では社名を伏せて業種と数値だけを書いている。
+  公開手順: `npm run translate:en -- 89` で英語版を作る → 数値と固有名詞が日本語版と一致しているか読む → `draft: false` にする。
+  `ANTHROPIC_API_KEY` が無い環境では英訳できないため下書きのまま置いてある（`draft: true` の独自記事は `src/lib/content-en.test.ts` の対象外）。
 
 ```
 Search Console → 検索パフォーマンス → エクスポート → CSV をダウンロード
