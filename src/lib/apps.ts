@@ -11,6 +11,13 @@ export type AppTool = {
 
 export const APP_TOOLS: AppTool[] = [
   {
+    path: "/tools/quote-readiness",
+    name: "引用しやすさ診断",
+    lead: "見出し直後の本文を切り出し、前後の文脈なしでも引用できる文章構造かをルールベースで確認します。",
+    points: ["冒頭が直接回答になっているか", "指示語・接続表現による文脈依存", "対象・主張・理由が一つの引用候補にあるか"],
+    updated: "2026-09-21",
+  },
+  {
     path: "/tools/page-audit",
     name: "SEO/GEO ページ診断",
     lead: "URLを入れると、検索エンジンとAI検索がそのページをどう読むかを検査し、直すべき箇所を該当コードと修正後の書き方つきで指摘します。",
