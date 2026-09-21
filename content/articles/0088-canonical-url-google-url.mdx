@@ -1,0 +1,127 @@
+---
+title: canonical（正規URL）の指定方法とGoogleが別のURLを選ぶ理由
+description: 重複したURLのどれを正規にするかをGoogleに伝える3つの方法と、指定してもGoogleが別のURLを選ぶ条件を公式ドキュメントに基づいて解説します。
+date: '2026-09-21'
+category: seo
+type: howto
+tags:
+  - canonical
+  - 重複コンテンツ
+  - rel=canonical
+  - テクニカルSEO
+  - サイトマップ
+audience: 全サイト（特にEC・複数ドメイン運用・BtoBサイト）
+actions:
+  - 重複しているURL群を洗い出し、正規にしたいURLを1つ決める
+  - 正規ページのheadに自己参照のrel="canonical"を入れる
+  - サイトマップとrel="canonical"で違うURLを指定していないか確認する
+sources:
+  - title: What is URL Canonicalization | Google Search Central
+    url: >-
+      https://developers.google.com/search/docs/crawling-indexing/canonicalization
+  - title: How to specify a canonical URL with rel="canonical" and other methods
+    url: >-
+      https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+draft: true
+id: 88
+---
+## 結論
+
+canonical（正規URL）はrel="canonical"などで指定しても、Googleがそれとは別のURLを正規と判断することがあります。
+
+Googleの公式ドキュメントは、canonical指定を「ヒントであって命令ではない」と明言しています。
+サイト運営者が今日やめるべきことは、rel="canonical"を入れただけで「これで正規URLは固定した」と考えて放置することです。
+リダイレクトの有無、サイトマップの中身、内部リンクの向き先が指定と食い違っていれば、Googleはそちらを優先します。
+
+## Googleが別のURLを選ぶ理由
+
+canonicalizationとは、内容が同じか非常に似た複数のURLの中から、Googleが代表となる1つのURL（canonical URL）を選ぶ処理です。
+Googleはこの処理で選んだページを主な評価対象にし、検索結果にもそのURLを表示します。
+Googleは選定の際に、HTTPかHTTPSか、リダイレクトの有無、サイトマップへの掲載、rel="canonical"の指定という複数のシグナルを組み合わせて判断するため、指定と実際の選定がずれる場合の原因はほぼシグナルの矛盾にあります。
+
+<FigureQuote text="That is, indicating a canonical preference is a hint, not a rule." source="Google Search Central「What is URL Canonicalization」2026年8月20日更新" />
+
+「canonicalの指定はヒントであり、ルールではない」という一文です。
+他のシグナル（リダイレクト先やサイトマップの中身、内部リンクの向き先）と矛盾したときに、Googleが総合判断で別のURLを選ぶという意味です。
+この判断は自動化された処理なので、なぜそのURLが選ばれたかを個別に問い合わせて確認する手段はありません。
+
+重複URLの典型的な原因は、地域別URL、デバイス別URL、プロトコル違い（HTTPとHTTPSの併存）、並べ替えや絞り込み機能によるURL、開発環境の誤公開の5つです。
+サイト内の重複はスパム扱いされませんが、成果を追いにくくなる点は明記されています。
+
+## 正規URLを指定する3つの方法
+
+正規URLを指定する方法は複数あり、Googleへの影響力の強さは同じではありません。
+強い順にリダイレクト、rel="canonical"のlink注釈、サイトマップへの掲載で、組み合わせるとさらに効きやすくなります。
+
+<FigureCompare
+  title="正規URLを指定する3つの方法"
+  caption="影響力はリダイレクト・rel=canonicalが強く、サイトマップは弱いシグナルとされています"
+  cols={[
+    { label: "リダイレクト", tone: "seo", sub: "強いシグナル", points: ["恒久リダイレクトでリダイレクト先を正規にする", "重複ページ自体を廃止するときに使う"] },
+    { label: "rel=canonicalのlink注釈", tone: "accent", sub: "強いシグナル", points: ["HTMLのhead内のlink要素、またはHTTPヘッダーで指定", "重複ページを残したまま正規URLを伝えられる"] },
+    { label: "サイトマップ", tone: "news", sub: "弱いシグナル", points: ["サイトマップに載せたURLが正規候補になる", "大規模サイトでの実装・保守が簡単"] },
+  ]}
+/>
+
+rel="canonical"はHTMLのhead内にlink要素として書く方法と、サーバー側のレスポンスヘッダーとして送る方法の2種類があります。
+link要素はHTMLページにしか使えないため、PDFなど非HTMLファイルにはHTTPヘッダーの方を使います。
+公式ドキュメントは、この2つを同じページに両方設定して食い違わせることを避けるよう明記しています。
+
+サイトマップは、載せたURL群の中でGoogleがどれを重複と見なすかを内容の類似度で判断する仕組みで、指定というより推薦に近い扱いです。
+リダイレクトは重複ページ自体を消して1本化したいときの方法で、残したいページ同士の使い分けには向きません。
+
+robots.txtでの重複ページのブロックやURL削除ツールでの対応は、正規化の手段としては非推奨です。
+robots.txtでブロックしたURLはコンテンツなしでインデックスされる場合があり、URL削除ツールはすべてのバージョンを検索結果から隠してしまうためです。
+同じ理由で、サイト内重複の解消だけを目的にnoindexを使うことも推奨されていません。
+
+## 手順
+
+<FigureFlow
+  title="canonicalを指定する手順"
+  steps={[
+    { label: "重複URLの原因を洗い出す", desc: "地域差分・デバイス差分・プロトコル差分・並べ替え機能・事故的な公開を確認" },
+    { label: "正規にしたいURLを1つ決める", desc: "ユーザーに見せたいURL、リンクを集約したいURLを選ぶ" },
+    { label: "正規ページに自己参照canonicalを入れる", desc: "正規ページ自身のheadにも自分自身を指すrel=canonicalを置く" },
+    { label: "重複ページにrel=canonicalを設定する", desc: "HTMLはlink要素、PDFなど非HTMLはHTTPヘッダーで指定" },
+    { label: "内部リンクの向き先を正規URLに統一する", desc: "サイト内リンクはすべて正規URLへ張り直す" },
+    { label: "サイトマップに正規URLだけを載せる", desc: "重複URLを混在させず、正規URL側だけを掲載する" },
+    { label: "廃止する重複ページには恒久リダイレクトを設定する", desc: "ページ自体を残さない場合はリダイレクトで1本化する" },
+  ]}
+/>
+
+最初の手順は原因の切り分けです。
+[キーワードカニバリゼーションの見つけ方と潰し方](/articles/28)で扱う似た内容の記事の競合と、内容が同一の重複は別の問題なので、まずどちらかを見極めます。
+
+正規URLを決めたら、重複ページのhead内に`<link rel="canonical" href="正規URLの絶対パス">`を追加します。
+相対パスではなく絶対パスを使うことが明記されており、テスト環境が誤ってクロールされた場合の事故を避けやすくなります。
+
+具体例として、ECサイトでカラーやサイズの絞り込み機能を使うと`/dresses/green-dresses?color=green&sort=price`のようなURLが大量に生まれます。
+例えば1つの商品ページから50種類の絞り込みURLが発生している場合、その50種類すべてに元の商品ページを指すrel="canonical"を入れ、サイトマップにも元の商品ページだけを載せます。
+BtoBサイトで日本語版とグローバル版が同じ言語・同じ内容を別ドメインで公開している場合は、どちらか一方を正規にしてリダイレクトかrel="canonical"で1本化します。
+
+サイト構造や実装をまとめて見直す場合は、[テクニカルSEO実装](/learn/technical)の手順に沿って点検すると抜け漏れが減ります。
+現状どのURLが正規として選ばれているかを確認したい場合は、[ページ診断](/tools/page-audit)でURLを調べる方法もあります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="canonical対応でやること・やらなくていいこと"
+  dos={[
+    "正規ページ自身に自己参照のrel=canonicalを入れる",
+    "重複ページ・サイトマップ・内部リンクで同じ正規URLを指すよう揃える",
+    "HTTPページからHTTPSページへのリダイレクトかrel=canonicalを設定する",
+  ]}
+  donts={[
+    "重複ページ対策としてrobots.txtでのブロックやURL削除ツールを使うこと",
+    "サイト内重複の解消のためだけにnoindexを使うこと",
+    "小規模サイトで重複URLがほぼ無いのに全ページへ個別のcanonical設計を作り込むこと",
+  ]}
+/>
+
+canonicalの指定は任意で、指定しなくてもGoogleが最も良いバージョンを判断すると公式ドキュメントは説明しています。
+店舗集客サイトのように1ページ1URLで運用し、絞り込み機能やパラメータ付きURLがほぼ発生しないサイトでは、作り込みの優先度は低くなります。
+ECサイトの絞り込み機能や、複数ドメインで同じ内容を配信するBtoBサイトでは、重複URLが日常的に発生するため対応の効果が出やすくなります。
+
+HTTPSとHTTPが両方生きている場合、Googleは通常HTTPSを優先しますが、証明書が無効な場合やHTTPSページがHTTPページへリダイレクトしている場合はHTTPが選ばれることがあります。
+この状態になるとHSTSを設定してもHTTPが優先される強い状態になるため、証明書とリダイレクトの向きを先に直すことが優先されます。
+hreflangを相互に結んだURL群は正規URLとして優先されるため、相互参照が欠けているURLは正規から外れやすくなります。
