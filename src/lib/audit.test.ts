@@ -205,6 +205,21 @@ test("snippet-head-late: 本文の先頭でバナーが枠を使っていれば�
   assert.ok((r.h1Offset ?? 0) > 80 || r.h1Offset === null);
 });
 
+test("snippet-head-links: 先頭200字がリンクの文字列で埋まっていれば指摘する", () => {
+  const cards =
+    '<a href="/a"><h2>お引越し（ガス・電気のお手続き）</h2><span>詳しく見る</span></a>'.repeat(3) +
+    '<a href="/b"><h2>他社からの乗り換え</h2><span>詳しく見る</span></a>'.repeat(3);
+  const r = audit(input({ body: "<main><h1>ガス・電気のお手続き</h1>" + cards + LONG + "</main>" }));
+  const f = r.findings.find((x) => x.id === "snippet-head-links");
+  assert.ok(f);
+  assert.match(f.title, /先頭200字の\d+%/);
+
+  // 同じ量のリンクでも、先に説明文があれば枠は埋まらない
+  const lead = "<p>" + "このページでは引越しにともなうガスと電気の開始・停止の手続きを行えます。".repeat(4) + "</p>";
+  const ok = audit(input({ body: "<main><h1>ガス・電気のお手続き</h1>" + lead + cards + LONG + "</main>" }));
+  assert.ok(!ok.findings.map((x) => x.id).includes("snippet-head-links"));
+});
+
 test("snippet-head: 本文が200字未満、または見出しが無ければ判定しない", () => {
   assert.ok(audit(input({ body: "<main><h1>短い</h1><p>本文</p></main>" })).skipped.includes("snippet-head"));
   assert.ok(audit(input({ body: "<main>" + LONG + "</main>" })).skipped.includes("snippet-head"));

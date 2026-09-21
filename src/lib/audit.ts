@@ -73,7 +73,7 @@ export const CHECKLIST: CheckItem[] = [
   { id: "thin-html", area: "geo", label: "サーバーが返すHTMLに本文があるか（JS依存の検出）", findingIds: ["thin-html"] },
   { id: "nosnippet", area: "geo", label: "スニペット制御（nosnippet・max-snippet:0）", findingIds: ["nosnippet"] },
   { id: "lead", area: "geo", label: "冒頭の直答文の長さ", findingIds: ["no-lead", "lead-long"] },
-  { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-late"] },
+  { id: "snippet-head", area: "geo", label: "本文の先頭200字（AI検索のスニペットの枠）", findingIds: ["snippet-head-boilerplate", "snippet-head-links", "snippet-head-late"] },
   { id: "faq", area: "geo", label: "質問と回答の形式（解説ページのみ）", findingIds: ["faq"] },
   { id: "citation", area: "geo", label: "外部の出典リンク（GEO論文で約28%）", findingIds: ["citation"] },
   { id: "geo-quotation", area: "geo", label: "原文の引用（同 最大41%。出典のあるページのみ）", findingIds: ["geo-quotation"] },
@@ -244,6 +244,49 @@ function textOf(root: HTMLElement): string {
     .replace(/<!doctype[^>]*>/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * ヘッダー・ナビ・フッターを除いた本文テキストと、その1文字ごとが <a> の中にあるかどうか。
+ * スニペットは本文を抽出して先頭から切るので、枠に入るのが説明文かリンクの文字列かで材料が変わる。
+ * 空白のまとめ方は textOf と同じにしてあるので、inLink[i] は text[i] に対応する。
+ */
+function contentWithLinks(scope: HTMLElement): { text: string; inLink: boolean[] } {
+  const clone = parse(scope.toString());
+  clone.querySelectorAll("script, style, noscript, template, svg, header, nav, footer, aside").forEach((n) => n.remove());
+  const chars: string[] = [];
+  const inLink: boolean[] = [];
+  const push = (raw: string, link: boolean) => {
+    for (let i = 0; i < raw.length; i++) {
+      const ch = raw[i];
+      if (/\s/.test(ch)) {
+        if (chars.length > 0 && chars[chars.length - 1] !== " ") {
+          chars.push(" ");
+          inLink.push(false);
+        }
+        continue;
+      }
+      chars.push(ch);
+      inLink.push(link);
+    }
+  };
+  const walk = (node: HTMLElement, link: boolean) => {
+    for (const child of node.childNodes) {
+      if (child.nodeType === NodeType.TEXT_NODE) {
+        // body 要素を持たないHTMLでは root ごと渡るため、doctype 宣言がテキストとして混ざる
+        push(child.text.replace(/<!doctype[^>]*>/gi, " "), link);
+      } else if (child.nodeType === NodeType.ELEMENT_NODE) {
+        const el = child as HTMLElement;
+        walk(el, link || el.tagName?.toLowerCase() === "a");
+      }
+    }
+  };
+  walk(clone, false);
+  while (chars.length > 0 && chars[chars.length - 1] === " ") {
+    chars.pop();
+    inLink.pop();
+  }
+  return { text: chars.join(""), inLink };
 }
 
 /**
@@ -824,15 +867,17 @@ export function audit(input: AuditInput): AuditResult {
   // ただし除去に失敗してナビが枠を占める例があり、失敗した2ページはいずれも main / article を持っていなかった。
   const mainEl = body.querySelector("main") ?? body.querySelector("article");
   const bodyScope = mainEl ?? body;
-  const contentText = (() => {
-    const clone = parse(bodyScope.toString());
-    clone.querySelectorAll("script, style, noscript, template, svg, header, nav, footer, aside").forEach((n) => n.remove());
-    return clone.text
-      .replace(/<!doctype[^>]*>/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  })();
+  const { text: contentText, inLink } = contentWithLinks(bodyScope);
   const head200 = contentText.slice(0, 200);
+  // 枠のうちリンクの文字列が占める割合。空白は数えない
+  let headChars = 0;
+  let headLinkChars = 0;
+  for (let i = 0; i < head200.length; i++) {
+    if (head200[i] === " ") continue;
+    headChars++;
+    if (inLink[i]) headLinkChars++;
+  }
+  const linkRatio = headChars > 0 ? headLinkChars / headChars : 0;
   const firstHeading = bodyScope.querySelectorAll("h1, h2").find((h) => textOf(h).length > 0);
   const headingText = firstHeading ? textOf(firstHeading) : "";
   const headingIndex = headingText ? contentText.indexOf(headingText) : -1;
@@ -851,6 +896,19 @@ export function audit(input: AuditInput): AuditResult {
       code: `ヘッダー・ナビ・フッターのテキスト ${chromeLength}字 / main・article 要素なし`,
       fix: "本文を <main> か <article> で囲み、ヘッダー・ナビ・フッターを header / nav / footer 要素にします。抽出の手がかりが増え、除去に失敗しにくくなります。",
       fixCode: "<header><nav>…</nav></header>\n<main>\n  <h1>ページの主題</h1>\n  <p>このページが何かを一文で説明する。</p>\n</main>\n<footer>…</footer>",
+    });
+  } else if (contentText.length >= 200 && headChars >= 100 && linkRatio >= 0.5) {
+    add({
+      id: "snippet-head-links",
+      area: "geo",
+      severity: "mid",
+      title: `本文の先頭200字の${Math.round(linkRatio * 100)}%がリンクの文字列です`,
+      detail:
+        "スニペットの枠がリンク先の名前と「詳しく見る」のような案内文で埋まっています。ページが何を扱っていて何ができるのかを述べた文が枠に入らないため、AI検索が紹介文を書く材料になりません。一覧・入口のページで起きやすい形です。",
+      code: snippet(head200, 220),
+      fix: "見出しの直後に、このページで何ができるかを述べた2〜3文を置きます。リンクの一覧はその後ろに下げます。",
+      fixCode:
+        "<main>\n  <h1>ガス・電気のお手続き</h1>\n  <p>引越しにともなう開始・停止、他社からの乗り換え、契約内容の変更の手続きをこのページからまとめて行えます。……</p>\n  <ul>（手続きへのリンクはこの後ろ）</ul>\n</main>",
     });
   } else if (h1Offset === null || h1Offset > 80) {
     add({
