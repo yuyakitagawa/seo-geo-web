@@ -13,6 +13,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
   `next.config.ts` では扱えなくなった旧URLのリダイレクト、OGP 画像の `Content-Type`、API の実行時間上限は `vercel.json` に置く。
 - API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/site-report.ts` `api/contact.ts`）。URL は `/api/*` のまま。
   `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
+- ブラウザ内診断: `/tools/quote-readiness` は貼り付けたHTMLまたはMarkdownを端末内だけで解析する。生成AI API・外部API・単語一致率は使わず、見出し直後の文章が単独で切り出せる構造かをルールベースで確認する。
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: GA4（`NEXT_PUBLIC_GA_ID` 設定時）/ Speed Insights（無料枠 10k イベント/30日の範囲）
 - 収益: Google AdSense（`NEXT_PUBLIC_ADSENSE_CLIENT` 設定時のみ出力。未設定なら広告関連は一切出ない）
