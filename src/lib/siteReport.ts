@@ -283,6 +283,12 @@ const RULES: Record<string, Rule> = {
     cause: "本文の前に共通の定型文（キャンペーン・注意書き・パンくず）が入るテンプレート。",
     metric: "本文の先頭200字が、そのページの内容で始まる。修正後すぐ確認できる。",
   },
+  "snippet-head-links": {
+    stage: 2,
+    origin: "template",
+    cause: "見出しの直後からリンクのカードが並び、説明文を置く場所が無いテンプレート。",
+    metric: "本文の先頭200字に、ページで何ができるかを述べた文が入る。修正後すぐ確認できる。",
+  },
   "snippet-head-late": {
     stage: 2,
     origin: "content",
