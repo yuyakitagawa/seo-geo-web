@@ -1,0 +1,8 @@
+{
+  "name": "SEO GEO Lab Design System",
+  "id": "seo-geo-lab-design-system",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "networkAccess": { "allowedDomains": ["none"] }
+}

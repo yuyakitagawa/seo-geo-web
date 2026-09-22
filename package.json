@@ -24,6 +24,7 @@
     "test": "tsx --test src/lib/*.test.ts",
     "links": "tsx scripts/internal-links.ts",
     "verify:api": "tsx scripts/verify-api.ts",
+    "figma:check": "node figma-plugin/smoke-test.mjs",
     "gsc": "tsx scripts/gsc-report.ts",
     "fanout": "tsx scripts/fanout-report.ts"
   },
