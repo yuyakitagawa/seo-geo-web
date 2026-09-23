@@ -69,3 +69,32 @@ test("40文字未満の簡潔な回答だけを理由に切り出しにくいと
   assert.notEqual(result.blocks[0].verdict, "weak");
   assert.notEqual(result.blocks[0].checks.find((check) => check.id === "length")?.status, "fail");
 });
+
+test("見出しをほぼ言い換えただけの名詞句は切り出しにくいと判定する", () => {
+  const result = diagnoseQuoteReadiness("## ガスを安全にご利用いただくために\n\nガスを安全にご利用いただくためのご案内");
+  assert.equal(result.blocks[0].verdict, "weak");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "opening")?.status, "fail");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "claim")?.status, "fail");
+  assert.match(result.blocks[0].checks.find((check) => check.id === "claim")?.detail ?? "", /見出し/);
+});
+
+test("カテゴリ見出しをメニュー名に言い換えただけの本文は回答と見なさない", () => {
+  const result = diagnoseQuoteReadiness("## 法人のお客さま向け情報\n\n法人のお客さま向けのメニュー");
+  assert.equal(result.blocks[0].verdict, "weak");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "opening")?.status, "fail");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "claim")?.status, "fail");
+});
+
+test("曖昧な見出しと「こちら」に依存する本文は切り出しにくいと判定する", () => {
+  const result = diagnoseQuoteReadiness("## お手続き\n\n引越しのお手続き、他社からの切替えや料金メニュー変更などは、こちら");
+  assert.equal(result.blocks[0].verdict, "weak");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "context")?.status, "fail");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "claim")?.status, "fail");
+});
+
+test("メニューの列挙は文字数があっても引用候補にしない", () => {
+  const result = diagnoseQuoteReadiness("# ガスのこと\n\nお手続き 料金メニュー 料金詳細 その他");
+  assert.equal(result.blocks[0].verdict, "weak");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "opening")?.status, "fail");
+  assert.equal(result.blocks[0].checks.find((check) => check.id === "length")?.status, "fail");
+});
