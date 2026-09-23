@@ -1,0 +1,394 @@
+---
+id: 89
+slug: ng-writing-not-cited-by-ai
+title: "10 ways of writing that AI search never cites, checked against 9 ChatGPT logs and 187 candidate URLs"
+description: >-
+  Nine questions in ChatGPT: 187 candidate URLs, 40 citations. The 147 dropped share ten habits: an opening that is not the topic, answers ending in "it depends", tables with no sentence beside them.
+date: "2026-09-21"
+category: geo
+type: howto
+tags:
+  - ChatGPT
+  - AI search
+  - Citations
+  - Official sites
+  - Headings
+  - Original research
+impact: high
+audience: People who run a company's own site explaining prices, specs and services, and the agencies and SEO staff who support them
+actions:
+  - Move greetings, ad disclosures, author bylines and timestamps out of the first 200 characters of your main price and service pages
+  - Rewrite anything that ends in "it depends" into a number with its conditions attached
+  - Put a sentence carrying condition, product name, number and unit directly under every comparison table
+  - Move facts that live only in press releases or satisfaction surveys onto your price, spec and how-to pages
+sources:
+  - title: "ChatGPT Already Knows Who's In The Running Before It Searches（Suganthan Mohanadasan）"
+    url: "https://suganthan.com/blog/chatgpt-decides-before-it-searches/"
+  - title: "ChatGPT でウェブを検索する（OpenAI Help Center）"
+    url: "https://help.openai.com/ja-jp/articles/9237897-chatgpt%E6%A4%9C%E7%B4%A2"
+  - title: "パブリッシャーと開発者 - FAQ（OpenAI Help Center）"
+    url: "https://help.openai.com/ja-jp/articles/12627856-%E5%87%BA%E7%89%88%E7%A4%BE%E3%81%A8%E9%96%8B%E7%99%BA%E8%80%85-faq"
+draft: false
+---
+## Conclusion
+
+I asked ChatGPT nine questions in Japanese and read the conversation JSON for each one. Across the eight where a search ran, 187 URLs entered the candidate list and 40 were cited in the answers. The remaining 147 sat in the list and were never used.
+
+Lining up the 40 that were cited against the 147 that were dropped, ten habits show up only on the dropped side.
+
+1. Putting something other than the topic in the first 200 characters
+2. Ending with "it depends"
+3. Publishing a comparison table without restating it as a sentence
+4. Putting the answer on a category or round-up page
+5. Writing headings as product and service names
+6. Writing only the upside and leaving out the exceptions
+7. Making a rank, a satisfaction score or a sample size the conclusion
+8. Putting the answer in a press release or a news post
+9. Serving the same content at several URLs
+10. Spending effort on making the update date look recent
+
+From a brand's point of view, all ten are about which page inside your own site gets read. When the question is about prices or specs, the candidate list fills up with your own domain. In one of the eight questions, about a mobile carrier, all 14 candidates came from that company's official domain. **Your competition is not a rival site, it is the other pages on your own site.**
+
+Third-party media making the candidate list and still not being cited is covered in [article 81](/en/articles/comparison-media-candidates-never-cited). This article is the follow-up, looking at what the pages that did take the citations had written.
+
+<FigureStats
+  title="Where candidate URLs ended up"
+  caption="2026-09-21, ChatGPT (model recorded in the log: gpt-5-6), nine questions in Japanese across nine conversations"
+  stats={[
+    { value: "187 → 40", label: "Candidate URLs → citations", note: "Total across the eight conversations where a search ran" },
+    { value: "0", label: "Citations of URLs with tracking parameters", note: "The clean URL of the same page was cited" },
+    { value: "1/9", label: "Questions where no search ran", note: "The one asking how to do something in general" },
+  ]}
+/>
+
+## What I measured
+
+- Setup: ChatGPT, signed in, desktop web, a new chat each time
+- Model: the conversation JSON recorded `gpt-5-6`
+- Date: 21 September 2026. Nine questions, once each, on the same day
+- Record: the `conversation` response JSON saved as one file per conversation
+- Counted: URLs that entered the candidate list as search results (187) and citations attached to the answers (40)
+
+Here are the nine questions. **Company names are withheld.** Naming them would mean naming the pages that were dropped.
+
+| ID | Type of question | Candidates | Cited |
+| --- | --- | ---: | ---: |
+| Q1 | Recommend a mobile carrier | 11 | 4 |
+| Q2 | Recommend an electricity provider in a named region | 12 | 7 |
+| Q3 | Recommend a credit card | 12 | 4 |
+| Q4 | Same, with "no annual fee" added as a condition | 12 | 5 |
+| Q5 | The price plans of one named mobile carrier | 14 | 5 |
+| Q6 | What one named mobile carrier is actually like | 31 | 4 |
+| Q7 | The User-Agent of an AI crawler | 12 | 3 |
+| Q8 | Recommend a hometown-tax donation portal | 83 | 8 |
+| Q9 | How to carry out a particular practice | no search | 0 |
+
+In Q4, Q5, Q6 and Q7 the search queries the model built ended with the word "official". In Q7 it narrowed to a single domain with `site:`. Once a proper noun or a specific condition is in the question, the candidates are almost entirely official sites.
+
+I am not publishing rates. Nine conversations and 187 candidates is too small a sample, so the numbers stay as counts. The log does not record why a page was dropped either, so the ten habits below are inferences. From here I quote the text that actually appeared in the snippets and the answers.
+
+## The ten ways of writing that were not cited
+
+### 1. Putting something other than the topic in the first 200 characters
+
+This is the only one with no exceptions across the nine conversations.
+
+In Q8 (hometown-tax portals), **three pages from the same site on the same topic differed only in their opening, and the one that differed was dropped.** The difference between the two that were cited and the one that was not is what sits at the head of the snippet.
+
+| | Head of the snippet |
+| --- | --- |
+| Cited | "The conclusion of this article: if you care about ◯◯, pick A; if you care about △△, pick B" |
+| Dropped | "This site uses affiliate advertising. Our rating criteria and advertising policy are published." |
+
+Five more were dropped with the same shape.
+
+- "This article contains affiliate links to ◯◯ (PR)"
+- "Figures such as annual fees and reward rates are checked against the issuer's official site, with the date of checking recorded. See our editorial policy for the verification procedure"
+- "Edited by: the ◯◯ editorial team, publishing official information with sources (editorial policy)" (the same site opened the same way and was dropped in another question too)
+- "Written by ◯◯ · published 2026.05.16 · updated 2026.05.24 · 12 min read"
+- "Published 16 September 2026 (updated 16 September 2026), the ◯◯ editorial team"
+
+The second one states where each figure was checked and when. As information handling it is careful, and it was still dropped. The point is not that you should stop writing it, it is where you put it. Hand the opening over to the topic and the same information fits at the end.
+
+The most striking one was the opening of one comparison site.
+
+> This article is written from tests we ran ourselves and from various sources. AI services such as ChatGPT are not used at all in writing the body text (some illustrations do use them).
+
+It is an honest statement to readers, and it is not an answer to the question. That page was dropped too.
+
+This is not only about comparison media. On one mobile carrier's "Important information, price list and terms" page, the snippet opens like this.
+
+> CHOOSE YOUR LANGUAGE FOR ◯◯! Our services are provided within the region and laws of Japan.
+
+The same company's "How to apply" page starts with breadcrumbs.
+
+> Top / Customer support / How to apply / How to apply for the ◯◯ plan (data type)
+
+Both were dropped. A language banner, breadcrumbs, a greeting, an ad disclosure. The type differs, but in each case the first paragraph is not the topic.
+
+The reverse does not hold. Two pages opened with a conclusion and were still dropped ("the conclusion in 30 seconds", "Conclusion: from 1 October 2025 …"). Fixing the opening is no guarantee of being cited.
+
+The fix looks like this. Write the conclusion from the first sentence and move the rest to the end.
+
+- × "We thank you for your continued support. We are pleased to announce that …"
+- × "This site uses affiliate advertising. Our rating criteria and advertising policy are published."
+- ○ "For a household using 30㎥ a month, this comes to roughly ◯ yen less per year than the standard rate (as of September 2026). The figures by usage level follow."
+
+Ad disclosures, editorial policy, author, reviewer and timestamps go into an "About this article" section at the end of the body. You keep meeting the disclosure requirement and still get the first paragraph for the topic.
+
+### 2. Ending with "it depends"
+
+One mobile carrier's official FAQ has a page titled "How fast is the connection?". The answer reads like this.
+
+<FigureQuote
+  text="The service is provided on a best-effort basis. Actual speeds vary with your location, network conditions, congestion and the device you use"
+  source="An FAQ page in the Q6 candidate list. Not cited"
+/>
+
+It was dropped. In the same FAQ set, "Are there any discounts on the price plans?" carries a number and was cited. The answer picked it up like this.
+
+> With the ◯◯ family discount it is 110 yen off per month, so 3GB comes to 968 yen a month and unlimited to 3,168 yen a month
+
+From the same company's price page, the whole tier structure was carried over.
+
+> 1,078 yen a month up to 3GB, 2,178 yen from 3GB to 20GB, 3,278 yen above 20GB with unlimited domestic data
+
+Within the same site and the same FAQ set, only the pages with numbers survived.
+
+Even with a heading that matches the question, a page with **no number in the answer** is not usable material for a citation. Avoiding a definite statement turns straight into invisibility.
+
+The fix is to keep the fact that it varies and put a representative number first.
+
+- × "Charges vary with your usage and the season. Please contact us for details."
+- ○ "At 30㎥ a month with the September 2026 adjustment, it is ◯ yen including tax. At 20㎥ it is ◯ yen, at 40㎥ ◯ yen. The adjustment changes monthly, so check the price list for the current unit rate."
+
+Attach enough conditions and you can be definite. Put three "at ◯◯ it is ◯ yen" cases side by side and one of them gets carried into the answer. The caveat goes after the numbers.
+
+### 3. Publishing a comparison table without restating it as a sentence
+
+The page dropped in Q3 held a comparison table of four issuers across four columns. The head of the snippet reads:
+
+> A side-by-side table of four issuers. Based on official and major secondary sources as of 26 June 2026. Annual fee, base reward rate, maximum reward rate and included insurance on one sheet.
+
+What follows is the table itself. The contents are accurate and they match the question. It still was not carried into the answer.
+
+The sentences that were cited took this shape.
+
+- "30GB for 2,970 yen a month, with domestic calls under five minutes included"
+- "A 5,500 yen annual fee, waived permanently from the following year once you spend 1 million yen in a year"
+- "For a family of four using 370kWh a month, about 4,900 yen a year less than the standard rate"
+
+Condition, product name, number and unit all sit in one sentence. Numbers split across table cells never take this shape.
+
+The fix is to keep the table and add a sentence right below it. The table is for people; write the same content again as prose.
+
+- × Place the comparison table and move on to the next heading
+- ○ Directly under the table: "For a family of four using 370kWh a month, the ◯◯ plan comes to roughly 4,900 yen a year less than the standard rate. For one person at 150kWh the gap narrows to about ◯ yen."
+
+Put all four of condition, product name, number and unit into the sentence. Drop any one of them and it does not enter the answer's lookup table.
+
+### 4. Putting the answer on a category or round-up page
+
+Within a company's own domain, the pages higher up the hierarchy are the ones being dropped.
+
+| | Type of page |
+| --- | --- |
+| Cited | Electricity price menu / price plans / individual product pages / one-question FAQs / service-area pages / how-to explanations / the price list PDF |
+| Dropped | A "Gas and electricity" category / "Introducing the bundle plan" / the application landing page / important information and terms / the application flow |
+
+The snippets of the dropped category pages looked like this.
+
+> Save money. Bundle your gas, electricity and internet and save!
+
+> About gas and electricity. Price menus for gas and electricity and information for existing customers are here
+
+Both are sentences directing you further down, with the answer itself on the pages below. The answer cited those lower pages instead.
+
+In Q5, three of the five citations were one-question FAQs. One page holding one question is the shape that comes through most strongly. The price list PDF was cited too, so it does not have to be HTML.
+
+The fix is to split down to one topic per page.
+
+- × `/service/` packing prices, service area, how to apply and FAQs into one page
+- ○ `/price/` for the price list, `/area/fukuoka/` for the service area, `/faq/discount/` for "Are there any discounts on the price plans?"
+
+Build one FAQ page per question, with the question itself as the URL and the H1. Keep the category page as an entrance to each of them and do not put the answer there.
+
+### 5. Writing headings as product and service names
+
+The answers to Q1, Q2 and Q3 were all lookup tables of condition against candidate. Here is how one of them actually reads.
+
+> If you use around 3GB a month, ◯◯ or ◯◯; for 20 to 30GB, ◯◯; if you use a lot, ◯◯ is worth comparing
+
+> If your household already uses ◯◯, it is a strong candidate
+
+Headings cut by product name cannot enter that table. Cut them by the customer's situation instead.
+
+- Cut by product: "Plan A", "The bundle plan"
+- Cut by condition: "Living alone (under ◯㎥ a month)", "Switching from all-electric", "Commercial kitchen use"
+
+In Q2, the question named a region, and place names decided the outcome as well. Of the six pages one comparison site had in the candidate list, the four that were cited carry a place name or a regional provider's name in the title, and the two that were dropped carry neither. One mobile carrier's "Service area in Tokyo" page was cited too.
+
+The fix is to make the H1 the question a customer would ask, cut the H2s by condition, and put the place name in if you have a defined service area.
+
+- × H1 "Our services" / H2 "Plan A", "Plan B"
+- ○ H1 "City gas price list for Fukuoka (September 2026)" / H2 "Living alone (under 20㎥ a month)", "A family of four (30 to 40㎥ a month)", "Commercial kitchen use"
+
+Include one H2 that compares against a competitor. If you do not write "how does this compare with the regional utility's standard tariff", only third-party articles hold that answer. Restrict it to published price lists on both sides and clear the comparative advertising requirements first.
+
+### 6. Writing only the upside and leaving out the exceptions
+
+The sentences that were cited had a line mixed in about the case where the conclusion flips.
+
+- "However, the fuel cost adjustment can reverse this"
+- "On the other hand, prices rise when market rates go up"
+- "Above 2GB the speed drops to a maximum of 128kbps"
+- "Speeds may be restricted during congestion to keep service fair"
+
+One card issuer's page, which was cited, wrote this directly under the description of the benefit.
+
+> Some stores, such as those inside commercial facilities, are not eligible for point accrual. Physical card contactless payments, ◯◯, chip insertion and magnetic transactions are not eligible.
+
+The 7% figure and the conditions that exclude it sit on the same page. The answer carried both.
+
+A page with only the upside leaves less to pull out. Caps, exceptions and reversal conditions add citable material in proportion to how many you write.
+
+The fix is to add one line of exception for every line of benefit.
+
+- × "Bundle your contracts and save every month."
+- ○ "Bundling saves roughly ◯ yen a year. However, in months where the adjustment exceeds ◯ yen/㎥, the standard rate can come out cheaper."
+
+It looks weaker as a sales line, and the "however" is the part being cited.
+
+### 7. Making a rank, a satisfaction score or a sample size the conclusion
+
+In Q6, which asked what a company is actually like, all seven review articles were dropped and four official pages took the citations. These are the numbers the dropped side was holding.
+
+- A satisfaction score of 2.91 from 69 ratings
+- A survey of 145 users where 66% said they were satisfied and 74% complained about coverage gaps
+- A survey of 500 users
+- 145,000 measured data points broken down by time of day
+- Number one in a popularity ranking
+
+The opening of one dropped review article reads:
+
+> This page contains promotional content. Written by the ◯◯ editorial team, reviewed by ◯◯. Reviews of ◯◯ show that in a survey of 145 users, 66% said they were satisfied, while 74% cited areas with no coverage as a complaint
+
+It answers the question head-on. It was dropped anyway. The official page that was cited writes this instead:
+
+> In Tokyo we hold a Rank 1 rating for network quality ※2 of 9 categories
+
+Down to the "2 of 9 categories" footnote, you can pin down which range it applies to. What the answer used was the price tiers (1,078 / 2,178 / 3,278 yen), the count of prefectures and municipalities where base stations were added, and the overseas roaming cap. The question asked about reputation and what got taken was specs and numbers.
+
+There was an exception. In Q8, four ranking pages broken out by evaluation category were cited. Categories such as "site and app usability" and "appeal of the return gifts" each had their own page, so you can identify which axis the rank applies to. Ranks on an axis that matches how a reader decides were taken; axes like page views or an overall satisfaction score were not.
+
+The fix is to convert the aggregate into something the reader acts on before you write it.
+
+- × "92% customer satisfaction (n=500)", "First place in a customer satisfaction survey"
+- ○ "Switching takes as little as ◯ days when you apply online", "No appointment is needed to turn on the supply"
+
+If you must publish survey results, split them by axis. Hold one page each for axes readers actually decide on, such as "ease of the switching process" or "support response time", and the rank on that axis will be taken.
+
+### 8. Putting the answer in a press release or a news post
+
+In Q8, three press releases with the same content entered the candidate list and all three were dropped. The headlines were "number one for awareness and for the site people most want to use" and "over 90% customer satisfaction".
+
+One mobile carrier's survey page was dropped too. Its opening read:
+
+> Thanks to all of you, ◯◯ passed 10 million lines in December 2025. What is ◯◯ actually like now? Is it really good value? Does it connect? Are people satisfied? We collected real voices from ◯◯ users into a report card!
+
+The way the questions are framed matches what readers wonder about. What follows is a summary of the company's own survey, with no prices or conditions, and that is the difference. Outage notices and end-of-service announcements were dropped the same way.
+
+In the same Q8, a newsroom article from one company titled "How to find return gifts the same simple way you shop" was cited. The format is not the issue; the split is between promoting an outcome and explaining a procedure.
+
+The fix is to keep publishing press releases and move the numbers that live only there onto permanent pages.
+
+- × The price and eligibility of a new plan exist only in the press release, while the price page says "new plan now available"
+- ○ Publish the press release, and write the same numbers and the same conditions on the price page and in the FAQ. If it goes in the newsroom, make it a procedure rather than an achievement
+
+News posts drift away with their dates. Answers belong somewhere that does not drift.
+
+### 9. Serving the same content at several URLs
+
+**Not one URL carrying tracking parameters was cited out of 187 candidates.** In Q6 the same page entered as three candidates, one clean URL and two with parameters, and only the clean one was cited. In Q3 the same page entered three times together and all three were dropped. A URL with seven parameters strung together was dropped as well.
+
+Two more were dropped for the same reason. In Q7, the same help article on a different subdomain, the one used for load balancing, was dropped. Also in Q7, the English and Korean versions of the same article were dropped and only the three Japanese pages matching the language of the question were cited.
+
+Candidate slots are finite. The same content entering at several URLs wastes that many slots. Canonicals and parameter normalisation turn directly into a question about candidate slots.
+
+The fix is to assign one URL to one piece of content.
+
+- × `/price/`, `/price/index.html`, `/price/?utm_source=...` and `/price/?sessionid=...` all entering separately
+- ○ Point them all at `/price/` with a canonical and strip tracking parameters server side
+- ○ Give each language its own URL and declare them to each other with hreflang (do not mix languages into one URL)
+
+Duplicates on a separate host, such as a staging or load-balancer subdomain, count the same way. That is what was dropped in Q7.
+
+### 10. Spending effort on making the update date look recent
+
+The ranking page dropped in Q3 opens like this.
+
+> As of 2026/09/21. [Updated] 2026/09/21 9:00 [Aggregation period] 2026/09/14–2026/09/20. Rankings are compiled from ◯◯ users' page views and card issuance activity.
+
+It was updated the same day I asked the question, and three dates go by before the topic starts. All three pages were dropped.
+
+On the cited side was a card issuer's official page from nine months earlier (December 2025). Most of the official pages that were cited carry no publication metadata at all.
+
+**The update date is not a condition for being cited.** This is not an argument for leaving stale information in place, but this log gives no reason to spend time on showing more timestamps.
+
+The fix is to update the numbers rather than the date.
+
+- × Swap the update date without changing anything else
+- ○ Edit the body only in the months where a number changed, and write what changed as a sentence: "The September 2026 adjustment is ◯ yen/㎥ (◯ yen against last month)"
+
+Spend the effort of updating on the freshness of the numbers, not the display of the date. Numbers are what gets carried into the answer.
+
+## Some questions do not trigger a search at all
+
+Q9 was the only one of the nine where **no search ran.** `search_result_groups` in the conversation JSON is empty, there are zero citations, and the answer is written from the model's internal knowledge alone. What I asked was how to carry out a particular practice in general.
+
+All eight questions where a search ran ask which one to choose, how much it costs, or what the specification is. The answer changes with the company and the date. The one that did not run asks something whose answer does not depend on any company.
+
+Whether ChatGPT searches the web is its own decision ([Searching the web with ChatGPT](https://help.openai.com/ja-jp/articles/9237897-chatgpt%E6%A4%9C%E7%B4%A2)). On a question where no search runs, however good the page you write, it never reaches the field where citations are decided. Pages aimed at "what is ◯◯" and "how to do ◯◯" are safer kept out of your AI search citation targets. This is one observation only, so check whether the same holds in your own category.
+
+## What to do and what to skip
+
+<FigureDoDont
+  title="Moves for a brand explaining prices and specs on its own site"
+  caption="From the nine conversations on 2026-09-21 (187 candidates, 40 citations)"
+  dos={[
+    "Make the first 200 characters of your main pages the topic only, and move greetings, ad disclosures, author details and timestamps to the end",
+    "Rewrite anything ending in it depends into a number with conditions attached",
+    "Put a sentence carrying condition, product name, number and unit directly under every comparison table",
+    "Add caps, exceptions and reversal conditions one sentence at a time",
+  ]}
+  donts={[
+    "Spend time on showing more update timestamps",
+    "Keep press releases and satisfaction surveys as a way to win citations",
+    "Add more pages under a category for the same intent",
+    "Set AI search citations as the target for what is ◯◯ and how to do ◯◯ pages",
+  ]}
+/>
+
+As for order, cleaning up the openings pays back fastest. Before splitting or building pages, start by handing the first paragraph of your existing pages over to the topic.
+
+## FAQ
+
+### Are opening ad disclosures not legally required?
+
+Sometimes they are. All this observation shows is where to put them. Pages that put them at the top were dropped, and on the same site, with the same topic, the page that opened with its conclusion was cited. You can meet the disclosure requirement and still use the first paragraph for the topic. Whether to remove the disclosure itself is a decision to make after checking your legal and advertising requirements.
+
+### Is writing an author or reviewer name a waste of time?
+
+I would not say so. What the dropped pages have in common is that they put it at the top. Whether moving it to the end gets a page cited is not something this log can confirm. What it does confirm is that the pages where it occupied the opening were dropped.
+
+### Is there no point in publishing your own survey data?
+
+This time, every page that made a satisfaction score or a sample size its conclusion was dropped. Ranking pages split by evaluation category were cited, though. The difference is whether the axis is one a reader can decide on. "90% satisfaction" does not convert into a decision; "which rank on this axis" does. If you publish your own survey, splitting the categories to match how readers decide fits this observation better.
+
+### Can you draw conclusions from nine conversations?
+
+I am not drawing them. This article is a record of counts and publishes no rates. The log does not record why a page was dropped, so the ten shared habits are inferences. Reproducibility across models and days has not been tested either. Nor can I say that fixing the opening gets you cited, since two pages that opened with a conclusion were still dropped. What is confirmed is that in these nine conversations, 40 of 187 candidates were cited and the dropped side shared these ten habits. Whether the same holds in your category is something to check with the same procedure.
+
+### How do I look at the candidate list?
+
+Open the Network tab in your browser's developer tools, ask the question, and save the `conversation` response JSON once the answer has finished. Candidate URLs sit inside the search result groups and citations sit in the reference data attached to the answer. Save it before the answer finishes and you get a file with neither the search nor the answer recorded. I had to retake it four times for that reason.

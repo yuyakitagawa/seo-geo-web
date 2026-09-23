@@ -492,6 +492,14 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
   （`canvas` / `fg` / `surface` / `line` / `fill` / `invert` が配色モードで反転する）。
   例外は常に黒地の帯（ヒーロー・PageHeader・記事ヘッダー・図解）で、そこだけ `ink` / `paper` を直接使う
 - ページに1回きりのクラスの並びを書かない。同じ形が2か所目に出たら `src/lib/ui.ts` に名前を足す
+- **Figma側のデザインシステムは `figma-plugin/` から作る**（導入手順と制約は `figma-plugin/README.md`）。
+  Figmaデスクトップアプリで `manifest.json` をインポートして実行すると、`globals.css` のトークンが
+  Figmaの変数（4コレクション・34個。全部に `var(--color-ink)` 形式のWEB code syntax付き）・
+  テキストスタイル11種・エフェクトスタイル2種・コンポーネント4種（Button / Chip / Badge / Card）になる。
+  何度実行しても増えない（名前で引いて更新し、既存コンポーネントは触らない）。
+  MCP経由でも同じことはできるが、プランごとのツールコール上限に当たるのでローカルプラグインを正とする。
+  **値の正は `globals.css`**。CSSだけ直してプラグインの表を忘れると `src/lib/figmaTokens.test.ts` が落ちる（`npm test`）。
+  プラグイン自体の動作は `npm run figma:check` が Plugin API のモックで検査する（CIでも走る）
 
 ## 画像（写真素材を持たずにビジュアルを作る）
 - **キービジュアルはコードで生成する**（`src/components/KeyVisual.tsx`）。写真素材は持たない。
