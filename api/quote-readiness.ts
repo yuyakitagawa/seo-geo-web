@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     const result = diagnoseQuoteReadiness(extractPageContentHtml(body.text));
     if (result.blocks.length === 0) {
-      return Response.json({ error: "取得したHTMLにH2〜H6の見出しが見つかりませんでした" }, { status: 422 });
+      return Response.json({ error: "取得したHTMLにH1〜H4の見出しが見つかりませんでした" }, { status: 422 });
     }
     return Response.json({ ...result, finalUrl });
   } catch (error) {

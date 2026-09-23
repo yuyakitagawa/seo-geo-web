@@ -4,15 +4,22 @@ import { diagnoseQuoteReadiness, extractPageContentHtml, extractQuoteBlocks } fr
 
 test("HTMLを見出し単位に分割する", () => {
   const blocks = extractQuoteBlocks(`
-    <h2>GEOとは何ですか</h2>
+    <h1>GEOとは何ですか</h1>
     <p>GEOとは、AI検索で情報を正確に扱いやすくする取り組みです。</p>
-    <h3>必要な理由</h3>
+    <h4>必要な理由</h4>
     <p>AI検索の回答で参照される接点が増えるためです。</p>
+    <h5>診断対象外</h5>
+    <p>H5は診断しません。</p>
   `);
   assert.deepEqual(blocks.map((block) => [block.level, block.heading, block.paragraphs.length]), [
-    [2, "GEOとは何ですか", 1],
-    [3, "必要な理由", 1],
+    [1, "GEOとは何ですか", 1],
+    [4, "必要な理由", 1],
   ]);
+});
+
+test("MarkdownのH1〜H4だけを見出しとして扱う", () => {
+  const blocks = extractQuoteBlocks("# H1\n本文です。\n\n#### H4\n本文です。\n\n##### H5\n対象外です。");
+  assert.deepEqual(blocks.map((block) => [block.level, block.heading]), [[1, "H1"], [4, "H4"]]);
 });
 
 test("Markdownを見出し単位に分割する", () => {
