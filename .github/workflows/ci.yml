@@ -41,5 +41,10 @@ jobs:
       - name: Functions の出力を検査
         run: npm run verify:api
 
+      # figma-plugin/code.js は Figma でしか動かないので、Plugin API のモックで実行して落ちないかを見る
+      # （実機で初めて落ちると、原因の切り分けにFigmaデスクトップアプリが必要になる）
+      - name: Figmaプラグインを検査
+        run: npm run figma:check
+
       - name: 本番ビルド
         run: npm run build
