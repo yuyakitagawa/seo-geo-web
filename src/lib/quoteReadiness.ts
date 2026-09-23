@@ -3,7 +3,7 @@ import { parse } from "node-html-parser";
 export type QuoteCheckStatus = "pass" | "warn" | "fail";
 
 export type QuoteCheck = {
-  id: "opening" | "context" | "claim" | "support" | "length";
+  id: "opening" | "context" | "claim" | "specificity" | "reason" | "length";
   label: string;
   status: QuoteCheckStatus;
   detail: string;
@@ -29,7 +29,8 @@ const PREDICATE_END = /(?:です|ます|である|となる|になる|できる|
 const INTRO_OPENING = /^(?:近年|昨今|そもそも|まず|はじめに|この記事では|ここでは|本記事では|皆さんは|では[、,]|さて[、,])/;
 const DEPENDENT_OPENING = /^(?:これ|それ|このこと|そのこと|この方法|その方法|上記|前述|先ほど|以下|このように|そのため|そこで|また[、,]|しかし[、,]|一方[、,]|つまり[、,]|したがって)/;
 const CLAIM_FORM = /(?:とは.+(?:です|である|を指す)|には.+(?:必要|ある|あります)|理由は.+(?:です|である)|違いは.+(?:です|である)|するには.+(?:ます|必要|行う)|の場合.+(?:です|ます|なる)|は.+(?:です|ます|である|となる|になる|できる|を指す|を示す|を含む|と異なる))/;
-const SUPPORT_FORM = /(?:ため|ので|からです|理由|例えば|具体的には|場合|ただし|一方で|に限り|によると|出典|調査|統計|\d+(?:[.,]\d+)?(?:%|％|年|月|日|円|件|人|倍|回))/;
+const REASON_FORM = /(?:なぜなら|理由(?:は|として)|ため(?:です|である|、|に)|ので|からです|ことから)/;
+const SPECIFICITY_FORM = /(?:例えば|具体的には|場合|ただし|一方で|に限り|によると|出典|調査|統計|\d+(?:[.,]\d+)?(?:%|％|年|月|日|円|件|人|倍|回))/;
 
 function cleanText(value: string): string {
   return value.replace(/<br\s*\/?\s*>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/[ \t\f\v]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
@@ -87,7 +88,25 @@ function htmlBlocks(input: string): SourceBlock[] {
 
 export function extractQuoteBlocks(input: string): SourceBlock[] {
   const looksLikeHtml = /<h[2-6](?:\s|>)/i.test(input);
-  return (looksLikeHtml ? htmlBlocks(input) : markdownBlocks(input)).filter((block) => block.heading);
+  const blocks = (looksLikeHtml ? htmlBlocks(input) : markdownBlocks(input)).filter((block) => block.heading);
+  // H2の直後がH3になるような「章をまとめる見出し」は、それ自体に本文がなくても欠陥ではない。
+  // 配下の小見出しを持つ空の親見出しは診断対象から外し、本文のある節だけを採点する。
+  return blocks.filter((block, index) => {
+    if (block.paragraphs.length > 0) return true;
+    const next = blocks[index + 1];
+    return !next || next.level <= block.level;
+  });
+}
+
+/** URL取得したページから、ナビゲーションやフッターを避けて診断対象の本文を選ぶ。 */
+export function extractPageContentHtml(input: string): string {
+  const root = parse(input);
+  const target = root.querySelector("[itemprop='articleBody']")
+    ?? root.querySelector("article")
+    ?? root.querySelector("main")
+    ?? root.querySelector("body")
+    ?? root;
+  return target.innerHTML;
 }
 
 function sentences(text: string): string[] {
@@ -142,14 +161,18 @@ function analyzeBlock(block: SourceBlock): QuoteBlockResult {
     ? { id: "claim", label: "対象と主張", status: "pass", detail: "最初の文に対象と述語があります。" }
     : { id: "claim", label: "対象と主張", status: "warn", detail: "何について何を述べる文か、機械的には確認できませんでした。" });
 
-  checks.push(SUPPORT_FORM.test(candidate)
-    ? { id: "support", label: "理由・条件・具体性", status: "pass", detail: "理由、条件、例、数値または出典の手掛かりがあります。" }
-    : { id: "support", label: "理由・条件・具体性", status: "warn", detail: "結論を支える理由・条件・例・数値・出典は検出されませんでした。" });
+  checks.push(SPECIFICITY_FORM.test(candidate)
+    ? { id: "specificity", label: "理由・条件・具体性", status: "pass", detail: "条件、例、数値または出典の手掛かりがあります。" }
+    : { id: "specificity", label: "理由・条件・具体性", status: "warn", detail: "条件・例・数値・出典は検出されませんでした。" });
+
+  checks.push(REASON_FORM.test(candidate)
+    ? { id: "reason", label: "結論を支える理由", status: "pass", detail: "結論と、その根拠になる理由が同じ引用候補にあります。" }
+    : { id: "reason", label: "結論を支える理由", status: "warn", detail: "結論の根拠になる理由は検出されませんでした。" });
 
   const length = candidate.length;
-  const lengthStatus: QuoteCheckStatus = length < 40 ? "fail" : length <= 240 ? "pass" : "warn";
-  const lengthDetail = length < 40
-    ? `${length}文字です。単独の説明としては短い可能性があります。`
+  const lengthStatus: QuoteCheckStatus = length < 20 ? "warn" : length <= 240 ? "pass" : "warn";
+  const lengthDetail = length < 20
+    ? `${length}文字です。簡潔な回答として成立する場合もありますが、説明を補えるか確認してください。`
     : length <= 240
       ? `${length}文字で、ひとまとまりとして切り出せる長さです。`
       : `${length}文字です。主張を一つに絞れるか確認してください。`;
@@ -157,7 +180,7 @@ function analyzeBlock(block: SourceBlock): QuoteBlockResult {
 
   const fails = checks.filter((check) => check.status === "fail").length;
   const passes = checks.filter((check) => check.status === "pass").length;
-  const verdict = fails > 0 ? "weak" : passes >= 4 ? "ready" : "review";
+  const verdict = fails > 0 ? "weak" : passes >= 5 ? "ready" : "review";
   return { heading: block.heading, level: block.level, candidate, checks, verdict };
 }
 

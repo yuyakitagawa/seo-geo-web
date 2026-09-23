@@ -15,6 +15,7 @@
   ],
   "functions": {
     "api/audit.ts": { "maxDuration": 30 },
+    "api/quote-readiness.ts": { "maxDuration": 30 },
     "api/site-report.ts": { "maxDuration": 60 }
   }
 }

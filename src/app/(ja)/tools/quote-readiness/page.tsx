@@ -10,8 +10,8 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { CONTAINER, HEADING, PADDING, SURFACE, cx } from "@/lib/ui";
 
 const PATH = "/tools/quote-readiness";
-const TITLE = "引用しやすさ診断（見出しと本文）";
-const DESCRIPTION = "見出しごとの本文を切り出し、前の文章に依存せず引用できる構造かを無料で診断します。生成AI API・単語一致率は使いません。";
+const TITLE = "引用しやすさ診断";
+const DESCRIPTION = "URLを入力するだけで、見出しごとの本文を切り出し、前の文章に依存せずAIが引用しやすい構造かを無料で診断します。";
 const UPDATED = APP_TOOLS.find((tool) => tool.path === PATH)!.updated;
 
 export const metadata: Metadata = {
@@ -36,11 +36,12 @@ const softwareJsonLd = {
 };
 
 const CHECKS = [
-  ["冒頭の直接回答", "最初の文が前置きや予告ではなく、述語まで完結しているか"],
-  ["文脈からの独立", "「これ」「そのため」「前述」など、前の文章を必要とする始まり方ではないか"],
-  ["対象と主張", "何について何を述べる文かが、引用候補の中で完結しているか"],
-  ["理由・条件・具体性", "理由、適用条件、例、数値または出典の手掛かりがあるか"],
-  ["引用候補のまとまり", "冒頭の1〜3文を、ひとまとまりとして切り出せるか"],
+  ["冒頭の直接回答", "最初の文が前置きや予告ではなく、質問への答え・定義・結論から始まるかを見ます。AIが短い回答を組み立てるとき、冒頭だけで要点を取得しやすくなるため重要です。"],
+  ["文脈からの独立", "「これ」「そのため」「前述」など、前の文章を必要とする始まり方ではないかを見ます。検索結果では段落だけが抜き出されることがあるため、単独でも意味が通る文章が引用に向いています。"],
+  ["対象と主張", "誰・何について、何を述べているのかが引用候補内で完結しているかを見ます。対象と主張が揃うと、AIが別の対象の説明と取り違えにくくなります。"],
+  ["理由・条件・具体性", "適用条件、例、数値、調査、出典などの手掛かりがあるかを見ます。具体的な限定や根拠があるほど、AIがどの質問・状況で使える情報かを判断しやすくなります。"],
+  ["結論を支える理由", "「〜ため」「〜ので」など、結論と理由が同じ引用候補にあるかを見ます。結論だけでなく根拠も一緒に示せる文章は、回答の説明材料として使いやすくなります。"],
+  ["引用候補のまとまり", "見出し直後の本文の最初の1〜3文が、長すぎず短すぎない一つの説明になっているかを見ます。AIが前後を補わず、そのまま根拠として扱いやすくするためです。"],
 ];
 
 export default function QuoteReadinessPage() {
@@ -51,7 +52,7 @@ export default function QuoteReadinessPage() {
       <PageHeader
         eyebrow="Tool · 無料・登録不要"
         title={TITLE}
-        lead="見出し直後の文章だけを切り出し、前後の文脈なしでも引用できる構造かを確認します。"
+        lead="URLを入力するだけで、見出し直後の本文が前後の文脈なしでも引用できる構造かを確認します。"
         crumbs={[{ name: "診断ツール", href: "/tools" }, { name: "引用しやすさ診断" }]}
       />
 
@@ -66,7 +67,7 @@ export default function QuoteReadinessPage() {
         <QuoteReadiness />
 
         <section>
-          <h2 className={HEADING.section}>確認する5項目</h2>
+          <h2 className={HEADING.section}>AI引用で確認する6項目</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {CHECKS.map(([title, detail]) => (
               <div key={title} className={cx(SURFACE.outline, PADDING.tight)}>
