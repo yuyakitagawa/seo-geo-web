@@ -113,7 +113,7 @@ export default function QuoteReadiness() {
     const next = diagnoseQuoteReadiness(value);
     if (next.blocks.length === 0) {
       setResult(null);
-      setError("H2〜H6の見出しが見つかりません。HTMLの<h2>、またはMarkdownの「## 見出し」を含めてください。");
+      setError("H1〜H4の見出しが見つかりません。HTMLの<h1>〜<h4>、またはMarkdownの「# 見出し」〜「#### 見出し」を含めてください。");
       return;
     }
     setError("");
@@ -147,7 +147,7 @@ export default function QuoteReadiness() {
           </button>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-mute">
-          公開ページのHTMLをサーバーから取得し、記事本文内のH2〜H6と、その直後の本文を診断します。JavaScriptで後から表示される本文は取得できません。
+          公開ページのHTMLをサーバーから取得し、記事本文内にあるH1〜H4と、その直後の本文を診断します。JavaScriptで後から表示される本文は取得できません。
         </p>
         {error && <p role="alert" className="mt-4 rounded-panel border border-news/40 bg-news/10 p-4 text-sm font-semibold text-news">{error}</p>}
       </form>
@@ -171,7 +171,7 @@ export default function QuoteReadiness() {
             className={cx(FIELD.text, "mt-4 min-h-64 w-full font-mono")}
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder={"## 見出し\n\n見出しに対する本文を入力します。"}
+            placeholder={"# 見出し\n\n見出しに対する本文を入力します。"}
           />
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="submit" className={button("invert")} disabled={!input.trim()}>貼り付けた内容を診断する</button>

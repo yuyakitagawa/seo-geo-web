@@ -48,11 +48,15 @@ function markdownBlocks(input: string): SourceBlock[] {
     paragraph = [];
   };
   for (const line of lines) {
-    const heading = line.match(/^\s*(#{2,6})\s+(.+?)\s*#*\s*$/);
+    const heading = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/);
     if (heading) {
       flushParagraph();
-      current = { heading: cleanText(heading[2]), level: heading[1].length, paragraphs: [] };
-      blocks.push(current);
+      if (heading[1].length <= 4) {
+        current = { heading: cleanText(heading[2]), level: heading[1].length, paragraphs: [] };
+        blocks.push(current);
+      } else {
+        current = null;
+      }
     } else if (!line.trim()) {
       flushParagraph();
     } else if (current) {
@@ -65,12 +69,12 @@ function markdownBlocks(input: string): SourceBlock[] {
 
 function htmlBlocks(input: string): SourceBlock[] {
   const root = parse(input);
-  const headings = root.querySelectorAll("h2, h3, h4, h5, h6");
+  const headings = root.querySelectorAll("h1, h2, h3, h4");
   return headings.map((heading) => {
     const level = Number(heading.tagName.slice(1));
     const paragraphs: string[] = [];
     let node = heading.nextElementSibling;
-    while (node && !/^H[2-6]$/.test(node.tagName)) {
+    while (node && !/^H[1-6]$/.test(node.tagName)) {
       if (["P", "LI", "BLOCKQUOTE", "DD"].includes(node.tagName)) {
         const text = cleanText(node.textContent);
         if (text) paragraphs.push(text);
@@ -87,9 +91,9 @@ function htmlBlocks(input: string): SourceBlock[] {
 }
 
 export function extractQuoteBlocks(input: string): SourceBlock[] {
-  const looksLikeHtml = /<h[2-6](?:\s|>)/i.test(input);
+  const looksLikeHtml = /<h[1-4](?:\s|>)/i.test(input);
   const blocks = (looksLikeHtml ? htmlBlocks(input) : markdownBlocks(input)).filter((block) => block.heading);
-  // H2の直後がH3になるような「章をまとめる見出し」は、それ自体に本文がなくても欠陥ではない。
+  // H1の直後がH2になるような「章をまとめる見出し」は、それ自体に本文がなくても欠陥ではない。
   // 配下の小見出しを持つ空の親見出しは診断対象から外し、本文のある節だけを採点する。
   return blocks.filter((block, index) => {
     if (block.paragraphs.length > 0) return true;
