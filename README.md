@@ -487,7 +487,7 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
 - **デザインシステムは3層**（詳細は `docs/design-system.md`）
   - トークン `src/app/globals.css` の `@theme`: 色・角丸・影・ページ幅・極小文字。値を持つのはここだけ
   - クラス定義 `src/lib/ui.ts`: 面・ボタン・チップ・表・入力・本文の組み合わせ（`SURFACE` / `button()` / `CHIP` / `TABLE` …）
-  - 部品 `src/components/ui.tsx`: `Container` / `Card` / `CardLink` / `Button` / `Chip` / `Eyebrow` / `SectionHeading` / `Steps`
+  - 部品 `src/components/ui.tsx`: `Card` / `CardLink` / `Button` / `Eyebrow` / `Steps`（使われなくなった部品は残さない）
 - ダークモードは**セマンティックトークンが吸収する**ので `dark:` は原則書かない
   （`canvas` / `fg` / `surface` / `line` / `fill` / `invert` が配色モードで反転する）。
   例外は常に黒地の帯（ヒーロー・PageHeader・記事ヘッダー・図解）で、そこだけ `ink` / `paper` を直接使う
@@ -495,7 +495,9 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
 - **Figma側のデザインシステムは `figma-plugin/` から作る**（導入手順と制約は `figma-plugin/README.md`）。
   Figmaデスクトップアプリで `manifest.json` をインポートして実行すると、`globals.css` のトークンが
   Figmaの変数（4コレクション・34個。全部に `var(--color-ink)` 形式のWEB code syntax付き）・
-  テキストスタイル11種・エフェクトスタイル2種・コンポーネント4種（Button / Chip / Badge / Card）になる。
+  テキストスタイル11種・エフェクトスタイル2種・コンポーネント6種になる。
+  コンポーネントは**サイトに実在する形だけ**（`ArticleCard` / `SiteHeader` / `Hero` と、
+  その中で使う `Button` / `Chip` / `Badge`）。汎用の `Card` のような箱は作らない。
   何度実行しても増えない（名前で引いて更新し、既存コンポーネントは触らない）。
   MCP経由でも同じことはできるが、プランごとのツールコール上限に当たるのでローカルプラグインを正とする。
   **値の正は `globals.css`**。CSSだけ直してプラグインの表を忘れると `src/lib/figmaTokens.test.ts` が落ちる（`npm test`）。
