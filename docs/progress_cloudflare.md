@@ -9,8 +9,8 @@
 - [x] Cloudflare アカウント作成・GitHub 連携（ユーザー）。初回ビルドは Next.js 自動検出で `opennextjs-cloudflare build` が走り失敗。
 - [x] `wrangler.jsonc` を追加（`out/` を配信。`html_handling: auto-trailing-slash` / `not_found_handling: 404-page`）。
       手元検証: `wrangler deploy --dry-run` で 2,583 ファイルを読込。`wrangler dev` で `/` `/articles/1` `/geo` `/sitemap.xml` `/robots.txt` → 200、存在しないURL → 404。
-- [x] `wrangler.jsonc` の `build.command` で `npm run build` を走らせる（ダッシュボードの Build command は空でよい。二重にビルドしない）。out/ を消した状態から `wrangler deploy --dry-run` で書き出しまで通ることを確認。
-- [ ] Cloudflare のビルド設定（ユーザー）: Build command 空 / Deploy command `npx wrangler deploy`。
+- [x] Cloudflare のビルド設定（ユーザー）: Build command `npm run build` / Deploy command `npx wrangler deploy`（本番）・`npx wrangler preview`（ブランチ）。
+      ビルドは Cloudflare 上で成功（465 ページ）。ブランチの `wrangler preview` は設定に `previews` ブロックが要るので `"previews": {}` を追加。
       `NEXT_PUBLIC_*` はビルド時に要るので「Build」側の変数に入れる（実行時の変数とは別）。
 - [ ] `_redirects`（vercel.json の 308 × 6）と `_headers`（OGP 画像・アイコンの `Content-Type: image/png`）。
 - [ ] API（audit / site-report / quote-readiness / contact）を Worker の `main` に載せ替え。`fetchPage.ts` の `node:dns` 依存を外す。
