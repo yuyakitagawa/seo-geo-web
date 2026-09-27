@@ -3,6 +3,8 @@
 {
   "name": "seo-geo-web",
   "compatibility_date": "2026-06-01",
+  // ダッシュボードの Build command に頼らず、wrangler deploy の前に必ず静的書き出しを走らせる
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./out",
     "html_handling": "auto-trailing-slash",
