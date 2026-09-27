@@ -25,6 +25,8 @@
       `wrangler dev` で検証: ページ 200、旧URL 308、`GET /api/audit` 405、Origin 無し・別サイト 403、10.0.0.1 / localhost 拒否、
       同一IPの連打で `400,400,400,429,429,429`、`.dev.vars` に LINE の env を入れると contact が 503 でなくなる（process.env が読めている）。
       この環境は外へ出られないので、実サイトの取得（名前解決〜判定）は未検証。
+- [x] プレビューで `/tools/page-audit` が動作（seo-geo-lab.com: HTTP 200・200KB・0.3秒で判定まで完了）。
+- [x] `observability.enabled` を追加（未設定だと Observability にイベントが1件も出なかった）。
 - [ ] プレビューで実サイトを診断して動作と CPU 時間（無料 10ms/回）を確認（ユーザー。Cloudflare の Observability で CPU time を見る）。
 - [ ] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
       お問い合わせフォームはビルド時にも env を見て表示を決める（`CONTACT_FORM_ENABLED`）ので、同じものを Build 側にも入れる。
