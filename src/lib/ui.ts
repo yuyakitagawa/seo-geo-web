@@ -17,8 +17,6 @@ export const CONTAINER = {
   text: "mx-auto w-full max-w-text px-5",
 } as const;
 
-export type ContainerWidth = keyof typeof CONTAINER;
-
 /** 面（カードやパネルの地）。card=白面 / outline=線だけ / invert=反転 / accent=ブランド色 */
 export const SURFACE = {
   card: "rounded-card border border-line bg-surface",
@@ -85,11 +83,7 @@ export function button(variant: ButtonVariant = "accent", size: ButtonSize = "md
 /** チップ（丸い小さいリンク）。タグ・カテゴリ・ページ内ジャンプに使う */
 export const CHIP = "inline-flex items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-sm transition hover:bg-invert hover:text-invert-fg";
 
-/** 常に黒地の帯（ヒーロー・PageHeader）の上に置くチップ */
-export const CHIP_ON_INK =
-  "inline-flex items-center gap-2 rounded-full border border-paper/20 px-3.5 py-1.5 text-sm font-medium transition hover:border-paper hover:bg-paper hover:text-ink";
-
-/** バッジ（リンクではないラベル）。色は呼び出し側で足す */
+/** バッジ（リンクではないラベル）。色は呼び出し側で足す。md は記事ヘッダーで使う（CategoryBadge / TypeBadge の size） */
 export const BADGE = {
   sm: "inline-flex items-center rounded-full px-2.5 py-1 text-2xs font-bold uppercase tracking-wider",
   md: "inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider",

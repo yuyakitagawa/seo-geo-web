@@ -15,6 +15,11 @@ MCP（Figmaのリモート実行）は同じ Plugin API のJSを外から流し�
 
 2回目以降は `code.js` を保存して、Figmaでプラグインを再実行するだけ（再インポートは不要）。
 
+## 方針
+
+**汎用の箱は作らない。** サイトに実在する形（記事カード・ヘッダー・ヒーロー）だけをコンポーネントにする。
+「Card」のような汎用部品はFigmaに置いても仕事に使えず、実装のどれに対応するかも決まらない。
+
 ## 作られるもの
 
 | 種類 | 中身 |
@@ -25,7 +30,8 @@ MCP（Figmaのリモート実行）は同じ Plugin API のJSを外から流し�
 | 変数コレクション `Shape & Size` | radius 2 / container 3 / 極小フォント 2（計7、px） |
 | テキストスタイル | `display/lg` `heading/xl…sm` `body/lg` `body/md` `label/md` `eyebrow/sm` `badge/xs` `mono/xs`（11） |
 | エフェクトスタイル | `shadow-lift` / `shadow-panel`（Figmaは影を変数にできないため） |
-| コンポーネント | `Button`（accent / invert / onAccent / outline）/ `Chip` / `Badge`（SEO / GEO / ニュース）/ `Card` |
+| コンポーネント（部品） | `Button`（accent / invert / onAccent / outline）/ `Chip` / `Badge`（SEO / GEO / ニュース） |
+| コンポーネント（実物） | `ArticleCard`（546px・一覧の1枚）/ `SiteHeader`（1440px）/ `Hero`（1440px） |
 | フレーム `Design Tokens` | 上記の早見表 |
 
 全変数に `var(--color-ink)` 形式の **WEB code syntax** を付けるので、Figma上からCSSの変数名が引ける。
@@ -46,6 +52,8 @@ MCP（Figmaのリモート実行）は同じ Plugin API のJSを外から流し�
 - 変数・テキストスタイル・エフェクトスタイルは**名前で引いて、あれば値を更新**する（重複を作らない）
 - コンポーネントは**同名があれば触らない**（作り直すと配置済みインスタンスの参照が壊れるため）
 - `Design Tokens` フレームだけは**毎回作り直す**（古い値の表が残らないように）
+- 作るのをやめたコンポーネント（`RETIRED_COMPONENTS`）は、**インスタンスが無いときだけ**消す。
+  使われていれば残して、終了メッセージでそう伝える
 
 ## 値を変えるとき
 
@@ -68,6 +76,10 @@ npm test              # globals.css とトークン表のズレを検査（figma
 - 色を 0-255 で渡す / paint の `color` に `a` を混ぜる
 - 知らない variable scope
 - 期待する変数・スタイル・コンポーネントが作られない
+- 実寸のコンポーネント（`ArticleCard` 546 / `SiteHeader` 1440 / `Hero` 1440）の幅が固定されているか
+  — auto-layout は**向きで幅を決める軸が変わる**（横並びは primary、縦積みは counter）。
+  取り違えると1440pxのヘッダーが内容の幅まで縮む
+- 作るのをやめたコンポーネントが掃除されるか
 - **2回実行しても増殖しない**（冪等性）
 
 モックなので「Figmaで実際にどう見えるか」は分からない。**最終確認は実機で1回実行して目で見る。**

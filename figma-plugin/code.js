@@ -442,35 +442,206 @@ function buildBadge() {
   return set;
 }
 
-function buildCard() {
-  if (findComponent("Card")) return null;
-  var component = figma.createComponent();
-  component.name = "Card";
-  component.description = "src/lib/ui.ts の SURFACE.card + PADDING.card。角丸は radius-card。";
-  component.layoutMode = "VERTICAL";
-  component.primaryAxisSizingMode = "AUTO";
-  component.counterAxisSizingMode = "FIXED";
-  component.resize(546, 160);
-  component.primaryAxisSizingMode = "AUTO"; // resize で FIXED に戻るので、縦は内容に合わせ直す
-  component.itemSpacing = 12;
-  component.paddingTop = 32; component.paddingBottom = 32;
-  component.paddingLeft = 32; component.paddingRight = 32;
-  component.fills = [boundFill(semanticLightVars["surface"], "#ffffff")];
-  component.strokes = [boundFill(semanticLightVars["line"], "#0a0a0a")];
-  component.strokeWeight = 1;
-  component.cornerRadius = 24;
+// ---------------------------------------------------------------- 実物のコンポーネント
+//
+// 汎用の「Card」は作らない。サイトに実在する形だけを置く
+// （汎用の箱はFigmaに置いても仕事に使えず、実装とも対応が取れないため）。
+
+// 作るのをやめたコンポーネント。過去の実行で作られた分を掃除する。
+// 汎用 Card は ArticleCard に置き換えた（汎用の箱は実装と対応が取れない）。
+var RETIRED_COMPONENTS = ["Card"];
+
+/** 使われていない旧コンポーネントだけ消す。インスタンスがあるものは残す（参照が壊れるため） */
+function cleanupRetired() {
+  var removed = [];
+  var kept = [];
+  var instances = figma.currentPage.findAllWithCriteria({ types: ["INSTANCE"] });
+  RETIRED_COMPONENTS.forEach(function (name) {
+    var node = findComponent(name);
+    if (!node) return;
+    var inUse = instances.some(function (instance) {
+      var main = instance.mainComponent;
+      if (!main) return false;
+      return main === node || main.parent === node;
+    });
+    if (inUse) kept.push(name);
+    else { node.remove(); removed.push(name); }
+  });
+  return { removed: removed, kept: kept };
+}
+
+/** auto-layout 付きのコンポーネント。stack() のコンポーネント版 */
+function component(name, direction, opts) {
+  var o = opts || {};
+  var node = figma.createComponent();
+  node.name = name;
+  node.layoutMode = direction;
+  node.primaryAxisSizingMode = "AUTO";
+  node.counterAxisSizingMode = "AUTO";
+  node.itemSpacing = typeof o.gap === "number" ? o.gap : 0;
+  var p = typeof o.padding === "number" ? o.padding : 0;
+  node.paddingTop = typeof o.paddingTop === "number" ? o.paddingTop : p;
+  node.paddingBottom = typeof o.paddingBottom === "number" ? o.paddingBottom : p;
+  node.paddingLeft = typeof o.paddingLeft === "number" ? o.paddingLeft : p;
+  node.paddingRight = typeof o.paddingRight === "number" ? o.paddingRight : p;
+  node.counterAxisAlignItems = o.align || "MIN";
+  node.primaryAxisAlignItems = o.justify || "MIN";
+  node.fills = o.fills || [];
+  if (typeof o.width === "number") {
+    node.resize(o.width, node.height || 10);
+    // 幅を持つ軸は向きで変わる。横並びなら primary＝横、縦積みなら counter＝横。
+    // 取り違えると「1440pxのヘッダー」が内容の幅まで縮む。
+    if (direction === "HORIZONTAL") {
+      node.primaryAxisSizingMode = "FIXED";
+      node.counterAxisSizingMode = "AUTO";
+    } else {
+      node.counterAxisSizingMode = "FIXED";
+      node.primaryAxisSizingMode = "AUTO";
+    }
+  }
+  if (typeof o.radius === "number") node.cornerRadius = o.radius;
+  if (o.clip) node.clipsContent = true;
+  return node;
+}
+
+/** 不透明度つきの塗り。黒地の上の paper/60 のような指定に使う */
+function fadedFill(variable, hex, opacity) {
+  var paint = boundFill(variable, hex);
+  var copy = {};
+  Object.keys(paint).forEach(function (k) { copy[k] = paint[k]; });
+  copy.opacity = opacity;
+  return copy;
+}
+
+function dot(size, variable, hex) {
+  var node = figma.createEllipse();
+  node.resize(size, size);
+  node.fills = [boundFill(variable, hex)];
+  return node;
+}
+
+/** 記事カード。src/components/ArticleCard.tsx。一覧の1枚＝546px（1112の2カラム・gap20） */
+function buildArticleCard() {
+  if (findComponent("ArticleCard")) return null;
+  var node = component("ArticleCard", "VERTICAL", {
+    width: 546,
+    radius: 24,
+    clip: true,
+    fills: [boundFill(semanticLightVars["surface"], "#ffffff")]
+  });
+  node.description = "src/components/ArticleCard.tsx。一覧カード1枚（546px）。キービジュアルはコードが記事IDから生成するので、ここは代替のグラデーション。";
+  node.strokes = [boundFill(semanticLightVars["line"], "#0a0a0a")];
+  node.strokeWeight = 1;
   if (shapeVars["radius-card"]) {
     ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"].forEach(function (corner) {
-      component.setBoundVariable(corner, shapeVars["radius-card"]);
+      node.setBoundVariable(corner, shapeVars["radius-card"]);
     });
   }
-  var title = text("カードの見出し", { role: "jp", weight: "bold", size: 18, lineHeight: 28, tracking: -2.5, fill: boundFill(semanticLightVars["fg"], "#0a0a0a") });
-  component.appendChild(title);
-  title.layoutSizingHorizontal = "FILL";
-  var body = text("説明文。トークンは globals.css を正とする。", { role: "jp", weight: "regular", size: 14, lineHeight: 24, fill: boundFill(semanticLightVars["mute"], "#6b6b66") });
-  component.appendChild(body);
+
+  // キービジュアル（aspect-[16/6] → 546 × 205）
+  var visual = stack("KeyVisual", "VERTICAL", {});
+  visual.primaryAxisSizingMode = "FIXED";
+  visual.counterAxisSizingMode = "FIXED";
+  visual.resize(546, 205);
+  visual.fills = [{
+    type: "GRADIENT_LINEAR",
+    gradientTransform: [[1, 0, 0], [0, 1, 0]],
+    gradientStops: [
+      { position: 0, color: { r: hexToRgb("#0a0a0a").r, g: hexToRgb("#0a0a0a").g, b: hexToRgb("#0a0a0a").b, a: 1 } },
+      { position: 1, color: { r: hexToRgb("#a855f7").r, g: hexToRgb("#a855f7").g, b: hexToRgb("#a855f7").b, a: 1 } }
+    ]
+  }];
+  node.appendChild(visual);
+  visual.layoutSizingHorizontal = "FILL";
+
+  var body = stack("body", "VERTICAL", { padding: 28, gap: 12 });
+  node.appendChild(body);
   body.layoutSizingHorizontal = "FILL";
-  return component;
+
+  // バッジ列（カテゴリ＋日付）
+  var meta = stack("meta", "HORIZONTAL", { gap: 12, align: "CENTER" });
+  var badgeSet = findComponent("Badge");
+  if (badgeSet && badgeSet.type === "COMPONENT_SET") meta.appendChild(badgeSet.children[0].createInstance());
+  meta.appendChild(text("2026.09.16", { role: "mono", weight: "regular", size: 12, lineHeight: 16, fill: boundFill(semanticLightVars["mute"], "#6b6b66") }));
+  body.appendChild(meta);
+
+  var title = text("SEOに関係するボット一覧とGooglebotなりすまし確認手順", { role: "jp", weight: "bold", size: 18, lineHeight: 28, tracking: -2.5, fill: boundFill(semanticLightVars["fg"], "#0a0a0a") });
+  body.appendChild(title);
+  title.layoutSizingHorizontal = "FILL";
+
+  var desc = text("Googlebot・GPTBot・PerplexityBotなど主要ボットの見分け方と、なりすましアクセスをIP・逆引きDNSで確認する手順。", { role: "jp", weight: "regular", size: 14, lineHeight: 24, fill: boundFill(semanticLightVars["mute"], "#6b6b66") });
+  body.appendChild(desc);
+  desc.layoutSizingHorizontal = "FILL";
+
+  body.appendChild(text("読む →", { role: "jp", weight: "semibold", size: 14, lineHeight: 20, fill: boundFill(semanticLightVars["fg"], "#0a0a0a") }));
+  return node;
+}
+
+/** サイトヘッダー。src/components/Header.tsx。1440幅・左右のガター164px */
+function buildSiteHeader() {
+  if (findComponent("SiteHeader")) return null;
+  var node = component("SiteHeader", "HORIZONTAL", {
+    width: 1440,
+    paddingLeft: 164, paddingRight: 164, paddingTop: 12, paddingBottom: 12,
+    align: "CENTER",
+    justify: "SPACE_BETWEEN",
+    fills: [boundFill(semanticLightVars["canvas"], "#f5f5f2")]
+  });
+  node.description = "src/components/Header.tsx。上部に貼り付く帯（min-h 64）。ナビは1つの配列から出している。";
+  node.strokes = [boundFill(semanticLightVars["line"], "#0a0a0a")];
+  node.strokeTopWeight = 0;
+  node.strokeLeftWeight = 0;
+  node.strokeRightWeight = 0;
+  node.strokeBottomWeight = 1;
+
+  var logo = stack("logo", "HORIZONTAL", { gap: 8, align: "CENTER" });
+  logo.appendChild(dot(12, paletteVars["accent"], "#2994b9"));
+  logo.appendChild(text("SEO GEO Lab", { role: "display", weight: "bold", size: 16, lineHeight: 24, tracking: -2.5, fill: boundFill(semanticLightVars["fg"], "#0a0a0a") }));
+  node.appendChild(logo);
+
+  var nav = stack("nav", "HORIZONTAL", { gap: 4, padding: 4, align: "CENTER" });
+  nav.cornerRadius = 999;
+  nav.strokes = [boundFill(semanticLightVars["line"], "#0a0a0a")];
+  nav.strokeWeight = 1;
+  ["SEO", "GEO", "ニュース", "独自調査", "教科書", "診断ツール"].forEach(function (label) {
+    var item = stack(label, "HORIZONTAL", { paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6, align: "CENTER" });
+    item.cornerRadius = 999;
+    item.appendChild(text(label, { role: "jp", weight: "medium", size: 14, lineHeight: 20, fill: boundFill(semanticLightVars["fg"], "#0a0a0a") }));
+    nav.appendChild(item);
+  });
+  node.appendChild(nav);
+  return node;
+}
+
+/** トップのヒーロー。src/app/(ja)/page.tsx。常に黒地なので ink / paper を直接使う帯 */
+function buildHero() {
+  if (findComponent("Hero")) return null;
+  var node = component("Hero", "VERTICAL", {
+    width: 1440,
+    paddingLeft: 164, paddingRight: 164, paddingTop: 40, paddingBottom: 40,
+    gap: 12,
+    fills: [boundFill(paletteVars["ink"], "#0a0a0a")]
+  });
+  node.description = "src/app/(ja)/page.tsx のヒーロー。配色モードで反転しない帯なので ink / paper を直接使う（セマンティックトークンを使わない例外）。";
+
+  var eyebrow = stack("eyebrow", "HORIZONTAL", { gap: 8, align: "CENTER" });
+  eyebrow.appendChild(dot(6, paletteVars["accent"], "#2994b9"));
+  var eyebrowText = text("毎朝更新 · SEO & GEO", { role: "display", weight: "medium", size: 11, lineHeight: 16, tracking: 20, upper: true });
+  eyebrowText.fills = [fadedFill(paletteVars["paper"], "#f5f5f2", 0.6)];
+  eyebrow.appendChild(eyebrowText);
+  node.appendChild(eyebrow);
+
+  // 見出しはアクセント色の語だけ別ノードにする（1ノードでは色を分けられない）
+  var headline = stack("headline", "HORIZONTAL", { gap: 0, align: "CENTER" });
+  headline.appendChild(text("SEO・AI対策の「今」に", { role: "jp", weight: "bold", size: 36, lineHeight: 44, tracking: -2.5, fill: boundFill(paletteVars["paper"], "#f5f5f2") }));
+  headline.appendChild(text("追いつける", { role: "jp", weight: "bold", size: 36, lineHeight: 44, tracking: -2.5, fill: boundFill(paletteVars["accent"], "#2994b9") }));
+  node.appendChild(headline);
+
+  var lead = text("Google検索・AI Overview・ChatGPT・Perplexity。公式発表と海外ソースを毎朝巡回し、SEO/GEO担当が今日おさえるべき点だけを日本語で整理します。", { role: "jp", weight: "regular", size: 14, lineHeight: 24 });
+  lead.fills = [fadedFill(paletteVars["paper"], "#f5f5f2", 0.6)];
+  node.appendChild(lead);
+  lead.resize(672, lead.height); // max-w-2xl
+  return node;
 }
 
 // ---------------------------------------------------------------- 早見表
@@ -632,6 +803,8 @@ function buildCheatSheet(components) {
 
 // ---------------------------------------------------------------- 実行
 
+var retiredReport = { removed: [], kept: [] };
+
 function main() {
   return resolveFonts()
     .then(buildPalette)
@@ -641,10 +814,14 @@ function main() {
     .then(buildEffectStyles)
     .then(buildTextStyles)
     .then(function () {
-      var created = [buildButton(), buildChip(), buildBadge(), buildCard()];
-      // 既にあったものは早見表でもそのまま使う
-      var all = ["Button", "Chip", "Badge", "Card"].map(function (name) { return findComponent(name); });
-      // 新規作成したコンポーネントは早見表の左側に整列させる
+      var cleanup = cleanupRetired();
+      // Badge を先に作る（ArticleCard が中で使う）
+      var created = [buildBadge(), buildButton(), buildChip(), buildArticleCard(), buildSiteHeader(), buildHero()];
+      retiredReport = cleanup;
+      // 新規・既存を問わず、早見表に並べるのは小さい部品だけ。
+      // ArticleCard / SiteHeader / Hero は実寸が大きいのでキャンバスに直接置く。
+      var small = ["Badge", "Button", "Chip"].map(function (name) { return findComponent(name); });
+
       var y = 0;
       created.forEach(function (node) {
         if (!node) return;
@@ -652,13 +829,16 @@ function main() {
         node.y = y;
         y += node.height + 48;
       });
-      return buildCheatSheet(all);
+      return buildCheatSheet(small);
     })
     .then(function (sheet) {
       figma.currentPage.selection = [sheet];
       figma.viewport.scrollAndZoomIntoView([sheet]);
       var counts = PALETTE.length + SEMANTIC.length * 2 + SHAPE.length;
-      figma.closePlugin("変数" + counts + "個 / テキストスタイル" + TEXT_STYLES.length + "種 / 影" + ELEVATIONS.length + "種を反映しました");
+      var message = "変数" + counts + "個 / テキストスタイル" + TEXT_STYLES.length + "種 / 影" + ELEVATIONS.length + "種を反映しました";
+      if (retiredReport.removed.length) message += "。使われていない " + retiredReport.removed.join(" / ") + " を削除";
+      if (retiredReport.kept.length) message += "。" + retiredReport.kept.join(" / ") + " はインスタンスがあるので残しました";
+      figma.closePlugin(message);
     });
 }
 

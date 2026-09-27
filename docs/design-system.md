@@ -7,7 +7,7 @@
 | --- | --- | --- |
 | トークン | `src/app/globals.css` の `@theme` | 色・角丸・影・ページ幅・極小文字。値を持つのはここだけ |
 | クラス定義 | `src/lib/ui.ts` | 面・ボタン・チップ・表・入力・本文のクラスの組み合わせ |
-| 部品 | `src/components/ui.tsx` | Container / Card / CardLink / Button / Chip / Eyebrow / SectionHeading / Steps |
+| 部品 | `src/components/ui.tsx` | Card / CardLink / Button / Eyebrow / Steps |
 
 ## 1. トークン
 
@@ -36,7 +36,6 @@
 
 例外は**常に黒地の帯**（トップのヒーロー、`PageHeader`、記事ヘッダー、`figures.tsx` の図解）。
 ここは配色モードによらず黒地なので `bg-ink text-paper` と `paper/60` のような生のパレットを直接使う。
-その上に置くチップは `CHIP_ON_INK`。
 
 ### 形・幅
 
@@ -61,7 +60,7 @@
 - `HEADING.section / card / label` — 見出し
 - `LINK` — 本文リンク（アクセント色の下線）
 - `button(variant, size)` — `accent` / `invert` / `onAccent` / `outline` × `sm` / `md`
-- `CHIP` / `CHIP_ON_INK` — 丸いリンク
+- `CHIP` — 丸いリンク（タグ・カテゴリ・ページ内ジャンプ）
 - `BADGE.sm / md` — ラベル（色は呼び出し側で足す）
 - `STEP` — 番号付き手順、`TABLE` — 表、`FIELD` — 入力欄、`CODE` — コード面
 - `PROSE.body / page` — 記事・固定ページの本文
@@ -71,13 +70,10 @@
 よく出る組み合わせだけを部品にしている。単発の組み合わせは上のクラス定義を直接使う。
 
 ```tsx
-<Container width="page" as="section" className="py-16">…</Container>
 <Card padding="roomy" className="shadow-panel">…</Card>   {/* 静的なカード */}
 <CardLink href="/seo" tone="invert">…</CardLink>          {/* リンクカード。中で group-hover が使える */}
 <Button href="/about" variant="accent">…</Button>         {/* external で別タブ＋rel */}
-<Chip href="/tag/GEO">#GEO</Chip>
 <Eyebrow tone="faint">Follow</Eyebrow>
-<SectionHeading title="新着" lead="…" action={<Link …/>} />
 <Steps items={["…", "…"]} />
 ```
 
@@ -87,6 +83,8 @@
 ## 運用ルール
 
 1. ページに1回きりのクラスの並びを書かない。同じ形が2か所目に出たらここに名前を足す。
+   逆に、**使われなくなった定義はその場で消す**。2026-09-25 に `Container` / `Chip` / `SectionHeading`
+   （部品）と `CHIP_ON_INK` を削除した。いずれも使用箇所ゼロで、Figma側にも不要な部品として写っていた。
 2. `dark:` を書きそうになったら、まずセマンティックトークンで表せないかを見る。
 3. 色は `#hex` を直接書かない。`@theme` のトークン経由にする（図解の内部色など、SVGに直接渡すものだけ例外）。
 4. 角丸・影・ページ幅も同じ。`rounded-3xl` や `max-w-6xl` ではなく `rounded-card` / `max-w-page` を使う。

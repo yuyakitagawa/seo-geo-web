@@ -47,6 +47,19 @@ function checkPaints(paints, where) {
       if (p.color && "a" in p.color) throw new Error(`${where}[${i}]: paint の color に a は入れない（opacity を使う）`);
       checkColor(p.color, `${where}[${i}]`);
     }
+    if (p.type && p.type.indexOf("GRADIENT") === 0) {
+      if (!Array.isArray(p.gradientStops) || p.gradientStops.length < 2) {
+        throw new Error(`${where}[${i}]: グラデーションには stop が2つ以上要る`);
+      }
+      if (!Array.isArray(p.gradientTransform)) {
+        throw new Error(`${where}[${i}]: グラデーションには gradientTransform が要る（無いと向きが定まらない）`);
+      }
+      p.gradientStops.forEach((stop, j) => {
+        checkColor(stop.color, `${where}[${i}].gradientStops[${j}]`);
+        if (typeof stop.color.a !== "number") throw new Error(`${where}[${i}].gradientStops[${j}]: stop の色は {r,g,b,a}`);
+        if (typeof stop.position !== "number") throw new Error(`${where}[${i}].gradientStops[${j}]: position が無い`);
+      });
+    }
   });
 }
 
@@ -75,6 +88,13 @@ class Node {
   set strokes(v) { checkPaints(v, `${this.name}.strokes`); this._strokes = v; }
 
   get _isAutoLayout() { return this.layoutMode === "HORIZONTAL" || this.layoutMode === "VERTICAL"; }
+
+  // 幅を決めている軸の sizing。横並びなら primary、縦積みなら counter。
+  // FIXED でなければ、宣言した幅は内容に合わせて潰れる。
+  get _widthSizing() {
+    if (!this._isAutoLayout) return "FIXED";
+    return this.layoutMode === "HORIZONTAL" ? this.primaryAxisSizingMode : this.counterAxisSizingMode;
+  }
 
   set layoutSizingHorizontal(value) {
     if (value === "FILL" && !(this.parent && this.parent._isAutoLayout)) {
@@ -262,6 +282,7 @@ const figma = {
   createFrame() { const n = new Node("FRAME", "Frame"); page.appendChild(n); return n; },
   createText() { const n = new TextNode(); page.appendChild(n); return n; },
   createComponent() { const n = new Node("COMPONENT", "Component"); page.appendChild(n); return n; },
+  createEllipse() { const n = new Node("ELLIPSE", "Ellipse"); page.appendChild(n); return n; },
   combineAsVariants(components, parent) {
     if (!Array.isArray(components) || components.length < 2) throw new Error("combineAsVariants には2つ以上");
     const names = components.map((c) => c.name);
@@ -297,6 +318,10 @@ const figma = {
     }
   }
 };
+
+// 前の版が作った汎用 Card を置いておく。掃除されることを確かめるため。
+const staleCard = new Node("COMPONENT", "Card");
+page.appendChild(staleCard);
 
 const code = fs.readFileSync(new URL("./code.js", import.meta.url), "utf8");
 const sandbox = { figma, console, Promise, Object, Array, Math, String, Number, parseInt, JSON, setTimeout };
@@ -347,10 +372,27 @@ function inspect() {
   if (effectStyles.length !== 2) report.push(`エフェクトスタイルが2種でない: ${effectStyles.length}`);
 
   const componentNames = page.children.filter((n) => n.type === "COMPONENT" || n.type === "COMPONENT_SET").map((n) => n.name).sort();
-  const expectComponents = ["Badge", "Button", "Card", "Chip"];
+  const expectComponents = ["ArticleCard", "Badge", "Button", "Chip", "Hero", "SiteHeader"];
   expectComponents.forEach((name) => {
     if (componentNames.indexOf(name) === -1) report.push(`コンポーネントが無い: ${name}`);
   });
+
+  // 実寸で置くコンポーネントは、宣言した幅が生きていなければ内容の幅まで縮む
+  const fixedWidths = { ArticleCard: 546, SiteHeader: 1440, Hero: 1440 };
+  Object.keys(fixedWidths).forEach((name) => {
+    const node = page.children.find((n) => n.name === name);
+    if (!node) return;
+    if (node.width !== fixedWidths[name]) {
+      report.push(`${name} の幅が ${fixedWidths[name]} でない: ${node.width}`);
+    }
+    if (node._widthSizing !== "FIXED") {
+      report.push(`${name} の幅が固定されていない（${node.layoutMode} レイアウトで ${node._widthSizing}）。宣言した幅まで広がらない`);
+    }
+  });
+
+  if (page.children.some((n) => n.name === "Card" && (n.type === "COMPONENT" || n.type === "COMPONENT_SET"))) {
+    report.push("作るのをやめた Card が残っている（インスタンスが無ければ消すはず）");
+  }
 
   const sheets = page.children.filter((n) => n.name === "Design Tokens");
   if (sheets.length !== 1) report.push(`早見表フレーム Design Tokens が ${sheets.length} 枚ある（1枚であるべき）`);
