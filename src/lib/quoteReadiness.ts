@@ -25,9 +25,11 @@ export type QuoteReadinessResult = {
 type SourceBlock = { heading: string; level: number; paragraphs: string[] };
 
 const SENTENCE_END = /[。！？!?]/;
-const PREDICATE_END = /(?:です|ます|である|となる|になる|できる|必要だ|必要です|重要だ|重要です|指す|示す|含む|異なる|あります|ありません|ません|だ)[。！？!?]?$/;
+const PREDICATE_END = /(?:です|ます|である|となる|になる|できる|ください|必要だ|必要です|重要だ|重要です|指す|示す|含む|異なる|あります|ありません|ません|だ)[。！？!?]?$/;
 const INTRO_OPENING = /^(?:近年|昨今|そもそも|まず|はじめに|この記事では|ここでは|本記事では|皆さんは|では[、,]|さて[、,])/;
 const DEPENDENT_OPENING = /^(?:これ|それ|このこと|そのこと|この方法|その方法|上記|前述|先ほど|以下|このように|そのため|そこで|また[、,]|しかし[、,]|一方[、,]|つまり[、,]|したがって)/;
+const DEPENDENT_REFERENCE = /(?:こちら|上記|前述|以下)(?:です|から|へ|を|に|で|$)/;
+const GENERIC_HEADING = /^(?:概要|詳細|その他|こちら|お手続き|サービス|メニュー|ご案内|案内|情報|関連情報|.+のこと)$/;
 const CLAIM_FORM = /(?:とは.+(?:です|である|を指す)|には.+(?:必要|ある|あります)|理由は.+(?:です|である)|違いは.+(?:です|である)|するには.+(?:ます|必要|行う)|の場合.+(?:です|ます|なる)|は.+(?:です|ます|である|となる|になる|できる|を指す|を示す|を含む|と異なる))/;
 const REASON_FORM = /(?:なぜなら|理由(?:は|として)|ため(?:です|である|、|に)|ので|からです|ことから)/;
 const SPECIFICITY_FORM = /(?:例えば|具体的には|場合|ただし|一方で|に限り|によると|出典|調査|統計|\d+(?:[.,]\d+)?(?:%|％|年|月|日|円|件|人|倍|回))/;
@@ -138,6 +140,26 @@ function quoteCandidate(paragraphs: string[]): string {
   return candidate || paragraphs[0].slice(0, 240);
 }
 
+function normalizedBigrams(value: string): Set<string> {
+  const normalized = value.normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
+  const grams = new Set<string>();
+  for (let index = 0; index < normalized.length - 1; index++) grams.add(normalized.slice(index, index + 2));
+  return grams;
+}
+
+function repeatsHeading(heading: string, candidate: string): boolean {
+  if (heading.length < 8 || candidate.length < 8) return false;
+  const headingGrams = normalizedBigrams(heading);
+  const candidateGrams = normalizedBigrams(candidate);
+  if (headingGrams.size === 0 || candidateGrams.size === 0) return false;
+  const overlap = [...headingGrams].filter((gram) => candidateGrams.has(gram)).length;
+  return overlap / Math.min(headingGrams.size, candidateGrams.size) >= 0.75;
+}
+
+function looksLikeMenu(text: string): boolean {
+  return !SENTENCE_END.test(text) && text.trim().split(/\s+/).filter(Boolean).length >= 3;
+}
+
 function analyzeBlock(block: SourceBlock): QuoteBlockResult {
   const candidate = quoteCandidate(block.paragraphs);
   if (!candidate) {
@@ -146,24 +168,33 @@ function analyzeBlock(block: SourceBlock): QuoteBlockResult {
   }
 
   const firstSentence = sentences(candidate)[0] ?? candidate;
+  const menuLike = looksLikeMenu(candidate);
+  // 定義文は見出しの語を繰り返しても、その後に述語で新しい情報を足すため除外する。
+  const headingRepeated = repeatsHeading(block.heading, firstSentence) && !PREDICATE_END.test(firstSentence);
   const checks: QuoteCheck[] = [];
   if (INTRO_OPENING.test(firstSentence)) {
     checks.push({ id: "opening", label: "冒頭の直接回答", status: "fail", detail: "冒頭が前置き・予告です。結論または定義から始めてください。" });
+  } else if (menuLike) {
+    checks.push({ id: "opening", label: "冒頭の直接回答", status: "fail", detail: "本文がメニューやリンク名の列挙で、回答となる文章がありません。" });
   } else if (PREDICATE_END.test(firstSentence)) {
     checks.push({ id: "opening", label: "冒頭の直接回答", status: "pass", detail: "最初の文が述語まで完結しています。" });
   } else {
-    checks.push({ id: "opening", label: "冒頭の直接回答", status: "warn", detail: "最初の文だけでは、結論が完結しているか確認できません。" });
+    checks.push({ id: "opening", label: "冒頭の直接回答", status: "fail", detail: "最初の文が述語まで完結していません。見出しの言い換えや名詞句ではなく、回答となる文を書いてください。" });
   }
 
-  checks.push(DEPENDENT_OPENING.test(firstSentence)
-    ? { id: "context", label: "文脈からの独立", status: "fail", detail: "指示語または接続表現から始まり、前の文章への依存があります。" }
+  checks.push(DEPENDENT_OPENING.test(firstSentence) || DEPENDENT_REFERENCE.test(firstSentence)
+    ? { id: "context", label: "文脈からの独立", status: "fail", detail: "「これ」「そのため」「こちら」など、前後の文章やリンク先に依存する表現があります。" }
     : { id: "context", label: "文脈からの独立", status: "pass", detail: "前の文章を必要とする始まり方は検出されませんでした。" });
 
   const hasTopic = /(?:とは|は|が|には|の場合)/.test(firstSentence);
   const hasClaim = CLAIM_FORM.test(firstSentence) || (hasTopic && PREDICATE_END.test(firstSentence));
-  checks.push(hasClaim
-    ? { id: "claim", label: "対象と主張", status: "pass", detail: "最初の文に対象と述語があります。" }
-    : { id: "claim", label: "対象と主張", status: "warn", detail: "何について何を述べる文か、機械的には確認できませんでした。" });
+  checks.push(headingRepeated
+    ? { id: "claim", label: "対象と主張", status: "fail", detail: "本文が見出しをほぼ言い換えただけで、新しい主張や説明がありません。" }
+    : GENERIC_HEADING.test(block.heading)
+      ? { id: "claim", label: "対象と主張", status: "fail", detail: `見出し「${block.heading}」だけでは、何についての説明か特定できません。` }
+      : hasClaim
+        ? { id: "claim", label: "対象と主張", status: "pass", detail: "最初の文に対象と述語があります。" }
+        : { id: "claim", label: "対象と主張", status: "warn", detail: "何について何を述べる文か、機械的には確認できませんでした。" });
 
   checks.push(SPECIFICITY_FORM.test(candidate)
     ? { id: "specificity", label: "理由・条件・具体性", status: "pass", detail: "条件、例、数値または出典の手掛かりがあります。" }
@@ -174,8 +205,12 @@ function analyzeBlock(block: SourceBlock): QuoteBlockResult {
     : { id: "reason", label: "結論を支える理由", status: "warn", detail: "結論の根拠になる理由は検出されませんでした。" });
 
   const length = candidate.length;
-  const lengthStatus: QuoteCheckStatus = length < 20 ? "warn" : length <= 240 ? "pass" : "warn";
-  const lengthDetail = length < 20
+  const lengthStatus: QuoteCheckStatus = menuLike || headingRepeated ? "fail" : length < 20 ? "warn" : length <= 240 ? "pass" : "warn";
+  const lengthDetail = menuLike
+    ? `${length}文字ですが、文章ではなくメニューやリンク名の列挙です。`
+    : headingRepeated
+      ? `${length}文字ですが、見出しとほぼ同じ内容のため、単独の説明として成立していません。`
+      : length < 20
     ? `${length}文字です。簡潔な回答として成立する場合もありますが、説明を補えるか確認してください。`
     : length <= 240
       ? `${length}文字で、ひとまとまりとして切り出せる長さです。`
