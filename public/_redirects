@@ -1,0 +1,7 @@
+# Cloudflare Workers の静的アセット配信が読む旧URLのリダイレクト（vercel.json の redirects と同じ内容）
+/category/seo /seo 308
+/category/geo /geo 308
+/category/news /news 308
+/articles /news 308
+/tools/ai-crawlers /tools/page-audit 308
+/tools/prompt-fit /tools/site-report 308

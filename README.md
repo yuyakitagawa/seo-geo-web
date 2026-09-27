@@ -15,7 +15,8 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
   `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
 - 移行中（2026-09-27〜）: Cloudflare Workers（無料）へ移す。`wrangler.jsonc` は `out/` を静的ファイルとして配信する設定で、
   Cloudflare のビルドが Next.js を検出して OpenNext を走らせる（`output: "export"` と噛み合わず落ちる）のを止める。
-  Cloudflare の Build command は `npm run build`、ブランチのプレビューは `wrangler preview`（`previews` ブロックが要る）。Vercel 側の動作には影響しない。API・リダイレクト・ヘッダーの移行と DNS 切り替えの手順は `docs/progress_cloudflare.md`。
+  Cloudflare の Build command は `npm run build`、ブランチのプレビューは `wrangler preview`（`previews` ブロックが要る）。
+  旧URLの 308 は `public/_redirects`、OGP 画像の `Content-Type` と workers.dev の noindex は `public/_headers`（`vercel.json` と同じ内容を二重に持つ。Vercel を外すときに `vercel.json` を消す）。Vercel 側の動作には影響しない。API・リダイレクト・ヘッダーの移行と DNS 切り替えの手順は `docs/progress_cloudflare.md`。
 - ブラウザ内診断: `/tools/quote-readiness` は貼り付けたHTMLまたはMarkdownを端末内だけで解析する。生成AI API・外部API・単語一致率は使わず、見出し直後の文章が単独で切り出せる構造かをルールベースで確認する。
 - 記事: リポジトリ内 MDX（`next-mdx-remote`）。CMS不使用。
 - 計測: GA4（`NEXT_PUBLIC_GA_ID` 設定時）/ Speed Insights（無料枠 10k イベント/30日の範囲）

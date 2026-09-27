@@ -1,0 +1,18 @@
+# Cloudflare Workers の静的アセット配信が読むヘッダー。
+# OGP画像・アイコンは拡張子無しで書き出されるので Content-Type を明示する（vercel.json の headers と同じ）。
+/opengraph-image-*
+  Content-Type: image/png
+/:a/opengraph-image-*
+  Content-Type: image/png
+/:a/:b/opengraph-image-*
+  Content-Type: image/png
+/:a/:b/:c/opengraph-image-*
+  Content-Type: image/png
+/icon
+  Content-Type: image/png
+/apple-icon
+  Content-Type: image/png
+
+# workers.dev（本番URL・ブランチのプレビューとも）は本番ドメインの複製なので検索に載せない
+https://:sub.dosankoure.workers.dev/*
+  X-Robots-Tag: noindex
