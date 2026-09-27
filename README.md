@@ -16,6 +16,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 - 移行中（2026-09-27〜）: Cloudflare Workers（無料）へ移す。`wrangler.jsonc` は `out/` を静的ファイルとして配信する設定で、
   Cloudflare のビルドが Next.js を検出して OpenNext を走らせる（`output: "export"` と噛み合わず落ちる）のを止める。
   Cloudflare の Build command は `npm run build`、ブランチのプレビューは `wrangler preview`（`previews` ブロックが要る）。
+  Workers は無料プランで運用する（診断1回の CPU 時間は実測 70ms で上限 10ms を超えるが、2026-09-27 時点では止められていない。超過で止められたら $5 の有料プランか診断ツールの縮小を決め直す）。
   `/api/*` は `worker/index.ts`（Cloudflare Worker）が受けて `api/*.ts` の `POST` をそのまま呼ぶ（Vercel と同じ実装を共有）。手元では `npx wrangler dev`。
   旧URLの 308 は `public/_redirects`、OGP 画像の `Content-Type` と workers.dev の noindex は `public/_headers`（`vercel.json` と同じ内容を二重に持つ。Vercel を外すときに `vercel.json` を消す）。Vercel 側の動作には影響しない。API・リダイレクト・ヘッダーの移行と DNS 切り替えの手順は `docs/progress_cloudflare.md`。
 - ブラウザ内診断: `/tools/quote-readiness` は貼り付けたHTMLまたはMarkdownを端末内だけで解析する。生成AI API・外部API・単語一致率は使わず、見出し直後の文章が単独で切り出せる構造かをルールベースで確認する。

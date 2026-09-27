@@ -27,7 +27,11 @@
       この環境は外へ出られないので、実サイトの取得（名前解決〜判定）は未検証。
 - [x] プレビューで `/tools/page-audit` が動作（seo-geo-lab.com: HTTP 200・200KB・0.3秒で判定まで完了）。
 - [x] `observability.enabled` を追加（未設定だと Observability にイベントが1件も出なかった）。
-- [ ] プレビューで実サイトを診断して動作と CPU 時間（無料 10ms/回）を確認（ユーザー。Cloudflare の Observability で CPU time を見る）。
+- [x] CPU 時間を実測（2026-09-27、Workers Logs）: `/api/audit` で seo-geo-lab.com（200KB）を診断 → `cpuTimeMs: 70` / `wallTimeMs: 347` / `outcome: ok`。
+      無料プランの上限（10ms/回）の7倍だが止められずに完了した。起動直後の1回なので、起動処理の分を含む可能性がある。
+- [x] **判断: Workers Free のまま運用する**（運営者、2026-09-27）。超過が続いて `exceededCpu`（エラー 1102）で止められるようになったら、
+      Workers Paid（$5/月）に上げるか診断ツールを減らすかを決め直す。止められたときフォームには「通信に失敗しました」と出る。
+      見張り方: Observability で `outcome` が `ok` 以外の `/api/*` を探す。
 - [ ] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
       お問い合わせフォームはビルド時にも env を見て表示を決める（`CONTACT_FORM_ENABLED`）ので、同じものを Build 側にも入れる。
 - [ ] 商用SEOクローラー8種の遮断を Cloudflare WAF に移す（`src/lib/scrapers.ts`）。
