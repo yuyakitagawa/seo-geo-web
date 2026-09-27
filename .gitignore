@@ -56,3 +56,5 @@ data/
 
 # wrangler dev のローカルキャッシュ
 /.wrangler/
+# wrangler dev の秘密情報（ローカル専用）
+/.dev.vars

@@ -18,8 +18,16 @@
 - [x] `*.dosankoure.workers.dev`（本番URL・ブランチのプレビュー）に `X-Robots-Tag: noindex`（`_headers` のホスト指定）。
       `wrangler dev --host claude-x-seo-geo-web.dosankoure.workers.dev` で noindex が付き、localhost では付かないことを確認。
       本番ドメインへ切り替えたあとも workers.dev 側は noindex のまま残る。
-- [ ] API（audit / site-report / quote-readiness / contact）を Worker の `main` に載せ替え。`fetchPage.ts` の `node:dns` 依存を外す。
-      連打制限は Cloudflare の Rate Limiting ルールへ。CPU 時間（無料 10ms/回）を実測する。
+- [x] API（audit / site-report / quote-readiness / contact）を Worker に載せた。`worker/index.ts` が `/api/*` だけ受けて `api/*.ts` の `POST` に渡す
+      （中身は Vercel と共通。`run_worker_first: ["/api/*"]` なのでページ配信では Worker が起動しない）。
+      `nodejs_compat` で `node:dns` `node:net` と `process.env` が動くので、`fetchPage.ts` は書き換えていない（workerd の `node:dns` は DoH で解決する）。
+      `x-forwarded-for` は送り主が書けるので、Worker で `cf-connecting-ip` に置き換えてから渡す。
+      `wrangler dev` で検証: ページ 200、旧URL 308、`GET /api/audit` 405、Origin 無し・別サイト 403、10.0.0.1 / localhost 拒否、
+      同一IPの連打で `400,400,400,429,429,429`、`.dev.vars` に LINE の env を入れると contact が 503 でなくなる（process.env が読めている）。
+      この環境は外へ出られないので、実サイトの取得（名前解決〜判定）は未検証。
+- [ ] プレビューで実サイトを診断して動作と CPU 時間（無料 10ms/回）を確認（ユーザー。Cloudflare の Observability で CPU time を見る）。
+- [ ] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
+      お問い合わせフォームはビルド時にも env を見て表示を決める（`CONTACT_FORM_ENABLED`）ので、同じものを Build 側にも入れる。
 - [ ] 商用SEOクローラー8種の遮断を Cloudflare WAF に移す（`src/lib/scrapers.ts`）。
 - [ ] ドメインを Cloudflare に追加 → ネームサーバー変更 → Custom domain 設定（ユーザー）。
 - [ ] 数日様子を見て Vercel を解約し、`vercel.json` `api/tsconfig.json` `verify:api` など Vercel 専用のものを削除。
