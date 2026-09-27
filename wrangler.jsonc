@@ -1,0 +1,11 @@
+// Cloudflare Workers の設定（静的ファイルの配信だけ。移行の経緯は docs/progress_cloudflare.md）。
+// これが無いと Cloudflare のビルドが Next.js を検出して OpenNext を走らせ、output: "export" と噛み合わずに落ちる。
+{
+  "name": "seo-geo-web",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}
