@@ -6,6 +6,9 @@
   // fetchPage.ts の node:dns / node:net と、src/lib が読む process.env のため
   "compatibility_flags": ["nodejs_compat"],
   "main": "worker/index.ts",
+  // ダッシュボードで入れた実行時の変数（SUPABASE_* など）を、Git からのデプロイで消さない。
+  // これが無いと wrangler deploy が設定ファイルに無い変数を削除する（2026-09-28、マージ直後の本番デプロイで消えた）
+  "keep_vars": true,
   // Workers Logs（Observability）に /api/* の実行ログと CPU 時間を残す。無料枠は 1日20万件で、ページ配信は Worker を通らないので数えない
   "observability": { "enabled": true },
   // ブランチの push は `wrangler preview` でプレビューを出す。このブロックが無いとそのコマンドが落ちる（中身は空でよい）

@@ -32,6 +32,8 @@
 - [x] **判断: Workers Free のまま運用する**（運営者、2026-09-27）。超過が続いて `exceededCpu`（エラー 1102）で止められるようになったら、
       Workers Paid（$5/月）に上げるか診断ツールを減らすかを決め直す。止められたときフォームには「通信に失敗しました」と出る。
       見張り方: Observability で `outcome` が `ok` 以外の `/api/*` を探す。
+- [x] main へマージ（#102、2026-09-28）。本番ビルドは成功したが、`NEXT_PUBLIC_*` を実行時の欄に入れていたためビルドに効かず、canonical 等が `http://localhost:3000` になった。
+      さらに `wrangler deploy` がダッシュボードの実行時の変数を消した → `keep_vars: true` を追加。
 - [ ] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
       お問い合わせフォームはビルド時にも env を見て表示を決める（`CONTACT_FORM_ENABLED`）ので、同じものを Build 側にも入れる。
 - [ ] 商用SEOクローラー8種の遮断を Cloudflare WAF に移す（`src/lib/scrapers.ts`）。
