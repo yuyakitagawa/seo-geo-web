@@ -13,7 +13,8 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
   `next.config.ts` では扱えなくなった旧URLのリダイレクト、OGP 画像の `Content-Type`、API の実行時間上限は `vercel.json` に置く。
 - API: ルート直下の `api/`（Vercel Functions。`api/audit.ts` `api/site-report.ts` `api/contact.ts`）。URL は `/api/*` のまま。
   `next dev` では動かないので、ツールのフォームまで手元で試すときは `vercel dev` を使う。
-- 移行中（2026-09-27〜）: Cloudflare Workers（無料）へ移す。`wrangler.jsonc` は `out/` を静的ファイルとして配信する設定で、
+- 2026-09-29 に本番（seo-geo-lab.com）の配信を Cloudflare Workers（無料）へ切り替えた。DNS も Cloudflare（ドメイン登録はお名前.com のまま）。www→素のドメインの301は Redirect Rules、商用SEOクローラー8種の遮断は Security rules（Custom rules）。Vercel は数日様子を見てから解約する。
+- 移行の記録（2026-09-27〜）:`wrangler.jsonc` は `out/` を静的ファイルとして配信する設定で、
   Cloudflare のビルドが Next.js を検出して OpenNext を走らせる（`output: "export"` と噛み合わず落ちる）のを止める。
   Cloudflare の Build command は `npm run build`、ブランチのプレビューは `wrangler preview`（`previews` ブロックが要る）。
   `NEXT_PUBLIC_*` はビルド時に埋め込まれるので、Cloudflare では **Settings → Builds → Variables and secrets**（ビルド用）に入れる（実行時の欄に入れても効かない）。実行時の変数（`SUPABASE_*`）は `keep_vars: true` で Git からのデプロイでも消えない。

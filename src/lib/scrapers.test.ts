@@ -6,8 +6,8 @@
 // CLAUDE.md に「同期する」と書いてあるだけでは守られないので、変更したらここで落として気づかせる。
 //
 // 一覧を意図して変えたときは、次を実行してから期待値を更新する:
-//   vercel firewall rules edit "Deny commercial SEO crawlers"
-//   vercel firewall rules list --expand   # 反映を確認
+//   Cloudflare ダッシュボード → seo-geo-lab.com → Security → Security rules →
+//   Custom rules「Deny commercial SEO crawlers」の式（http.user_agent contains "…" の OR）を直す
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BLOCKED_SCRAPERS } from "./scrapers";
@@ -29,7 +29,7 @@ test("拒否する一覧が Vercel Firewall のルールと同じ", () => {
   assert.deepEqual(
     BLOCKED_SCRAPERS.map((s) => s.token),
     SYNCED_WITH_FIREWALL,
-    "一覧を変えたら `vercel firewall rules edit \"Deny commercial SEO crawlers\"` で Firewall も直してから、この期待値を更新する"
+    "一覧を変えたら Cloudflare の Custom rules「Deny commercial SEO crawlers」も直してから、この期待値を更新する"
   );
 });
 
