@@ -34,8 +34,12 @@
       見張り方: Observability で `outcome` が `ok` 以外の `/api/*` を探す。
 - [x] main へマージ（#102、2026-09-28）。本番ビルドは成功したが、`NEXT_PUBLIC_*` を実行時の欄に入れていたためビルドに効かず、canonical 等が `http://localhost:3000` になった。
       さらに `wrangler deploy` がダッシュボードの実行時の変数を消した → `keep_vars: true` を追加。
-- [ ] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
+- [x] 実行時の変数（ユーザー。Settings → Variables and Secrets）: `SUPABASE_URL` `SUPABASE_PUBLISHABLE_KEY` と、LINE / Resend の一式。
       お問い合わせフォームはビルド時にも env を見て表示を決める（`CONTACT_FORM_ENABLED`）ので、同じものを Build 側にも入れる。
-- [ ] 商用SEOクローラー8種の遮断を Cloudflare WAF に移す（`src/lib/scrapers.ts`）。
-- [ ] ドメインを Cloudflare に追加 → ネームサーバー変更 → Custom domain 設定（ユーザー）。
+- [x] 商用SEOクローラー8種の遮断を Cloudflare WAF に移した（2026-09-29。Security rules → Custom rules「Deny commercial SEO crawlers」、`http.user_agent contains` の OR で8種、Action: Block）。
+- [x] 本番の Worker で確認（2026-09-28）: GA（`G-YD43872M17`）・canonical が `https://seo-geo-lab.com`・`/tools/page-audit` の記録が Supabase に入る（sb_publishable キーで可）。
+- [x] ドメインを Cloudflare に追加（Free。DNS は A/CNAME/TXT の3件で、お名前.com 側と一致）→ お名前.com でネームサーバー変更 → Worker に Custom domain `seo-geo-lab.com`（2026-09-29）。
+      確認: レスポンスに `server: cloudflare`・`cf-ray: …-NRT`。Bot Preference Sync はオフ（robots.txt はコードだけで管理）。
+- [x] www → 素のドメインへ 301（Redirect Rules のテンプレート「Redirect from WWW to Root」、Preserve query string オン。`www` の CNAME は Proxied）。
+- [ ] Search Console の URL 検査で、本番に noindex が付いていないことを確認。
 - [ ] 数日様子を見て Vercel を解約し、`vercel.json` `api/tsconfig.json` `verify:api` など Vercel 専用のものを削除。
