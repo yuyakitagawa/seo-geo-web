@@ -22,7 +22,7 @@ import SourceBadge from "@/components/SourceBadge";
 import { MDX_FIGURES } from "@/components/figures";
 import { getAllArticles, getArticle, getRelatedArticles } from "@/lib/content";
 import { enArticlePath, getEnArticleById } from "@/lib/content-en";
-import { supersededBy } from "@/lib/indexability";
+import { isIndexableArticle, supersededBy } from "@/lib/indexability";
 import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { ogImageUrl } from "@/lib/ogImage";
 import { extractToc } from "@/lib/toc";
@@ -39,9 +39,8 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
   const { slug } = await params;
   const article = getArticle(slug);
   if (!article) return {};
-  // 続報に置き換えられた記事は同じクエリで最新版と食い合うので、インデックスさせず
-  // リンクだけ辿らせる（sitemap からも外れる。判定は src/lib/indexability.ts に集約）。
-  const superseded = supersededBy(article);
+  // 続報に置き換えられた記事と要約記事はインデックスさせず、リンクだけ辿らせる
+  // （sitemap からも外れる。判定は src/lib/indexability.ts に集約）。
   // 英語版がある記事（独自記事）は hreflang で相互に宣言する。x-default は日本語版。
   const en = getEnArticleById(article.id);
   return {
@@ -63,7 +62,7 @@ export async function generateMetadata({ params }: PageProps<"/articles/[slug]">
       modifiedTime: article.updated,
       tags: article.tags,
     },
-    ...(superseded ? { robots: { index: false, follow: true } } : {}),
+    ...(isIndexableArticle(article) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

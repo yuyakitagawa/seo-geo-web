@@ -11,13 +11,18 @@ import { TAG_MIN_ARTICLES } from "./site";
 // タグページ
 // ---------------------------------------------------------------------------
 
-/** インデックス対象のタグ（TAG_MIN_ARTICLES 以上の記事を持つもの） */
+// 数えるのはインデックス対象の記事だけ。noindex の要約記事ばかりのタグページは、
+// インデックスさせても「noindex の記事へのリンク集」にしかならない。
+
+/** インデックス対象のタグ（インデックス対象の記事を TAG_MIN_ARTICLES 本以上持つもの） */
 export function indexableTags(): { tag: string; count: number }[] {
-  return getAllTags().filter((t) => t.count >= TAG_MIN_ARTICLES);
+  return getAllTags()
+    .map(({ tag }) => ({ tag, count: getArticlesByTag(tag).filter(isIndexableArticle).length }))
+    .filter((t) => t.count >= TAG_MIN_ARTICLES);
 }
 
 export function isIndexableTag(tag: string): boolean {
-  return getArticlesByTag(tag).length >= TAG_MIN_ARTICLES;
+  return getArticlesByTag(tag).filter(isIndexableArticle).length >= TAG_MIN_ARTICLES;
 }
 
 // ---------------------------------------------------------------------------
@@ -61,12 +66,39 @@ export function supersededBy(article: Article): Article | undefined {
   return supersessionMap().get(article.slug);
 }
 
-/** インデックス対象の記事か。置き換えられた記事だけが false になる */
-export function isIndexableArticle(article: Article): boolean {
+/** 置き換えられていない（＝その話題の最新版の）記事か */
+export function isCurrentArticle(article: Article): boolean {
   return !supersessionMap().has(article.slug);
 }
 
-/** sitemap に載せる記事（置き換えられたものを除く） */
+/** 置き換えられた記事を除いた一覧。内部リンク・教科書の参照先はこちら（要約記事も読者には有用なので残す） */
+export function currentArticles(): Article[] {
+  return getAllArticles().filter(isCurrentArticle);
+}
+
+// ---------------------------------------------------------------------------
+// 要約記事（2026-09-29〜）
+// ---------------------------------------------------------------------------
+//
+// 英語ニュースをAIで日本語に要約した記事（type: news かつ original でない）は noindex, follow にし、
+// sitemap からも外す。ページは残すので読者・内部リンク・RSSは壊れない。
+//
+// 理由: 公開85本のうち59本がこの型（Search Engine Journal だけで23本）。GSC3か月で記事84本の表示85回に対し
+// ハブ2枚で139回と、検索にはほぼ寄与していない。一方でGoogleはこの型（他サイトの要約を大量に生成したもの）を
+// サイト全体の評価を下げる対象にしている。インデックスを独自記事・HOW TO・ハブに絞る。経緯は docs/progress_seo-recovery.md。
+// 要約を一次情報との照合・加筆で独自記事にしたら `original: true` を付ければインデックス対象に戻る。
+
+/** AI要約のニュース記事か（インデックスさせない） */
+export function isSummaryArticle(article: Pick<Article, "type" | "original">): boolean {
+  return article.type === "news" && !article.original;
+}
+
+/** インデックス対象の記事か。置き換えられた記事と要約記事が false になる */
+export function isIndexableArticle(article: Article): boolean {
+  return isCurrentArticle(article) && !isSummaryArticle(article);
+}
+
+/** sitemap に載せる記事 */
 export function indexableArticles(): Article[] {
   return getAllArticles().filter(isIndexableArticle);
 }

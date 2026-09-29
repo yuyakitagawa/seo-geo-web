@@ -8,7 +8,7 @@ import { CASES } from "@/lib/cases";
 import type { LevelKey } from "@/lib/curriculum";
 import { COURSE, LESSONS, LEVELS, LEVEL_KEYS, courseArticleJsonLd, courseJsonLd, lessonNo, lessonPath, lessonsByLevel } from "@/lib/curriculum";
 import { jpDate } from "@/lib/guides";
-import { indexableArticles } from "@/lib/indexability";
+import { currentArticles } from "@/lib/indexability";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { EYEBROW, HEADING, LIFT, PADDING, PROSE, SURFACE, cx } from "@/lib/ui";
 
@@ -24,7 +24,7 @@ const SOURCE_URLS = new Set(LESSONS.flatMap((l) => l.sources.map((s) => s.url)))
  * （src/lib/indexability.ts の方針と同じく、内部リンクはインデックス対象の記事だけに張る）。
  */
 function articlesFromLessonSources() {
-  return indexableArticles()
+  return currentArticles()
     .filter((a) => a.sources.some((s) => SOURCE_URLS.has(s.url)))
     .slice(0, 4);
 }

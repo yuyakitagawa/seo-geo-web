@@ -2,7 +2,7 @@
 // 媒体の性格・図解・文体をずらさないため、共有する指示はここ1か所だけに置く。
 import { LESSONS } from "../src/lib/curriculum";
 import { getAllArticles } from "../src/lib/content";
-import { indexableArticles } from "../src/lib/indexability";
+import { currentArticles } from "../src/lib/indexability";
 
 export const MEDIA_INTRO = `あなたは日本語のSEO/GEO専門メディアの編集者です。読者は事業会社・制作会社でSEO/GEOを担当している実務者で、
 「自社サイトのどこが動くのか」「何をすればいいのか」を知るために読みます。`;
@@ -137,7 +137,7 @@ export function linkTargets({ category, maxArticles = 12 }: { category?: string;
     .sort((a, b) => a.order - b.order)
     .map((l) => ({ href: `/learn/${l.slug}`, label: `教科書レッスン${String(l.order).padStart(2, "0")}「${l.title}」: ${l.goal}` }));
 
-  const indexable = new Set(indexableArticles().map((a) => a.slug));
+  const indexable = new Set(currentArticles().map((a) => a.slug));
   const articles = getAllArticles()
     .filter((a) => !a.draft && indexable.has(a.slug))
     .sort((a, b) => {

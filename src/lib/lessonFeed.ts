@@ -1,6 +1,6 @@
 import type { ArticleMeta } from "./content";
 import { LESSONS, type Lesson } from "./curriculum";
-import { indexableArticles } from "./indexability";
+import { currentArticles } from "./indexability";
 import { adoptedForLesson, type Knowhow } from "./knowhow";
 
 // 教科書（/learn）と、毎朝生成される記事をつなぐ場所。
@@ -23,7 +23,7 @@ import { adoptedForLesson, type Knowhow } from "./knowhow";
  * `npm run learn-gap` やテストでは下書きが混ざり、未判定の遅れや候補0本の判定が狂う。
  */
 export function feedArticles(): ArticleMeta[] {
-  return indexableArticles().filter((a) => !a.draft);
+  return currentArticles().filter((a) => !a.draft);
 }
 
 /** 記事側の検索対象。title / description / tags を1本の文字列にする */
