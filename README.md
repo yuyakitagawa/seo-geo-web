@@ -35,7 +35,7 @@ SEOとGEO（生成AI検索最適化。AIO/LLMOと呼ばれる領域を含む）�
 | `/news` | 記事アーカイブ。新着12本＋タグ一覧＋公開月ごとの過去記事（すべてカード） |
 | `/tag/[tag]` | タグ別一覧 |
 | `/seo` `/geo` | 用語の解説（「SEO対策とは」「GEO対策とは」）＋そのカテゴリの記事一覧。定義1文＋要点3つ＋比較表＋FAQ＋一次情報。**手順は置かず `/learn` へ送る**（本文の中ほどに `NextStep` で教科書への導線を出す）。Botの解説は両ページに置く（`/seo` はGoogleの3分類＝一般的なクローラー／特殊なケース用／ユーザー トリガー フェッチャーとGooglebotの動き、`/geo` はAI側の4種類＝検索インデックス用／AI検索インデックス用／ユーザー起点フェッチャー／モデル学習用）。データは `src/lib/guides.ts`、部品は `src/components/guide.tsx`（Article + DefinedTerm + FAQPage + BreadcrumbList JSON-LD） |
-| `/glossary` | SEO・GEO用語集。80語を5分野に分け（2026-09-13に41語→80語。「seo用語集」で98.6位だったため。`docs/progress_gsc-2026-09.md`）、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts`、崩れやすい約束（定義は1文・その語を含む・出典は確認済みドメイン）は `src/lib/glossary.test.ts` が見張る |
+| `/glossary` | SEO・GEO用語集。89語を5分野に分け（2026-09-13に41語→80語。「seo用語集」で98.6位だったため。`docs/progress_gsc-2026-09.md`。2026-09-29に内部リンク・hreflang等の基本語9語を追加。`docs/progress_seo-recovery.md`）、1語につき1文の定義＋実務メモ＋一次情報リンクで出す（DefinedTermSet + DefinedTerm JSON-LD）。データは `src/lib/glossary.ts`、崩れやすい約束（定義は1文・その語を含む・出典は確認済みドメイン）は `src/lib/glossary.test.ts` が見張る |
 | `/learn` | SEO・GEO教科書の目次。3レベル14レッスンのロードマップ＋「最初の90日でやること」（レッスンをカレンダーに割り当てた着手順＋「直す候補が大量に出たときの並べ方」＝3段の優先度と1件6項目の書式）＋「参考記事を見ながら加筆しています」（何を見て加筆しているか・加筆のルール・レッスンと出典URLが一致するサイト内記事。記事の抽出は出典URLの一致だけで行い、タイトルの類似は使わない）。Article + ItemList JSON-LD。データは `src/lib/curriculum.ts` |
 | `/learn/[slug]` | 各レッスン。到達目標・チェックリスト・FAQ・出典・前後ナビを `src/components/lesson.tsx` の `LessonShell` が固定の順番で出す（Article + LearningResource + FAQPage + BreadcrumbList JSON-LD）。実例データは `src/lib/cases.ts` |
 | `/tools` | SEO・GEO診断ツール（表示名は「診断ツール」。ヘッダー・パンくず・H1・title・OGP・`src/lib/nav.ts` で統一。自作の無料診断ツールを先に置き、その下に**1件1枚のカード**（GEO／SEO × 国内／海外の4セクション。各セクションは**無料枠の有無で「無料あり」「有料のみ」の子見出し（h4）に分ける**。料金が最初の分かれ目なので無料を先に置き、片方が0件のときは見出しごと出さない。2026-09-20追加）。**表は置かない**（2026-09-20変更。2026-09-13に足した全件の比較表は、同じ52件をカードと二重に出していたためカードへ一本化した。表だけが持っていた件数・無料枠の合計・独立性の明記は一覧のリードに移した。カードは `note`（1件ずつの説明文）と公式リンクを持ち、表はそれを持てなかった）。比較のデータは `content/tools.json`。運営者が公式ページを確認したものだけ掲載、ItemList JSON-LD）。**提供元とは無関係の独自掲載であることを明記する**（2026-09-20追加。ページ冒頭のリード・ツール一覧のリード・「掲載基準」の3か所に「提供元とは関係がない／依頼・監修・対価を受けていない／アフィリエイトリンクを使っていない／コメントは運営者の見解」を書く。掲載料を受け取った掲載と誤解されないため。`content/tools.json` にアフィリエイトパラメータ付きのURLを入れるとこの記載が虚偽になるので入れない）。他社ツールはカードで出し、外部への遷移は「公式ページを開く ↗」のボタンだけにする（カード全体は押せない）。確認日は各ツールではなくページ上部の更新日にまとめる。「種別」バッジの用語解説（AI可視性計測／AI対応診断）は**一覧の直下に1段落**で置く（2026-09-20変更。意味が分からなかった人だけが読めばよいので、一覧より前に大きな解説ブロックを置かない） |
@@ -464,6 +464,8 @@ Suganthan Mohanadasan の調査は57会話・取得3,554ページ・引用110件
 - **拒否する商用クローラー** `src/lib/scrapers.ts`: 自サイトの `robots.txt` で `Disallow: /` にする8種（Ahrefs/Semrush/Moz×2/Majestic/DataForSEO/Babbar/Serpstat。
   トークンは各社の公式ページで確認。verified 日付つき）。AI検索・AI学習・検索エンジンは1つも止めない（読者に届く経路なので通す）。
   止めるのは、読者を連れて来ないのに全ページを巡回して関数実行と帯域だけを消費する相手だけ。`src/lib/crawlers.ts` とは目的が違うので混ぜない。
+- **自サイトの robots.txt** `src/app/robots.ts`: `/api/` と `/*.txt$`（静的エクスポートが書き出すRSCペイロード。HTMLの約5倍の本数で、
+  GSCのクロールの統計で72%を占めていた）を拒否し、`/llms.txt` `/ads.txt` は長い一致の Allow で通す。約束は `src/lib/siteRobots.test.ts`。
 - **robots.txt の判定ロジック** `src/lib/robots.ts`: 前方一致でグループを選び、最長一致が勝ち、同長ならAllowが勝つ（RFC 9309 / Google仕様）。
 - **URL取得の安全策** `src/lib/fetchPage.ts`: http/https と 80/443 のみ、名前解決先がプライベート・ループバック・リンクローカルなら拒否（リダイレクトの各ホップで再検査）、
   12秒タイムアウト、2MB上限。結果は保存しない。`/api/audit` と `/api/site-report` がこの1実装を使う。
@@ -770,7 +772,11 @@ npm run tools-gap [日数]      # 「ツール検知」候補のうち /tools �
   「◯◯の最新動向は？」のような包括クエリにそのまま答えるパッセージをAI検索に渡す。
 - **インデックス判定は `src/lib/indexability.ts` に集約する**。ページ側（robots メタ）・sitemap 側・内部リンク側で
   条件がずれると「サイトマップに載っているのに noindex」という矛盾をGoogleに送ることになる。判定を足すときは必ずここに書く。
-  - 薄いタグページ: 記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定3）本未満のタグは `noindex, follow` ＋ sitemap 除外。
+  - **要約記事（2026-09-29〜）**: `type: news` かつ `original` でない記事（英語ニュースのAI要約）は `noindex, follow` ＋ sitemap 除外。
+    公開85本中59本がこの型で検索にはほぼ寄与せず、Googleが大量生成の要約をサイト全体の評価を下げる対象にしているため、
+    インデックスを独自記事・HOW TO・ハブに絞った。ページ・RSS・内部リンクは残す。独自記事に仕上げたら `original: true` で戻る。
+    内部リンク・教科書の参照先は `currentArticles()`（置き換え済みだけを除く）、sitemap とrobotsメタは `isIndexableArticle()`。経緯は `docs/progress_seo-recovery.md`。
+  - 薄いタグページ: **インデックス対象の**記事が `TAG_MIN_ARTICLES`（`src/lib/site.ts`、既定3）本未満のタグは `noindex, follow` ＋ sitemap 除外。
     ページ自体は残すので内部リンクの経路としては機能する。
   - 同じ話題のカニバリ対策: 続報が前の記事を置き換えたときは、新しい記事の frontmatter に `supersedes: <古い記事のid>` を書く。
     指定された記事は `noindex, follow` ＋ sitemap 除外になり、本文の冒頭から最新版へ送られる。

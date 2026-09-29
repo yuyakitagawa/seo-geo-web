@@ -14,6 +14,13 @@ export const dynamic = "force-static";
 // 方針: AI検索・AI学習・検索エンジンのクローラー（src/lib/crawlers.ts）はすべて通す。読者に届く経路だから。
 // 通さないのは、読者を1人も連れて来ないのに全ページを巡回する商用SEOクローラーだけ（src/lib/scrapers.ts）。
 // 2026-09-03、Hobbyプランの上限超過でサイトが停止したため追加した。実リクエストの99%がボットだった。
+// output: "export" はページごとに RSC ペイロード（`*.txt`）を書き出し、HTML の約5倍の本数になる。
+// 中身は HTML に全部入っているので、これはクライアント遷移のプリフェッチ用でしかない。
+// GSC のクロールの統計（2026-09）で「その他のファイル形式」が72%・HTMLは12%だったため、クロールを HTML に回す。
+// 本物のテキストファイル（llms.txt / ads.txt）は Allow の方が長い一致なので通る（Google・Bing は最長一致）。
+const DISALLOW = ["/api/", "/*.txt$"];
+const ALLOW = ["/", "/llms.txt", "/ads.txt"];
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -21,11 +28,11 @@ export default function robots(): MetadataRoute.Robots {
       // /api/* は診断ツールのPOST専用エンドポイントで、GETすると405を返すだけの非コンテンツ。
       // クロールされてもインデックス対象が増えず、Search Consoleに「見つかりませんでした」系の
       // レポートを積み、関数実行だけ増えるので、どのグループでもクロール自体を止める。
-      { userAgent: NO_DELAY, allow: "/", disallow: "/api/" },
+      { userAgent: NO_DELAY, allow: ALLOW, disallow: DISALLOW },
       {
         userAgent: "*",
-        allow: "/",
-        disallow: "/api/",
+        allow: ALLOW,
+        disallow: DISALLOW,
         // 名前の分かっているクローラーは上のグループで受けるので、ここに残るのは名乗らない相手だけ。
         crawlDelay: 5,
       },

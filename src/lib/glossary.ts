@@ -83,6 +83,13 @@ const S = {
   crawlingCaching: { title: "Crawling December: HTTP caching", publisher: "Google 検索セントラル ブログ", url: "https://developers.google.com/search/blog/2024/12/crawling-december-caching" },
   aiOptimization: { title: "AI 検索での成功に向けたガイド", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide?hl=ja" },
   crawlStats: { title: "クロールの統計情報レポート", publisher: "Search Console ヘルプ", url: "https://support.google.com/webmasters/answer/9679690?hl=ja" },
+  links: { title: "Google のリンクに関するベスト プラクティス", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/links-crawlable?hl=ja" },
+  qualifyLinks: { title: "外部リンクの rel 属性（nofollow/ugc/sponsored）", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links?hl=ja" },
+  images: { title: "画像 SEO のベスト プラクティス", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/google-images?hl=ja" },
+  hreflang: { title: "ページのローカライズ版について Google に知らせる", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/specialty/international/localized-versions?hl=ja" },
+  mobileFirst: { title: "モバイルサイトとモバイルファースト インデックスに関するおすすめの方法", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing?hl=ja" },
+  redirects: { title: "リダイレクトと Google 検索", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/crawling-indexing/301-redirects?hl=ja" },
+  discover: { title: "Google Discover の概要、掲載、表示方法", publisher: "Google 検索セントラル", url: "https://developers.google.com/search/docs/appearance/google-discover?hl=ja" },
   bingCrawlers: { title: "Which crawlers does Bing use?", publisher: "Microsoft Bing Webmaster Tools", url: "https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0" },
 } as const;
 
@@ -203,6 +210,26 @@ export const GLOSSARY: GlossaryTerm[] = [
     note: "旧「ウェブマスター向けガイドライン」にあたります。SEOで最初に確認する公式の基準はここです。",
     seeAlso: [{ href: "/seo", label: "SEO対策とは（詳しい解説）" }],
     source: S.essentials,
+  },
+  {
+    slug: "pagerank",
+    term: "PageRank",
+    aliases: ["ページランク", "リンク分析"],
+    category: "basics",
+    definition:
+      "PageRankとは、ページ間の相互リンクをもとにページを評価する仕組みで、Googleがサービス開始当初から使っているコアランキングシステムの一つです。",
+    note: "仕組みは当初から大きく進化していますが、今もコアランキングシステムの一部として動いています。",
+    seeAlso: [{ href: "/glossary#link-spam", label: "リンクスパム" }],
+    source: S.rankingSystems,
+  },
+  {
+    slug: "discover",
+    term: "Google Discover",
+    aliases: ["Discover", "ディスカバー"],
+    category: "basics",
+    definition:
+      "Google Discoverとは、Google検索の一部として、ウェブとアプリのアクティビティに基づきユーザーの興味に関連するコンテンツを表示する機能です。",
+    source: S.discover,
   },
   // ---------------------------------------------------------------- テクニカル
   {
@@ -472,6 +499,78 @@ export const GLOSSARY: GlossaryTerm[] = [
       "FAQPage とは、1ページに載せた「質問と、その公式な答え」の組を検索エンジンに伝えるための構造化データの型です。",
     note: "リッチリザルトとして表示される条件はGoogleの検索ギャラリーに記載があり、対象は限定されています。",
     source: S.gallery,
+  },
+  {
+    slug: "internal-link",
+    term: "内部リンク",
+    aliases: ["internal link", "サイト内リンク"],
+    category: "technical",
+    definition:
+      "内部リンクとは、同じサイトのページどうしを結ぶリンクのことで、検索エンジンがページを見つけ、ページ同士の関係を理解する手がかりになります。",
+    note: "Googleは、見つけてほしいすべてのページに、同じサイトの少なくとも1つ以上の別ページからリンクを張ることを勧めています。",
+    seeAlso: [{ href: "/tools/site-report", label: "サイト修正提案書で孤立ページを調べる" }],
+    source: S.links,
+  },
+  {
+    slug: "anchor-text",
+    term: "アンカーテキスト",
+    aliases: ["anchor text", "リンクテキスト"],
+    category: "technical",
+    definition:
+      "アンカーテキストとは、リンクとして表示される文字列のことで、ユーザーとGoogleにリンク先のページの内容を伝えます。",
+    note: "Googleがクロールできるのは原則として href 属性を持つ <a> 要素のリンクだけです。画像リンクでは img 要素の alt 属性がアンカーテキストとして使われます。",
+    source: S.links,
+  },
+  {
+    slug: "nofollow",
+    term: "nofollow",
+    aliases: ["rel=\"nofollow\"", "rel=\"sponsored\"", "rel=\"ugc\"", "rel属性"],
+    category: "technical",
+    definition:
+      "nofollowとは、リンクに付ける rel 属性の値の一つで、そのリンクとサイトを関連付けたくない場合やリンク先をクロールさせたくない場合に使うものです。",
+    note: "広告や有料のリンクには rel=\"sponsored\"、コメントやフォーラム投稿などユーザー作成コンテンツのリンクには rel=\"ugc\" を使い、どちらにも当たらないときに nofollow を使います。",
+    source: S.qualifyLinks,
+  },
+  {
+    slug: "alt",
+    term: "alt属性",
+    aliases: ["代替テキスト", "alt text", "altテキスト"],
+    category: "technical",
+    definition:
+      "alt属性とは、img 要素に書く代替テキストで、画像の内容を検索エンジンと画像を見られないユーザーに伝えるものです。",
+    note: "Googleは画像に関する最も重要なメタデータとしており、内容に沿った説明を書き、キーワードを羅列しないよう求めています。",
+    source: S.images,
+  },
+  {
+    slug: "hreflang",
+    term: "hreflang",
+    aliases: ["hreflang属性", "x-default"],
+    category: "technical",
+    definition:
+      "hreflangとは、言語や地域ごとに別バージョンのあるページについて、その対応関係をGoogleに伝え、ユーザーの言語や地域に合ったバージョンを表示させるための指定です。",
+    note: "ページXがYを指すなら、YもXを指す相互の指定が必要で、片方向だとアノテーションが無視されることがあります。どの言語にも当てはまらないユーザー向けには x-default を使います。",
+    source: S.hreflang,
+  },
+  {
+    slug: "mobile-first-indexing",
+    term: "モバイルファーストインデックス",
+    aliases: ["MFI", "mobile-first indexing", "モバイルファーストインデックス登録"],
+    category: "technical",
+    definition:
+      "モバイルファーストインデックスとは、Googleがインデックス登録とランキングに、スマートフォン用のクローラーで取得したモバイル版のコンテンツを使う仕組みです。",
+    note: "Googleは、モバイル版にもPC版と同じコンテンツ・構造化データ・画像の代替テキストを載せるよう勧めています。",
+    source: S.mobileFirst,
+  },
+  {
+    slug: "redirect-302",
+    term: "302リダイレクト",
+    aliases: ["一時的なリダイレクト", "temporary redirect", "307リダイレクト"],
+    category: "technical",
+    definition:
+      "302リダイレクトとは、アクセスを一時的に別のURLへ転送する指定で、Googleは検索結果にリダイレクト元のURLを表示し続けます。",
+    note: "URLを恒久的に移したのに302のままにすると、検索結果に古いURLが残ります。移転なら301か308を使います。",
+    seeAlso: [{ href: "/glossary#redirect-301", label: "301リダイレクト" }],
+    source: S.redirects,
   },
   // ---------------------------------------------------------------- コンテンツ
   {
@@ -935,7 +1034,7 @@ export const GLOSSARY: GlossaryTerm[] = [
 ];
 
 export const GLOSSARY_PATH = "/glossary";
-export const GLOSSARY_UPDATED = "2026-09-13";
+export const GLOSSARY_UPDATED = "2026-09-29";
 export const GLOSSARY_PUBLISHED = "2026-08-31";
 
 export function termsByCategory(key: GlossaryCategoryKey): GlossaryTerm[] {

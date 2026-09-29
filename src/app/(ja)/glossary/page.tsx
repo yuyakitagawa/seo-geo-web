@@ -17,7 +17,8 @@ import {
 } from "@/lib/glossary";
 import { siblingPages } from "@/lib/nav";
 
-const TITLE = `SEO・GEO用語集（${GLOSSARY.length}語）`;
+// 「seo用語集」で表示が出ている（GSC 2026-09）ので、title はその語から始める。H1 は SEO・GEO のまま。
+const TITLE = `SEO用語集（${GLOSSARY.length}語）｜GEO・AI検索の用語まで公式ドキュメントで解説`;
 const DESCRIPTION =
   "SEOとGEO（生成AI検索最適化）の用語を、1語ずつ1文の定義と一次情報のリンク付きで整理した用語集。クロール・インデックス・構造化データからAI Overview・AIクローラー・llms.txtまで、Google検索セントラルとweb.devの公式ドキュメントを出典にしています。";
 
