@@ -1,0 +1,146 @@
+---
+title: AI Overviewに引用される記事構成とは。公式ドキュメントが示す技術要件と手順
+description: AI Overviewsに引用されるための書き方をGoogle公式ドキュメントから整理。特別な構成は不要で、通常のSEO要件を満たす手順を解説する。
+date: '2026-09-29'
+category: geo
+type: howto
+tags:
+  - AI Overview
+  - GEO
+  - query fan-out
+  - 構造化データ
+  - プレビューコントロール
+audience: 全サイト（EC・メディア・店舗集客・BtoBサイト）
+actions:
+  - 対象ページがスニペット付きで検索結果に表示されているか確認する
+  - 構造化データと本文の表示内容が一致しているか点検する
+  - noindexやnosnippetが意図せず残っていないか洗い出す
+  - Search Consoleの検索パフォーマンスレポートでWeb検索タイプの数値を見る
+sources:
+  - title: >-
+      Top ways to ensure your content performs well in Google's AI experiences
+      on Search
+    url: 'https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search'
+  - title: AI features and your website
+    url: 'https://developers.google.com/search/docs/appearance/ai-features'
+draft: true
+id: 91
+---
+## 結論
+
+AI Overviewsに引用されるための専用の記事構成は無く、通常のSEO要件を満たすページが対象になります。
+Google公式ドキュメントは「AI Overviewsに出るための追加要件や特別な最適化は無い」と明言しています。
+AI Overview対策としてFAQ用の特別なHTMLブロックや専用の構造化データを新設する作業は、根拠が無いため今日でやめるべきです。
+
+## AI OverviewsとAI Modeの違い
+
+AI Overviewsは検索結果の上部に表示される生成AIの要約機能で、AI Modeは対話形式で深く探索できる検索モードです。
+どちらも「クエリファンアウト」という手法を使う場合があり、1つの質問に対して複数の関連検索を裏側で実行して回答を組み立てます。
+この処理によって、通常の検索結果より幅広く多様なリンクが提示される場合があります。
+
+<FigureCompare
+  title="AI OverviewsとAI Modeの役割の違い"
+  caption="Google Search Central「AI features and your website」の記載にもとづく"
+  cols={[
+    { label: "AI Overviews", tone: "geo", points: ["複雑な質問の要点を素早く提示する", "リンクを探索の入り口として示す", "通常の検索結果に追加効果がある場合だけ表示される"] },
+    { label: "AI Mode", tone: "accent", points: ["探索・比較など複雑な質問に向く", "複数回の検索が要る質問を1回で処理する", "クエリファンアウトで関連検索を複数実行する"] },
+  ]}
+/>
+
+AI Overviewsは常に表示されるわけではありません。
+公式ドキュメントは「通常のSearchに対して追加の価値がある場合にのみ表示され、しばしば表示されない」と説明しています。
+1回の検索で出なかったからといって、そのページがAI Overviews非対応と判断するのは早計です。
+
+## なぜ特別な書き方が要らないのか
+
+AI Overviewsに引用されるページの技術要件は、通常の検索結果に表示される要件と同じです。
+インデックスされ、スニペット付きで表示できる状態であれば、追加の技術要件は課されていません。
+
+<FigureQuote
+  text="There are no additional requirements to appear in AI Overviews or AI Mode, nor other special optimizations necessary."
+  source="Google Search Central「AI features and your website」（最終更新2025年12月10日）"
+/>
+
+日本語で言えば「AI Overviewsに出るための追加要件も、特別な最適化も無い」という意味です。
+新しいmachine readableファイルやAI専用のテキストファイル、専用のschema.orgマークアップを作る必要も無いと明記されています。
+既存のSEOの基本を積み上げることが、そのままAI Overviews対策になります。
+
+## 手順
+
+<FigureFlow
+  title="AI Overviewsに引用されるための点検フロー"
+  steps={[
+    { label: "技術要件を確認", desc: "ページがインデックスされ、スニペット付きで表示可能か" },
+    { label: "クロール許可を確認", desc: "robots.txtとCDN・ホスティング側でGooglebotをブロックしていないか" },
+    { label: "内部リンクを整備", desc: "サイト内リンクからページを発見しやすくする" },
+    { label: "ページ体験を整える", desc: "表示速度とレイアウト、主要コンテンツの見つけやすさ" },
+    { label: "本文をテキストで用意", desc: "画像・動画は補強として使う" },
+    { label: "構造化データを一致させる", desc: "マークアップと画面表示の内容を揃える" },
+    { label: "プレビューコントロールを決める", desc: "nosnippet・noindexで表示範囲を意図どおりにする" },
+    { label: "Search Consoleで確認", desc: "検索パフォーマンスレポートのWeb検索タイプで数値を見る" },
+  ]}
+/>
+
+手順1では、対象ページがSearch Consoleの検索パフォーマンスレポートに出てくる前に、まずインデックスされているかを見ます。
+手順2のrobots.txtの確認は、Googlebotへのクロール許可がAI Overviewsも含めた掲載可否を左右する唯一の入口だからです。
+
+手順6の構造化データの一致は、公式ドキュメントが繰り返し強調している項目です。
+例えばアウトドア用品を扱う通販サイトで、200点のSKUのうち15点(7.5%)でProductの構造化データが「在庫あり」のまま、実際の画面表示は「販売終了」になっているケースを想定します。
+この状態はガイドライン違反であり、通常の検索結果にもAI Overviewsの補助リンクにも悪い影響を与えかねません。
+
+手順7のプレビューコントロールは、意図せず残っているケースが目立ちます。
+例えば会計クラウドを提供するBtoB SaaSサイトで、料金ページなど5ページ中2ページにnoindexタグが移行時の設定ミスで残っていた、という状況もありえます。
+この場合はAI Overviewsどころか通常の検索結果からも除外されるため、優先度の高い点検項目です。
+
+[構造化データの記述ルール](/learn/writing)を本文と一致させる作業は、通常の検索結果向けのライティング手順と同じです。
+プレビューコントロールの設定は[スニペットの役割と対策](/learn/snippet)で扱う設定項目と重なります。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="AI Overviews対策として点検すべきこと"
+  dos={[
+    "技術要件(インデックス・スニペット表示可否)を満たす",
+    "本文をテキストで用意し、画像・動画で補強する",
+    "構造化データを画面表示の内容と一致させる",
+    "noindex・nosnippetの設定を意図どおりに保つ",
+  ]}
+  donts={[
+    "AI Overviews専用の新しいmachine readableファイルを作る",
+    "AI Overviews対策と称して専用のschema.orgマークアップを追加する",
+  ]}
+/>
+
+やらなくていいことの根拠は、公式ドキュメントの「新しいmachine readableファイルもAI専用テキストファイルもマークアップも不要」という一文です。
+専用の対策ファイルを作る工数は、通常のSEO点検に回した方が効果を見込めます。
+サイト規模が小さく人手が限られる店舗集客サイトほど、この判断は工数削減に直結します。
+
+## 計測と限界
+
+AI Overviewsの経由の流入もSearch Consoleの検索パフォーマンスレポートに含まれ、Web検索タイプの中で集計されます。
+[計測と改善サイクル](/learn/measurement)で扱う通常の計測手順が、AI Overviews分析にもそのまま使えます。
+
+Google公式は「AI Overviewsのある結果ページからのクリックは質が高く、サイト滞在時間が長くなりやすい」と述べています。
+ただしこれは公式ブログの観測であり、査読を経た第三者研究ではありません。
+自社サイトで同じ傾向が出るとは限らないため、Search Console上で自社のクリック単価や滞在時間の変化を個別に確認する必要があります。
+
+技術要件をすべて満たしても、Googleがそのページをクロール・インデックス・掲載する保証は無いと公式ドキュメントは明記しています。
+上記の手順をすべて実施しても、AI Overviewsに出るかどうかは確定しません。
+出なかった場合の原因切り分けは、通常の検索順位低下の調査と同じ手順で行います。
+
+## よくある質問
+
+### AI Overviewsに出やすくするための記事の文字数指定はありますか
+
+公式ドキュメントに文字数の指定はありません。
+本文が読める形のテキストとして存在し、通常の検索結果の技術要件を満たしていることだけが前提です。
+
+### FAQ用の構造化データを追加すればAI Overviewsに出やすくなりますか
+
+公式ドキュメントには専用のschema.orgマークアップを追加する必要が無いと明記されています。
+既存のFAQ構造化データがあっても、AI Overviewsへの掲載を保証するものではありません。
+
+### noindexを設定するとAI Overviewsにも出なくなりますか
+
+noindexを設定したページは通常の検索結果と同様、AI Overviewsの補助リンクにも表示されなくなります。
+プレビューコントロールの設定が意図どおりかは、URL検査ツールでGooglebotが受け取ったHTMLを確認して判断します。
