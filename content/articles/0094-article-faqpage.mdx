@@ -1,0 +1,171 @@
+---
+title: 構造化データ（Article）の入れ方とFAQPage廃止後の正しい判断基準
+description: >-
+  Article構造化データの入れ方とリッチリザルトが表示される条件を、Google公式ドキュメントの記載だけで解説する。FAQPageは2026年5月7日時点で表示が終了しており、実装の優先順位の付け方もあわせて整理する。
+date: '2026-10-02'
+category: seo
+type: howto
+tags:
+  - 構造化データ
+  - Article
+  - FAQPage
+  - リッチリザルト
+  - JSON-LD
+audience: ニュース記事・ブログ記事を公開する全サイト
+actions:
+  - 自社の記事ページにArticle構造化データが入っているかRich Results Testで確認する
+  - FAQPageマークアップを新規に実装する計画があれば止める
+  - authorプロパティにnameとurl（またはsameAs）を追加する
+sources:
+  - title: >-
+      Intro to How Structured Data Markup Works | Google Search Central |
+      Documentation | Google for Developers
+    url: >-
+      https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data
+  - title: >-
+      Learn About Article Schema Markup | Google Search Central | Documentation
+      | Google for Developers
+    url: >-
+      https://developers.google.com/search/docs/appearance/structured-data/article
+  - title: >-
+      Latest Google Search Documentation Updates | Google Search Central |
+      What's new | Google for Developers
+    url: >-
+      https://developers.google.com/search/docs/appearance/structured-data/faqpage
+draft: true
+id: 94
+---
+## 結論
+
+Article構造化データは記事の見出し・画像・日付をGoogleに伝えるマークアップです。
+
+必須項目はなく、当てはまる推奨項目を増やすほどリッチリザルトに出やすくなります。
+
+FAQPage構造化データは2026年5月7日からGoogle検索での表示が終了しており、今から新規実装しても画面には出ません。
+
+FAQPageを「とりあえず入れておく」対応を今日やめて、記事ページのArticleマークアップに工数を振り直すべきです。
+
+## 構造化データとは何か
+
+構造化データとは、ページの内容をGoogleが機械的に理解できるよう、決まった語彙と形式で説明する記述です。
+
+公式ドキュメントでは、構造化データを追加すると検索結果が通常より目立つ「リッチリザルト」になり得るとしています。
+
+Googleが公開する事例では、Rotten Tomatoesが10万ページに導入しクリック率25%向上、Food Networkはページの80%に機能を有効化し訪問数35%増加、Nestléはリッチリザルト表示ページで82%高いクリック率だったと報告しています。
+
+<FigureStats
+  title="Googleが公開する構造化データ導入事例の数値"
+  stats={[
+    { value: "25%", label: "Rotten Tomatoesのクリック率向上", note: "10万ページに導入" },
+    { value: "35%", label: "Food Networkの訪問数増加", note: "ページの80%に機能を有効化" },
+    { value: "82%", label: "Nestléのクリック率差", note: "リッチリザルト表示ページ対非表示ページ" },
+  ]}
+/>
+
+これらはGoogleが自社で紹介する事例で、第三者の検証実験ではありません。
+
+業種もコンテンツ量も異なるため同じ倍率が出るとは限らず、効果は後述の前後比較で自分のサイトごとに確認する必要があります。
+
+## FAQPageは今から入れても表示されない
+
+FAQPageのリッチリザルトはすでに終了した機能です。
+
+Google Search Centralのドキュメント更新履歴には次の記載があります。
+
+<FigureQuote
+  text="This feature will no longer appear in Google Search starting May 7, 2026."
+  source="Google Search Central ドキュメント更新履歴、2026年5月8日付「Deprecating the FAQ rich result feature」"
+/>
+
+日本語に訳すと「この機能は2026年5月7日以降、Google検索に表示されなくなる」という内容です。
+
+同履歴にはさらに、FAQPageの解説ページ自体が2026年6月に削除されたことも記録されています。
+
+理由として「FAQのリッチリザルト機能はGoogle検索結果にもう表示されない」とだけ書かれており、再開の予定には触れていません。
+
+FAQPage用のJSON-LDをサイトに残しても検索エラーにはなりませんが、表示には一切寄与しません。
+
+その工数は、Article構造化データの整備に回すほうが成果につながります。
+
+## 手順（Articleマークアップの入れ方）
+
+Articleの手順は、プロパティ追加からサイトマップ送信まで一本道で進められます。
+
+<FigureFlow
+  title="Article構造化データを公開するまでの手順"
+  steps={[
+    { label: "該当する推奨プロパティを追加", desc: "必須項目はないため、自社の記事に当てはまるものだけ入れる" },
+    { label: "ガイドラインに従う", desc: "Search Essentialsと構造化データ全般のガイドラインを確認する" },
+    { label: "Rich Results Testで検証", desc: "重大なエラーを修正する。軽微な警告は必須ではない" },
+    { label: "URL Inspectionツールで確認", desc: "robots.txtやnoindexでブロックされていないか見てから再クロールを依頼する" },
+    { label: "サイトマップを送信", desc: "更新を継続的にGoogleへ伝える" },
+  ]}
+/>
+
+Articleオブジェクトはschema.orgの`Article`・`NewsArticle`・`BlogPosting`のいずれかを土台にします。
+
+推奨プロパティはheadline（見出し）、image（画像）、author（著者）、datePublished・dateModified（公開日・更新日）です。
+
+imageはクロール可能で記事内容を表す画像を使い、ロゴやキャプション画像は避け、16x9・4x3・1x1の3種類のアスペクト比で複数用意することが推奨されています。
+
+authorは1人ずつ別のauthorフィールドに分け、1つのフィールドに複数人の名前をまとめてはいけません。
+
+author.nameには著者名だけを書き、肩書きや発行元名、敬称、「投稿者:」のような前置きは別プロパティに分離します。
+
+著者がPersonかOrganizationかに応じて型を正しく使い分け、urlかsameAsでプロフィールページを指定すると、Googleが著者を識別しやすくなります。
+
+たとえばニュースサイトが記者ごとに別々の執筆者ページURLをauthor.urlに指定すると、同姓同名の著者や外部寄稿者との混同を避けやすくなります。
+
+この手順は[テクニカルSEOの実装](/learn/technical)で扱うHTML・メタデータ整備の一部として進めると、robots.txtやnoindexによるブロック漏れも同時にチェックできます。
+
+## やること／やらなくていいこと
+
+<FigureDoDont
+  title="Article構造化データで優先すべきこと"
+  dos={[
+    "記事ページにheadline・image・authorをJSON-LDで入れる",
+    "authorにtype・name・url（またはsameAs）を入れる",
+    "公開後にRich Results Testと検索パフォーマンスレポートで確認する",
+  ]}
+  donts={[
+    "FAQPageを新規に実装する",
+    "本文に表示されていない情報をマークアップだけに書く",
+    "空白ページを構造化データ保持のためだけに作る",
+  ]}
+/>
+
+やることの基準は「記事ページとして公開済みの情報を、JSON-LDでもう一度記述するだけ」に絞ることです。
+
+本文に無い説明や画像を構造化データ側にだけ足す行為は、公式ドキュメントが明示的に禁止しています。
+
+更新頻度が低い固定ページ（会社概要や問い合わせページなど）にArticleを入れる工数対効果は低く、記事・コラム・プレスリリースのように継続公開するページから着手するのが妥当です。
+
+例えばBtoBサイトが月2〜3本の導入事例記事を出している場合、まず導入事例ページだけにArticleを入れ、サービス紹介の固定ページは後回しにする判断ができます。
+
+ECサイトのオウンドメディアで、商品レビュー記事を日次で公開しているなら、画像とauthorの整備を先に終わらせ、datePublishedの時刻精度は後回しにしてよい、という優先順位も立てられます。
+
+実装状況の一次チェックには[ページ診断ツール](/tools/page-audit)でURLを入れ、マークアップの有無とエラーを確認できます。
+
+リッチリザルトとして検索結果に出るかどうかは、構造化データが正しくてもGoogleが保証するものではない、とドキュメントに明記されています。
+
+出なかった場合は、まず[Search Consoleの使い方](/articles/36)で表示状況を確認し、構造化データエラーの一覧や解析不能な構造化データのレポートを見る、という切り分けが必要です。
+
+## よくある質問
+
+### JSON-LD・Microdata・RDFaはどれを選べばいいですか
+
+Googleは3形式すべてを同等に扱いますが、実装と保守のしやすさからJSON-LDを推奨しています。
+
+JavaScriptで動的に生成する場合もJSON-LDならGoogleが読み取れます。
+
+### Rich Results Testでエラーが出ない記事がリッチリザルトに出ないのはなぜですか
+
+構造化データが有効でも、Googleはリッチリザルト表示を保証していません。
+
+検索パフォーマンスレポートで経過を見ながら、ページ単位でURL Inspectionツールの状態を確認する必要があります。
+
+### 構造化データの効果はどれくらいで分かりますか
+
+数か月単位の観察が必要です。
+
+季節性や時事性の影響を受けにくい人気ページを選び、導入前後の数か月分をSearch Consoleのパフォーマンスレポートで比較する方法が案内されています。
