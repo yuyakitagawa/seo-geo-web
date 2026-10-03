@@ -32,14 +32,14 @@ sources:
       What's new | Google for Developers
     url: >-
       https://developers.google.com/search/docs/appearance/structured-data/faqpage
-draft: true
+draft: false
 id: 94
 ---
 ## 結論
 
 Article構造化データは記事の見出し・画像・日付をGoogleに伝えるマークアップです。
 
-必須項目はなく、当てはまる推奨項目を増やすほどリッチリザルトに出やすくなります。
+必須項目はなく、公式ドキュメントは自分の記事に当てはまる推奨項目をできるだけ多く入れるよう勧めています。
 
 FAQPage構造化データは2026年5月7日からGoogle検索での表示が終了しており、今から新規実装しても画面には出ません。
 
@@ -83,7 +83,7 @@ Google Search Centralのドキュメント更新履歴には次の記載があ�
 
 理由として「FAQのリッチリザルト機能はGoogle検索結果にもう表示されない」とだけ書かれており、再開の予定には触れていません。
 
-FAQPage用のJSON-LDをサイトに残しても検索エラーにはなりませんが、表示には一切寄与しません。
+FAQPage用のJSON-LDをサイトに残しても、FAQのリッチリザルトとして表示されることはもうありません。
 
 その工数は、Article構造化データの整備に回すほうが成果につながります。
 
@@ -96,7 +96,7 @@ Articleの手順は、プロパティ追加からサイトマップ送信まで�
   steps={[
     { label: "該当する推奨プロパティを追加", desc: "必須項目はないため、自社の記事に当てはまるものだけ入れる" },
     { label: "ガイドラインに従う", desc: "Search Essentialsと構造化データ全般のガイドラインを確認する" },
-    { label: "Rich Results Testで検証", desc: "重大なエラーを修正する。軽微な警告は必須ではない" },
+    { label: "Rich Results Testで検証", desc: "重大なエラーを修正する。重大でない指摘も直すことを検討する" },
     { label: "URL Inspectionツールで確認", desc: "robots.txtやnoindexでブロックされていないか見てから再クロールを依頼する" },
     { label: "サイトマップを送信", desc: "更新を継続的にGoogleへ伝える" },
   ]}
@@ -144,7 +144,7 @@ author.nameには著者名だけを書き、肩書きや発行元名、敬称、
 
 ECサイトのオウンドメディアで、商品レビュー記事を日次で公開しているなら、画像とauthorの整備を先に終わらせ、datePublishedの時刻精度は後回しにしてよい、という優先順位も立てられます。
 
-実装状況の一次チェックには[ページ診断ツール](/tools/page-audit)でURLを入れ、マークアップの有無とエラーを確認できます。
+実装状況の一次チェックには[ページ診断ツール](/tools/page-audit)でURLを入れると、JSON-LDの有無と構文の壊れを確認できます。
 
 リッチリザルトとして検索結果に出るかどうかは、構造化データが正しくてもGoogleが保証するものではない、とドキュメントに明記されています。
 
