@@ -9,16 +9,10 @@
   // ダッシュボードで入れた実行時の変数（SUPABASE_* など）を、Git からのデプロイで消さない。
   // これが無いと wrangler deploy が設定ファイルに無い変数を削除する（2026-09-28、マージ直後の本番デプロイで消えた）
   "keep_vars": true,
-  // Workers Logs（Observability）に /api/* の実行ログと CPU 時間を残す。無料枠は 1日20万件で、ページ配信は Worker を通らないので数えない
+  // Workers Logs（Observability）。閉鎖後は全リクエストが Worker を通る（Workers Free は1日10万リクエストまで。超えるとその日はエラーを返すだけで課金はされない）
   "observability": { "enabled": true },
   // ブランチの push は `wrangler preview` でプレビューを出す。このブロックが無いとそのコマンドが落ちる（中身は空でよい）
   "previews": {},
-  "assets": {
-    "directory": "./out",
-    "binding": "ASSETS",
-    // /api/* だけ Worker を通す。ページ配信は Worker を起動しない（CPU時間も回数も使わない）
-    "run_worker_first": ["/api/*"],
-    "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
-  }
+  // 2026-10-25 にサイトを閉鎖した。全URLを worker/index.ts が 410 で返すので、out/ の静的ファイルは配信しない。
+  // 再開するときは閉鎖前のコミットの assets ブロック（out/ を配信・/api/* だけ Worker）に戻す
 }
