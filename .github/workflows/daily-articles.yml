@@ -3,9 +3,8 @@
 # draft:true のためサイトには出ない。一次情報との照合・加筆を人が行い、draft:false にしたコミットで公開する。
 name: daily-articles
 
+# 2026-10-25 にサイトを閉鎖したので定期実行（schedule）を外した。手動実行だけ残す。
 on:
-  schedule:
-    - cron: "0 22 * * *" # 22:00 UTC = 07:00 JST
   workflow_dispatch:
     inputs:
       count:
